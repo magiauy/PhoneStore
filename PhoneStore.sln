@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneStoreAdminApp", "PhoneStoreAdminApp\PhoneStoreAdminApp.csproj", "{2A256158-9BB8-4E6D-B597-EEA15C041571}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneStoreUserWebApp", "PhoneStoreUserWebApp\PhoneStoreUserWebApp\PhoneStoreUserWebApp.csproj", "{D6084630-3026-4AEB-9727-B777A384E15E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2A256158-9BB8-4E6D-B597-EEA15C041571}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A256158-9BB8-4E6D-B597-EEA15C041571}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A256158-9BB8-4E6D-B597-EEA15C041571}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A256158-9BB8-4E6D-B597-EEA15C041571}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6084630-3026-4AEB-9727-B777A384E15E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6084630-3026-4AEB-9727-B777A384E15E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6084630-3026-4AEB-9727-B777A384E15E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6084630-3026-4AEB-9727-B777A384E15E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
