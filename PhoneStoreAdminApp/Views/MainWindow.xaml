@@ -1,0 +1,10 @@
+<Window x:Class="PhoneStoreAdminApp.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Phone Store Admin" Height="450" Width="800">
+    <Grid>
+        <Button x:Name="TestDbButton" Content="Test Database Connection" 
+                HorizontalAlignment="Center" VerticalAlignment="Center" 
+                Width="200" Height="40" Click="TestDbButton_Click"/>
+    </Grid>
+</Window>
