@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "PhoneStoreAdmin (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "PhoneStoreAdmin (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
