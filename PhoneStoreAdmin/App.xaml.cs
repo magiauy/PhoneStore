@@ -34,7 +34,7 @@ namespace PhoneStoreAdmin
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
-        /// </summary>
+        /// </summary>        
         public App()
         {
             this.InitializeComponent();
@@ -44,7 +44,7 @@ namespace PhoneStoreAdmin
 
             // Force Light Mode for the entire application
             this.RequestedTheme = ApplicationTheme.Light;
-            ApplicationLanguages.PrimaryLanguageOverride = "vi-VN";
+            ApplicationLanguages.PrimaryLanguageOverride = "en-US";
         }
 
         /// <summary>

@@ -94,16 +94,10 @@
                                          BorderBrush="{ThemeResource ControlElevationBorderBrush}"
                                          Background="{ThemeResource ControlFillColorDefaultBrush}"
                                          PasswordRevealMode="Peek"
+                                            KeyDown="PasswordTextBox_KeyDown"
                                          PasswordChanged="PasswordTextBox_PasswordChanged"
                                          MaxLength="100"/>
                         </StackPanel>
-
-                        <!-- Remember Me -->
-                        <CheckBox x:Uid="RememberMe"
-                                  x:Name="RememberMeCheckBox"
-                                  FontSize="14"
-                                  Margin="0,4,0,0"/>
-
                         <!-- Sign In -->
                         <Button x:Uid="SignIn"
                                 x:Name="LoginButton"
@@ -134,9 +128,9 @@
                                     <TextBlock x:Name="LoginButtonText"/>
                                 </StackPanel>
                             </Button.Content>
-                            <Button.KeyboardAccelerators>
+                            <!-- <Button.KeyboardAccelerators>
                                 <KeyboardAccelerator Key="Enter"/>
-                            </Button.KeyboardAccelerators>
+                            </Button.KeyboardAccelerators> -->
                         </Button>
                     </StackPanel>
 

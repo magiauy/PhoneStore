@@ -55,4 +55,7 @@
     <Color x:Key="ColorError">#FFE53935</Color>
     <SolidColorBrush x:Key="BrushError" Color="{StaticResource ColorError}" />
 
+    <Color x:Key="ColorInfo">#FF2196F3</Color>
+    <SolidColorBrush x:Key="BrushInfo" Color="{StaticResource ColorInfo}" />
+
 </ResourceDictionary>
