@@ -7,42 +7,139 @@ namespace PhoneStoreAdmin.Models
 {
     public class Product
     {
-        public int Id { get; set; }
+        // Private backing fields
+        private int _id;
+        private string _sku = string.Empty;
+        private string _name = string.Empty;
+        private int _categoryId;
+        private int? _brandId;
+        private decimal _price = 0;
+        private decimal _cost = 0;
+        private bool _isSerialTracked = false;
+        private int _warrantyMonths = 12;
+        private ProductStatus _status = ProductStatus.active;
+        private DateTime _createdAt;
+        private ICollection<ProductAttributeValue> _productAttributeValues = new List<ProductAttributeValue>();
+
+        // Public properties with backing fields
+        public int Id
+        {
+            get => _id;
+            set => _id = value;
+        }
 
         [Required]
         [MaxLength(50)]
-        public string Sku { get; set; } = string.Empty;
+        public string Sku
+        {
+            get => _sku;
+            set => _sku = value ?? string.Empty;
+        }
 
         [Required]
         [MaxLength(200)]
-        public string Name { get; set; } = string.Empty;
+        public string Name
+        {
+            get => _name;
+            set => _name = value ?? string.Empty;
+        }
 
         [Required]
-        public int CategoryId { get; set; }
+        public int CategoryId
+        {
+            get => _categoryId;
+            set => _categoryId = value;
+        }
 
-        public int? BrandId { get; set; }
+        public int? BrandId
+        {
+            get => _brandId;
+            set => _brandId = value;
+        }
 
         [Required]
         [Range(0, double.MaxValue)]
-        public decimal Price { get; set; } = 0;
+        public decimal Price
+        {
+            get => _price;
+            set => _price = value;
+        }
 
         [Required]
         [Range(0, double.MaxValue)]
-        public decimal Cost { get; set; } = 0;
+        public decimal Cost
+        {
+            get => _cost;
+            set => _cost = value;
+        }
 
         [Required]
-        public bool IsSerialTracked { get; set; } = false;
+        public bool IsSerialTracked
+        {
+            get => _isSerialTracked;
+            set => _isSerialTracked = value;
+        }
 
         [Required]
         [Range(0, 240)]
-        public int WarrantyMonths { get; set; } = 12;
+        public int WarrantyMonths
+        {
+            get => _warrantyMonths;
+            set => _warrantyMonths = value;
+        }
 
         [Required]
-        public ProductStatus Status { get; set; } = ProductStatus.active;
+        public ProductStatus Status
+        {
+            get => _status;
+            set => _status = value;
+        }
 
         [Required]
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt
+        {
+            get => _createdAt;
+            set => _createdAt = value;
+        }
+
         // Navigation: product has many attribute values
-        public ICollection<ProductAttributeValue> ProductAttributeValues { get; set; } = new List<ProductAttributeValue>();
+        public ICollection<ProductAttributeValue> ProductAttributeValues
+        {
+            get => _productAttributeValues;
+            set => _productAttributeValues = value ?? new List<ProductAttributeValue>();
+        }
+
+        // Constructors
+        public Product()
+        {
+            _id = 0;
+            _sku = string.Empty;
+            _name = string.Empty;
+            _categoryId = 0;
+            _brandId = null;
+            _price = 0;
+            _cost = 0;
+            _isSerialTracked = false;
+            _warrantyMonths = 12;
+            _status = ProductStatus.active;
+            _createdAt = DateTime.UtcNow;
+            _productAttributeValues = new List<ProductAttributeValue>();
+        }
+
+        public Product(string sku, string name, int categoryId, decimal price)
+        {
+            _id = 0;
+            _sku = sku ?? string.Empty;
+            _name = name ?? string.Empty;
+            _categoryId = categoryId;
+            _brandId = null;
+            _price = price;
+            _cost = 0;
+            _isSerialTracked = false;
+            _warrantyMonths = 12;
+            _status = ProductStatus.active;
+            _createdAt = DateTime.UtcNow;
+            _productAttributeValues = new List<ProductAttributeValue>();
+        }
     }
 }
