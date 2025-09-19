@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Shapes;
+using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Utils;
@@ -15,9 +16,13 @@ namespace PhoneStoreAdmin
 {
     public sealed partial class LoginWindow : Window
     {
+        private readonly ResourceLoader _resourceLoader;
+
         public LoginWindow()
         {
             this.InitializeComponent();
+            _resourceLoader = new ResourceLoader();
+
             // Set window properties for a modern look
             this.ExtendsContentIntoTitleBar = true;
             this.SetTitleBar(null); // Hide default title bar for cleaner look
@@ -41,13 +46,19 @@ namespace PhoneStoreAdmin
 
             if (string.IsNullOrWhiteSpace(UsernameTextBox.Text))
             {
-                ShowErrorOnField(UsernameTextBox, "Please enter your username.");
+                try
+                {
+                    ShowErrorOnField(UsernameTextBox, _resourceLoader.GetString("ErrorUsernameRequired/Text"));
+                }catch (Exception ex)
+                {
+                    Logger.Error($"Error showing error dialog: {ex.Message}");
+                }
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(PasswordTextBox.Password))
             {
-                ShowErrorOnField(PasswordTextBox, "Please enter your password.");
+                ShowErrorOnField(PasswordTextBox, _resourceLoader.GetString("ErrorPasswordRequired/Text"));
                 return;
             }
 
@@ -78,8 +89,8 @@ namespace PhoneStoreAdmin
                 {
                     Logger.LogAuth(UsernameTextBox.Text, false);
                     Logger.Warning("Authentication failed - invalid credentials");
-                    
-                    ShowErrorOnField(UsernameTextBox, "Invalid username or password. Please try again.");
+
+                    ShowErrorOnField(UsernameTextBox, _resourceLoader.GetString("ErrorInvalidCredentials/Text"));
                     PasswordTextBox.Password = string.Empty;
                     
                     // Shake animation for failed login
@@ -89,7 +100,7 @@ namespace PhoneStoreAdmin
             catch (Exception ex)
             {
                 Logger.Error($"Login failed for user {UsernameTextBox.Text}", ex);
-                ShowErrorOnField(UsernameTextBox, $"Login failed: {ex.Message}");
+                ShowErrorOnField(UsernameTextBox, string.Format(_resourceLoader.GetString("ErrorLoginFailed/Text"), ex.Message));
                 await AnimateLoginFailure();
             }
             finally
@@ -210,7 +221,7 @@ namespace PhoneStoreAdmin
             // Title text
             var titleText = new TextBlock 
             { 
-                Text = "Welcome to GuZone!",
+                Text = _resourceLoader.GetString("SuccessTitle/Text"),
                 FontSize = 20,
                 FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
                 TextAlignment = TextAlignment.Center,
@@ -222,7 +233,7 @@ namespace PhoneStoreAdmin
             // Description text
             var descText = new TextBlock 
             { 
-                Text = "You have successfully signed in to your account.",
+                Text = _resourceLoader.GetString("SuccessDescription/Text"),
                 FontSize = 14,
                 TextWrapping = TextWrapping.Wrap,
                 TextAlignment = TextAlignment.Center,
@@ -240,7 +251,7 @@ namespace PhoneStoreAdmin
             var dialog = new ContentDialog()
             {
                 Content = contentGrid,
-                PrimaryButtonText = "Continue",
+                PrimaryButtonText = _resourceLoader.GetString("ContinueButton/Content"),
                 XamlRoot = this.Content.XamlRoot,
                 DefaultButton = ContentDialogButton.Primary
             };
@@ -343,13 +354,13 @@ namespace PhoneStoreAdmin
             {
                 LoginProgressRing.IsActive = true;
                 LoginProgressRing.Visibility = Visibility.Visible;
-                LoginButtonText.Text = "Signing In...";
+                LoginButtonText.Text = _resourceLoader.GetString("SigningIn/Text");
             }
             else
             {
                 LoginProgressRing.IsActive = false;
                 LoginProgressRing.Visibility = Visibility.Collapsed;
-                LoginButtonText.Text = "Sign In";
+                LoginButtonText.Text = _resourceLoader.GetString("SignIn/Content");
             }
             
         }
@@ -388,7 +399,7 @@ namespace PhoneStoreAdmin
             // Show error dialog
             var dialog = new ContentDialog()
             {
-                Title = "Input Error",
+                Title = _resourceLoader.GetString("ErrorInputTitle/Text"),
                 Content = new StackPanel
                 {
                     Spacing = 12,
@@ -413,7 +424,7 @@ namespace PhoneStoreAdmin
         {
             var dialog = new ContentDialog()
             {
-                Title = "Reset Password",
+                Title = _resourceLoader.GetString("ResetPasswordTitle/Text"),
                 Content = new StackPanel
                 {
                     Spacing = 12,
@@ -421,18 +432,18 @@ namespace PhoneStoreAdmin
                     {
                         new TextBlock 
                         { 
-                            Text = "Enter your email address and we'll send you a link to reset your password.",
+                            Text = _resourceLoader.GetString("ResetPasswordInstruction/Text"),
                             TextWrapping = TextWrapping.Wrap
                         },
                         new TextBox 
                         { 
-                            PlaceholderText = "Enter your email address",
-                            Header = "Email Address"
+                            PlaceholderText = _resourceLoader.GetString("EmailPlaceholder/PlaceholderText"),
+                            Header = _resourceLoader.GetString("EmailHeader/Text")
                         }
                     }
                 },
-                PrimaryButtonText = "Send Reset Link",
-                CloseButtonText = "Cancel",
+                PrimaryButtonText = _resourceLoader.GetString("ResetLinkButton/Content"),
+                CloseButtonText = _resourceLoader.GetString("CancelButton/Content"),
                 XamlRoot = this.Content.XamlRoot
             };
 
@@ -443,7 +454,7 @@ namespace PhoneStoreAdmin
                 var infoDialog = new ContentDialog()
                 {
                     Title = "Feature Coming Soon",
-                    Content = "Password reset functionality will be implemented soon.",
+                    Content = _resourceLoader.GetString("FeatureComingSoon/Text"),
                     CloseButtonText = "OK",
                     XamlRoot = this.Content.XamlRoot
                 };
@@ -455,7 +466,7 @@ namespace PhoneStoreAdmin
         {
             var dialog = new ContentDialog()
             {
-                Title = "Create New Account",
+                Title = _resourceLoader.GetString("SignUpTitle/Text"),
                 Content = new StackPanel
                 {
                     Spacing = 16,
@@ -463,18 +474,18 @@ namespace PhoneStoreAdmin
                     {
                         new TextBlock 
                         { 
-                            Text = "Account registration is currently handled by system administrators.",
+                            Text = _resourceLoader.GetString("SignUpMessage1/Text"),
                             TextWrapping = TextWrapping.Wrap
                         },
                         new TextBlock 
                         { 
-                            Text = "Please contact your IT administrator to request a new account.",
+                            Text = _resourceLoader.GetString("SignUpMessage2/Text"),
                             TextWrapping = TextWrapping.Wrap,
                             FontWeight = Microsoft.UI.Text.FontWeights.Medium
                         },
                         new TextBlock 
                         { 
-                            Text = "📧 Email: admin@phonestore.com\n📞 Phone: +1 (555) 123-4567",
+                            Text = _resourceLoader.GetString("SignUpMessage3/Text"),
                             TextWrapping = TextWrapping.Wrap,
                             FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas")
                         }
