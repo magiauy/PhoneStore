@@ -12,7 +12,7 @@ namespace PhoneStoreAdmin.Models
         private string? _imei1;
         private string? _imei2;
         private int _batchProductId;
-        private SerialStatus _status = SerialStatus.in_stock;
+        private SerialStatus _status = SerialStatus.IN_STOCK;
         private int? _purchaseOrderLineId;
         private string? _note;
 
@@ -87,7 +87,7 @@ namespace PhoneStoreAdmin.Models
             _imei1 = null;
             _imei2 = null;
             _batchProductId = 0;
-            _status = SerialStatus.in_stock;
+            _status = SerialStatus.IN_STOCK;
             _purchaseOrderLineId = null;
             _note = null;
         }
@@ -100,7 +100,7 @@ namespace PhoneStoreAdmin.Models
             _imei1 = null;
             _imei2 = null;
             _batchProductId = batchProductId;
-            _status = SerialStatus.in_stock;
+            _status = SerialStatus.IN_STOCK;
             _purchaseOrderLineId = null;
             _note = null;
         }

@@ -8,7 +8,7 @@ namespace PhoneStoreAdmin.Models
         // Private backing fields
         private int _id;
         private string _name = string.Empty;
-        private AttributeDataType _dataType = AttributeDataType.text;
+        private AttributeDataType _dataType = AttributeDataType.TEXT;
         private string? _note;
 
         // Public properties with backing fields
@@ -45,11 +45,11 @@ namespace PhoneStoreAdmin.Models
         {
             _id = 0;
             _name = string.Empty;
-            _dataType = AttributeDataType.text;
+            _dataType = AttributeDataType.TEXT;
             _note = null;
         }
 
-        public ProductAttribute(string name, AttributeDataType dataType = AttributeDataType.text)
+        public ProductAttribute(string name, AttributeDataType dataType = AttributeDataType.TEXT)
         {
             _id = 0;
             _name = name ?? string.Empty;

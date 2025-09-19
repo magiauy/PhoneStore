@@ -13,11 +13,11 @@ namespace PhoneStoreAdmin.Models
         private int? _promotionCodeId;
         private int _createdBy;
         private DateTime _invoiceDate;
-        private InvoiceStatus _status = InvoiceStatus.unpaid;
+        private InvoiceStatus _status = InvoiceStatus.UNPAID;
         private decimal _totalAmount = 0;
         private decimal _discountAmount = 0;
         private decimal _finalAmount = 0;
-        private PaymentMethod _paymentMethod = PaymentMethod.cash;
+        private PaymentMethod _paymentMethod = PaymentMethod.CASH;
         private string? _note;
         private ICollection<InvoiceLine> _invoiceLines = new List<InvoiceLine>();
 
@@ -114,11 +114,11 @@ namespace PhoneStoreAdmin.Models
             _promotionCodeId = null;
             _createdBy = 0;
             _invoiceDate = DateTime.UtcNow;
-            _status = InvoiceStatus.unpaid;
+            _status = InvoiceStatus.UNPAID;
             _totalAmount = 0;
             _discountAmount = 0;
             _finalAmount = 0;
-            _paymentMethod = PaymentMethod.cash;
+            _paymentMethod = PaymentMethod.CASH;
             _note = null;
             _invoiceLines = new List<InvoiceLine>();
         }
@@ -130,11 +130,11 @@ namespace PhoneStoreAdmin.Models
             _promotionCodeId = null;
             _createdBy = createdBy;
             _invoiceDate = invoiceDate;
-            _status = InvoiceStatus.unpaid;
+            _status = InvoiceStatus.UNPAID;
             _totalAmount = 0;
             _discountAmount = 0;
             _finalAmount = 0;
-            _paymentMethod = PaymentMethod.cash;
+            _paymentMethod = PaymentMethod.CASH;
             _note = null;
             _invoiceLines = new List<InvoiceLine>();
         }

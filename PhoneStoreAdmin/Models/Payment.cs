@@ -72,7 +72,7 @@ namespace PhoneStoreAdmin.Models
             _invoiceId = 0;
             _paymentDate = DateTime.UtcNow;
             _amount = 0;
-            _method = PaymentMethod.cash;
+            _method = PaymentMethod.CASH;
             _referenceNo = null;
             _note = null;
         }
