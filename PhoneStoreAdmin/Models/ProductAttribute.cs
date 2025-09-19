@@ -5,16 +5,56 @@ namespace PhoneStoreAdmin.Models
 {
     public class ProductAttribute
     {
-        public int Id { get; set; }
+        // Private backing fields
+        private int _id;
+        private string _name = string.Empty;
+        private AttributeDataType _dataType = AttributeDataType.text;
+        private string? _note;
+
+        // Public properties with backing fields
+        public int Id
+        {
+            get => _id;
+            set => _id = value;
+        }
 
         [Required]
         [MaxLength(80)]
-        public string Name { get; set; } = string.Empty;
+        public string Name
+        {
+            get => _name;
+            set => _name = value ?? string.Empty;
+        }
 
         [Required]
-        public AttributeDataType DataType { get; set; } = AttributeDataType.text;
+        public AttributeDataType DataType
+        {
+            get => _dataType;
+            set => _dataType = value;
+        }
 
         [MaxLength(255)]
-        public string? Note { get; set; }
+        public string? Note
+        {
+            get => _note;
+            set => _note = value;
+        }
+
+        // Constructors
+        public ProductAttribute()
+        {
+            _id = 0;
+            _name = string.Empty;
+            _dataType = AttributeDataType.text;
+            _note = null;
+        }
+
+        public ProductAttribute(string name, AttributeDataType dataType = AttributeDataType.text)
+        {
+            _id = 0;
+            _name = name ?? string.Empty;
+            _dataType = dataType;
+            _note = null;
+        }
     }
 }

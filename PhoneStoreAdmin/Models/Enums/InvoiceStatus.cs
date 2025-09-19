@@ -2,9 +2,9 @@ namespace PhoneStoreAdmin.Models.Enums
 {
     public enum InvoiceStatus
     {
-        unpaid,
-        paid,
-        refunded,
-        cancelled
+        UNPAID,
+        PAID,
+        REFUNDED,
+        CANCELLED
     }
 }

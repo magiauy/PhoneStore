@@ -2,9 +2,9 @@ namespace PhoneStoreAdmin.Models.Enums
 {
     public enum PaymentMethod
     {
-        cash,
-        card,
-        bank,
-        ewallet
+        CASH,
+        CARD,
+        BANK,
+        EWALLET
     }
 }
