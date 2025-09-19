@@ -12,7 +12,7 @@ namespace PhoneStoreAdmin.Models
         private int _supplierId;
         private int _createdBy;
         private DateTime _orderDate;
-        private PoStatus _status = PoStatus.draft;
+        private PoStatus _status = PoStatus.DRAFT;
         private decimal _totalAmount = 0;
         private string? _note;
         private ICollection<PurchaseOrderLine> _purchaseOrderLines = new List<PurchaseOrderLine>();
@@ -81,7 +81,7 @@ namespace PhoneStoreAdmin.Models
             _supplierId = 0;
             _createdBy = 0;
             _orderDate = DateTime.Now;
-            _status = PoStatus.draft;
+            _status = PoStatus.DRAFT;
             _totalAmount = 0;
             _note = null;
             _purchaseOrderLines = new List<PurchaseOrderLine>();
@@ -93,7 +93,7 @@ namespace PhoneStoreAdmin.Models
             _supplierId = supplierId;
             _createdBy = createdBy;
             _orderDate = DateTime.Now;
-            _status = PoStatus.draft;
+            _status = PoStatus.DRAFT;
             _totalAmount = 0;
             _note = null;
             _purchaseOrderLines = new List<PurchaseOrderLine>();

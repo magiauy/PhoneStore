@@ -17,7 +17,7 @@ namespace PhoneStoreAdmin.Models
         private decimal _cost = 0;
         private bool _isSerialTracked = false;
         private int _warrantyMonths = 12;
-        private ProductStatus _status = ProductStatus.active;
+        private ProductStatus _status = ProductStatus.ACTIVE;
         private DateTime _createdAt;
         private ICollection<ProductAttributeValue> _productAttributeValues = new List<ProductAttributeValue>();
 
@@ -121,7 +121,7 @@ namespace PhoneStoreAdmin.Models
             _cost = 0;
             _isSerialTracked = false;
             _warrantyMonths = 12;
-            _status = ProductStatus.active;
+            _status = ProductStatus.ACTIVE;
             _createdAt = DateTime.UtcNow;
             _productAttributeValues = new List<ProductAttributeValue>();
         }
@@ -137,7 +137,7 @@ namespace PhoneStoreAdmin.Models
             _cost = 0;
             _isSerialTracked = false;
             _warrantyMonths = 12;
-            _status = ProductStatus.active;
+            _status = ProductStatus.ACTIVE;
             _createdAt = DateTime.UtcNow;
             _productAttributeValues = new List<ProductAttributeValue>();
         }
