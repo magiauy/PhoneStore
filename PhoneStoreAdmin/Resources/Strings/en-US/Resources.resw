@@ -216,4 +216,7 @@
   <data name="LogoPath.Source" xml:space="preserve">
     <value>../Assets/logo_name.png</value>
   </data>
+  <data name="SideBarLogo.Source" xml:space="preserve">
+    <value>../Assets/sidebar_logo.png</value>
+  </data>
 </root>

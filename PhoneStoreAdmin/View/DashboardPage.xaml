@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="PhoneStoreAdmin.View.DashboardPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PhoneStoreAdmin.View"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Modern Header -->
+        <Border Grid.Row="0" 
+                Background="{StaticResource BrushSurface}" 
+                BorderBrush="{StaticResource BrushBorder}" 
+                BorderThickness="0,0,0,1" 
+                Padding="24,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left side: Title and Search -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="24" VerticalAlignment="Center">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Dashboard" 
+                                   FontSize="28" 
+                                   FontWeight="Bold" 
+                                   Foreground="{StaticResource BrushText}"/>
+                        <TextBlock Text="Welcome back! Here's what's happening today." 
+                                   FontSize="14" 
+                                   Foreground="{StaticResource BrushTextSecondary}"/>
+                    </StackPanel>
+                    
+                    <AutoSuggestBox PlaceholderText="Search products, orders..." 
+                                    Width="300"
+                                    VerticalAlignment="Center"
+                                    Background="{StaticResource BrushBackground}"
+                                    BorderBrush="{StaticResource BrushBorder}">
+                        <AutoSuggestBox.QueryIcon>
+                            <FontIcon Glyph="&#xE721;" FontSize="16"/>
+                        </AutoSuggestBox.QueryIcon>
+                    </AutoSuggestBox>
+                </StackPanel>
+
+                <!-- Right side: Actions and Profile -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <Button Style="{StaticResource SubtleButtonStyle}" 
+                            Background="Transparent"
+                            ToolTipService.ToolTip="Notifications">
+                        <FontIcon Glyph="&#xE7E7;" FontSize="16" Foreground="{StaticResource BrushText}"/>
+                    </Button>
+                    
+                    <Button Style="{StaticResource SubtleButtonStyle}" 
+                            Background="Transparent"
+                            ToolTipService.ToolTip="Settings">
+                        <FontIcon Glyph="&#xE713;" FontSize="16" Foreground="{StaticResource BrushText}"/>
+                    </Button>
+                    
+                    <Border Background="{StaticResource BrushPrimary}" 
+                            CornerRadius="20" 
+                            Width="40" 
+                            Height="40">
+                        <TextBlock Text="GZ" 
+                                   HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center" 
+                                   FontWeight="Bold" 
+                                   Foreground="{StaticResource BrushOnPrimary}"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" 
+                      VerticalScrollBarVisibility="Auto" 
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Padding="24" Spacing="24">
+
+                <!-- Quick Actions -->
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" 
+                               Text="Quick Actions" 
+                               FontSize="20" 
+                               FontWeight="SemiBold" 
+                               Foreground="{StaticResource BrushText}" 
+                               Margin="0,0,0,16"/>
+                    
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="12">
+                        <Button x:Name="NewProductButton"
+                                Click="NewProductButton_Click" 
+                                Background="{StaticResource BrushPrimary}" 
+                                Foreground="{StaticResource BrushOnPrimary}"
+                                CornerRadius="8" 
+                                Padding="16,12" 
+                                BorderThickness="0">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE710;" FontSize="16"/>
+                                <TextBlock Text="New Product" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        <Button Background="{StaticResource BrushSurface}" 
+                                Foreground="{StaticResource BrushText}"
+                                BorderBrush="{StaticResource BrushBorder}"
+                                CornerRadius="8" 
+                                Padding="16,12">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE8B5;" FontSize="16"/>
+                                <TextBlock Text="Import Data"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        <Button Background="{StaticResource BrushSurface}" 
+                                Foreground="{StaticResource BrushText}"
+                                BorderBrush="{StaticResource BrushBorder}"
+                                CornerRadius="8" 
+                                Padding="16,12">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xEDE1;" FontSize="16"/>
+                                <TextBlock Text="Export Report"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- KPI Cards -->
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" 
+                               Text="Key Metrics" 
+                               FontSize="20" 
+                               FontWeight="SemiBold" 
+                               Foreground="{StaticResource BrushText}" 
+                               Margin="0,0,0,16"/>
+                    
+                    <Grid Grid.Row="1" ColumnDefinitions="1*,1*,1*,1*" ColumnSpacing="16">
+                        <!-- Sales Card -->
+                        <Border Grid.Column="0" 
+                                Background="{StaticResource BrushSurface}" 
+                                BorderBrush="{StaticResource BrushBorder}"
+                                BorderThickness="1"
+                                CornerRadius="12" 
+                                Padding="20">
+                            <StackPanel Spacing="12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" 
+                                               Text="Total Sales" 
+                                               FontSize="14" 
+                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                    <Border Grid.Column="1" 
+                                            Background="{StaticResource BrushSuccess}" 
+                                            CornerRadius="16" 
+                                            Width="32" 
+                                            Height="32">
+                                        <FontIcon Glyph="&#xE8AD;" 
+                                                  FontSize="16" 
+                                                  Foreground="White" 
+                                                  HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Text="$45,200" 
+                                           FontSize="28" 
+                                           FontWeight="Bold" 
+                                           Foreground="{StaticResource BrushText}"/>
+                                <TextBlock Text="↗ +12% from last month" 
+                                           FontSize="12" 
+                                           Foreground="{StaticResource BrushSuccess}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Orders Card -->
+                        <Border Grid.Column="1" 
+                                Background="{StaticResource BrushSurface}" 
+                                BorderBrush="{StaticResource BrushBorder}"
+                                BorderThickness="1"
+                                CornerRadius="12" 
+                                Padding="20">
+                            <StackPanel Spacing="12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" 
+                                               Text="Total Orders" 
+                                               FontSize="14" 
+                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                    <Border Grid.Column="1" 
+                                            Background="{StaticResource BrushInfo}" 
+                                            CornerRadius="16" 
+                                            Width="32" 
+                                            Height="32">
+                                        <FontIcon Glyph="&#xE7BF;" 
+                                                  FontSize="16" 
+                                                  Foreground="White" 
+                                                  HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Text="1,847" 
+                                           FontSize="28" 
+                                           FontWeight="Bold" 
+                                           Foreground="{StaticResource BrushText}"/>
+                                <TextBlock Text="89 pending review" 
+                                           FontSize="12" 
+                                           Foreground="{StaticResource BrushWarning}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Products Card -->
+                        <Border Grid.Column="2" 
+                                Background="{StaticResource BrushSurface}" 
+                                BorderBrush="{StaticResource BrushBorder}"
+                                BorderThickness="1"
+                                CornerRadius="12" 
+                                Padding="20">
+                            <StackPanel Spacing="12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" 
+                                               Text="Products" 
+                                               FontSize="14" 
+                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                    <Border Grid.Column="1" 
+                                            Background="{StaticResource BrushPrimary}" 
+                                            CornerRadius="16" 
+                                            Width="32" 
+                                            Height="32">
+                                        <FontIcon Glyph="&#xE8F1;" 
+                                                  FontSize="16" 
+                                                  Foreground="White" 
+                                                  HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Text="425" 
+                                           FontSize="28" 
+                                           FontWeight="Bold" 
+                                           Foreground="{StaticResource BrushText}"/>
+                                <TextBlock Text="23 out of stock" 
+                                           FontSize="12" 
+                                           Foreground="{StaticResource BrushError}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Customers Card -->
+                        <Border Grid.Column="3" 
+                                Background="{StaticResource BrushSurface}" 
+                                BorderBrush="{StaticResource BrushBorder}"
+                                BorderThickness="1"
+                                CornerRadius="12" 
+                                Padding="20">
+                            <StackPanel Spacing="12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" 
+                                               Text="Customers" 
+                                               FontSize="14" 
+                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                    <Border Grid.Column="1" 
+                                            Background="{StaticResource BrushAccent}" 
+                                            CornerRadius="16" 
+                                            Width="32" 
+                                            Height="32">
+                                        <FontIcon Glyph="&#xE716;" 
+                                                  FontSize="16" 
+                                                  Foreground="{StaticResource BrushOnAccent}" 
+                                                  HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Text="3,241" 
+                                           FontSize="28" 
+                                           FontWeight="Bold" 
+                                           Foreground="{StaticResource BrushText}"/>
+                                <TextBlock Text="↗ +156 new this month" 
+                                           FontSize="12" 
+                                           Foreground="{StaticResource BrushSuccess}"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+
+                <!-- Quick Overview Widgets -->
+                <Grid ColumnDefinitions="2*,1*" ColumnSpacing="20">
+                    <!-- Recent Activity -->
+                    <Border Grid.Column="0" 
+                            Background="{StaticResource BrushSurface}" 
+                            BorderBrush="{StaticResource BrushBorder}"
+                            BorderThickness="1"
+                            CornerRadius="12" 
+                            Padding="24">
+                        <StackPanel Spacing="16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" 
+                                           Text="Recent Orders" 
+                                           FontSize="18" 
+                                           FontWeight="SemiBold" 
+                                           Foreground="{StaticResource BrushText}"/>
+                                <Button Grid.Column="1" 
+                                        Content="View All" 
+                                        Style="{StaticResource SubtleButtonStyle}" 
+                                        Foreground="{StaticResource BrushPrimary}"/>
+                            </Grid>
+                            
+                            <StackPanel Spacing="12">
+                                <!-- Order Item 1 -->
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <Border Grid.Column="0" 
+                                            Background="{StaticResource BrushPrimaryLight}" 
+                                            CornerRadius="8" 
+                                            Width="40" 
+                                            Height="40" 
+                                            Margin="0,0,12,0">
+                                        <FontIcon Glyph="&#xE8F1;" 
+                                                  FontSize="16" 
+                                                  Foreground="{StaticResource BrushPrimary}" 
+                                                  HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Spacing="4">
+                                        <TextBlock Text="iPhone 15 Pro Max" 
+                                                   FontWeight="SemiBold" 
+                                                   Foreground="{StaticResource BrushText}"/>
+                                        <TextBlock Text="Order #12347 • John Doe" 
+                                                   FontSize="12" 
+                                                   Foreground="{StaticResource BrushTextSecondary}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                                        <TextBlock Text="$1,199" 
+                                                   FontWeight="SemiBold" 
+                                                   Foreground="{StaticResource BrushText}" 
+                                                   HorizontalAlignment="Right"/>
+                                        <Border Background="{StaticResource BrushSuccess}" 
+                                                CornerRadius="4" 
+                                                Padding="6,2">
+                                            <TextBlock Text="Completed" 
+                                                       FontSize="10" 
+                                                       Foreground="White" 
+                                                       FontWeight="SemiBold"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Grid>
+                                
+                                <!-- Order Item 2 -->
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <Border Grid.Column="0" 
+                                            Background="{StaticResource BrushPrimaryLight}" 
+                                            CornerRadius="8" 
+                                            Width="40" 
+                                            Height="40" 
+                                            Margin="0,0,12,0">
+                                        <FontIcon Glyph="&#xE8F1;" 
+                                                  FontSize="16" 
+                                                  Foreground="{StaticResource BrushPrimary}" 
+                                                  HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Spacing="4">
+                                        <TextBlock Text="Samsung Galaxy S24" 
+                                                   FontWeight="SemiBold" 
+                                                   Foreground="{StaticResource BrushText}"/>
+                                        <TextBlock Text="Order #12346 • Jane Smith" 
+                                                   FontSize="12" 
+                                                   Foreground="{StaticResource BrushTextSecondary}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                                        <TextBlock Text="$899" 
+                                                   FontWeight="SemiBold" 
+                                                   Foreground="{StaticResource BrushText}" 
+                                                   HorizontalAlignment="Right"/>
+                                        <Border Background="{StaticResource BrushWarning}" 
+                                                CornerRadius="4" 
+                                                Padding="6,2">
+                                            <TextBlock Text="Pending" 
+                                                       FontSize="10" 
+                                                       Foreground="White" 
+                                                       FontWeight="SemiBold"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Quick Stats -->
+                    <Border Grid.Column="1" 
+                            Background="{StaticResource BrushSurface}" 
+                            BorderBrush="{StaticResource BrushBorder}"
+                            BorderThickness="1"
+                            CornerRadius="12" 
+                            Padding="24">
+                        <StackPanel Spacing="20">
+                            <TextBlock Text="Today's Summary" 
+                                       FontSize="18" 
+                                       FontWeight="SemiBold" 
+                                       Foreground="{StaticResource BrushText}"/>
+                            
+                            <StackPanel Spacing="16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" 
+                                               Text="New Orders" 
+                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                    <TextBlock Grid.Column="1" 
+                                               Text="47" 
+                                               FontWeight="Bold" 
+                                               Foreground="{StaticResource BrushText}"/>
+                                </Grid>
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" 
+                                               Text="Revenue" 
+                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                    <TextBlock Grid.Column="1" 
+                                               Text="$12,450" 
+                                               FontWeight="Bold" 
+                                               Foreground="{StaticResource BrushText}"/>
+                                </Grid>
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" 
+                                               Text="Low Stock Items" 
+                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                    <TextBlock Grid.Column="1" 
+                                               Text="8" 
+                                               FontWeight="Bold" 
+                                               Foreground="{StaticResource BrushError}"/>
+                                </Grid>
+                            </StackPanel>
+                            
+                            <Button Content="View Details" 
+                                    Background="{StaticResource BrushPrimary}" 
+                                    Foreground="{StaticResource BrushOnPrimary}"
+                                    CornerRadius="8" 
+                                    HorizontalAlignment="Stretch"
+                                    BorderThickness="0"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using Microsoft.UI;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -17,6 +19,8 @@ namespace PhoneStoreAdmin
     public sealed partial class LoginWindow : Window
     {
         private readonly ResourceLoader _resourceLoader;
+        private AppWindow _appWindow;
+
 
         public LoginWindow()
         {
@@ -26,10 +30,20 @@ namespace PhoneStoreAdmin
             // Set window properties for a modern look
             this.ExtendsContentIntoTitleBar = true;
             this.SetTitleBar(null); // Hide default title bar for cleaner look
+            // Lấy AppWindow từ WinUI Window
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
+            _appWindow = AppWindow.GetFromWindowId(windowId);
 
-            // Set window icon using logo
-            this.AppWindow.SetIcon("../Assets/logo.png");
-        
+            // Maximize khi khởi động
+            Maximize();
+        }
+        private void Maximize()
+        {
+            if (_appWindow.Presenter is OverlappedPresenter presenter)
+            {
+                presenter.Maximize();
+            }
         }
 
         private void RootGrid_Loaded(object sender, RoutedEventArgs e)
@@ -39,17 +53,20 @@ namespace PhoneStoreAdmin
                 storyboard.Begin();
             }
         }
-
         private async void LoginButton_Click(object sender, RoutedEventArgs e)
         {
+            await PerformLoginAsync();
+        }
+        private async System.Threading.Tasks.Task PerformLoginAsync()
+        {
             // Validate input
-
             if (string.IsNullOrWhiteSpace(UsernameTextBox.Text))
             {
                 try
                 {
                     ShowErrorOnField(UsernameTextBox, _resourceLoader.GetString("ErrorUsernameRequired/Text"));
-                }catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
                     Logger.Error($"Error showing error dialog: {ex.Message}");
                 }
@@ -64,23 +81,16 @@ namespace PhoneStoreAdmin
 
             // Show loading state
             SetLoadingState(true);
-            
-            // Log authentication attempt
 
             try
             {
-                // Simulate authentication delay for better UX
-                await System.Threading.Tasks.Task.Delay(1500);
-
-                // TODO: Replace with actual authentication logic
                 if (await AuthenticateUserAsync(UsernameTextBox.Text, PasswordTextBox.Password))
                 {
                     Logger.LogAuth(UsernameTextBox.Text, true);
                     Logger.Info("Authentication successful, redirecting to main window");
-                    
-                    // Authentication successful - show success dialog
+
                     await ShowSuccessDialog();
-                    
+
                     var mainWindow = new MainWindow();
                     mainWindow.Activate();
                     this.Close();
@@ -92,8 +102,7 @@ namespace PhoneStoreAdmin
 
                     ShowErrorOnField(UsernameTextBox, _resourceLoader.GetString("ErrorInvalidCredentials/Text"));
                     PasswordTextBox.Password = string.Empty;
-                    
-                    // Shake animation for failed login
+
                     await AnimateLoginFailure();
                 }
             }
@@ -106,9 +115,10 @@ namespace PhoneStoreAdmin
             finally
             {
                 SetLoadingState(false);
+                // nếu cần, trả focus về password để người dùng thử lại:
+                PasswordTextBox.Focus(FocusState.Keyboard);
             }
         }
-
         private void LoginButton_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             // Scale down animation on press
@@ -122,17 +132,17 @@ namespace PhoneStoreAdmin
                     Duration = TimeSpan.FromMilliseconds(100),
                     EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
                 };
-                
+
                 Storyboard.SetTarget(scaleAnimation, scaleTransform);
                 Storyboard.SetTargetProperty(scaleAnimation, "ScaleX");
-                
+
                 var scaleAnimationY = new DoubleAnimation
                 {
                     To = 0.95,
                     Duration = TimeSpan.FromMilliseconds(100),
                     EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
                 };
-                
+
                 Storyboard.SetTarget(scaleAnimationY, scaleTransform);
                 Storyboard.SetTargetProperty(scaleAnimationY, "ScaleY");
 
@@ -156,17 +166,17 @@ namespace PhoneStoreAdmin
                     Duration = TimeSpan.FromMilliseconds(200),
                     EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.3 }
                 };
-                
+
                 Storyboard.SetTarget(scaleAnimation, scaleTransform);
                 Storyboard.SetTargetProperty(scaleAnimation, "ScaleX");
-                
+
                 var scaleAnimationY = new DoubleAnimation
                 {
                     To = 1.0,
                     Duration = TimeSpan.FromMilliseconds(200),
                     EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.3 }
                 };
-                
+
                 Storyboard.SetTarget(scaleAnimationY, scaleTransform);
                 Storyboard.SetTargetProperty(scaleAnimationY, "ScaleY");
 
@@ -183,12 +193,12 @@ namespace PhoneStoreAdmin
             contentGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
             contentGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
             contentGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
-            
+
             // Add scale transform for animation
             var scaleTransform = new ScaleTransform { ScaleX = 0.8, ScaleY = 0.8 };
             contentGrid.RenderTransform = scaleTransform;
             contentGrid.RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5);
-            
+
             // Success icon with background
             var iconGrid = new Grid
             {
@@ -217,10 +227,10 @@ namespace PhoneStoreAdmin
             iconGrid.Children.Add(ellipse);
             iconGrid.Children.Add(checkIcon);
             Grid.SetRow(iconGrid, 0);
-            
+
             // Title text
-            var titleText = new TextBlock 
-            { 
+            var titleText = new TextBlock
+            {
                 Text = _resourceLoader.GetString("SuccessTitle/Text"),
                 FontSize = 20,
                 FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
@@ -229,10 +239,10 @@ namespace PhoneStoreAdmin
                 Margin = new Thickness(0, 0, 0, 8)
             };
             Grid.SetRow(titleText, 1);
-            
+
             // Description text
-            var descText = new TextBlock 
-            { 
+            var descText = new TextBlock
+            {
                 Text = _resourceLoader.GetString("SuccessDescription/Text"),
                 FontSize = 14,
                 TextWrapping = TextWrapping.Wrap,
@@ -243,7 +253,7 @@ namespace PhoneStoreAdmin
                 Margin = new Thickness(0, 0, 0, 12)
             };
             Grid.SetRow(descText, 2);
-            
+
             contentGrid.Children.Add(iconGrid);
             contentGrid.Children.Add(titleText);
             contentGrid.Children.Add(descText);
@@ -260,7 +270,7 @@ namespace PhoneStoreAdmin
             dialog.Opened += (s, e) =>
             {
                 var storyboard = new Storyboard();
-                
+
                 var scaleXAnimation = new DoubleAnimation
                 {
                     From = 0.8,
@@ -270,7 +280,7 @@ namespace PhoneStoreAdmin
                 };
                 Storyboard.SetTarget(scaleXAnimation, scaleTransform);
                 Storyboard.SetTargetProperty(scaleXAnimation, "ScaleX");
-                
+
                 var scaleYAnimation = new DoubleAnimation
                 {
                     From = 0.8,
@@ -280,7 +290,7 @@ namespace PhoneStoreAdmin
                 };
                 Storyboard.SetTarget(scaleYAnimation, scaleTransform);
                 Storyboard.SetTargetProperty(scaleYAnimation, "ScaleY");
-                
+
                 var opacityAnimation = new DoubleAnimation
                 {
                     From = 0.0,
@@ -290,7 +300,7 @@ namespace PhoneStoreAdmin
                 };
                 Storyboard.SetTarget(opacityAnimation, contentGrid);
                 Storyboard.SetTargetProperty(opacityAnimation, "Opacity");
-                
+
                 storyboard.Children.Add(scaleXAnimation);
                 storyboard.Children.Add(scaleYAnimation);
                 storyboard.Children.Add(opacityAnimation);
@@ -305,13 +315,13 @@ namespace PhoneStoreAdmin
             // Shake animation for login failure
             var shakeStoryboard = new Storyboard();
             var translateTransform = FormPanel.RenderTransform as TranslateTransform;
-            
+
             if (translateTransform != null)
             {
                 var shakeAnimation = new DoubleAnimationUsingKeyFrames();
                 Storyboard.SetTarget(shakeAnimation, translateTransform);
                 Storyboard.SetTargetProperty(shakeAnimation, "X");
-                
+
                 // Create shake keyframes
                 shakeAnimation.KeyFrames.Add(new EasingDoubleKeyFrame { KeyTime = TimeSpan.FromMilliseconds(0), Value = 0 });
                 shakeAnimation.KeyFrames.Add(new EasingDoubleKeyFrame { KeyTime = TimeSpan.FromMilliseconds(100), Value = -10 });
@@ -319,10 +329,10 @@ namespace PhoneStoreAdmin
                 shakeAnimation.KeyFrames.Add(new EasingDoubleKeyFrame { KeyTime = TimeSpan.FromMilliseconds(300), Value = -8 });
                 shakeAnimation.KeyFrames.Add(new EasingDoubleKeyFrame { KeyTime = TimeSpan.FromMilliseconds(400), Value = 8 });
                 shakeAnimation.KeyFrames.Add(new EasingDoubleKeyFrame { KeyTime = TimeSpan.FromMilliseconds(500), Value = 0 });
-                
+
                 shakeStoryboard.Children.Add(shakeAnimation);
                 shakeStoryboard.Begin();
-                
+
                 await System.Threading.Tasks.Task.Delay(500);
             }
         }
@@ -346,9 +356,9 @@ namespace PhoneStoreAdmin
         {
             // TODO: Fix after XAML controls are generated
             LoginButton.IsEnabled = !isLoading;
-            UsernameTextBox.IsEnabled = !isLoading;
-            PasswordTextBox.IsEnabled = !isLoading;
-            
+            // UsernameTextBox.IsEnabled = !isLoading;
+            // PasswordTextBox.IsEnabled = !isLoading;
+
             // Update loading animation and button text
             if (isLoading)
             {
@@ -362,7 +372,7 @@ namespace PhoneStoreAdmin
                 LoginProgressRing.Visibility = Visibility.Collapsed;
                 LoginButtonText.Text = _resourceLoader.GetString("SignIn/Content");
             }
-            
+
         }
 
         private void UsernameTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -391,11 +401,11 @@ namespace PhoneStoreAdmin
         {
             // Focus the field
             field.Focus(FocusState.Keyboard);
-            
+
             // Add red border to indicate error
             field.BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.IndianRed);
             field.BorderThickness = new Thickness(2);
-            
+
             // Show error dialog
             var dialog = new ContentDialog()
             {
@@ -405,8 +415,8 @@ namespace PhoneStoreAdmin
                     Spacing = 12,
                     Children =
                     {
-                        new TextBlock 
-                        { 
+                        new TextBlock
+                        {
                             Text = message,
                             TextWrapping = TextWrapping.Wrap,
                             FontSize = 14
@@ -430,13 +440,13 @@ namespace PhoneStoreAdmin
                     Spacing = 12,
                     Children =
                     {
-                        new TextBlock 
-                        { 
+                        new TextBlock
+                        {
                             Text = _resourceLoader.GetString("ResetPasswordInstruction/Text"),
                             TextWrapping = TextWrapping.Wrap
                         },
-                        new TextBox 
-                        { 
+                        new TextBox
+                        {
                             PlaceholderText = _resourceLoader.GetString("EmailPlaceholder/PlaceholderText"),
                             Header = _resourceLoader.GetString("EmailHeader/Text")
                         }
@@ -472,19 +482,19 @@ namespace PhoneStoreAdmin
                     Spacing = 16,
                     Children =
                     {
-                        new TextBlock 
-                        { 
+                        new TextBlock
+                        {
                             Text = _resourceLoader.GetString("SignUpMessage1/Text"),
                             TextWrapping = TextWrapping.Wrap
                         },
-                        new TextBlock 
-                        { 
+                        new TextBlock
+                        {
                             Text = _resourceLoader.GetString("SignUpMessage2/Text"),
                             TextWrapping = TextWrapping.Wrap,
                             FontWeight = Microsoft.UI.Text.FontWeights.Medium
                         },
-                        new TextBlock 
-                        { 
+                        new TextBlock
+                        {
                             Text = _resourceLoader.GetString("SignUpMessage3/Text"),
                             TextWrapping = TextWrapping.Wrap,
                             FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas")
@@ -505,6 +515,14 @@ namespace PhoneStoreAdmin
             {
                 PasswordTextBox.Focus(FocusState.Keyboard);
                 e.Handled = true;
+            }
+        }
+                private async void PasswordTextBox_KeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key == Windows.System.VirtualKey.Enter)
+            {
+                e.Handled = true; // ngăn focus mặc định / behaviour khác
+                await PerformLoginAsync();
             }
         }
     }
