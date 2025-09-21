@@ -341,13 +341,12 @@ namespace PhoneStoreAdmin
         {
             try
             {
-                var authService = ServiceContainer.GetService<IAuthService>();
-                var account = await authService.LoginAsync(username, password);
-                return account != null;
+                var sessionService = ServiceContainer.GetService<ISessionService>();
+                return await sessionService.LoginAsync(username, password);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Log error if needed
+                Logger.Error($"Failed to authenticate user: {username}", ex);
                 return false;
             }
         }

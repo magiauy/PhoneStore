@@ -214,6 +214,66 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             throw new NotImplementedException();
         }
 
+        public Task<Account?> ChangePasswordAsync(int accountId, string newPassword)
+        {
+            if (string.IsNullOrWhiteSpace(newPassword))
+                return Task.FromResult<Account?>(null);
+
+            return ChangePasswordInternalAsync(accountId, newPassword);
+        }
+
+        private async Task<Account?> ChangePasswordInternalAsync(int accountId, string newPassword)
+        {
+            try
+            {
+                // Kiểm tra account tồn tại và active
+                using var conn = _dataSource.GetConnection();
+                using var checkCmd = conn.CreateCommand();
+                checkCmd.CommandText = @"SELECT id FROM Accounts WHERE id = @id AND is_active = 1 LIMIT 1;";
+                checkCmd.Parameters.AddWithValue("@id", accountId);
+                var result = await checkCmd.ExecuteScalarAsync();
+                if (result == null)
+                    return null;
+
+                // Hash mật khẩu mới
+                var hash = HashPassword(newPassword);
+
+                // Update mật khẩu
+                using var updateCmd = conn.CreateCommand();
+                updateCmd.CommandText = @"UPDATE Accounts SET password_hash = @hash WHERE id = @id;";
+                updateCmd.Parameters.AddWithValue("@hash", hash);
+                updateCmd.Parameters.AddWithValue("@id", accountId);
+                var rows = await updateCmd.ExecuteNonQueryAsync();
+                if (rows > 0)
+                {
+                    // Lấy lại account mới
+                    using var getCmd = conn.CreateCommand();
+                    getCmd.CommandText = @"SELECT id, username, password_hash, person_id, is_active, created_at, last_login FROM Accounts WHERE id = @id;";
+                    getCmd.Parameters.AddWithValue("@id", accountId);
+                    using var reader = await getCmd.ExecuteReaderAsync();
+                    if (await reader.ReadAsync())
+                    {
+                        return new Account
+                        {
+                            Id = reader.GetInt32("id"),
+                            Username = reader.GetString("username"),
+                            PasswordHash = reader.GetString("password_hash"),
+                            PersonId = reader.GetInt32("person_id"),
+                            IsActive = reader.GetBoolean("is_active"),
+                            CreatedAt = reader.GetDateTime("created_at"),
+                            LastLogin = reader.IsDBNull("last_login") ? null : reader.GetDateTime("last_login")
+                        };
+                    }
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("ChangePasswordAsync failed", ex);
+                return null;
+            }
+        }
+
         #endregion
     }
 }

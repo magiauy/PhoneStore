@@ -112,5 +112,10 @@ namespace PhoneStoreAdmin.Models
             _isActive = true;
             _accounts = new List<Account>();
         }
+
+        public override string ToString()
+        {
+            return $"Person(Id={Id}, Code={Code}, FullName={FullName}, Phone={Phone}, Email={Email}, PersonType={PersonType}, CreatedAt={CreatedAt}, IsActive={IsActive})";
+        }
     }
 }

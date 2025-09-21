@@ -10,7 +10,6 @@ namespace PhoneStoreAdmin.Services.Implementations
     public class AuthService : IAuthService
     {
         private readonly IAuthRepository _authRepository;
-        private Account? _currentUser;
 
         public AuthService(IAuthRepository authRepository)
         {
@@ -34,9 +33,6 @@ namespace PhoneStoreAdmin.Services.Implementations
                 {
                     // Update last login time
                     await _authRepository.UpdateLastLoginAsync(account.Id);
-
-                    // Store current user for session management
-                    _currentUser = account;
                 }
 
                 return account;
@@ -94,10 +90,67 @@ namespace PhoneStoreAdmin.Services.Implementations
             }
         }
 
+        public async Task<bool> VerifyPasswordAsync(string username, string password)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+                {
+                    return false;
+                }
+                Logger.Info($"Service Verifying password for user: {username}");
+
+                return await _authRepository.ValidateCredentialsAsync(username, password);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Service Failed to verify password for user: {username}", ex);
+                return false;
+            }
+        }
+
+        public async Task<Account?> ChangePasswordAsync(string username, string currentPassword, string newPassword)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(username) || 
+                    string.IsNullOrWhiteSpace(currentPassword) || 
+                    string.IsNullOrWhiteSpace(newPassword))
+                {
+                    return null;
+                }
+                Logger.Info($"Service Changing password for user: {username}");
+
+                // First verify current password
+                var isCurrentPasswordValid = await _authRepository.ValidateCredentialsAsync(username, currentPassword);
+                if (!isCurrentPasswordValid)
+                {
+                    Logger.Warning($"Service Current password verification failed for user: {username}");
+                    return null;
+                }
+
+                // Get account to get ID
+                var account = await _authRepository.AuthenticateAsync(username, currentPassword);
+                if (account == null)
+                {
+                    Logger.Warning($"Service Could not retrieve account for user: {username}");
+                    return null;
+                }
+
+                // Change password using account ID
+                return await _authRepository.ChangePasswordAsync(account.Id, newPassword);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Service Failed to change password for user: {username}", ex);
+                return null;
+            }
+        }
+
         public Task LogoutAsync()
         {
-            // Clear current user session
-            _currentUser = null;
+            // AuthService no longer manages user session
+            // Session management is now handled by UserSession singleton
             
             // In future, this could handle additional logout logic like:
             // - Clearing cached data
@@ -105,11 +158,6 @@ namespace PhoneStoreAdmin.Services.Implementations
             // - Logging logout event
             
             return Task.CompletedTask;
-        }
-
-        public Account? GetCurrentUser()
-        {
-            return _currentUser;
         }
     }
 }
