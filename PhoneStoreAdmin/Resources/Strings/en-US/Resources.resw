@@ -490,4 +490,56 @@
   <data name="ChangePasswordDialogButton.Content" xml:space="preserve">
     <value>Change Password</value>
   </data>
+  <!-- Edit Profile Dialog -->
+  <data name="EditProfileDialogTitle.Text" xml:space="preserve">
+    <value>Edit Profile</value>
+  </data>
+  <data name="EditProfileDialogDescription.Text" xml:space="preserve">
+    <value>Update your personal information below. Username cannot be changed.</value>
+  </data>
+  <data name="EmailLabel.Text" xml:space="preserve">
+    <value>Email Address</value>
+  </data>
+  <data name="FullNameLabel.Text" xml:space="preserve">
+    <value>Full Name</value>
+  </data>
+  <data name="PhoneLabel.Text" xml:space="preserve">
+    <value>Phone Number</value>
+  </data>
+  <data name="FullNamePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter your full name</value>
+  </data>
+  <data name="PhonePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter your phone number (optional)</value>
+  </data>
+  <data name="SaveProfileButton.Content" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
+  <data name="ProfileUpdateFailedMessage.Message" xml:space="preserve">
+    <value>Failed to update profile. Please try again.</value>
+  </data>
+  <data name="ProfileUpdateSuccessMessage.Message" xml:space="preserve">
+    <value>Profile updated successfully!</value>
+  </data>
+  <data name="EmailRequired.Text" xml:space="preserve">
+    <value>Email is required</value>
+  </data>
+  <data name="EmailInvalid.Text" xml:space="preserve">
+    <value>Please enter a valid email address</value>
+  </data>
+  <data name="FullNameRequired.Text" xml:space="preserve">
+    <value>Full name is required</value>
+  </data>
+  <data name="FullNameTooShort.Text" xml:space="preserve">
+    <value>Full name must be at least 2 characters</value>
+  </data>
+  <data name="PhoneInvalid.Text" xml:space="preserve">
+    <value>Please enter a valid phone number</value>
+  </data>
+  <data name="ProfileUpdateSuccessful.Text" xml:space="preserve">
+    <value>Profile updated successfully!</value>
+  </data>
+  <data name="ProfileUpdateError.Text" xml:space="preserve">
+    <value>Failed to update profile. Please try again.</value>
+  </data>
 </root>

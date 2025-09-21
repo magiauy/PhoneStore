@@ -340,7 +340,6 @@ namespace PhoneStoreAdmin.View.Controls
                     // Notify parent
                     PasswordChanged?.Invoke(this, true);
                     
-                    // Auto-close after 2 seconds
                     DialogClosed?.Invoke(this, EventArgs.Empty);
                 }
                 else

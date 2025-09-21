@@ -213,18 +213,57 @@ namespace PhoneStoreAdmin.View
 
         private async void EditProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Implement edit profile functionality
-            var dialog = new ContentDialog()
+            try
             {
-                Title = _resourceLoader.GetString("EditProfileTitle/Text"),
-                Content = _resourceLoader.GetString("EditProfileMessage/Text"),
-                CloseButtonText = _resourceLoader.GetString("OK/Content"),
-                XamlRoot = this.XamlRoot
-            };
-            await dialog.ShowAsync();
+                // Create and configure the edit profile dialog
+                var editProfileDialog = new Controls.EditProfileDialog();
+                
+                // Create ContentDialog to host the UserControl
+                var dialog = new ContentDialog()
+                {
+                    Content = editProfileDialog,
+                    XamlRoot = this.XamlRoot,
+                    RequestedTheme = ElementTheme.Default
+                };
 
-            // After editing profile, refresh user info
-            RefreshUserInfo();
+                // Handle dialog events
+                bool dialogResult = false;
+                editProfileDialog.ProfileUpdated += (s, success) =>
+                {
+                    dialogResult = success;
+                };
+
+                editProfileDialog.DialogClosed += (s, args) =>
+                {
+                    dialog.Hide();
+                };
+
+                // Focus on email field when dialog opens
+                editProfileDialog.FocusEmailField();
+
+                // Show dialog
+                await dialog.ShowAsync();
+
+                // Handle result
+                if (dialogResult)
+                {
+                    // Profile updated successfully
+                    // Refresh user info to show updated data
+                    RefreshUserInfo();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Show error dialog
+                var errorDialog = new ContentDialog()
+                {
+                    Title = _resourceLoader.GetString("ErrorTitle/Text") ?? "Error",
+                    Content = $"{_resourceLoader.GetString("ProfileUpdateError/Text") ?? "An error occurred while trying to update your profile"}: {ex.Message}",
+                    CloseButtonText = _resourceLoader.GetString("OK/Content") ?? "OK",
+                    XamlRoot = this.XamlRoot
+                };
+                await errorDialog.ShowAsync();
+            }
         }
 
         private async void ChangePasswordButton_Click(object sender, RoutedEventArgs e)

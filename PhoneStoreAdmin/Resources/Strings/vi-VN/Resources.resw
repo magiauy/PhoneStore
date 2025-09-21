@@ -490,4 +490,56 @@
   <data name="ChangePasswordDialogButton.Content" xml:space="preserve">
     <value>Đổi Mật Khẩu</value>
   </data>
+  <!-- Edit Profile Dialog -->
+  <data name="EditProfileDialogTitle.Text" xml:space="preserve">
+    <value>Chỉnh Sửa Hồ Sơ</value>
+  </data>
+  <data name="EditProfileDialogDescription.Text" xml:space="preserve">
+    <value>Cập nhật thông tin cá nhân của bạn bên dưới. Tên đăng nhập không thể thay đổi.</value>
+  </data>
+  <data name="EmailLabel.Text" xml:space="preserve">
+    <value>Địa Chỉ Email</value>
+  </data>
+  <data name="FullNameLabel.Text" xml:space="preserve">
+    <value>Họ và Tên</value>
+  </data>
+  <data name="PhoneLabel.Text" xml:space="preserve">
+    <value>Số Điện Thoại</value>
+  </data>
+  <data name="FullNamePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập họ và tên của bạn</value>
+  </data>
+  <data name="PhonePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập số điện thoại (tùy chọn)</value>
+  </data>
+  <data name="SaveProfileButton.Content" xml:space="preserve">
+    <value>Lưu Thay Đổi</value>
+  </data>
+  <data name="ProfileUpdateFailedMessage.Message" xml:space="preserve">
+    <value>Không thể cập nhật hồ sơ. Vui lòng thử lại.</value>
+  </data>
+  <data name="ProfileUpdateSuccessMessage.Message" xml:space="preserve">
+    <value>Cập nhật hồ sơ thành công!</value>
+  </data>
+  <data name="EmailRequired.Text" xml:space="preserve">
+    <value>Email là bắt buộc</value>
+  </data>
+  <data name="EmailInvalid.Text" xml:space="preserve">
+    <value>Vui lòng nhập địa chỉ email hợp lệ</value>
+  </data>
+  <data name="FullNameRequired.Text" xml:space="preserve">
+    <value>Họ và tên là bắt buộc</value>
+  </data>
+  <data name="FullNameTooShort.Text" xml:space="preserve">
+    <value>Họ và tên phải có ít nhất 2 ký tự</value>
+  </data>
+  <data name="PhoneInvalid.Text" xml:space="preserve">
+    <value>Vui lòng nhập số điện thoại hợp lệ</value>
+  </data>
+  <data name="ProfileUpdateSuccessful.Text" xml:space="preserve">
+    <value>Cập nhật hồ sơ thành công!</value>
+  </data>
+  <data name="ProfileUpdateError.Text" xml:space="preserve">
+    <value>Không thể cập nhật hồ sơ. Vui lòng thử lại.</value>
+  </data>
 </root>
