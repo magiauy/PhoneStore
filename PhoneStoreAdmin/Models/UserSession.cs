@@ -93,5 +93,14 @@ namespace PhoneStoreAdmin.Models
         {
             return Permissions?.Count ?? 0;
         }
+
+        //UpdatePersonInfo
+        public void UpdatePersonInfo(Person updatedPerson)
+        {
+            if (Person != null && updatedPerson != null && Person.Id == updatedPerson.Id)
+            {
+                Person = updatedPerson;
+            }
+        }
     }
 }
