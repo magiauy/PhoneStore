@@ -219,4 +219,275 @@
   <data name="SideBarLogo.Source" xml:space="preserve">
     <value>../Assets/sidebar_logo.png</value>
   </data>
+  <!-- Settings Page -->
+  <data name="SettingsTitle.Text" xml:space="preserve">
+    <value>Cài Đặt</value>
+  </data>
+  <data name="SettingsSubtitle.Text" xml:space="preserve">
+    <value>Quản lý tùy chọn ứng dụng và tài khoản của bạn</value>
+  </data>
+  <data name="AccountSection.Text" xml:space="preserve">
+    <value>Tài Khoản</value>
+  </data>
+  <data name="UserName.Text" xml:space="preserve">
+    <value>Quản Trị Viên</value>
+  </data>
+  <data name="UserEmail.Text" xml:space="preserve">
+    <value>admin@phonestore.com</value>
+  </data>
+  <data name="EditProfile.Content" xml:space="preserve">
+    <value>Chỉnh Sửa</value>
+  </data>
+  <data name="ChangePassword.Text" xml:space="preserve">
+    <value>Đổi Mật Khẩu</value>
+  </data>
+  <data name="ChangePasswordDescription.Text" xml:space="preserve">
+    <value>Cập nhật mật khẩu tài khoản của bạn</value>
+  </data>
+  <data name="ChangePasswordButton.Content" xml:space="preserve">
+    <value>Đổi</value>
+  </data>
+  <data name="ApplicationSection.Text" xml:space="preserve">
+    <value>Ứng Dụng</value>
+  </data>
+  <data name="Language.Text" xml:space="preserve">
+    <value>Ngôn Ngữ</value>
+  </data>
+  <data name="LanguageDescription.Text" xml:space="preserve">
+    <value>Chọn ngôn ngữ mà bạn muốn sử dụng</value>
+  </data>
+  <data name="English.Content" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="Vietnamese.Content" xml:space="preserve">
+    <value>Tiếng Việt</value>
+  </data>
+  <data name="Theme.Text" xml:space="preserve">
+    <value>Giao Diện</value>
+  </data>
+  <data name="ThemeDescription.Text" xml:space="preserve">
+    <value>Chọn giao diện sáng hoặc tối</value>
+  </data>
+  <data name="Light.Content" xml:space="preserve">
+    <value>Sáng</value>
+  </data>
+  <data name="Dark.Content" xml:space="preserve">
+    <value>Tối</value>
+  </data>
+  <data name="System.Content" xml:space="preserve">
+    <value>Hệ Thống</value>
+  </data>
+  <data name="Notifications.Text" xml:space="preserve">
+    <value>Thông Báo</value>
+  </data>
+  <data name="NotificationsDescription.Text" xml:space="preserve">
+    <value>Bật hoặc tắt thông báo</value>
+  </data>
+  <data name="SystemSection.Text" xml:space="preserve">
+    <value>Hệ Thống</value>
+  </data>
+  <data name="DataManagement.Text" xml:space="preserve">
+    <value>Quản Lý Dữ Liệu</value>
+  </data>
+  <data name="DataManagementDescription.Text" xml:space="preserve">
+    <value>Sao lưu và khôi phục dữ liệu ứng dụng</value>
+  </data>
+  <data name="Manage.Content" xml:space="preserve">
+    <value>Quản Lý</value>
+  </data>
+  <data name="About.Text" xml:space="preserve">
+    <value>Về PhoneStore Admin</value>
+  </data>
+  <data name="AboutAppDescription.Text" xml:space="preserve">
+    <value>Thông tin phiên bản và nhà phát triển</value>
+  </data>
+  <data name="View.Content" xml:space="preserve">
+    <value>Xem</value>
+  </data>
+  <data name="AccountActionsSection.Text" xml:space="preserve">
+    <value>Thao Tác Tài Khoản</value>
+  </data>
+  <data name="SignOut.Text" xml:space="preserve">
+    <value>Đăng Xuất</value>
+  </data>
+  <data name="SignOutDescription.Text" xml:space="preserve">
+    <value>Đăng xuất khỏi tài khoản của bạn</value>
+  </data>
+  <data name="SignOutButton.Content" xml:space="preserve">
+    <value>Đăng Xuất</value>
+  </data>
+  <!-- Settings Dialog Messages -->
+  <data name="LanguageChangedTitle.Text" xml:space="preserve">
+    <value>Đã Thay Đổi Ngôn Ngữ</value>
+  </data>
+  <data name="LanguageChangedMessage.Text" xml:space="preserve">
+    <value>Ngôn ngữ đã được thay đổi thành công. Một số thay đổi có thể yêu cầu khởi động lại để có hiệu lực hoàn toàn.</value>
+  </data>
+  <data name="ErrorTitle.Text" xml:space="preserve">
+    <value>Lỗi</value>
+  </data>
+  <data name="LanguageErrorMessage.Text" xml:space="preserve">
+    <value>Không thể lưu tùy chọn ngôn ngữ. Vui lòng thử lại.</value>
+  </data>
+  <data name="EditProfileTitle.Text" xml:space="preserve">
+    <value>Chỉnh Sửa Hồ Sơ</value>
+  </data>
+  <data name="EditProfileMessage.Text" xml:space="preserve">
+    <value>Tính năng chỉnh sửa hồ sơ sẽ được triển khai trong bản cập nhật tương lai.</value>
+  </data>
+  <data name="ChangePasswordTitle.Text" xml:space="preserve">
+    <value>Đổi Mật Khẩu</value>
+  </data>
+  <data name="ChangePasswordMessage.Text" xml:space="preserve">
+    <value>Tính năng đổi mật khẩu sẽ được triển khai trong bản cập nhật tương lai.</value>
+  </data>
+  <data name="AboutTitle.Text" xml:space="preserve">
+    <value>Về Ứng Dụng</value>
+  </data>
+  <data name="AboutAppName.Text" xml:space="preserve">
+    <value>PhoneStore Admin</value>
+  </data>
+  <data name="AboutVersion.Text" xml:space="preserve">
+    <value>Phiên bản 1.0.0</value>
+  </data>
+  <data name="AboutDescription.Text" xml:space="preserve">
+    <value>Bảng điều khiển quản trị hiện đại cho việc quản lý cửa hàng điện thoại được xây dựng với WinUI 3.</value>
+  </data>
+  <data name="AboutCopyright.Text" xml:space="preserve">
+    <value>© 2025 PhoneStore. Bảo lưu mọi quyền.</value>
+  </data>
+  <data name="SignOutConfirmTitle.Text" xml:space="preserve">
+    <value>Đăng Xuất</value>
+  </data>
+  <data name="SignOutConfirmMessage.Text" xml:space="preserve">
+    <value>Bạn có chắc chắn muốn đăng xuất không?</value>
+  </data>
+  <data name="SignOutConfirmButton.Content" xml:space="preserve">
+    <value>Đăng Xuất</value>
+  </data>
+  <data name="SignOutErrorMessage.Text" xml:space="preserve">
+    <value>Đã xảy ra lỗi khi đăng xuất. Vui lòng thử lại.</value>
+  </data>
+  <data name="OK.Content" xml:space="preserve">
+    <value>Đồng Ý</value>
+  </data>
+  <data name="NoEmailAvailable.Text" xml:space="preserve">
+    <value>Không có email</value>
+  </data>
+  <data name="NotLoggedIn.Text" xml:space="preserve">
+    <value>Chưa đăng nhập</value>
+  </data>
+  <data name="ErrorLoadingUser.Text" xml:space="preserve">
+    <value>Lỗi tải thông tin người dùng</value>
+  </data>
+  <data name="UserPermissions.Text" xml:space="preserve">
+    <value>Quyền: 0</value>
+  </data>
+  <!-- Change Password Dialog -->
+  <data name="CurrentPasswordRequired.Text" xml:space="preserve">
+    <value>Yêu cầu nhập mật khẩu hiện tại</value>
+  </data>
+  <data name="PasswordTooShort.Text" xml:space="preserve">
+    <value>Mật khẩu phải có ít nhất 8 ký tự</value>
+  </data>
+  <data name="PasswordRequirementsNotMet.Text" xml:space="preserve">
+    <value>Mật khẩu chưa đáp ứng đủ yêu cầu</value>
+  </data>
+  <data name="NewPasswordSameAsCurrent.Text" xml:space="preserve">
+    <value>Mật khẩu mới không thể giống mật khẩu hiện tại</value>
+  </data>
+  <data name="PasswordsDoNotMatch.Text" xml:space="preserve">
+    <value>Mật khẩu không khớp</value>
+  </data>
+  <data name="PasswordStrengthWeak.Text" xml:space="preserve">
+    <value>Yếu</value>
+  </data>
+  <data name="PasswordStrengthGood.Text" xml:space="preserve">
+    <value>Tốt</value>
+  </data>
+  <data name="PasswordStrengthStrong.Text" xml:space="preserve">
+    <value>Mạnh</value>
+  </data>
+  <data name="PasswordStrengthExcellent.Text" xml:space="preserve">
+    <value>Rất mạnh</value>
+  </data>
+  <data name="UserNotLoggedIn.Text" xml:space="preserve">
+    <value>Người dùng chưa đăng nhập</value>
+  </data>
+  <data name="CurrentPasswordIncorrect.Text" xml:space="preserve">
+    <value>Mật khẩu hiện tại không đúng</value>
+  </data>
+  <data name="PasswordChangeSuccessful.Text" xml:space="preserve">
+    <value>Đổi mật khẩu thành công!</value>
+  </data>
+  <data name="PasswordChangeError.Text" xml:space="preserve">
+    <value>Không thể đổi mật khẩu. Vui lòng thử lại.</value>
+  </data>
+  <data name="UnexpectedError.Text" xml:space="preserve">
+    <value>Có lỗi không mong muốn xảy ra</value>
+  </data>
+  <data name="PasswordChangeSuccessTitle.Text" xml:space="preserve">
+    <value>Thành công</value>
+  </data>
+  <data name="PasswordChangeSuccessMessage.Text" xml:space="preserve">
+    <value>Mật khẩu của bạn đã được thay đổi thành công!</value>
+  </data>
+  <data name="ChangePasswordErrorMessage.Text" xml:space="preserve">
+    <value>Có lỗi xảy ra khi thay đổi mật khẩu</value>
+  </data>
+  <data name="UserRole.Text" xml:space="preserve">
+    <value>Quản trị viên</value>
+  </data>
+  <!-- Change Password Dialog -->
+  <data name="ChangePasswordDialogTitle.Text" xml:space="preserve">
+    <value>Đổi Mật Khẩu</value>
+  </data>
+  <data name="ChangePasswordDialogDescription.Text" xml:space="preserve">
+    <value>Nhập mật khẩu hiện tại và chọn mật khẩu mới cho tài khoản của bạn.</value>
+  </data>
+  <data name="CurrentPasswordLabel.Text" xml:space="preserve">
+    <value>Mật Khẩu Hiện Tại</value>
+  </data>
+  <data name="NewPasswordLabel.Text" xml:space="preserve">
+    <value>Mật Khẩu Mới</value>
+  </data>
+  <data name="ConfirmPasswordLabel.Text" xml:space="preserve">
+    <value>Xác Nhận Mật Khẩu Mới</value>
+  </data>
+  <data name="PasswordRequirementsHeader.Text" xml:space="preserve">
+    <value>Yêu cầu mật khẩu:</value>
+  </data>
+  <data name="PasswordRequirementLength.Text" xml:space="preserve">
+    <value>Ít nhất 8 ký tự</value>
+  </data>
+  <data name="PasswordRequirementUppercase.Text" xml:space="preserve">
+    <value>Một chữ cái viết hoa</value>
+  </data>
+  <data name="PasswordRequirementLowercase.Text" xml:space="preserve">
+    <value>Một chữ cái viết thường</value>
+  </data>
+  <data name="PasswordRequirementNumber.Text" xml:space="preserve">
+    <value>Một chữ số</value>
+  </data>
+  <data name="PasswordRequirementSpecial.Text" xml:space="preserve">
+    <value>Một ký tự đặc biệt</value>
+  </data>
+  <data name="CurrentPasswordPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập mật khẩu hiện tại của bạn</value>
+  </data>
+  <data name="NewPasswordPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập mật khẩu mới mạnh</value>
+  </data>
+  <data name="ConfirmPasswordPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập lại mật khẩu mới của bạn</value>
+  </data>
+  <data name="PasswordChangeFailedMessage.Message" xml:space="preserve">
+    <value>Không thể đổi mật khẩu. Vui lòng thử lại.</value>
+  </data>
+  <data name="ProcessingText.Text" xml:space="preserve">
+    <value>Đang xử lý...</value>
+  </data>
+  <data name="ChangePasswordDialogButton.Content" xml:space="preserve">
+    <value>Đổi Mật Khẩu</value>
+  </data>
 </root>

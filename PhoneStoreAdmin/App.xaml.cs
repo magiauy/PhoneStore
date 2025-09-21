@@ -18,6 +18,7 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Globalization;
 using PhoneStoreAdmin.Services;
+using PhoneStoreAdmin.Services.Interfaces;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -32,6 +33,11 @@ namespace PhoneStoreAdmin
         private Window? _window;
 
         /// <summary>
+        /// Gets the current application window
+        /// </summary>
+        public Window? CurrentWindow => _window;
+
+        /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>        
@@ -44,7 +50,9 @@ namespace PhoneStoreAdmin
 
             // Force Light Mode for the entire application
             this.RequestedTheme = ApplicationTheme.Light;
-            ApplicationLanguages.PrimaryLanguageOverride = "en-US";
+            
+            // Load language setting
+            LoadLanguageSettings();
         }
 
         /// <summary>
@@ -56,7 +64,33 @@ namespace PhoneStoreAdmin
             // Start with the login window instead of main window
             _window = new LoginWindow();
             _window.Activate();
+        }
 
+        /// <summary>
+        /// Load language settings from local storage
+        /// </summary>
+        private async void LoadLanguageSettings()
+        {
+            try
+            {
+                var localStorageService = ServiceContainer.GetService<ILocalStorageService>();
+                var savedLanguage = await localStorageService.GetItemAsync<string>("app_language");
+                
+                if (!string.IsNullOrEmpty(savedLanguage))
+                {
+                    ApplicationLanguages.PrimaryLanguageOverride = savedLanguage;
+                }
+                else
+                {
+                    // Default to English
+                    ApplicationLanguages.PrimaryLanguageOverride = "en-US";
+                }
+            }
+            catch (Exception)
+            {
+                // If there's an error, default to English
+                ApplicationLanguages.PrimaryLanguageOverride = "en-US";
+            }
         }
     }
 }
