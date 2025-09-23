@@ -27,6 +27,9 @@
                 <NavigationViewItem Content="Dashboard" Icon="Home"/>
                 <NavigationViewItem Content="Products" Icon="Shop"/>
                 <NavigationViewItem Content="Orders" Icon="Mail"/>
+                <NavigationViewItem Content="Suppliers" Icon="Contact"/>
+                <NavigationViewItem Content="Purchase orders" Icon="Paste"/>
+                <NavigationViewItem Content="Batches" Icon="PreviewLink"/>
                 <NavigationViewItem Content="Settings" Icon="Setting"/>
             </NavigationView.MenuItems>
 
