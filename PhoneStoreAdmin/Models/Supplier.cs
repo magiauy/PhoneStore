@@ -4,27 +4,88 @@ namespace PhoneStoreAdmin.Models
 {
     public class Supplier
     {
-        public int Id { get; set; }
+        // Private backing fields
+        private int _id;
+        private string _name = string.Empty;
+        private string? _phone;
+        private string? _email;
+        private string? _address;
+        private string? _taxNumber;
+        private bool _isActive = true;
+
+        // Public properties with backing fields
+        public int Id
+        {
+            get => _id;
+            set => _id = value;
+        }
 
         [Required]
         [MaxLength(160)]
-        public string Name { get; set; } = string.Empty;
+        public string Name
+        {
+            get => _name;
+            set => _name = value ?? string.Empty;
+        }
 
         [MaxLength(20)]
         [Phone]
-        public string? Phone { get; set; }
+        public string? Phone
+        {
+            get => _phone;
+            set => _phone = value;
+        }
 
         [MaxLength(120)]
         [EmailAddress]
-        public string? Email { get; set; }
+        public string? Email
+        {
+            get => _email;
+            set => _email = value;
+        }
 
         [MaxLength(255)]
-        public string? Address { get; set; }
+        public string? Address
+        {
+            get => _address;
+            set => _address = value;
+        }
 
         [MaxLength(50)]
-        public string? TaxNumber { get; set; }
+        public string? TaxNumber
+        {
+            get => _taxNumber;
+            set => _taxNumber = value;
+        }
 
         [Required]
-        public bool IsActive { get; set; } = true;
+        public bool IsActive
+        {
+            get => _isActive;
+            set => _isActive = value;
+        }
+
+        // Constructors
+        public Supplier()
+        {
+            _id = 0;
+            _name = string.Empty;
+            _phone = null;
+            _email = null;
+            _address = null;
+            _taxNumber = null;
+            _isActive = true;
+        }
+
+        public Supplier(string name)
+        {
+            _id = 0;
+            _name = name ?? string.Empty;
+            _phone = null;
+            _email = null;
+            _address = null;
+            _taxNumber = null;
+            _isActive = true;
+        }
     }
 }

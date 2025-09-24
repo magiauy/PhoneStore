@@ -57,5 +57,7 @@ namespace PhoneStoreAdmin.Repositories.Interfaces
         /// <param name="personId">Person ID</param>
         /// <returns>Created account if successful, null otherwise</returns>
         Task<Account?> CreateAccountAsync(string username, string password, int personId);
+
+        Task<Account?> ChangePasswordAsync(int accountId, string newPassword);
     }
 }

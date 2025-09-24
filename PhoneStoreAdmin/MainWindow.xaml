@@ -15,105 +15,29 @@
 
     <!-- Fluent 2 demo with NavigationView -->
     <Grid>
-        <NavigationView x:Name="MainNavView" PaneDisplayMode="Left" IsBackButtonVisible="Collapsed">
-            <NavigationView.PaneHeader>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="12" Margin="16,8">
-                    <TextBlock Text="📱" FontSize="20"/>
-                    <TextBlock Text="PhoneStore Admin" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                </StackPanel>
-            </NavigationView.PaneHeader>
+        <NavigationView x:Name="MainNavView" 
+                        PaneDisplayMode="Left" 
+                        IsBackButtonVisible="Collapsed"     
+                        OpenPaneLength="200" 
+                        CompactPaneLength="50"
+                        SelectionChanged="MainNavView_SelectionChanged">
 
+            
             <NavigationView.MenuItems>
-                <NavigationViewItem Content="Dashboard" Icon="Home"/>
-                <NavigationViewItem Content="Products" Icon="Shop"/>
-                <NavigationViewItem Content="Orders" Icon="Mail"/>
-                <NavigationViewItem Content="Suppliers" Icon="Contact"/>
-                <NavigationViewItem Content="Purchase orders" Icon="Paste"/>
-                <NavigationViewItem Content="Batches" Icon="PreviewLink"/>
-                <NavigationViewItem Content="Settings" Icon="Setting"/>
+                <NavigationViewItem x:Name="DashboardNavItem" Content="Dashboard" Icon="Home" Tag="Dashboard"/>
+                <NavigationViewItem x:Name="ProductsNavItem" Content="Products" Icon="Shop" Tag="Products"/>
+                <NavigationViewItem x:Name="OrdersNavItem" Content="Orders" Icon="Mail" Tag="Orders"/>
+                <NavigationViewItem x:Name="SuppliersNavItem" Content="Suppliers" Icon="Contact"  Tag="Suppliers"/>
+                <NavigationViewItem x:Name="PurchaseOrdersNavItem" Content="PurchaseOrders" Icon="Paste" Tag="PurchaseOrders"/>
+                <NavigationViewItem x:Name="BatchesNavItem" Content="Batches" Icon="PreviewLink" Tag="Batches"/>
+                <NavigationViewItem x:Name="SettingsNavItem" Content="Settings" Icon="Setting" Tag="Settings"/>
             </NavigationView.MenuItems>
 
-            <StackPanel Padding="24" Spacing="16">
-                <!-- Command bar -->
-                <CommandBar>
-                    <AppBarButton Label="New Product" Click="NewButton_Click">
-                        <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE710;"/>
-                        </AppBarButton.Icon>
-                    </AppBarButton>
-                    <AppBarButton Label="Import">
-                        <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE8B5;"/>
-                        </AppBarButton.Icon>
-                    </AppBarButton>
-                    <AppBarButton Label="Export">
-                        <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xEDE1;"/>
-                        </AppBarButton.Icon>
-                    </AppBarButton>
-                </CommandBar>
+            <Frame x:Name="ContentFrame" 
+                   Background="{StaticResource BrushBackground}"
+                   Margin="0"
+                   Padding="0"/>
 
-                <!-- Cards showcase -->
-                <TextBlock Text="Dashboard Overview" FontSize="20" FontWeight="SemiBold"/>
-                
-                <Grid ColumnDefinitions="1*,1*,1*" ColumnSpacing="16">
-                    <Border Grid.Column="0" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
-                            CornerRadius="8" Padding="16">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="💰 Sales" FontSize="16" FontWeight="SemiBold"/>
-                            <TextBlock Text="$24,500" FontSize="24" FontWeight="Bold"/>
-                            <TextBlock Text="+12% this month" FontSize="12" Opacity="0.8"/>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Grid.Column="1" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
-                            CornerRadius="8" Padding="16">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="📦 Orders" FontSize="16" FontWeight="SemiBold"/>
-                            <TextBlock Text="1,247" FontSize="24" FontWeight="Bold"/>
-                            <TextBlock Text="89 pending" FontSize="12" Opacity="0.8"/>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Grid.Column="2" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
-                            CornerRadius="8" Padding="16">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="👥 Customers" FontSize="16" FontWeight="SemiBold"/>
-                            <TextBlock Text="2,341" FontSize="24" FontWeight="Bold"/>
-                            <TextBlock Text="156 new" FontSize="12" Opacity="0.8"/>
-                        </StackPanel>
-                    </Border>
-                </Grid>
-
-                <!-- Controls showcase -->
-                <TextBlock Text="Interactive Controls" FontSize="18" FontWeight="SemiBold"/>
-                
-                <StackPanel Spacing="12">
-                    <StackPanel Orientation="Horizontal" Spacing="16">
-                        <ToggleSwitch Header="Dark Mode"/>
-                        <ToggleSwitch Header="Notifications" IsOn="True"/>
-                    </StackPanel>
-                    
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Volume"/>
-                        <Slider Minimum="0" Maximum="100" Value="75" Width="300" HorizontalAlignment="Left"/>
-                    </StackPanel>
-                    
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Progress Example"/>
-                        <ProgressBar Value="65" Maximum="100" Width="300" HorizontalAlignment="Left"/>
-                    </StackPanel>
-                </StackPanel>
-
-                <!-- Button styles -->
-                <TextBlock Text="Button Styles" FontSize="18" FontWeight="SemiBold"/>
-                <StackPanel Orientation="Horizontal" Spacing="12">
-                    <Button Content="Primary" Style="{StaticResource AccentButtonStyle}"/>
-                    <Button Content="Default"/>
-                    <Button Content="Subtle" Style="{StaticResource SubtleButtonStyle}"/>
-                </StackPanel>
-
-            </StackPanel>
         </NavigationView>
     </Grid>
 </Window>
