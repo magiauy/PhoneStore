@@ -5,6 +5,9 @@ using System;
 using System.Collections.Generic;
 using MySqlConnector;
 using System.Data;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using PhoneStoreAdmin.Utils;
 
 namespace PhoneStoreAdmin.Repositories.Implementations
 {
@@ -23,15 +26,22 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             {
                 using var conn = _dataSource.GetConnection();
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = @"SELECT Id, Code, FullName, Phone, Email, PersonType, CreatedAt, IsActive
+                cmd.CommandText = @"SELECT id, code, full_name, phone, email, person_type, created_at, is_active
                                     FROM persons
-                                    WHERE Id = @id LIMIT 1;";
+                                    WHERE id = @id LIMIT 1;";
                 cmd.Parameters.AddWithValue("@id", id);
 
                 using var reader = cmd.ExecuteReader();
-                if (reader.Read())
+                try
                 {
-                    return MapPerson(reader);
+                    if (reader.Read())
+                    {
+                        Person p = MapPerson(reader);
+                        return p;
+                    }
+                }catch (Exception ex)
+                {
+                    Logger.Error("Error reading data", ex);
                 }
 
                 return null!;
@@ -49,7 +59,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             {
                 using var conn = _dataSource.GetConnection();
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = @"SELECT Id, Code, FullName, Phone, Email, PersonType, CreatedAt, IsActive FROM persons;";
+                cmd.CommandText = @"SELECT id, Code, full_name, phone, email, person_type, created_at, is_active FROM persons;";
 
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
@@ -71,7 +81,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
 
             using var conn = _dataSource.GetConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"INSERT INTO persons (Code, FullName, Phone, Email, PersonType, CreatedAt, IsActive)
+            cmd.CommandText = @"INSERT INTO persons (Code, full_name, phone, email, person_type, created_at, is_active)
                                 VALUES (@code, @fullName, @phone, @email, @personType, @createdAt, @isActive);";
             cmd.Parameters.AddWithValue("@code", (object?)entity.Code ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@fullName", entity.FullName);
@@ -90,9 +100,9 @@ namespace PhoneStoreAdmin.Repositories.Implementations
 
             using var conn = _dataSource.GetConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"UPDATE persons SET Code = @code, FullName = @fullName, Phone = @phone, Email = @email,
-                                PersonType = @personType, CreatedAt = @createdAt, IsActive = @isActive
-                                WHERE Id = @id;";
+            cmd.CommandText = @"UPDATE persons SET Code = @code, full_name = @fullName, phone = @phone, email = @email,
+                                person_type = @personType, created_at = @createdAt, is_active = @isActive
+                                WHERE id = @id;";
             cmd.Parameters.AddWithValue("@code", (object?)entity.Code ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@fullName", entity.FullName);
             cmd.Parameters.AddWithValue("@phone", (object?)entity.Phone ?? DBNull.Value);
@@ -109,7 +119,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         {
             using var conn = _dataSource.GetConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "DELETE FROM persons WHERE Id = @id;";
+            cmd.CommandText = "DELETE FROM persons WHERE id = @id;";
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
         }
@@ -120,7 +130,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             {
                 using var conn = _dataSource.GetConnection();
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = @"SELECT Id, Code, FullName, Phone, Email, PersonType, CreatedAt, IsActive
+                cmd.CommandText = @"SELECT id, Code, full_name, phone, email, person_type, created_at, is_active
                                     FROM persons
                                     WHERE Email = @email LIMIT 1;";
                 cmd.Parameters.AddWithValue("@email", email);
@@ -141,9 +151,9 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             {
                 using var conn = _dataSource.GetConnection();
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = @"SELECT Id, Code, FullName, Phone, Email, PersonType, CreatedAt, IsActive
+                cmd.CommandText = @"SELECT id, Code, full_name, phone, email, person_type, created_at, is_active
                                     FROM persons
-                                    WHERE Phone = @phone LIMIT 1;";
+                                    WHERE phone = @phone LIMIT 1;";
                 cmd.Parameters.AddWithValue("@phone", phone);
 
                 using var reader = cmd.ExecuteReader();
@@ -160,17 +170,84 @@ namespace PhoneStoreAdmin.Repositories.Implementations
 
         private Person MapPerson(MySqlDataReader reader)
         {
-            return new Person
+            var person = new Person
             {
-                Id = reader.GetInt32("Id"),
-                Code = reader.IsDBNull("Code") ? null : reader.GetString("Code"),
-                FullName = reader.GetString("FullName"),
-                Phone = reader.IsDBNull("Phone") ? null : reader.GetString("Phone"),
-                Email = reader.IsDBNull("Email") ? null : reader.GetString("Email"),
-                PersonType = (PhoneStoreAdmin.Models.Enums.PersonType)reader.GetInt32("PersonType"),
-                CreatedAt = reader.GetDateTime("CreatedAt"),
-                IsActive = reader.GetBoolean("IsActive")
+                Id = reader.GetInt32("id"),
+                Code = reader.IsDBNull("code") ? null : reader.GetString("code"),
+                FullName = reader.GetString("full_name"),
+                Phone = reader.IsDBNull("phone") ? null : reader.GetString("phone"),
+                Email = reader.IsDBNull("email") ? null : reader.GetString("email"),
+                CreatedAt = reader.GetDateTime("created_at"),
+                IsActive = reader.GetBoolean("is_active")
             };
+        
+            try
+            {
+                // Nếu DB trả về int
+                person.PersonType = (PhoneStoreAdmin.Models.Enums.PersonType)reader.GetInt32("person_type");
+            }
+            catch
+            {
+                // Nếu DB trả về string
+                var typeStr = reader.GetString("person_type");
+                if (Enum.TryParse(typeStr, out PhoneStoreAdmin.Models.Enums.PersonType type))
+                    person.PersonType = type;
+                else
+                    person.PersonType = PhoneStoreAdmin.Models.Enums.PersonType.CUSTOMER; // fallback
+            }
+        
+            return person;
+        }
+
+        #endregion
+
+        #region Async Methods
+
+        public async Task<Person?> GetByIdAsync(int id)
+        {
+            // TODO: Implement actual async database query
+            Person p = await Task.Run(() => GetById(id));
+            Logger.Info($"GetByIdAsync returned: {p}");
+            return await Task.FromResult(p);
+        }
+
+        public async Task<Person?> GetByAccountIdAsync(int accountId)
+        {
+            // TODO: Implement actual database query to get person by account ID
+            return await Task.FromResult<Person?>(null);
+        }
+
+        public async Task<Person?> GetByEmailAsync(string email)
+        {
+            // TODO: Implement actual async database query
+            return await Task.FromResult(GetByEmail(email));
+        }
+
+        public async Task<Person?> GetByPhoneAsync(string phone)
+        {
+            // TODO: Implement actual async database query
+            return await Task.FromResult(GetByPhone(phone));
+        }
+
+        public async Task<Person?> AddAsync(Person entity)
+        {
+            // TODO: Implement actual async database insert
+            Insert(entity);
+            return await Task.FromResult(entity);
+        }
+
+        public async Task UpdateAsync(Person entity)
+        {
+            // TODO: Implement actual async database update
+            Update(entity);
+            await Task.CompletedTask;
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            // TODO: Implement actual async database delete
+            Delete(id);
+            await Task.CompletedTask;
         }
 
         #endregion

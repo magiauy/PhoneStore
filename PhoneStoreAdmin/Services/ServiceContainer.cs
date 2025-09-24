@@ -6,6 +6,7 @@ using PhoneStoreAdmin.Services.Implementations;
 using PhoneStoreAdmin.Repositories.Interfaces;
 using PhoneStoreAdmin.Repositories.Implementations;
 using PhoneStoreAdmin.Data;
+using PhoneStoreAdmin.Models;
 
 namespace PhoneStoreAdmin.Services
 {
@@ -37,9 +38,24 @@ namespace PhoneStoreAdmin.Services
 
             // Register repositories
             RegisterSingleton<IAuthRepository>(() => new AuthRepository(GetService<DataSource>()));
+            RegisterSingleton<IAccountRepository>(() => new AccountRepository(GetService<DataSource>()));
+            RegisterSingleton<IPersonRepository>(() => new PersonRepository(GetService<DataSource>()));
 
             // Register services
             RegisterSingleton<IAuthService>(() => new AuthService(GetService<IAuthRepository>()));
+            RegisterSingleton<IAccountService>(() => new AccountService(GetService<IAccountRepository>()));
+            RegisterSingleton<IPersonService>(() => new PersonService(GetService<IPersonRepository>()));
+            RegisterSingleton<ILocalStorageService>(() => new LocalStorageService());
+
+            // Register UserSession singleton
+            RegisterSingleton<UserSession>(UserSession.Instance);
+
+            // Register SessionService (depends on other services and UserSession)
+            RegisterSingleton<ISessionService>(() => new SessionService(
+                GetService<IAuthService>(),
+                GetService<IAccountService>(),
+                GetService<IPersonService>(),
+                GetService<UserSession>()));
 
             _isInitialized = true;
         }

@@ -1,0 +1,546 @@
+﻿<Page
+    x:Class="PhoneStoreAdmin.View.SuppliersPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:PhoneStoreAdmin.View"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:PhoneStoreAdmin.Models"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <local:SortDirectionToVisibilityConverter x:Key="SortDirectionToVisibilityConverter" />
+        <Style x:Key="CenteredCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                            <Grid
+                                Width="20"
+                                Height="20"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                                <Border
+                                    x:Name="CheckBorder"
+                                    Width="18"
+                                    Height="18"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Background="{ThemeResource SystemControlBackgroundBaseLowBrush}"
+                                    BorderBrush="{ThemeResource SystemControlForegroundBaseHighBrush}"
+                                    BorderThickness="1" />
+                                <FontIcon
+                                    x:Name="CheckGlyph"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Segoe Fluent Icons"
+                                    FontSize="12"
+                                    Foreground="{ThemeResource CheckBoxCheckGlyphForegroundChecked}"
+                                    Glyph="&#xE73E;"
+                                    Visibility="Collapsed" />
+                            </Grid>
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="PointerOver" />
+                                    <VisualState x:Name="Pressed" />
+                                    <VisualState x:Name="Disabled" />
+                                </VisualStateGroup>
+                                <VisualStateGroup x:Name="CheckStates">
+                                    <VisualState x:Name="Checked">
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CheckGlyph" Storyboard.TargetProperty="Visibility">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Visible" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Unchecked" />
+                                    <VisualState x:Name="Indeterminate" />
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CenteredTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="NoRightBorderHeaderStyle" TargetType="ContentControl">
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContentControl">
+                        <Border
+                            Padding="4"
+                            BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                            BorderThickness="0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Content="{TemplateBinding Content}" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    Margin="4,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Text="↑↓"
+                                    Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SortDirection, Converter={StaticResource SortDirectionToVisibilityConverter}}" />
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CenteredCellStyle" TargetType="controls:DataGridCell">
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0" />
+        </Style>
+    </Page.Resources>
+
+    <Grid>
+        <StackPanel
+            Padding="24"
+            Orientation="Vertical"
+            Spacing="24">
+
+            <!--  Header  -->
+            <TextBlock
+                x:Name="HeaderTitleSupplier"
+                x:Uid="HeaderTitleSupplier"
+                FontSize="32"
+                FontWeight="SemiBold"
+                Foreground="{ThemeResource TextFillColorPrimary}" />
+
+            <!--  Filter Card  -->
+            <Border
+                Padding="16"
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="12">
+                <Border.Shadow>
+                    <ThemeShadow />
+                </Border.Shadow>
+                <StackPanel Orientation="Vertical" Spacing="12">
+                    <!--  Row 1: Filters  -->
+                    <Grid ColumnSpacing="12">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox
+                            x:Name="FilterNameBoxSupplier"
+                            x:Uid="FilterNameBoxSupplier"
+                            Grid.Column="0"
+                            MinWidth="80"
+                            MinHeight="40"
+                            Padding="10"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            PlaceholderText="Name" />
+                        <TextBox
+                            x:Name="FilterPhoneBoxSupplier"
+                            x:Uid="FilterPhoneBoxSupplier"
+                            Grid.Column="1"
+                            MinWidth="80"
+                            MinHeight="40"
+                            Padding="10"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            PlaceholderText="Phone" />
+                        <TextBox
+                            x:Name="FilterEmailBoxSupplier"
+                            x:Uid="FilterEmailBoxSupplier"
+                            Grid.Column="2"
+                            MinWidth="80"
+                            MinHeight="40"
+                            Padding="10"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            PlaceholderText="Email" />
+                        <TextBox
+                            x:Name="FilterAddressBoxSupplier"
+                            x:Uid="FilterAddressBoxSupplier"
+                            Grid.Column="3"
+                            MinWidth="80"
+                            MinHeight="40"
+                            Padding="10"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            PlaceholderText="Address" />
+                        <TextBox
+                            x:Name="FilterTaxBoxSupplier"
+                            x:Uid="FilterTaxBoxSupplier"
+                            Grid.Column="4"
+                            MinWidth="80"
+                            MinHeight="40"
+                            Padding="10"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            PlaceholderText="Tax ID" />
+                        <ComboBox
+                            x:Name="FilterActiveBoxSupplier"
+                            x:Uid="FilterActiveBoxSupplier"
+                            Grid.Column="5"
+                            MinWidth="80"
+                            MinHeight="40"
+                            Padding="10"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center">
+                            <ComboBoxItem
+                                x:Uid="ComboBoxItemAll"
+                                IsSelected="True"
+                                Tag="-1" />
+                            <ComboBoxItem x:Uid="ComboBoxItemActivate" Tag="1" />
+                            <ComboBoxItem x:Uid="ComboBoxItemDeActivate" Tag="0" />
+                        </ComboBox>
+                    </Grid>
+                    <!--  Row 2: Buttons  -->
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Button
+                            x:Name="BtnSearchSupplier"
+                            x:Uid="BtnSearchSupplier"
+                            Grid.Column="0"
+                            MinHeight="40"
+                            HorizontalAlignment="Stretch"
+                            Click="BtnSearch_Click"
+                            CornerRadius="8"
+                            Style="{ThemeResource AccentButtonStyle}">
+                            <StackPanel
+                                HorizontalAlignment="Center"
+                                Orientation="Horizontal"
+                                Spacing="6">
+                                <TextBlock Text="Search" />
+                            </StackPanel>
+                        </Button>
+                        <Button
+                            x:Name="BtnClearFilterSupplier"
+                            x:Uid="BtnClearFilterSupplier"
+                            Grid.Column="1"
+                            MinHeight="40"
+                            HorizontalAlignment="Stretch"
+                            Click="BtnClearFilter_Click"
+                            CornerRadius="8"
+                            Style="{ThemeResource DefaultButtonStyle}">
+                            <StackPanel
+                                HorizontalAlignment="Center"
+                                Orientation="Horizontal"
+                                Spacing="6">
+                                <TextBlock Text="Clear" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!--  Quick Actions  -->
+            <Border
+                Padding="16"
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="12">
+                <Border.Shadow>
+                    <ThemeShadow />
+                </Border.Shadow>
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        x:Name="BtnSupplierCreate"
+                        Grid.Column="0"
+                        MinHeight="40"
+                        HorizontalAlignment="Stretch"
+                        Click="BtnCreate_Click"
+                        CornerRadius="8"
+                        Style="{ThemeResource AccentButtonStyle}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE710;" />
+                            <TextBlock x:Uid="BtnNewSupplier" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        Grid.Column="1"
+                        MinHeight="40"
+                        HorizontalAlignment="Stretch"
+                        CornerRadius="8"
+                        Style="{ThemeResource DefaultButtonStyle}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE8B5;" />
+                            <TextBlock x:Uid="BtnImportSupplier" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        Grid.Column="2"
+                        MinHeight="40"
+                        HorizontalAlignment="Stretch"
+                        CornerRadius="8"
+                        Style="{ThemeResource DefaultButtonStyle}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xEDE1;" />
+                            <TextBlock x:Uid="BtnExportSupplier" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!--  Data List  -->
+            <controls:DataGrid
+                x:Name="dgSuppliers"
+                Margin="0,8,0,0"
+                HorizontalAlignment="Stretch"
+                AutoGenerateColumns="False"
+                CanUserReorderColumns="False"
+                CanUserResizeColumns="True"
+                CanUserSortColumns="True"
+                HeadersVisibility="Column"
+                ItemsSource="{x:Bind Suppliers, Mode=OneWay}"
+                SelectionMode="Extended"
+                VerticalScrollBarVisibility="Auto">
+                <controls:DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="ContentControl">
+                        <Setter Property="HorizontalContentAlignment" Value="Center" />
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                        <Setter Property="FontWeight" Value="SemiBold" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ContentControl">
+                                    <Border
+                                        Padding="4,0,8,0"
+                                        BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                                        BorderThickness="0,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <ContentPresenter
+                                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                Content="{TemplateBinding Content}" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Margin="4,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Text="↑↓"
+                                                Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SortDirection, Converter={StaticResource SortDirectionToVisibilityConverter}}" />
+                                        </Grid>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </controls:DataGrid.ColumnHeaderStyle>
+                <controls:DataGrid.Columns>
+                    <controls:DataGridTextColumn
+                        x:Uid="ColIDSupplier"
+                        Width="100"
+                        Binding="{Binding Id}"
+                        CanUserSort="True"
+                        ElementStyle="{StaticResource CenteredTextBlockStyle}"
+                        IsReadOnly="True" />
+                    <controls:DataGridTextColumn
+                        x:Uid="ColNameSupplier"
+                        Width="2*"
+                        Binding="{Binding Name}"
+                        CanUserSort="True"
+                        IsReadOnly="True" />
+                    <controls:DataGridTextColumn
+                        x:Uid="ColPhoneSupplier"
+                        Width="150"
+                        Binding="{Binding Phone}"
+                        CanUserSort="True"
+                        ElementStyle="{StaticResource CenteredTextBlockStyle}"
+                        IsReadOnly="True" />
+                    <controls:DataGridTextColumn
+                        x:Uid="ColEmailSupplier"
+                        Width="2*"
+                        Binding="{Binding Email}"
+                        CanUserSort="True"
+                        IsReadOnly="True" />
+                    <controls:DataGridTextColumn
+                        x:Uid="ColAddressSupplier"
+                        Width="3*"
+                        Binding="{Binding Address}"
+                        CanUserSort="True"
+                        IsReadOnly="True" />
+                    <controls:DataGridTextColumn
+                        x:Uid="ColTaxSupplier"
+                        Width="120"
+                        Binding="{Binding TaxNumber}"
+                        CanUserSort="True"
+                        ElementStyle="{StaticResource CenteredTextBlockStyle}"
+                        IsReadOnly="True" />
+                    <controls:DataGridTemplateColumn
+                        x:Uid="ColActiveSupplier"
+                        Width="80"
+                        CanUserSort="True"
+                        CellStyle="{StaticResource CenteredCellStyle}">
+                        <controls:DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <CheckBox
+                                        Width="20"
+                                        Height="20"
+                                        Margin="0"
+                                        Padding="0"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        IsChecked="{Binding IsActive, Mode=OneWay}"
+                                        IsEnabled="False"
+                                        Style="{StaticResource CenteredCheckBoxStyle}" />
+                                </Grid>
+                            </DataTemplate>
+                        </controls:DataGridTemplateColumn.CellTemplate>
+                    </controls:DataGridTemplateColumn>
+                    <controls:DataGridTemplateColumn
+                        x:Uid="ColActionsSupplier"
+                        Width="200"
+                        CanUserSort="False"
+                        CellStyle="{StaticResource CenteredCellStyle}"
+                        HeaderStyle="{StaticResource NoRightBorderHeaderStyle}">
+                        <controls:DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    ColumnSpacing="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button
+                                        Grid.Column="0"
+                                        HorizontalAlignment="Center"
+                                        Click="BtnEdit_Click"
+                                        Style="{StaticResource SubtleButtonStyle}"
+                                        Tag="{Binding Id}"
+                                        ToolTipService.ToolTip="Edit Supplier">
+                                        <FontIcon
+                                            FontFamily="Segoe Fluent Icons"
+                                            FontSize="16"
+                                            Glyph="&#xE70F;" />
+                                    </Button>
+                                    <Button
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Center"
+                                        Click="BtnDetail_Click"
+                                        Style="{StaticResource SubtleButtonStyle}"
+                                        Tag="{Binding Id}"
+                                        ToolTipService.ToolTip="View Details">
+                                        <FontIcon
+                                            FontFamily="Segoe Fluent Icons"
+                                            FontSize="16"
+                                            Glyph="&#xE946;" />
+                                    </Button>
+                                    <Button
+                                        Grid.Column="2"
+                                        HorizontalAlignment="Center"
+                                        Click="BtnDelete_Click"
+                                        Style="{StaticResource SubtleButtonStyle}"
+                                        Tag="{Binding Id}"
+                                        ToolTipService.ToolTip="Delete Supplier">
+                                        <FontIcon
+                                            FontFamily="Segoe Fluent Icons"
+                                            FontSize="16"
+                                            Glyph="&#xE74D;" />
+                                    </Button>
+                                </Grid>
+                            </DataTemplate>
+                        </controls:DataGridTemplateColumn.CellTemplate>
+                    </controls:DataGridTemplateColumn>
+                </controls:DataGrid.Columns>
+            </controls:DataGrid>
+
+            <!--  Pagination  -->
+            <StackPanel
+                HorizontalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="6">
+                <Button
+                    x:Name="BtnFirstPageSupplier"
+                    x:Uid="BtnFirstPageSupplier"
+                    Click="BtnFirstPage_Click"
+                    Style="{StaticResource SubtleButtonStyle}">
+                    <FontIcon Glyph="&#xE892;" />
+                </Button>
+                <Button
+                    x:Name="BtnPrevPageSupplier"
+                    x:Uid="BtnPrevPageSupplier"
+                    Click="BtnPrevPage_Click"
+                    Style="{StaticResource SubtleButtonStyle}">
+                    <FontIcon Glyph="&#xE76B;" />
+                </Button>
+                <TextBlock
+                    Margin="8,0"
+                    VerticalAlignment="Center"
+                    FontWeight="SemiBold"
+                    Text="{x:Bind CurrentPage, Mode=OneWay}" />
+                <TextBlock
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center"
+                    Text="/" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontWeight="SemiBold"
+                    Text="{x:Bind TotalPages, Mode=OneWay}" />
+                <Button
+                    x:Name="BtnNextPageSupplier"
+                    x:Uid="BtnNextPageSupplier"
+                    Click="BtnNextPage_Click"
+                    Style="{StaticResource SubtleButtonStyle}">
+                    <FontIcon Glyph="&#xE76C;" />
+                </Button>
+                <Button
+                    x:Name="BtnLastPageSupplier"
+                    x:Uid="BtnLastPageSupplier"
+                    Click="BtnLastPage_Click"
+                    Style="{StaticResource SubtleButtonStyle}">
+                    <FontIcon Glyph="&#xE893;" />
+                </Button>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Page>

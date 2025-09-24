@@ -38,14 +38,25 @@ namespace PhoneStoreAdmin.Services.Interfaces
         Task<bool> UpdateLastLoginAsync(int accountId);
 
         /// <summary>
+        /// Verify password for given username
+        /// </summary>
+        /// <param name="username">Username</param>
+        /// <param name="password">Password to verify</param>
+        /// <returns>True if password is correct</returns>
+        Task<bool> VerifyPasswordAsync(string username, string password);
+
+        /// <summary>
+        /// Change password for user
+        /// </summary>
+        /// <param name="username">Username</param>
+        /// <param name="currentPassword">Current password</param>
+        /// <param name="newPassword">New password</param>
+        /// <returns>Updated account if successful, null otherwise</returns>
+        Task<Account?> ChangePasswordAsync(string username, string currentPassword, string newPassword);
+
+        /// <summary>
         /// Logout current user (placeholder for future session management)
         /// </summary>
         Task LogoutAsync();
-
-        /// <summary>
-        /// Get current authenticated user (placeholder for future session management)
-        /// </summary>
-        /// <returns>Current account or null if not authenticated</returns>
-        Account? GetCurrentUser();
     }
 }
