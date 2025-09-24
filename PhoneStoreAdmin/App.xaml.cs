@@ -45,7 +45,7 @@ namespace PhoneStoreAdmin
         /// </summary>        
 
         // Thêm static DataSource
-        public static DataSource DataSource { get; private set; }
+        public static DataSource? DataSource { get; private set; }
 
         public App()
         {
@@ -102,6 +102,11 @@ namespace PhoneStoreAdmin
                 // If there's an error, default to English
                 ApplicationLanguages.PrimaryLanguageOverride = "en-US";
             }
+        }
+
+        public static T GetService<T>()
+        {
+            return ServiceContainer.GetService<T>();
         }
     }
 }

@@ -57,6 +57,9 @@ namespace PhoneStoreAdmin.Services
                 GetService<IPersonService>(),
                 GetService<UserSession>()));
 
+            // Register Supplier
+            RegisterSingleton<ISupplierRepository>(() => new SupplierRepository(GetService<DataSource>()));
+
             _isInitialized = true;
         }
 
