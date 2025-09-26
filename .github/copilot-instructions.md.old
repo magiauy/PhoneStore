@@ -1,0 +1,183 @@
+# Copilot Repository Instructions
+
+These instructions guide GitHub Copilot to generate consistent and valid **XAML for WinUI 3 (Windows App SDK)** in this repository.  
+They explicitly prevent WPF-only features and enforce WinUI 3 best practices.
+
+---
+
+## General Guidelines
+- Always target **WinUI 3** with Windows App SDK, **not WPF or UWP**.
+- Assume the project uses `.NET 8` with `<UseWinUI>true</UseWinUI>`.
+- Root elements must be `<Window>`, `<Page>`, or `<UserControl>` depending on context.
+
+---
+
+## XAML Rules for WinUI 3
+
+### Namespace
+```xml
+xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+xmlns:local="using:PhoneStoreAdmin"
+```
+- ❌ Do not use `clr-namespace:` (WPF only).  
+- ✅ Use `using:` for namespaces inside the project.  
+
+---
+
+### Root Structure
+- One root element only (`Window`, `Page`, or `UserControl`).  
+- Root element must have `x:Class`.  
+- Nest Grids instead of multiple root elements.  
+
+---
+
+### Controls
+- ✅ Use: `<Grid>`, `<StackPanel>`, `<TextBlock>`, `<Button>`, `<TextBox>`, `<PasswordBox>`, `<InfoBar>`, `<ProgressRing>`.  
+- ❌ Avoid WPF-only: `<DockPanel>`, `<WrapPanel>`, `<Menu>`, `<Label>`.  
+
+---
+
+### Binding
+- Prefer `{x:Bind}` for compile-time binding.  
+- `{Binding}` only for dynamic runtime cases.  
+- Always specify `Mode`.  
+
+---
+
+### x:Name
+- Each `x:Name` must be unique within a XAML file.  
+- Use PascalCase (e.g. `LoginButton`, `MainGrid`).  
+
+---
+
+### Resources
+- Use `<Grid.Resources>` or `<Page.Resources>`.  
+- Use `{StaticResource}` for local styles and `{ThemeResource}` for system colors.  
+- ❌ Do not use `{DynamicResource}`.  
+- Colors should be defined in **`Theme/Colors.xaml`** (e.g., `AppPrimaryBrush`, `AppErrorBrush`).  
+
+---
+
+### Styles and Visual States
+- ✅ Use `<VisualStateManager>` for conditional styling and animations.  
+- ❌ Do not use `<Trigger>`, `<DataTrigger>`, or `<ControlTemplate.Triggers>` (WPF only).  
+- Animations = `Storyboard + VisualStateManager`.  
+
+---
+
+### Common Limitations
+- ❌ No MultiBinding, PriorityBinding, AncestorType.  
+- ❌ Do not use `Window.Resources`.  
+- ❌ Do not reference `Window.Loaded`; use element events like `RootGrid.Loaded`.  
+- ❌ Do not set `Window.Icon`; icons come from manifest (`logo.scale-*.png` or `.ico`).  
+- Use valid `ScrollMode` (`Enabled`, `Disabled`, `Auto`), not `Hidden`.  
+
+---
+
+## Code-Behind
+- Every event handler in XAML must exist in `.xaml.cs`.  
+- Use `Storyboard.Begin()` in code-behind (no `EventTrigger`, no `BeginStoryboard`).  
+
+---
+
+## Output Consistency
+- XAML must compile cleanly with WinUI 3 XamlCompiler.  
+- Prefer `{x:Bind}` if unsure.  
+- Layout: use `Grid`, `StackPanel`; use `Canvas` only for decoration.  
+
+---
+
+## ✅ Sample XAML Template (Light Mode, uses Theme/Colors.xaml)
+
+```xml
+<Window
+    x:Class="PhoneStoreAdmin.LoginWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PhoneStoreAdmin"
+    Title="PhoneStore Admin - Login">
+
+    <Grid Background="{ThemeResource AppBackgroundBrush}"
+          x:Name="RootGrid">
+
+        <Grid.Resources>
+            <!-- Animated TextBox Style -->
+            <Style TargetType="TextBox" x:Key="AnimatedTextBoxStyle">
+                <Setter Property="Height" Value="44"/>
+                <Setter Property="CornerRadius" Value="6"/>
+                <Setter Property="BorderBrush" Value="{StaticResource AppPrimaryBrush}"/>
+                <Setter Property="Background" Value="{ThemeResource AppCardBrush}"/>
+                <Setter Property="BorderThickness" Value="0,0,0,2"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Grid>
+                                <Border x:Name="BorderElement"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        Background="{TemplateBinding Background}"
+                                        CornerRadius="{TemplateBinding CornerRadius}"/>
+                                <ScrollViewer x:Name="ContentElement"
+                                              Margin="8,0"
+                                              VerticalScrollMode="Disabled"
+                                              HorizontalScrollMode="Auto"
+                                              ZoomMode="Disabled"/>
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Focused">
+                                            <Storyboard>
+                                                <ColorAnimation Storyboard.TargetName="BorderElement"
+                                                                Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                                                To="{StaticResource AppAccentColor}"
+                                                                Duration="0:0:0.3"/>
+                                            </Storyboard>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Grid.Resources>
+
+        <!-- Login form -->
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Width="320"
+                    Spacing="16">
+            
+            <TextBlock Text="PhoneStore Admin"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource AppPrimaryTextBrush}"
+                       HorizontalAlignment="Center"/>
+            
+            <TextBox x:Name="UsernameTextBox"
+                     PlaceholderText="Enter username"
+                     Style="{StaticResource AnimatedTextBoxStyle}"/>
+            
+            <PasswordBox x:Name="PasswordTextBox"
+                         PlaceholderText="Enter password"
+                         BorderBrush="{StaticResource AppPrimaryBrush}"
+                         BorderThickness="0,0,0,2"/>
+            
+            <InfoBar x:Name="ErrorInfoBar"
+                     Severity="Error"
+                     IsOpen="False"
+                     Message="Invalid username or password"
+                     Foreground="{StaticResource AppErrorBrush}"/>
+            
+            <Button x:Name="LoginButton"
+                    Content="Sign In"
+                    Height="40"
+                    Background="{StaticResource AppPrimaryBrush}"
+                    Foreground="White"
+                    Click="LoginButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
+```
+
+---

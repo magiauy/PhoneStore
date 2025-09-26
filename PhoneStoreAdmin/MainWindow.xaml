@@ -27,6 +27,10 @@
                 <NavigationViewItem x:Name="DashboardNavItem" Content="Dashboard" Icon="Home" Tag="Dashboard"/>
                 <NavigationViewItem x:Name="ProductsNavItem" Content="Products" Icon="Shop" Tag="Products"/>
                 <NavigationViewItem x:Name="OrdersNavItem" Content="Orders" Icon="Mail" Tag="Orders"/>
+                <NavigationViewItem x:Name="SuppliersNavItem" Content="Suppliers" Icon="Contact"  Tag="Suppliers"/>
+                <NavigationViewItem x:Name="PurchaseOrdersNavItem" Content="PurchaseOrders" Icon="Paste" Tag="PurchaseOrders"/>
+                <NavigationViewItem x:Name="BatchesNavItem" Content="Batches" Icon="PreviewLink" Tag="Batches"/>
+                <NavigationViewItem x:Name="AccountsNavItem" Content="Tài khoản" Icon="People" Tag="Accounts"/>
                 <NavigationViewItem x:Name="SettingsNavItem" Content="Settings" Icon="Setting" Tag="Settings"/>
             </NavigationView.MenuItems>
 
