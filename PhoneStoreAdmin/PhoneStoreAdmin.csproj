@@ -79,6 +79,7 @@
 	<ItemGroup>
 	  <Folder Include="Database\" />
 	  <Folder Include="Resources\Strings\en-US\" />
+	  <Folder Include="Services\Interfaces\" />
 	</ItemGroup>
 
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
@@ -93,8 +94,8 @@
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
   </PropertyGroup>
   <ItemGroup>
-    <PRIResource Update="Resources\Strings\en-US\Resources.resw">
-      <Generator>ResXFileCodeGenerator</Generator>
+	<PRIResource Update="Resources\Strings\en-US\Resources.resw">
+	    <Generator>PublicResXFileCodeGenerator</Generator>
     </PRIResource>
   </ItemGroup>
 </Project>
