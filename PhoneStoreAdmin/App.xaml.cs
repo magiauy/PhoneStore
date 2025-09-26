@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
@@ -44,19 +43,10 @@ namespace PhoneStoreAdmin
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>        
 
-        // Thêm static DataSource
-        public static DataSource? DataSource { get; private set; }
-
         public App()
         {
             this.InitializeComponent();
 
-            // Khởi tạo DataSource
-            var configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .Build();
-
-            DataSource = new DataSource(configuration);
 
             // Initialize DI container
             ServiceContainer.Initialize();

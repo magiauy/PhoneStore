@@ -46,6 +46,7 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<IAuthService>(() => new AuthService(GetService<IAuthRepository>()));
             RegisterSingleton<IAccountService>(() => new AccountService(GetService<IAccountRepository>()));
             RegisterSingleton<IPersonService>(() => new PersonService(GetService<IPersonRepository>()));
+            RegisterSingleton<ISupplierService>(() => new SupplierService(GetService<ISupplierRepository>()));
             RegisterSingleton<ILocalStorageService>(() => new LocalStorageService());
 
             // Register UserSession singleton
