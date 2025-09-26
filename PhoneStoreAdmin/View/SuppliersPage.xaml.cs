@@ -2,6 +2,7 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using PhoneStoreAdmin.Repositories.Interfaces;
+using PhoneStoreAdmin.Services.Interfaces;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace PhoneStoreAdmin.View
 {
     public sealed partial class SuppliersPage : Page
     {
-        private readonly ISupplierRepository _supplierRepository;
+        private readonly ISupplierService _supplierService;
         public ObservableCollection<SupplierViewModel> Suppliers { get; } = new ObservableCollection<SupplierViewModel>();
         public int CurrentPage { get; set; } = 1;
         public int PageSize { get; set; } = 10;
@@ -20,7 +21,7 @@ namespace PhoneStoreAdmin.View
         public SuppliersPage()
         {
             this.InitializeComponent();
-            _supplierRepository = App.GetService<ISupplierRepository>();
+            _supplierService = App.GetService<ISupplierService>();
             this.Loaded += SuppliersPage_Loaded;
         }
         private async void SuppliersPage_Loaded(object sender, RoutedEventArgs e)
@@ -33,16 +34,6 @@ namespace PhoneStoreAdmin.View
             {
                 Suppliers.Clear();
 
-                if (FilterActiveBoxSupplier == null ||
-                    FilterNameBoxSupplier == null ||
-                    FilterPhoneBoxSupplier == null ||
-                    FilterEmailBoxSupplier == null ||
-                    FilterAddressBoxSupplier == null ||
-                    FilterTaxBoxSupplier == null)
-                {
-                    return;
-                }
-
                 bool? isActive = null;
                 if (FilterActiveBoxSupplier.SelectedItem is ComboBoxItem item)
                 {
@@ -54,19 +45,12 @@ namespace PhoneStoreAdmin.View
                     };
                 }
 
-                var nameFilter = FilterNameBoxSupplier.Text ?? string.Empty;
-                var phoneFilter = FilterPhoneBoxSupplier.Text ?? string.Empty;
-                var emailFilter = FilterEmailBoxSupplier.Text ?? string.Empty;
-                var addressFilter = FilterAddressBoxSupplier.Text ?? string.Empty;
-                var taxFilter = FilterTaxBoxSupplier.Text ?? string.Empty;
-
-                // Gọi repo mới
-                var result = await _supplierRepository.GetSuppliersFiltered(
-                    nameFilter,
-                    phoneFilter,
-                    emailFilter,
-                    addressFilter,
-                    taxFilter,
+                var result = await _supplierService.GetSuppliersFilteredAsync(
+                    FilterNameBoxSupplier?.Text,
+                    FilterPhoneBoxSupplier?.Text,
+                    FilterEmailBoxSupplier?.Text,
+                    FilterAddressBoxSupplier?.Text,
+                    FilterTaxBoxSupplier?.Text,
                     isActive,
                     CurrentPage,
                     PageSize);
@@ -88,11 +72,9 @@ namespace PhoneStoreAdmin.View
                     });
                 }
 
-                // Update UI
                 PageInfoText.Text = $"{CurrentPage} / {TotalPages}";
                 PreviousPageButton.IsEnabled = CurrentPage > 1;
                 NextPageButton.IsEnabled = CurrentPage < TotalPages;
-
                 RecordCountText.Text = $"{Suppliers.Count} / {TotalRecords}";
             }
             catch (Exception ex)
@@ -182,7 +164,7 @@ namespace PhoneStoreAdmin.View
             var id = (sender as Button)?.Tag?.ToString();
             if (int.TryParse(id, out int supplierId))
             {
-                var supplier = await _supplierRepository.GetByIdAsync(supplierId);
+                var supplier = await _supplierService.GetSupplierByIdAsync(supplierId);
                 if (supplier != null)
                 {
                     var details = $"ID: {supplier.Id}\n" +
@@ -203,11 +185,11 @@ namespace PhoneStoreAdmin.View
             {
                 try
                 {
-                    var supplier = await _supplierRepository.GetByIdAsync(supplierId);
+                    var supplier = await _supplierService.GetSupplierByIdAsync(supplierId);
                     if (supplier != null)
                     {
                         supplier.IsActive = true;
-                        await _supplierRepository.UpdateAsync(supplier);
+                        await _supplierService.ActivateSupplierAsync(supplier.Id);
                         await LoadSuppliersAsync(); // Refresh the list
                         await ShowErrorDialogAsync("Success", "Supplier activated successfully!");
                     }
@@ -225,11 +207,11 @@ namespace PhoneStoreAdmin.View
             {
                 try
                 {
-                    var supplier = await _supplierRepository.GetByIdAsync(supplierId);
+                    var supplier = await _supplierService.GetSupplierByIdAsync(supplierId);
                     if (supplier != null)
                     {
                         supplier.IsActive = false;
-                        await _supplierRepository.UpdateAsync(supplier);
+                        await _supplierService.DeactivateSupplierAsync(supplier.Id);
                         await LoadSuppliersAsync(); // Refresh the list
                         await ShowErrorDialogAsync("Success", "Supplier deactivated successfully!");
                     }
