@@ -1,16 +1,18 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
+using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Repositories.Interfaces;
 using PhoneStoreAdmin.Services.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 namespace PhoneStoreAdmin.View
 {
     public sealed partial class SuppliersPage : Page
     {
-        private readonly ISupplierService _supplierService;
+        private ISupplierService SupplierService =>  App.GetService<ISupplierService>();
         public ObservableCollection<SupplierViewModel> Suppliers { get; } = new ObservableCollection<SupplierViewModel>();
         public int CurrentPage { get; set; } = 1;
         public int PageSize { get; set; } = 10;
@@ -21,7 +23,6 @@ namespace PhoneStoreAdmin.View
         public SuppliersPage()
         {
             this.InitializeComponent();
-            _supplierService = App.GetService<ISupplierService>();
             this.Loaded += SuppliersPage_Loaded;
         }
         private async void SuppliersPage_Loaded(object sender, RoutedEventArgs e)
@@ -35,7 +36,7 @@ namespace PhoneStoreAdmin.View
                 Suppliers.Clear();
 
                 bool? isActive = null;
-                if (FilterActiveBoxSupplier.SelectedItem is ComboBoxItem item)
+                if (FilterActiveBoxSupplier?.SelectedItem is ComboBoxItem item)
                 {
                     isActive = item.Tag?.ToString() switch
                     {
@@ -45,7 +46,7 @@ namespace PhoneStoreAdmin.View
                     };
                 }
 
-                var result = await _supplierService.GetSuppliersFilteredAsync(
+                var result = await SupplierService.GetSuppliersFilteredAsync(
                     FilterNameBoxSupplier?.Text,
                     FilterPhoneBoxSupplier?.Text,
                     FilterEmailBoxSupplier?.Text,
@@ -54,6 +55,12 @@ namespace PhoneStoreAdmin.View
                     isActive,
                     CurrentPage,
                     PageSize);
+
+                if (result == null)
+                {
+                    await ShowErrorDialogAsync("Error", "Failed to load suppliers.");
+                    return;
+                }
 
                 TotalPages = result.Info.totalPages;
                 TotalRecords = result.Info.totalRecords;
@@ -100,6 +107,8 @@ namespace PhoneStoreAdmin.View
         }
         private async void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
+            if (FilterNameBoxSupplier != null)
+                FilterNameBoxSupplier.Text = string.Empty;
             CurrentPage = 1;
             await LoadSuppliersAsync();
         }
@@ -164,7 +173,7 @@ namespace PhoneStoreAdmin.View
             var id = (sender as Button)?.Tag?.ToString();
             if (int.TryParse(id, out int supplierId))
             {
-                var supplier = await _supplierService.GetSupplierByIdAsync(supplierId);
+                var supplier = await SupplierService.GetSupplierByIdAsync(supplierId);
                 if (supplier != null)
                 {
                     var details = $"ID: {supplier.Id}\n" +
@@ -185,11 +194,11 @@ namespace PhoneStoreAdmin.View
             {
                 try
                 {
-                    var supplier = await _supplierService.GetSupplierByIdAsync(supplierId);
+                    var supplier = await SupplierService.GetSupplierByIdAsync(supplierId);
                     if (supplier != null)
                     {
                         supplier.IsActive = true;
-                        await _supplierService.ActivateSupplierAsync(supplier.Id);
+                        await SupplierService.ActivateSupplierAsync(supplier.Id);
                         await LoadSuppliersAsync(); // Refresh the list
                         await ShowErrorDialogAsync("Success", "Supplier activated successfully!");
                     }
@@ -207,11 +216,11 @@ namespace PhoneStoreAdmin.View
             {
                 try
                 {
-                    var supplier = await _supplierService.GetSupplierByIdAsync(supplierId);
+                    var supplier = await SupplierService.GetSupplierByIdAsync(supplierId);
                     if (supplier != null)
                     {
                         supplier.IsActive = false;
-                        await _supplierService.DeactivateSupplierAsync(supplier.Id);
+                        await SupplierService.DeactivateSupplierAsync(supplier.Id);
                         await LoadSuppliersAsync(); // Refresh the list
                         await ShowErrorDialogAsync("Success", "Supplier deactivated successfully!");
                     }
