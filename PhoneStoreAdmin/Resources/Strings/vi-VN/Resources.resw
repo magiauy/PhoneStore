@@ -219,7 +219,6 @@
   <data name="SideBarLogo.Source" xml:space="preserve">
     <value>../Assets/sidebar_logo.png</value>
   </data>
-  <!-- Settings Page -->
   <data name="SettingsTitle.Text" xml:space="preserve">
     <value>Cài Đặt</value>
   </data>
@@ -316,7 +315,6 @@
   <data name="SignOutButton.Content" xml:space="preserve">
     <value>Đăng Xuất</value>
   </data>
-  <!-- Settings Dialog Messages -->
   <data name="LanguageChangedTitle.Text" xml:space="preserve">
     <value>Đã Thay Đổi Ngôn Ngữ</value>
   </data>
@@ -383,7 +381,6 @@
   <data name="UserPermissions.Text" xml:space="preserve">
     <value>Quyền: 0</value>
   </data>
-  <!-- Change Password Dialog -->
   <data name="CurrentPasswordRequired.Text" xml:space="preserve">
     <value>Yêu cầu nhập mật khẩu hiện tại</value>
   </data>
@@ -438,7 +435,6 @@
   <data name="UserRole.Text" xml:space="preserve">
     <value>Quản trị viên</value>
   </data>
-  <!-- Change Password Dialog -->
   <data name="ChangePasswordDialogTitle.Text" xml:space="preserve">
     <value>Đổi Mật Khẩu</value>
   </data>
@@ -490,7 +486,6 @@
   <data name="ChangePasswordDialogButton.Content" xml:space="preserve">
     <value>Đổi Mật Khẩu</value>
   </data>
-  <!-- Edit Profile Dialog -->
   <data name="EditProfileDialogTitle.Text" xml:space="preserve">
     <value>Chỉnh Sửa Hồ Sơ</value>
   </data>
@@ -541,5 +536,92 @@
   </data>
   <data name="ProfileUpdateError.Text" xml:space="preserve">
     <value>Không thể cập nhật hồ sơ. Vui lòng thử lại.</value>
+  </data>
+  <data name="HeaderTitleSupplier.Text" xml:space="preserve">
+    <value>Quản lý Nhà cung cấp</value>
+  </data>
+  <data name="FilterNameBoxSupplier.PlaceholderText" xml:space="preserve">
+    <value>Tên nhà cung cấp</value>
+  </data>
+  <data name="FilterPhoneBoxSupplier.PlaceholderText" xml:space="preserve">
+    <value>Số điện thoại</value>
+  </data>
+  <data name="FilterAddressBoxSupplier.PlaceholderText" xml:space="preserve">
+    <value>Địa chỉ</value>
+  </data>
+  <data name="FilterTaxBoxSupplier.PlaceholderText" xml:space="preserve">
+    <value>Mã số thuế</value>
+  </data>
+  <data name="FilterActiveBoxSupplier.PlaceholderText" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="BtnSearchSupplier.Content" xml:space="preserve">
+    <value>Tìm kiếm</value>
+  </data>
+  <data name="BtnClearFilter.Content" xml:space="preserve">
+    <value>Xóa bộ lọc</value>
+  </data>
+  <data name="ColIDSupplier.Header" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="ColNameSupplier.Header" xml:space="preserve">
+    <value>Tên nhà cung cấp</value>
+  </data>
+  <data name="ColPhoneSupplier.Header" xml:space="preserve">
+    <value>Số điện thoại</value>
+  </data>
+  <data name="ColEmailSupplier.Header" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="ColAddressSupplier.Header" xml:space="preserve">
+    <value>Địa chỉ</value>
+  </data>
+  <data name="ColTaxSupplier.Header" xml:space="preserve">
+    <value>Mã số thuế</value>
+  </data>
+  <data name="ColActiveSupplier.Header" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="ColActionsSupplier.Header" xml:space="preserve">
+    <value>Thao tác</value>
+  </data>
+  <data name="BtnDeleteSupplier.Content" xml:space="preserve">
+    <value>Xóa</value>
+  </data>
+  <data name="BtnDetailSupplier.Content" xml:space="preserve">
+    <value>Chi tiết</value>
+  </data>
+  <data name="AllItemSupplier.Content" xml:space="preserve">
+    <value>Tất cả</value>
+  </data>
+  <data name="YesItemSupplier.Content" xml:space="preserve">
+    <value>Đúng</value>
+  </data>
+  <data name="NoItemSupplier.Content" xml:space="preserve">
+    <value>Sai</value>
+  </data>
+  <data name="FilterEmailBoxSupplier" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="ComboBoxItemActivate.Content" xml:space="preserve">
+    <value>Hoạt động</value>
+  </data>
+  <data name="ComboBoxItemDeActivate.Content" xml:space="preserve">
+    <value>Ngưng hoạt động</value>
+  </data>
+  <data name="ComboBoxItemAll.Content" xml:space="preserve">
+    <value>Tất cả</value>
+  </data>
+  <data name="BtnNewSupplier.Text" xml:space="preserve">
+    <value>Thêm mới</value>
+  </data>
+  <data name="BtnImportSupplier.Text" xml:space="preserve">
+    <value>Nhập Excel</value>
+  </data>
+  <data name="BtnExportSupplier.Text" xml:space="preserve">
+    <value>Xuất Excel</value>
+  </data>
+  <data name="BtnEditSupplierToolTip.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Sửa</value>
   </data>
 </root>
