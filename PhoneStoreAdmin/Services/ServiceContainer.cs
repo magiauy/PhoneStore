@@ -40,6 +40,7 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<IAuthRepository>(() => new AuthRepository(GetService<DataSource>()));
             RegisterSingleton<IAccountRepository>(() => new AccountRepository(GetService<DataSource>()));
             RegisterSingleton<IPersonRepository>(() => new PersonRepository(GetService<DataSource>()));
+            RegisterSingleton<ISupplierRepository>(() => new SupplierRepository(GetService<DataSource>()));
 
             // Register services
             RegisterSingleton<IAuthService>(() => new AuthService(GetService<IAuthRepository>()));
@@ -56,9 +57,6 @@ namespace PhoneStoreAdmin.Services
                 GetService<IAccountService>(),
                 GetService<IPersonService>(),
                 GetService<UserSession>()));
-
-            // Register Supplier
-            RegisterSingleton<ISupplierRepository>(() => new SupplierRepository(GetService<DataSource>()));
 
             _isInitialized = true;
         }

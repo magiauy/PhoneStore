@@ -1,23 +1,21 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
-using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Repositories.Interfaces;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-
 namespace PhoneStoreAdmin.View
 {
     public sealed partial class SuppliersPage : Page
     {
         private readonly ISupplierRepository _supplierRepository;
-
-        public ObservableCollection<Supplier> Suppliers { get; } = new ObservableCollection<Supplier>();
-
+        public ObservableCollection<SupplierViewModel> Suppliers { get; } = new ObservableCollection<SupplierViewModel>();
         public int CurrentPage { get; set; } = 1;
         public int PageSize { get; set; } = 10;
         public int TotalPages { get; set; } = 1;
+
+        public int TotalRecords { get; set; } = 0;
 
         public SuppliersPage()
         {
@@ -25,27 +23,24 @@ namespace PhoneStoreAdmin.View
             _supplierRepository = App.GetService<ISupplierRepository>();
             this.Loaded += SuppliersPage_Loaded;
         }
-
         private async void SuppliersPage_Loaded(object sender, RoutedEventArgs e)
         {
             await LoadSuppliersAsync();
         }
-
         private async Task LoadSuppliersAsync()
         {
             try
             {
                 Suppliers.Clear();
 
-                // Ensure UI elements are initialized before accessing them
-                if (FilterActiveBoxSupplier == null || 
-                    FilterNameBoxSupplier == null || 
-                    FilterPhoneBoxSupplier == null || 
-                    FilterEmailBoxSupplier == null || 
-                    FilterAddressBoxSupplier == null || 
+                if (FilterActiveBoxSupplier == null ||
+                    FilterNameBoxSupplier == null ||
+                    FilterPhoneBoxSupplier == null ||
+                    FilterEmailBoxSupplier == null ||
+                    FilterAddressBoxSupplier == null ||
                     FilterTaxBoxSupplier == null)
                 {
-                    return; // Exit early if UI elements aren't ready
+                    return;
                 }
 
                 bool? isActive = null;
@@ -59,24 +54,14 @@ namespace PhoneStoreAdmin.View
                     };
                 }
 
-                // Get filter values safely
                 var nameFilter = FilterNameBoxSupplier.Text ?? string.Empty;
                 var phoneFilter = FilterPhoneBoxSupplier.Text ?? string.Empty;
                 var emailFilter = FilterEmailBoxSupplier.Text ?? string.Empty;
                 var addressFilter = FilterAddressBoxSupplier.Text ?? string.Empty;
                 var taxFilter = FilterTaxBoxSupplier.Text ?? string.Empty;
 
-                // Execute repository calls on background thread
-                var totalPagesTask = Task.Run(() => _supplierRepository.GetTotalPages(
-                    nameFilter,
-                    phoneFilter,
-                    emailFilter,
-                    addressFilter,
-                    taxFilter,
-                    isActive,
-                    PageSize));
-
-                var suppliersTask = Task.Run(() => _supplierRepository.GetSuppliersFiltered(
+                // Gọi repo mới
+                var result = await _supplierRepository.GetSuppliersFiltered(
                     nameFilter,
                     phoneFilter,
                     emailFilter,
@@ -84,50 +69,75 @@ namespace PhoneStoreAdmin.View
                     taxFilter,
                     isActive,
                     CurrentPage,
-                    PageSize));
+                    PageSize);
 
-                // Wait for both tasks to complete
-                await Task.WhenAll(totalPagesTask, suppliersTask);
+                TotalPages = result.Info.totalPages;
+                TotalRecords = result.Info.totalRecords;
 
-                TotalPages = await totalPagesTask;
-                var suppliers = await suppliersTask;
-
-                // Update UI on the main thread
-                foreach (var supplier in suppliers)
+                foreach (var supplier in result.Suppliers)
                 {
-                    Suppliers.Add(supplier);
+                    Suppliers.Add(new SupplierViewModel
+                    {
+                        Id = supplier.Id,
+                        Name = supplier.Name,
+                        Phone = supplier.Phone ?? string.Empty,
+                        Email = supplier.Email ?? string.Empty,
+                        Address = supplier.Address ?? string.Empty,
+                        TaxNumber = supplier.TaxNumber ?? string.Empty,
+                        IsActive = supplier.IsActive
+                    });
                 }
+
+                // Update UI
+                PageInfoText.Text = $"{CurrentPage} / {TotalPages}";
+                PreviousPageButton.IsEnabled = CurrentPage > 1;
+                NextPageButton.IsEnabled = CurrentPage < TotalPages;
+
+                RecordCountText.Text = $"{Suppliers.Count} / {TotalRecords}";
             }
             catch (Exception ex)
             {
                 await ShowErrorDialogAsync("Failed to load suppliers", ex.Message);
             }
         }
-
         private async void BtnSearch_Click(object sender, RoutedEventArgs e)
         {
             CurrentPage = 1;
             await LoadSuppliersAsync();
         }
-
+        private void FilterButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (FilterPanel.Visibility == Visibility.Collapsed)
+            {
+                FilterPanel.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                FilterPanel.Visibility = Visibility.Collapsed;
+            }
+        }
+        private async void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        {
+            CurrentPage = 1;
+            await LoadSuppliersAsync();
+        }
         private async void BtnClearFilter_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 // Safely clear filter values with null checks
-                if (FilterNameBoxSupplier != null) 
+                if (FilterNameBoxSupplier != null)
                     FilterNameBoxSupplier.Text = string.Empty;
-                if (FilterPhoneBoxSupplier != null) 
+                if (FilterPhoneBoxSupplier != null)
                     FilterPhoneBoxSupplier.Text = string.Empty;
-                if (FilterEmailBoxSupplier != null) 
+                if (FilterEmailBoxSupplier != null)
                     FilterEmailBoxSupplier.Text = string.Empty;
-                if (FilterAddressBoxSupplier != null) 
+                if (FilterAddressBoxSupplier != null)
                     FilterAddressBoxSupplier.Text = string.Empty;
-                if (FilterTaxBoxSupplier != null) 
+                if (FilterTaxBoxSupplier != null)
                     FilterTaxBoxSupplier.Text = string.Empty;
-                if (FilterActiveBoxSupplier != null) 
+                if (FilterActiveBoxSupplier != null)
                     FilterActiveBoxSupplier.SelectedIndex = 0;
-                
                 CurrentPage = 1;
                 await LoadSuppliersAsync();
             }
@@ -136,7 +146,6 @@ namespace PhoneStoreAdmin.View
                 await ShowErrorDialogAsync("Error clearing filters", ex.Message);
             }
         }
-
         private async Task ShowErrorDialogAsync(string title, string message)
         {
             try
@@ -156,65 +165,110 @@ namespace PhoneStoreAdmin.View
                 System.Diagnostics.Debug.WriteLine($"Dialog error: {ex.Message}");
             }
         }
-
         private async void BtnCreate_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Logic mở form tạo nhà cung cấp
-            await ShowErrorDialogAsync("Info", "Create button clicked");
+            await ShowErrorDialogAsync("Info", "Create supplier functionality - Coming Soon!");
         }
-
         private async void BtnEdit_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Logic chỉnh sửa nhà cung cấp
-            await ShowErrorDialogAsync("Info", "Edit button clicked");
+            var id = (sender as Button)?.Tag?.ToString();
+            if (int.TryParse(id, out int supplierId))
+            {
+                await ShowErrorDialogAsync("Info", $"Edit supplier ID: {supplierId} - Coming Soon!");
+            }
         }
-
         private async void BtnDetail_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Logic xem chi tiết nhà cung cấp
-            await ShowErrorDialogAsync("Info", "Detail button clicked");
+            var id = (sender as Button)?.Tag?.ToString();
+            if (int.TryParse(id, out int supplierId))
+            {
+                var supplier = await _supplierRepository.GetByIdAsync(supplierId);
+                if (supplier != null)
+                {
+                    var details = $"ID: {supplier.Id}\n" +
+                    $"Name: {supplier.Name}\n" +
+                    $"Phone: {supplier.Phone ?? "N/A"}\n" +
+                    $"Email: {supplier.Email ?? "N/A"}\n" +
+                    $"Address: {supplier.Address ?? "N/A"}\n" +
+                    $"Tax Number: {supplier.TaxNumber ?? "N/A"}\n" +
+                    $"Status: {(supplier.IsActive ? "Active" : "Inactive")}";
+                    await ShowErrorDialogAsync("Supplier Details", details);
+                }
+            }
         }
-
-        private async void BtnDeActivate_Click(object sender, RoutedEventArgs e)
-        {
-            // TODO: Logic kích hoạt/hủy kích hoạt nhà cung cấp
-            await ShowErrorDialogAsync("Info", "Deactivate button clicked");
-        }
-
         private async void BtnActivate_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Logic kích hoạt/hủy kích hoạt nhà cung cấp
-            await ShowErrorDialogAsync("Info", "Activate button clicked");
+            var id = (sender as Button)?.Tag?.ToString();
+            if (int.TryParse(id, out int supplierId))
+            {
+                try
+                {
+                    var supplier = await _supplierRepository.GetByIdAsync(supplierId);
+                    if (supplier != null)
+                    {
+                        supplier.IsActive = true;
+                        await _supplierRepository.UpdateAsync(supplier);
+                        await LoadSuppliersAsync(); // Refresh the list
+                        await ShowErrorDialogAsync("Success", "Supplier activated successfully!");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await ShowErrorDialogAsync("Error", $"Failed to activate supplier: {ex.Message}");
+                }
+            }
+        }
+        private async void BtnDeActivate_Click(object sender, RoutedEventArgs e)
+        {
+            var id = (sender as Button)?.Tag?.ToString();
+            if (int.TryParse(id, out int supplierId))
+            {
+                try
+                {
+                    var supplier = await _supplierRepository.GetByIdAsync(supplierId);
+                    if (supplier != null)
+                    {
+                        supplier.IsActive = false;
+                        await _supplierRepository.UpdateAsync(supplier);
+                        await LoadSuppliersAsync(); // Refresh the list
+                        await ShowErrorDialogAsync("Success", "Supplier deactivated successfully!");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await ShowErrorDialogAsync("Error", $"Failed to deactivate supplier: {ex.Message}");
+                }
+            }
+        }
+        
+        private async void BtnNextPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (CurrentPage < TotalPages)
+            {
+                CurrentPage++;
+                await LoadSuppliersAsync();
+            }
+        }
+        private async void BtnLastPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (CurrentPage >= 1)
+            {
+                CurrentPage--;
+                await LoadSuppliersAsync();
+            }
         }
 
-        private async void BtnFirstPage_Click(object sender, RoutedEventArgs e) 
-        { 
-            CurrentPage = 1; 
-            await LoadSuppliersAsync(); 
-        }
-        
-        private async void BtnPrevPage_Click(object sender, RoutedEventArgs e) 
-        { 
-            if (CurrentPage > 1) 
-            { 
-                CurrentPage--; 
-                await LoadSuppliersAsync(); 
-            } 
-        }
-        
-        private async void BtnNextPage_Click(object sender, RoutedEventArgs e) 
-        { 
-            if (CurrentPage < TotalPages) 
-            { 
-                CurrentPage++; 
-                await LoadSuppliersAsync(); 
-            } 
-        }
-        
-        private async void BtnLastPage_Click(object sender, RoutedEventArgs e) 
-        { 
-            CurrentPage = TotalPages; 
-            await LoadSuppliersAsync(); 
+        private async void FilterChange(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                CurrentPage = 1;
+                await LoadSuppliersAsync();
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorDialogAsync("Error clearing filters", ex.Message);
+            }
         }
     }
 
@@ -224,13 +278,11 @@ namespace PhoneStoreAdmin.View
         {
             return value != null ? Visibility.Visible : Visibility.Collapsed;
         }
-
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
             throw new NotImplementedException();
         }
     }
-
     public class BooleanToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
@@ -247,10 +299,21 @@ namespace PhoneStoreAdmin.View
             }
             return Visibility.Collapsed;
         }
-
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
             throw new NotImplementedException();
         }
+    }
+    public class SupplierViewModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        public string TaxNumber { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public string StatusText => IsActive ? "Active" : "Inactive";
+        public string StatusColor => IsActive ? "#28a745" : "#dc3545";
     }
 }
