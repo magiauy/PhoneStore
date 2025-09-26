@@ -189,7 +189,7 @@
   <data name="ResetLinkButton.Content" xml:space="preserve">
     <value>Gửi Liên Kết Đặt Lại</value>
   </data>
-  <data name="CancelButton.Supplier.Content" xml:space="preserve">
+  <data name="CancelButton.Content" xml:space="preserve">
     <value>Hủy</value>
   </data>
   <data name="FeatureComingSoon.Text" xml:space="preserve">
@@ -585,9 +585,6 @@
   <data name="ColActionsSupplier.Header" xml:space="preserve">
     <value>Thao tác</value>
   </data>
-  <data name="BtnEditSupplier.Content" xml:space="preserve">
-    <value>Sửa</value>
-  </data>
   <data name="BtnDeleteSupplier.Content" xml:space="preserve">
     <value>Xóa</value>
   </data>
@@ -623,5 +620,8 @@
   </data>
   <data name="BtnExportSupplier.Text" xml:space="preserve">
     <value>Xuất Excel</value>
+  </data>
+  <data name="BtnEditSupplierToolTip.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Sửa</value>
   </data>
 </root>

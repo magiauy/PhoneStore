@@ -189,7 +189,7 @@
   <data name="ResetLinkButton.Content" xml:space="preserve">
     <value>Send Reset Link</value>
   </data>
-  <data name="CancelButton.Supplier.Content" xml:space="preserve">
+  <data name="CancelButton.Content" xml:space="preserve">
     <value>Cancel</value>
   </data>
   <data name="FeatureComingSoon.Text" xml:space="preserve">
@@ -585,9 +585,6 @@
   <data name="ColActionsSupplier.Header" xml:space="preserve">
     <value>Actions</value>
   </data>
-  <data name="BtnEditSupplier.Content" xml:space="preserve">
-    <value>Edit</value>
-  </data>
   <data name="BtnDeleteSupplier.Content" xml:space="preserve">
     <value>Delete</value>
   </data>
@@ -623,5 +620,8 @@
   </data>
   <data name="BtnExportSupplier.Text" xml:space="preserve">
     <value>Export Excel</value>
+  </data>
+  <data name="BtnEditSupplierToolTip.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Edit</value>
   </data>
 </root>

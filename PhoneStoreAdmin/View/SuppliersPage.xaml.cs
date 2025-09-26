@@ -181,6 +181,12 @@ namespace PhoneStoreAdmin.View
             await ShowErrorDialogAsync("Info", "Deactivate button clicked");
         }
 
+        private async void BtnActivate_Click(object sender, RoutedEventArgs e)
+        {
+            // TODO: Logic kích hoạt/hủy kích hoạt nhà cung cấp
+            await ShowErrorDialogAsync("Info", "Activate button clicked");
+        }
+
         private async void BtnFirstPage_Click(object sender, RoutedEventArgs e) 
         { 
             CurrentPage = 1; 
@@ -217,6 +223,29 @@ namespace PhoneStoreAdmin.View
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             return value != null ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class BooleanToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            if (value is bool boolValue)
+            {
+                // Handle converter parameter for inverse logic
+                if (parameter?.ToString() == "True")
+                    return boolValue ? Visibility.Visible : Visibility.Collapsed;
+                else if (parameter?.ToString() == "False")
+                    return boolValue ? Visibility.Collapsed : Visibility.Visible;
+                else
+                    return boolValue ? Visibility.Visible : Visibility.Collapsed;
+            }
+            return Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
