@@ -14,7 +14,7 @@
 
     <Color x:Key="ColorOnPrimary">#FFFFFFFF</Color>
     <SolidColorBrush x:Key="BrushOnPrimary" Color="{StaticResource ColorOnPrimary}" />
-
+    <SolidColorBrush x:Key="BrushPrimaryPressed" Color="{StaticResource ColorPrimary}" Opacity="0.80"/>
     <!-- 🌸 Secondary -->
     <Color x:Key="ColorSecondary">#FFA5AEFF</Color>
     <SolidColorBrush x:Key="BrushSecondary" Color="{StaticResource ColorSecondary}" />
