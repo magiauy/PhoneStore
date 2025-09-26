@@ -540,19 +540,19 @@
   <data name="HeaderTitleSupplier.Text" xml:space="preserve">
     <value>Quản lý Nhà cung cấp</value>
   </data>
-  <data name="FilterNameBoxSupplier.PlaceholderText" xml:space="preserve">
-    <value>Tên nhà cung cấp</value>
+  <data name="FilterNameBoxSupplier.Text" xml:space="preserve">
+    <value>Tên</value>
   </data>
-  <data name="FilterPhoneBoxSupplier.PlaceholderText" xml:space="preserve">
+  <data name="FilterPhoneBoxSupplier.Text" xml:space="preserve">
     <value>Số điện thoại</value>
   </data>
-  <data name="FilterAddressBoxSupplier.PlaceholderText" xml:space="preserve">
+  <data name="FilterAddressBoxSupplier.Text" xml:space="preserve">
     <value>Địa chỉ</value>
   </data>
-  <data name="FilterTaxBoxSupplier.PlaceholderText" xml:space="preserve">
+  <data name="FilterTaxBoxSupplier.Text" xml:space="preserve">
     <value>Mã số thuế</value>
   </data>
-  <data name="FilterActiveBoxSupplier.PlaceholderText" xml:space="preserve">
+  <data name="FilterActiveBoxSupplier.Text" xml:space="preserve">
     <value>Trạng thái</value>
   </data>
   <data name="BtnSearchSupplier.Content" xml:space="preserve">
@@ -561,29 +561,29 @@
   <data name="BtnClearFilter.Content" xml:space="preserve">
     <value>Xóa bộ lọc</value>
   </data>
-  <data name="ColIDSupplier.Header" xml:space="preserve">
+  <data name="ColIDSupplier.Text" xml:space="preserve">
     <value>ID</value>
   </data>
-  <data name="ColNameSupplier.Header" xml:space="preserve">
-    <value>Tên nhà cung cấp</value>
+  <data name="ColNameSupplier.Text" xml:space="preserve">
+    <value>TÊN NHÀ CUNG CẤP</value>
   </data>
-  <data name="ColPhoneSupplier.Header" xml:space="preserve">
-    <value>Số điện thoại</value>
+  <data name="ColPhoneSupplier.Text" xml:space="preserve">
+    <value>SỐ ĐIỆN THOẠI</value>
   </data>
-  <data name="ColEmailSupplier.Header" xml:space="preserve">
-    <value>Email</value>
+  <data name="ColEmailSupplier.Text" xml:space="preserve">
+    <value>EMAIL</value>
   </data>
-  <data name="ColAddressSupplier.Header" xml:space="preserve">
-    <value>Địa chỉ</value>
+  <data name="ColAddressSupplier.Text" xml:space="preserve">
+    <value>ĐỊA CHỈ</value>
   </data>
-  <data name="ColTaxSupplier.Header" xml:space="preserve">
-    <value>Mã số thuế</value>
+  <data name="ColTaxSupplier.Text" xml:space="preserve">
+    <value>MÃ SỐ THUẾ</value>
   </data>
-  <data name="ColActiveSupplier.Header" xml:space="preserve">
-    <value>Trạng thái</value>
+  <data name="ColActiveSupplier.Text" xml:space="preserve">
+    <value>TRẠNG THÁI</value>
   </data>
-  <data name="ColActionsSupplier.Header" xml:space="preserve">
-    <value>Thao tác</value>
+  <data name="ColActionsSupplier.Text" xml:space="preserve">
+    <value>THAO TÁC</value>
   </data>
   <data name="BtnDeleteSupplier.Content" xml:space="preserve">
     <value>Xóa</value>
@@ -600,7 +600,7 @@
   <data name="NoItemSupplier.Content" xml:space="preserve">
     <value>Sai</value>
   </data>
-  <data name="FilterEmailBoxSupplier" xml:space="preserve">
+  <data name="FilterEmailBoxSupplier.Text" xml:space="preserve">
     <value>Email</value>
   </data>
   <data name="ComboBoxItemActivate.Content" xml:space="preserve">
@@ -613,7 +613,7 @@
     <value>Tất cả</value>
   </data>
   <data name="BtnNewSupplier.Text" xml:space="preserve">
-    <value>Thêm mới</value>
+    <value>Thêm nhà cung cấp</value>
   </data>
   <data name="BtnImportSupplier.Text" xml:space="preserve">
     <value>Nhập Excel</value>
@@ -623,5 +623,23 @@
   </data>
   <data name="BtnEditSupplierToolTip.ToolTipService.ToolTip" xml:space="preserve">
     <value>Sửa</value>
+  </data>
+  <data name="SubHeaderTitleSupplier.Text" xml:space="preserve">
+    <value>Thêm, sửa, xóa và quản lý trạng thái nhà cung cấp</value>
+  </data>
+  <data name="SearchSupplier.PlaceholderText" xml:space="preserve">
+    <value>Tìm kiếm theo tên nhà cung cấp...</value>
+  </data>
+  <data name="BtnFilterSupplier.Text" xml:space="preserve">
+    <value>Lọc</value>
+  </data>
+  <data name="ShowIngSupplier.Text" xml:space="preserve">
+    <value>Hiển thị</value>
+  </data>
+  <data name="Suppliers.Text" xml:space="preserve">
+    <value>nhà cung cấp</value>
+  </data>
+  <data name="PageSupplier.Text" xml:space="preserve">
+    <value>Trang</value>
   </data>
 </root>

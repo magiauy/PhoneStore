@@ -2,795 +2,776 @@
     x:Class="PhoneStoreAdmin.View.SuppliersPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
-    xmlns:converters="using:Windows.UI.Xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:PhoneStoreAdmin.View"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:models="using:PhoneStoreAdmin.Models"
+    Background="{StaticResource BrushBackground}"
     mc:Ignorable="d">
-
     <Page.Resources>
-        <local:SortDirectionToVisibilityConverter x:Key="SortDirectionToVisibilityConverter" />
-        <local:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <Style x:Key="CenteredCheckBoxStyle" TargetType="CheckBox">
-            <Setter Property="HorizontalAlignment" Value="Center" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Margin" Value="0,0,20,0" />
-            <Setter Property="Padding" Value="0,0,0,0" />
-            <Setter Property="Template">
+        <!--  Shadow Styles  -->
+        <ThemeShadow x:Name="SharedShadow" />
+        <!--  Card Style  -->
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background">
                 <Setter.Value>
-                    <ControlTemplate TargetType="CheckBox">
-                        <Grid
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}">
-                            <Grid
-                                Width="20"
-                                Height="20"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center">
-                                <Border
-                                    x:Name="CheckBorder"
-                                    Width="18"
-                                    Height="18"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Background="{ThemeResource SystemControlBackgroundBaseLowBrush}"
-                                    BorderBrush="{ThemeResource SystemControlForegroundBaseHighBrush}"
-                                    BorderThickness="1" />
-                                <FontIcon
-                                    x:Name="CheckGlyph"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    FontFamily="Segoe Fluent Icons"
-                                    FontSize="12"
-                                    Foreground="{ThemeResource CheckBoxCheckGlyphForegroundChecked}"
-                                    Glyph="&#xE73E;"
-                                    Visibility="Collapsed" />
-                            </Grid>
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroup x:Name="CommonStates">
-                                    <VisualState x:Name="Normal" />
-                                    <VisualState x:Name="PointerOver" />
-                                    <VisualState x:Name="Pressed" />
-                                    <VisualState x:Name="Disabled" />
-                                </VisualStateGroup>
-                                <VisualStateGroup x:Name="CheckStates">
-                                    <VisualState x:Name="Checked">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CheckGlyph" Storyboard.TargetProperty="Visibility">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Visible" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="Unchecked" />
-                                    <VisualState x:Name="Indeterminate" />
-                                </VisualStateGroup>
-                            </VisualStateManager.VisualStateGroups>
-                        </Grid>
-                    </ControlTemplate>
+                    <SolidColorBrush Opacity="0.95" Color="{StaticResource ColorSurface}" />
                 </Setter.Value>
             </Setter>
-        </Style>
-        <Style x:Key="CenteredTextBlockStyle" TargetType="TextBlock">
-            <Setter Property="HorizontalAlignment" Value="Center" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="TextAlignment" Value="Center" />
-            <Setter Property="Padding" Value="8,8,30,8" />
-        </Style>
-        <Style x:Key="LeftAlignedTextBlockStyle" TargetType="TextBlock">
-            <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="TextAlignment" Value="Left" />
-            <Setter Property="Padding" Value="8,8,8,8" />
-        </Style>
-        <Style x:Key="NoRightBorderHeaderStyle" TargetType="ContentControl">
-            <Setter Property="HorizontalContentAlignment" Value="Center" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ContentControl">
-                        <Border
-                            Padding="4"
-                            BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
-                            BorderThickness="0">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <ContentPresenter
-                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                    Content="{TemplateBinding Content}" />
-                                <TextBlock
-                                    Grid.Column="1"
-                                    Margin="4,0,0,0"
-                                    VerticalAlignment="Center"
-                                    Text="↑↓"
-                                    Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SortDirection, Converter={StaticResource SortDirectionToVisibilityConverter}}" />
-                            </Grid>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="CenteredCellStyle" TargetType="controls:DataGridCell">
-            <Setter Property="HorizontalContentAlignment" Value="Center" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Padding" Value="0,0,0,0" />
-            <Setter Property="Margin" Value="0" />
-            <Setter Property="IsHitTestVisible" Value="False" />
-        </Style>
-        <Style TargetType="controls:DataGridCell">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="IsTabStop" Value="False" />
-            <Setter Property="FocusVisualPrimaryBrush" Value="Transparent" />
-            <Setter Property="FocusVisualSecondaryBrush" Value="Transparent" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="controls:DataGridCell">
-                        <Grid x:Name="Root" Background="{TemplateBinding Background}">
-                            <ContentPresenter Content="{TemplateBinding Content}" />
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroup x:Name="CommonStates">
-                                    <VisualState x:Name="Normal" />
-                                    <VisualState x:Name="PointerOver">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="BorderBrush">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="Selected">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="BorderBrush">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="PointerOverSelected">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="BorderBrush">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                </VisualStateGroup>
-                                <VisualStateGroup x:Name="FocusStates">
-                                    <VisualState x:Name="Focused">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="BorderBrush">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="Unfocused" />
-                                </VisualStateGroup>
-                            </VisualStateManager.VisualStateGroups>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style TargetType="controls:DataGridRow">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-        </Style>
-        <Style x:Key="ActionCellStyle" TargetType="controls:DataGridCell">
-            <Setter Property="HorizontalContentAlignment" Value="Center" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Padding" Value="0,0,8,0" />
-            <Setter Property="Margin" Value="0" />
-            <Setter Property="IsHitTestVisible" Value="True" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="FocusVisualPrimaryBrush" Value="Transparent" />
-            <Setter Property="FocusVisualSecondaryBrush" Value="Transparent" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="controls:DataGridCell">
-                        <Grid x:Name="Root" Background="{TemplateBinding Background}">
-                            <ContentPresenter Content="{TemplateBinding Content}" />
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroup x:Name="CommonStates">
-                                    <VisualState x:Name="Normal" />
-                                    <VisualState x:Name="PointerOver">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="BorderBrush">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="Selected">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="BorderBrush">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="PointerOverSelected">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="BorderBrush">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                </VisualStateGroup>
-                                <VisualStateGroup x:Name="FocusStates">
-                                    <VisualState x:Name="Focused">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="BorderBrush">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="Unfocused" />
-                                </VisualStateGroup>
-                            </VisualStateManager.VisualStateGroups>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="SubtleButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="{ThemeResource LayerFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="10,6" />
-            <Setter Property="Margin" Value="4" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="FontSize" Value="14" />
+            <Setter Property="CornerRadius" Value="12" />
+        </Style>
+        <!--  Primary Button Style  -->
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource BrushPrimary}" />
+            <Setter Property="Foreground" Value="{StaticResource BrushOnPrimary}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="8" />
             <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="20,14" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border
-                            x:Name="RootBorder"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="8">
-                            <ContentPresenter
-                                x:Name="ContentPresenter"
-                                Padding="{TemplateBinding Padding}"
-                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                Content="{TemplateBinding Content}" />
+                        <Grid>
+                            <Border
+                                x:Name="RootBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="{TemplateBinding CornerRadius}">
+                                <ContentPresenter
+                                    Margin="{TemplateBinding Padding}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                    Foreground="{TemplateBinding Foreground}" />
+                            </Border>
                             <VisualStateManager.VisualStateGroups>
                                 <VisualStateGroup x:Name="CommonStates">
                                     <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="PointerOver">
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder" Storyboard.TargetProperty="Background">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource BrushPrimaryHover}" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
                                     <VisualState x:Name="Pressed">
                                         <Storyboard>
                                             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource ControlFillColorInputActiveBrush}" />
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource BrushPrimaryPressed}" />
                                             </ObjectAnimationUsingKeyFrames>
                                         </Storyboard>
                                     </VisualState>
                                     <VisualState x:Name="Disabled">
                                         <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource ControlFillColorDisabledBrush}" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder" Storyboard.TargetProperty="BorderBrush">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Opacity">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="0.5" />
-                                            </ObjectAnimationUsingKeyFrames>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="RootBorder"
+                                                Storyboard.TargetProperty="Opacity"
+                                                To="0.6"
+                                                Duration="0:0:0" />
                                         </Storyboard>
                                     </VisualState>
                                 </VisualStateGroup>
                             </VisualStateManager.VisualStateGroups>
-                        </Border>
+                        </Grid>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+        <!--  Secondary Button Style  -->
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <SolidColorBrush Color="{StaticResource ColorSurface}" />
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="FontWeight" Value="Medium" />
+        </Style>
+        <!--  Input Style for TextBox and ComboBox  -->
+        <Style x:Key="InputStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+        <Style x:Key="ComboBoxInputStyle" TargetType="ComboBox">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
     </Page.Resources>
-
     <Grid>
-        <StackPanel
-            Padding="24"
-            Orientation="Vertical"
-            Spacing="24">
-
-            <!--  Header  -->
-            <TextBlock
-                x:Name="HeaderTitleSupplier"
-                x:Uid="HeaderTitleSupplier"
-                FontSize="32"
-                FontWeight="SemiBold"
-                Foreground="{ThemeResource TextFillColorPrimary}" />
-
-            <!--  Filter Card  -->
-            <Border
-                Padding="16"
-                Background="{ThemeResource LayerFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="12">
-                <Border.Shadow>
-                    <ThemeShadow />
-                </Border.Shadow>
-                <StackPanel Orientation="Vertical" Spacing="12">
-                    <!--  Row 1: Filters  -->
-                    <Grid ColumnSpacing="12">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBox
-                            x:Name="FilterNameBoxSupplier"
-                            x:Uid="FilterNameBoxSupplier"
-                            Grid.Column="0"
-                            MinWidth="80"
-                            MinHeight="40"
-                            Padding="10"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Center"
-                            VerticalContentAlignment="Center"
-                            PlaceholderText="Name / Tên" />
-                        <TextBox
-                            x:Name="FilterPhoneBoxSupplier"
-                            x:Uid="FilterPhoneBoxSupplier"
-                            Grid.Column="1"
-                            MinWidth="80"
-                            MinHeight="40"
-                            Padding="10"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Center"
-                            VerticalContentAlignment="Center"
-                            PlaceholderText="Phone / Số điện thoại" />
-                        <TextBox
-                            x:Name="FilterEmailBoxSupplier"
-                            x:Uid="FilterEmailBoxSupplier"
-                            Grid.Column="2"
-                            MinWidth="80"
-                            MinHeight="40"
-                            Padding="10"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Center"
-                            VerticalContentAlignment="Center"
-                            PlaceholderText="Email" />
-                        <TextBox
-                            x:Name="FilterAddressBoxSupplier"
-                            x:Uid="FilterAddressBoxSupplier"
-                            Grid.Column="3"
-                            MinWidth="80"
-                            MinHeight="40"
-                            Padding="10"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Center"
-                            VerticalContentAlignment="Center"
-                            PlaceholderText="Address / Địa chỉ" />
-                        <TextBox
-                            x:Name="FilterTaxBoxSupplier"
-                            x:Uid="FilterTaxBoxSupplier"
-                            Grid.Column="4"
-                            MinWidth="80"
-                            MinHeight="40"
-                            Padding="10"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Center"
-                            VerticalContentAlignment="Center"
-                            PlaceholderText="Tax ID / Mã số thuế" />
-                        <ComboBox
-                            x:Name="FilterActiveBoxSupplier"
-                            x:Uid="FilterActiveBoxSupplier"
-                            Grid.Column="5"
-                            MinWidth="80"
-                            MinHeight="40"
-                            Padding="10"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Center"
-                            VerticalContentAlignment="Center">
-                            <ComboBoxItem
-                                x:Uid="ComboBoxItemAll"
-                                IsSelected="True"
-                                Tag="-1" />
-                            <ComboBoxItem x:Uid="ComboBoxItemActivate" Tag="1" />
-                            <ComboBoxItem x:Uid="ComboBoxItemDeActivate" Tag="0" />
-                        </ComboBox>
-                    </Grid>
-                    <!--  Row 2: Buttons  -->
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Button
-                            x:Name="BtnSearchSupplier"
-                            x:Uid="BtnSearchSupplier"
-                            Grid.Column="0"
-                            MinHeight="40"
-                            HorizontalAlignment="Stretch"
-                            Click="BtnSearch_Click"
-                            CornerRadius="8"
-                            Style="{ThemeResource AccentButtonStyle}">
-                            <StackPanel
-                                HorizontalAlignment="Center"
-                                Orientation="Horizontal"
-                                Spacing="6">
-                                <TextBlock x:Uid="BtnSearchText" />
-                            </StackPanel>
-                        </Button>
-                        <Button
-                            x:Name="BtnClearFilterSupplier"
-                            x:Uid="BtnClearFilterSupplier"
-                            Grid.Column="1"
-                            MinHeight="40"
-                            HorizontalAlignment="Stretch"
-                            Click="BtnClearFilter_Click"
-                            CornerRadius="8"
-                            Style="{ThemeResource DefaultButtonStyle}">
-                            <StackPanel
-                                HorizontalAlignment="Center"
-                                Orientation="Horizontal"
-                                Spacing="6">
-                                <TextBlock x:Uid="BtnClearText" />
-                            </StackPanel>
-                        </Button>
-                    </Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <!--  Modern Gradient Background  -->
+        <Grid Grid.RowSpan="2">
+            <Rectangle>
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Offset="0" Color="{StaticResource ColorBackground}" />
+                        <GradientStop Offset="0.5" Color="#FFF0F2FF" />
+                        <GradientStop Offset="1" Color="#FFE8ECFF" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+            <!--  Decorative Elements  -->
+            <Grid>
+                <Ellipse
+                    Width="400"
+                    Height="400"
+                    Margin="-200,-100,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Opacity="0.1">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Offset="0" Color="{StaticResource ColorPrimary}" />
+                            <GradientStop Offset="1" Color="{StaticResource ColorPrimaryLight}" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+                <Ellipse
+                    Width="300"
+                    Height="300"
+                    Margin="0,0,-150,-150"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Opacity="0.1">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Offset="0" Color="{StaticResource ColorAccent}" />
+                            <GradientStop Offset="1" Color="Transparent" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+            </Grid>
+        </Grid>
+        <!--  Header Section  -->
+        <Border
+            Grid.Row="0"
+            Margin="32,32,32,24"
+            Shadow="{StaticResource SharedShadow}"
+            Style="{StaticResource CardStyle}">
+            <Grid Padding="32,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel
+                    Grid.Column="0"
+                    Orientation="Vertical"
+                    Spacing="8">
+                    <TextBlock
+                        x:Uid="HeaderTitleSupplier"
+                        FontSize="36"
+                        FontWeight="Bold">
+                        <TextBlock.Foreground>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Offset="0" Color="{StaticResource ColorPrimary}" />
+                                <GradientStop Offset="1" Color="{StaticResource ColorAccent}" />
+                            </LinearGradientBrush>
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                    <TextBlock
+                        x:Uid="SubHeaderTitleSupplier"
+                        FontSize="16"
+                        Foreground="{StaticResource BrushTextSecondary}" />
                 </StackPanel>
-            </Border>
-
-            <!--  Quick Actions  -->
+                <Button
+                    x:Name="AddSupplierButton"
+                    Grid.Column="1"
+                    Padding="20,14"
+                    VerticalAlignment="Center"
+                    Click="BtnCreate_Click"
+                    Shadow="{StaticResource SharedShadow}"
+                    Style="{StaticResource PrimaryButtonStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon FontSize="18" Glyph="&#xE710;" />
+                        <TextBlock x:Uid="BtnNewSupplier" FontSize="15" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+        <!--  Main Content Area  -->
+        <Grid Grid.Row="1" Margin="32,0,32,32">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <!--  Search and Filter Bar  -->
             <Border
-                Padding="16"
-                Background="{ThemeResource LayerFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="12">
-                <Border.Shadow>
-                    <ThemeShadow />
-                </Border.Shadow>
-                <Grid ColumnSpacing="12">
+                Grid.Row="0"
+                Margin="0,0,0,24"
+                Padding="24,20"
+                Shadow="{StaticResource SharedShadow}"
+                Style="{StaticResource CardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <AutoSuggestBox
+                        x:Name="SearchBox"
+                        x:Uid="SearchSupplier"
+                        Grid.Column="0"
+                        Margin="0,0,16,0"
+                        Padding="16,10"
+                        VerticalContentAlignment="Center"
+                        Background="Transparent"
+                        BorderBrush="{StaticResource BrushBorder}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        FontSize="15"
+                        QueryIcon="Find"
+                        TextChanged="SearchBox_TextChanged" />
+                    <StackPanel
+                        Grid.Column="1"
+                        Orientation="Horizontal"
+                        Spacing="12">
+                        <Button
+                            x:Name="FilterButton"
+                            Padding="16,12"
+                            Click="FilterButton_Click"
+                            Shadow="{StaticResource SharedShadow}"
+                            Style="{StaticResource SecondaryButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon
+                                    FontSize="16"
+                                    Foreground="{StaticResource BrushPrimary}"
+                                    Glyph="&#xE71C;" />
+                                <TextBlock
+                                    x:Uid="BtnFilterSupplier"
+                                    FontWeight="Medium"
+                                    Foreground="{StaticResource BrushText}" />
+                            </StackPanel>
+                        </Button>
+                        <Button
+                            x:Name="RefreshButton"
+                            Padding="14"
+                            Click="BtnClearFilter_Click"
+                            Shadow="{StaticResource SharedShadow}"
+                            Style="{StaticResource SecondaryButtonStyle}">
+                            <FontIcon
+                                FontSize="16"
+                                Foreground="{StaticResource BrushPrimary}"
+                                Glyph="&#xE72C;" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <!--  Filter Panel  -->
+            <Border
+                x:Name="FilterPanel"
+                Grid.Row="1"
+                Margin="0,0,0,24"
+                Padding="24,20"
+                Shadow="{StaticResource SharedShadow}"
+                Style="{StaticResource CardStyle}"
+                Visibility="Collapsed">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Button
-                        x:Name="BtnSupplierCreate"
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <!--  Filter Active  -->
+                    <StackPanel
+                        Grid.Row="0"
                         Grid.Column="0"
-                        MinHeight="40"
-                        HorizontalAlignment="Stretch"
-                        Click="BtnCreate_Click"
-                        CornerRadius="8"
-                        Style="{ThemeResource AccentButtonStyle}">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE710;" />
-                            <TextBlock x:Uid="BtnNewSupplier" />
-                        </StackPanel>
-                    </Button>
-                    <Button
+                        Margin="4">
+                        <TextBlock
+                            x:Uid="FilterActiveBoxSupplier"
+                            Margin="0,0,0,4"
+                            FontWeight="SemiBold" />
+                        <ComboBox
+                            x:Name="FilterActiveBoxSupplier"
+                            SelectedIndex="0"
+                            SelectionChanged="FilterChange"
+                            Style="{StaticResource ComboBoxInputStyle}">
+                            <ComboBoxItem Content="All" Tag="" />
+                            <ComboBoxItem Content="Active" Tag="1" />
+                            <ComboBoxItem Content="Inactive" Tag="0" />
+                        </ComboBox>
+                    </StackPanel>
+                    <!--  Filter Name  -->
+                    <StackPanel
+                        Grid.Row="0"
                         Grid.Column="1"
-                        MinHeight="40"
-                        HorizontalAlignment="Stretch"
-                        CornerRadius="8"
-                        Style="{ThemeResource DefaultButtonStyle}">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE8B5;" />
-                            <TextBlock x:Uid="BtnImportSupplier" />
-                        </StackPanel>
-                    </Button>
-                    <Button
+                        Margin="4">
+                        <TextBlock
+                            x:Uid="FilterNameBoxSupplier"
+                            Margin="0,0,0,4"
+                            FontWeight="SemiBold" />
+                        <TextBox
+                            x:Name="FilterNameBoxSupplier"
+                            Style="{StaticResource InputStyle}"
+                            TextChanged="FilterChange" />
+                    </StackPanel>
+                    <!--  Filter Phone  -->
+                    <StackPanel
+                        Grid.Row="0"
                         Grid.Column="2"
-                        MinHeight="40"
-                        HorizontalAlignment="Stretch"
-                        CornerRadius="8"
-                        Style="{ThemeResource DefaultButtonStyle}">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xEDE1;" />
-                            <TextBlock x:Uid="BtnExportSupplier" />
-                        </StackPanel>
-                    </Button>
+                        Margin="4">
+                        <TextBlock
+                            x:Uid="FilterPhoneBoxSupplier"
+                            Margin="0,0,0,4"
+                            FontWeight="SemiBold" />
+                        <TextBox
+                            x:Name="FilterPhoneBoxSupplier"
+                            Style="{StaticResource InputStyle}"
+                            TextChanged="FilterChange" />
+                    </StackPanel>
+                    <!--  Filter Email  -->
+                    <StackPanel
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        Margin="4">
+                        <TextBlock
+                            x:Uid="FilterEmailBoxSupplier"
+                            Margin="0,0,0,4"
+                            FontWeight="SemiBold" />
+                        <TextBox
+                            x:Name="FilterEmailBoxSupplier"
+                            Style="{StaticResource InputStyle}"
+                            TextChanged="FilterChange" />
+                    </StackPanel>
+                    <!--  Filter Address  -->
+                    <StackPanel
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Margin="4">
+                        <TextBlock
+                            x:Uid="FilterAddressBoxSupplier"
+                            Margin="0,0,0,4"
+                            FontWeight="SemiBold" />
+                        <TextBox
+                            x:Name="FilterAddressBoxSupplier"
+                            Style="{StaticResource InputStyle}"
+                            TextChanged="FilterChange" />
+                    </StackPanel>
+                    <!--  Filter Tax  -->
+                    <StackPanel
+                        Grid.Row="1"
+                        Grid.Column="2"
+                        Margin="4">
+                        <TextBlock
+                            x:Uid="FilterTaxBoxSupplier"
+                            Margin="0,0,0,4"
+                            FontWeight="SemiBold" />
+                        <TextBox
+                            x:Name="FilterTaxBoxSupplier"
+                            Style="{StaticResource InputStyle}"
+                            TextChanged="FilterChange" />
+                    </StackPanel>
                 </Grid>
             </Border>
-
-            <!--  Data List  -->
-            <controls:DataGrid
-                x:Name="dgSuppliers"
-                Margin="0,8,0,0"
-                HorizontalAlignment="Stretch"
-                AutoGenerateColumns="False"
-                CanUserReorderColumns="False"
-                CanUserResizeColumns="True"
-                CanUserSortColumns="True"
-                HeadersVisibility="Column"
-                IsReadOnly="True"
-                ItemsSource="{x:Bind Suppliers, Mode=OneWay}"
-                SelectionMode="Single"
-                VerticalScrollBarVisibility="Auto">
-                <controls:DataGrid.Resources>
-                    <SolidColorBrush x:Key="DataGridSelectedBackgroundBrush" Color="Transparent" />
-                    <SolidColorBrush x:Key="DataGridSelectedForegroundBrush" Color="Black" />
-                </controls:DataGrid.Resources>
-                <controls:DataGrid.ColumnHeaderStyle>
-                    <Style TargetType="ContentControl">
-                        <Setter Property="HorizontalContentAlignment" Value="Center" />
-                        <Setter Property="VerticalContentAlignment" Value="Center" />
-                        <Setter Property="FontWeight" Value="SemiBold" />
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="ContentControl">
-                                    <Border
-                                        Padding="4,0,8,0"
-                                        BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
-                                        BorderThickness="0,0,1,0">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <ContentPresenter
-                                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                                Content="{TemplateBinding Content}" />
+            <!--  Data Table Section  -->
+            <Border
+                Grid.Row="2"
+                Padding="0"
+                Shadow="{StaticResource SharedShadow}"
+                Style="{StaticResource CardStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <!--  Table Header  -->
+                    <Border
+                        Grid.Row="0"
+                        Padding="32,20"
+                        BorderBrush="{StaticResource BrushBorder}"
+                        BorderThickness="0,0,0,1"
+                        CornerRadius="12,12,0,0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Offset="0" Color="#FFFAFBFF" />
+                                <GradientStop Offset="1" Color="#FFF5F7FF" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="80" />
+                                <ColumnDefinition Width="*" MinWidth="150" />
+                                <ColumnDefinition Width="*" MinWidth="150" />
+                                <ColumnDefinition Width="*" MinWidth="150" />
+                                <ColumnDefinition Width="*" MinWidth="150" />
+                                <ColumnDefinition Width="80" />
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="60" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                x:Uid="ColIDSupplier"
+                                Grid.Column="0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTextSecondary}" />
+                            <TextBlock
+                                x:Uid="ColNameSupplier"
+                                Grid.Column="1"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTextSecondary}" />
+                            <TextBlock
+                                x:Uid="ColPhoneSupplier"
+                                Grid.Column="2"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTextSecondary}" />
+                            <TextBlock
+                                x:Uid="ColEmailSupplier"
+                                Grid.Column="3"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTextSecondary}" />
+                            <TextBlock
+                                x:Uid="ColAddressSupplier"
+                                Grid.Column="4"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTextSecondary}" />
+                            <TextBlock
+                                x:Uid="ColTaxNumberSupplier"
+                                Grid.Column="5"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTextSecondary}" />
+                            <TextBlock
+                                x:Uid="ColActiveSupplier"
+                                Grid.Column="6"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTextSecondary}" />
+                            <TextBlock
+                                x:Uid="ColActionsSupplier"
+                                Grid.Column="7"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTextSecondary}" />
+                        </Grid>
+                    </Border>
+                    <!--  Table Content  -->
+                    <ScrollViewer
+                        Grid.Row="1"
+                        HorizontalScrollBarVisibility="Hidden"
+                        VerticalScrollBarVisibility="Auto">
+                        <ListView
+                            x:Name="SuppliersListView"
+                            Background="Transparent"
+                            ItemsSource="{x:Bind Suppliers, Mode=OneWay}"
+                            SelectionMode="None">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Margin" Value="0" />
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListViewItem">
+                                                <Border
+                                                    x:Name="ItemBorder"
+                                                    Padding="32,20"
+                                                    Background="{TemplateBinding Background}"
+                                                    BorderBrush="{StaticResource BrushBorder}"
+                                                    BorderThickness="0,0,0,1">
+                                                    <Grid>
+                                                        <Rectangle
+                                                            x:Name="HoverBackground"
+                                                            Fill="Transparent"
+                                                            Opacity="0" />
+                                                        <ContentPresenter />
+                                                    </Grid>
+                                                    <VisualStateManager.VisualStateGroups>
+                                                        <VisualStateGroup x:Name="CommonStates">
+                                                            <VisualState x:Name="Normal">
+                                                                <Storyboard>
+                                                                    <DoubleAnimation
+                                                                        Storyboard.TargetName="HoverBackground"
+                                                                        Storyboard.TargetProperty="Opacity"
+                                                                        To="0"
+                                                                        Duration="0:0:0.2" />
+                                                                </Storyboard>
+                                                            </VisualState>
+                                                            <VisualState x:Name="PointerOver">
+                                                                <Storyboard>
+                                                                    <DoubleAnimation
+                                                                        Storyboard.TargetName="HoverBackground"
+                                                                        Storyboard.TargetProperty="Opacity"
+                                                                        To="0.03"
+                                                                        Duration="0:0:0.2" />
+                                                                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverBackground" Storyboard.TargetProperty="Fill">
+                                                                        <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource BrushPrimary}" />
+                                                                    </ObjectAnimationUsingKeyFrames>
+                                                                </Storyboard>
+                                                            </VisualState>
+                                                        </VisualStateGroup>
+                                                    </VisualStateManager.VisualStateGroups>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="*" MinWidth="150" />
+                                            <ColumnDefinition Width="*" MinWidth="150" />
+                                            <ColumnDefinition Width="*" MinWidth="150" />
+                                            <ColumnDefinition Width="*" MinWidth="150" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="180" />
+                                            <ColumnDefinition Width="60" />
+                                        </Grid.ColumnDefinitions>
+                                        <!--  ID with accent color  -->
+                                        <Border
+                                            Grid.Column="0"
+                                            Width="32"
+                                            Height="32"
+                                            HorizontalAlignment="Center"
+                                            Background="{StaticResource BrushPrimaryLight}"
+                                            CornerRadius="8">
                                             <TextBlock
-                                                Grid.Column="1"
-                                                Margin="4,0,0,0"
+                                                HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"
-                                                Text="↑↓"
-                                                Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SortDirection, Converter={StaticResource SortDirectionToVisibilityConverter}}" />
-                                        </Grid>
-                                    </Border>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </controls:DataGrid.ColumnHeaderStyle>
-                <controls:DataGrid.Columns>
-                    <!--  ID  -->
-                    <controls:DataGridTemplateColumn
-                        x:Uid="ColIDSupplier"
-                        Width="100"
-                        CanUserSort="True"
-                        CellStyle="{StaticResource CenteredCellStyle}">
-                        <controls:DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Style="{StaticResource CenteredTextBlockStyle}" Text="{Binding Id}" />
-                            </DataTemplate>
-                        </controls:DataGridTemplateColumn.CellTemplate>
-                    </controls:DataGridTemplateColumn>
-
-                    <!--  Name  -->
-                    <controls:DataGridTemplateColumn
-                        x:Uid="ColNameSupplier"
-                        Width="2*"
-                        CanUserSort="True">
-                        <controls:DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Style="{StaticResource LeftAlignedTextBlockStyle}" Text="{Binding Name}" />
-                            </DataTemplate>
-                        </controls:DataGridTemplateColumn.CellTemplate>
-                    </controls:DataGridTemplateColumn>
-
-                    <!--  Phone  -->
-                    <controls:DataGridTemplateColumn
-                        x:Uid="ColPhoneSupplier"
-                        Width="150"
-                        CanUserSort="True"
-                        CellStyle="{StaticResource CenteredCellStyle}">
-                        <controls:DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Style="{StaticResource CenteredTextBlockStyle}" Text="{Binding Phone}" />
-                            </DataTemplate>
-                        </controls:DataGridTemplateColumn.CellTemplate>
-                    </controls:DataGridTemplateColumn>
-
-                    <!--  Email  -->
-                    <controls:DataGridTemplateColumn
-                        x:Uid="ColEmailSupplier"
-                        Width="2*"
-                        CanUserSort="True">
-                        <controls:DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Style="{StaticResource LeftAlignedTextBlockStyle}" Text="{Binding Email}" />
-                            </DataTemplate>
-                        </controls:DataGridTemplateColumn.CellTemplate>
-                    </controls:DataGridTemplateColumn>
-
-                    <!--  Address  -->
-                    <controls:DataGridTemplateColumn
-                        x:Uid="ColAddressSupplier"
-                        Width="3*"
-                        CanUserSort="True">
-                        <controls:DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Style="{StaticResource LeftAlignedTextBlockStyle}" Text="{Binding Address}" />
-                            </DataTemplate>
-                        </controls:DataGridTemplateColumn.CellTemplate>
-                    </controls:DataGridTemplateColumn>
-
-                    <!--  Tax  -->
-                    <controls:DataGridTemplateColumn
-                        x:Uid="ColTaxSupplier"
-                        Width="120"
-                        CanUserSort="True"
-                        CellStyle="{StaticResource CenteredCellStyle}">
-                        <controls:DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Style="{StaticResource CenteredTextBlockStyle}" Text="{Binding TaxNumber}" />
-                            </DataTemplate>
-                        </controls:DataGridTemplateColumn.CellTemplate>
-                    </controls:DataGridTemplateColumn>
-
-                    <!--  Active  -->
-                    <controls:DataGridTemplateColumn
-                        x:Uid="ColActiveSupplier"
-                        Width="80"
-                        CanUserSort="True"
-                        CellStyle="{StaticResource CenteredCellStyle}">
-                        <controls:DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <CheckBox
-                                    Width="20"
-                                    Height="20"
-                                    Padding="0,0,8,0"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    IsChecked="{Binding IsActive, Mode=OneWay}"
+                                                FontSize="14"
+                                                FontWeight="Bold"
+                                                Foreground="{StaticResource BrushPrimary}"
+                                                Text="{Binding Id}" />
+                                        </Border>
+                                        <!--  Name  -->
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            MaxWidth="200"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            FontSize="14"
+                                            FontWeight="SemiBold"
+                                            Foreground="{StaticResource BrushText}"
+                                            Text="{Binding Name}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="NoWrap">
+                                            <ToolTipService.ToolTip>
+                                                <ToolTip Content="{Binding Name}" />
+                                            </ToolTipService.ToolTip>
+                                        </TextBlock>
+                                        <!--  Phone  -->
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="14"
+                                            Foreground="{StaticResource BrushText}"
+                                            Text="{Binding Phone}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="NoWrap">
+                                            <ToolTipService.ToolTip>
+                                                <ToolTip Content="{Binding Phone}" />
+                                            </ToolTipService.ToolTip>
+                                        </TextBlock>
+                                        <!--  Email  -->
+                                        <TextBlock
+                                            Grid.Column="3"
+                                            MaxWidth="150"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            FontSize="14"
+                                            Foreground="{StaticResource BrushText}"
+                                            Text="{Binding Email}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="NoWrap">
+                                            <ToolTipService.ToolTip>
+                                                <ToolTip Content="{Binding Email}" />
+                                            </ToolTipService.ToolTip>
+                                        </TextBlock>
+                                        <!--  Address  -->
+                                        <TextBlock
+                                            Grid.Column="4"
+                                            MaxWidth="180"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            FontSize="14"
+                                            Foreground="{StaticResource BrushText}"
+                                            Text="{Binding Address}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="NoWrap">
+                                            <ToolTipService.ToolTip>
+                                                <ToolTip Content="{Binding Address}" />
+                                            </ToolTipService.ToolTip>
+                                        </TextBlock>
+                                        <!--  Tax number  -->
+                                        <TextBlock
+                                            Grid.Column="5"
+                                            MaxWidth="200"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="14"
+                                            Foreground="{StaticResource BrushText}"
+                                            Text="{Binding TaxNumber}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="NoWrap">
+                                            <ToolTipService.ToolTip>
+                                                <ToolTip Content="{Binding TaxNumber}" />
+                                            </ToolTipService.ToolTip>
+                                        </TextBlock>
+                                        <!--  Status Badge with Icon  -->
+                                        <Border
+                                            Grid.Column="6"
+                                            Padding="14,8"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Background="{Binding StatusColor}"
+                                            CornerRadius="16">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="White"
+                                                    Text="{Binding StatusText}" />
+                                            </StackPanel>
+                                        </Border>
+                                        <!--  Actions Button  -->
+                                        <Button
+                                            Grid.Column="7"
+                                            Width="36"
+                                            Height="36"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            CornerRadius="8"
+                                            Tag="{Binding}">
+                                            <FontIcon
+                                                FontSize="16"
+                                                Foreground="{StaticResource BrushTextSecondary}"
+                                                Glyph="&#xE712;" />
+                                            <ToolTipService.ToolTip>
+                                                <ToolTip Content="Thao tác" Placement="Left" />
+                                            </ToolTipService.ToolTip>
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </ScrollViewer>
+                    <!--  Table Footer with Pagination  -->
+                    <Border
+                        Grid.Row="2"
+                        Padding="32,20"
+                        BorderBrush="{StaticResource BrushBorder}"
+                        BorderThickness="0,1,0,0"
+                        CornerRadius="0,0,12,12">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Offset="0" Color="#FFF5F7FF" />
+                                <GradientStop Offset="1" Color="#FFFAFBFF" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal"
+                                Spacing="16">
+                                <Border
+                                    Padding="16,8"
+                                    Background="{StaticResource BrushPrimaryLight}"
+                                    CornerRadius="16">
+                                    <TextBlock
+                                        FontSize="14"
+                                        FontWeight="SemiBold"
+                                        Foreground="{StaticResource BrushPrimary}">
+                                        <Run x:Uid="ShowIngSupplier" />
+                                        <Run x:Name="RecordCountText" Text="0" />
+                                        <Run x:Uid="Suppliers" />
+                                    </TextBlock>
+                                </Border>
+                            </StackPanel>
+                            <StackPanel
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="12">
+                                <Button
+                                    x:Name="PreviousPageButton"
+                                    Width="40"
+                                    Height="40"
+                                    Padding="0"
+                                    Click="BtnLastPage_Click"
                                     IsEnabled="False"
-                                    Style="{StaticResource CenteredCheckBoxStyle}" />
-                            </DataTemplate>
-                        </controls:DataGridTemplateColumn.CellTemplate>
-                    </controls:DataGridTemplateColumn>
-
-                    <!--  Actions  -->
-                    <controls:DataGridTemplateColumn
-                        x:Uid="ColActionsSupplier"
-                        Width="240"
-                        CanUserSort="False"
-                        CellStyle="{StaticResource ActionCellStyle}"
-                        HeaderStyle="{StaticResource NoRightBorderHeaderStyle}">
-                        <controls:DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <StackPanel
-                                    Padding="0,0,8,0"
-                                    HorizontalAlignment="Center"
-                                    Orientation="Horizontal"
-                                    Spacing="8">
-                                    <Button
-                                        x:Uid="BtnEditSupplierToolTip"
-                                        Click="BtnEdit_Click"
-                                        Style="{StaticResource SubtleButtonStyle}"
-                                        Tag="{Binding Id}">
-                                        <FontIcon
-                                            FontFamily="Segoe Fluent Icons"
-                                            FontSize="16"
-                                            Foreground="#0078D4"
-                                            Glyph="&#xE70F;" />
-                                    </Button>
-                                    <Button
-                                        x:Uid="BtnEditSupplierToolTip"
-                                        Click="BtnDetail_Click"
-                                        Style="{StaticResource SubtleButtonStyle}"
-                                        Tag="{Binding Id}">
-                                        <FontIcon
-                                            FontFamily="Segoe Fluent Icons"
-                                            FontSize="16"
-                                            Foreground="#2ECC71"
-                                            Glyph="&#xE946;" />
-                                    </Button>
-                                    <Button
-                                        x:Name="BtnActivate"
-                                        x:Uid="BtnEditSupplierToolTip"
-                                        Click="BtnActivate_Click"
-                                        Style="{StaticResource SubtleButtonStyle}"
-                                        Tag="{Binding Id}"
-                                        Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter='False'}">
-                                        <FontIcon
-                                            FontFamily="Segoe Fluent Icons"
-                                            FontSize="16"
-                                            Foreground="#2ECC71"
-                                            Glyph="&#xE73E;" />
-                                    </Button>
-                                    <Button
-                                        x:Name="BtnDeActivate"
-                                        x:Uid="BtnEditSupplierToolTip"
-                                        Click="BtnDeActivate_Click"
-                                        Style="{StaticResource SubtleButtonStyle}"
-                                        Tag="{Binding Id}"
-                                        Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter='True'}">
-                                        <FontIcon
-                                            FontFamily="Segoe Fluent Icons"
-                                            FontSize="16"
-                                            Foreground="#E81123"
-                                            Glyph="&#xE71A;" />
-                                    </Button>
-                                </StackPanel>
-                            </DataTemplate>
-                        </controls:DataGridTemplateColumn.CellTemplate>
-                    </controls:DataGridTemplateColumn>
-                </controls:DataGrid.Columns>
-            </controls:DataGrid>
-
-            <!--  Pagination  -->
-            <StackPanel
-                HorizontalAlignment="Center"
-                Orientation="Horizontal"
-                Spacing="6">
-                <Button
-                    x:Name="BtnFirstPageSupplier"
-                    x:Uid="BtnFirstPageSupplier"
-                    Click="BtnFirstPage_Click"
-                    Style="{StaticResource SubtleButtonStyle}">
-                    <FontIcon Glyph="&#xE892;" />
-                </Button>
-                <Button
-                    x:Name="BtnPrevPageSupplier"
-                    x:Uid="BtnPrevPageSupplier"
-                    Click="BtnPrevPage_Click"
-                    Style="{StaticResource SubtleButtonStyle}">
-                    <FontIcon Glyph="&#xE76B;" />
-                </Button>
-                <TextBlock
-                    Margin="8,0"
-                    VerticalAlignment="Center"
-                    FontWeight="SemiBold"
-                    Text="{x:Bind CurrentPage, Mode=OneWay}" />
-                <TextBlock
-                    Margin="0,0,8,0"
-                    VerticalAlignment="Center"
-                    Text="/" />
-                <TextBlock
-                    VerticalAlignment="Center"
-                    FontWeight="SemiBold"
-                    Text="{x:Bind TotalPages, Mode=OneWay}" />
-                <Button
-                    x:Name="BtnNextPageSupplier"
-                    x:Uid="BtnNextPageSupplier"
-                    Click="BtnNextPage_Click"
-                    Style="{StaticResource SubtleButtonStyle}">
-                    <FontIcon Glyph="&#xE76C;" />
-                </Button>
-                <Button
-                    x:Name="BtnLastPageSupplier"
-                    x:Uid="BtnLastPageSupplier"
-                    Click="BtnLastPage_Click"
-                    Style="{StaticResource SubtleButtonStyle}">
-                    <FontIcon Glyph="&#xE893;" />
-                </Button>
-            </StackPanel>
-        </StackPanel>
+                                    Style="{StaticResource SecondaryButtonStyle}">
+                                    <FontIcon FontSize="16" Glyph="&#xE760;" />
+                                </Button>
+                                <Border
+                                    Padding="20,10"
+                                    VerticalAlignment="Center"
+                                    Background="{StaticResource BrushPrimaryLight}"
+                                    CornerRadius="20">
+                                    <TextBlock
+                                        FontSize="14"
+                                        FontWeight="Bold"
+                                        Foreground="{StaticResource BrushPrimary}">
+                                        <Run x:Uid="PageSupplier" />
+                                        <Run x:Name="PageInfoText" />
+                                    </TextBlock>
+                                </Border>
+                                <Button
+                                    x:Name="NextPageButton"
+                                    Width="40"
+                                    Height="40"
+                                    Padding="0"
+                                    Click="BtnNextPage_Click"
+                                    IsEnabled="False"
+                                    Style="{StaticResource SecondaryButtonStyle}">
+                                    <FontIcon FontSize="16" Glyph="&#xE761;" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Page>
