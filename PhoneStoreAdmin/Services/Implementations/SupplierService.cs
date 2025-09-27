@@ -5,6 +5,7 @@ using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Utils;
 using System;
 using System.Threading.Tasks;
+using PhoneStoreAdmin.ViewModels;
 
 namespace PhoneStoreAdmin.Services.Implementations
 {
@@ -43,7 +44,10 @@ namespace PhoneStoreAdmin.Services.Implementations
         {
             try
             {
-                return await _supplierRepository.GetSuppliersFiltered(name, phone, email, address, taxNumber, isActive, page, pageSize);
+                var suppliers = await _supplierRepository.GetSuppliersFiltered(name, phone, email, address, taxNumber, isActive, page, pageSize);
+                var totalPages = await _supplierRepository.GetTotalPages(name, phone, email, address, taxNumber, isActive, pageSize);
+                var totalRecords = await _supplierRepository.GetTotalRecords(name, phone, email, address, taxNumber, isActive);
+                return new SupplierResult(suppliers, new InfoTable(totalRecords, totalPages));
             }
             catch (Exception ex)
             {

@@ -2,6 +2,7 @@ using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Repositories.Implementations;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using PhoneStoreAdmin.ViewModels;
 
 namespace PhoneStoreAdmin.Services.Interfaces
 {

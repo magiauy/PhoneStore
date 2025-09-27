@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MySqlConnector;
+using PhoneStoreAdmin.ViewModels;
 
 namespace PhoneStoreAdmin.Repositories.Implementations
 {
@@ -190,7 +191,86 @@ namespace PhoneStoreAdmin.Repositories.Implementations
 
         #region Filtered Search Methods
 
-        public async Task<SupplierResult> GetSuppliersFiltered(
+        // Hàm build điều kiện chung
+        private (string whereClause, List<MySqlParameter> parameters) BuildConditions(
+            string? name,
+            string? phone,
+            string? email,
+            string? address,
+            string? taxNumber,
+            bool? isActive)
+        {
+            var conditions = new List<string>();
+            var parameters = new List<MySqlParameter>();
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                conditions.Add("Name LIKE @name");
+                parameters.Add(new MySqlParameter("@name", $"%{name}%"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(phone))
+            {
+                conditions.Add("Phone LIKE @phone");
+                parameters.Add(new MySqlParameter("@phone", $"%{phone}%"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                conditions.Add("Email LIKE @email");
+                parameters.Add(new MySqlParameter("@email", $"%{email}%"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(address))
+            {
+                conditions.Add("Address LIKE @address");
+                parameters.Add(new MySqlParameter("@address", $"%{address}%"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(taxNumber))
+            {
+                conditions.Add("Tax_Number LIKE @taxNumber");
+                parameters.Add(new MySqlParameter("@taxNumber", $"%{taxNumber}%"));
+            }
+
+            if (isActive.HasValue)
+            {
+                conditions.Add("Is_Active = @isActive");
+                parameters.Add(new MySqlParameter("@isActive", isActive.Value));
+            }
+
+            var whereClause = conditions.Count > 0
+                ? "WHERE " + string.Join(" AND ", conditions)
+                : string.Empty;
+
+            return (whereClause, parameters);
+        }
+
+        // Hàm lấy tổng số bản ghi
+        public async Task<int> GetTotalRecords(
+            string? name,
+            string? phone,
+            string? email,
+            string? address,
+            string? taxNumber,
+            bool? isActive)
+        {
+            return await Task.Run(() =>
+            {
+                var (whereClause, parameters) = BuildConditions(name, phone, email, address, taxNumber, isActive);
+                var sql = $"SELECT COUNT(*) FROM suppliers {whereClause}";
+
+                using var connection = _dataSource.GetConnection();
+                using var command = new MySqlCommand(sql, connection);
+                foreach (var param in parameters)
+                    command.Parameters.Add(param);
+
+                return Convert.ToInt32(command.ExecuteScalar());
+            });
+        }
+
+        // Hàm lấy dữ liệu theo filter + paging
+        public async Task<IEnumerable<Supplier>> GetSuppliersFiltered(
             string? name,
             string? phone,
             string? email,
@@ -203,87 +283,29 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             return await Task.Run(() =>
             {
                 var suppliers = new List<Supplier>();
-                var conditions = new List<string>();
-                var parameters = new List<MySqlParameter>();
+                var (whereClause, parameters) = BuildConditions(name, phone, email, address, taxNumber, isActive);
 
-                if (!string.IsNullOrWhiteSpace(name))
-                {
-                    conditions.Add("Name LIKE @name");
-                    parameters.Add(new MySqlParameter("@name", $"%{name}%"));
-                }
-
-                if (!string.IsNullOrWhiteSpace(phone))
-                {
-                    conditions.Add("Phone LIKE @phone");
-                    parameters.Add(new MySqlParameter("@phone", $"%{phone}%"));
-                }
-
-                if (!string.IsNullOrWhiteSpace(email))
-                {
-                    conditions.Add("Email LIKE @email");
-                    parameters.Add(new MySqlParameter("@email", $"%{email}%"));
-                }
-
-                if (!string.IsNullOrWhiteSpace(address))
-                {
-                    conditions.Add("Address LIKE @address");
-                    parameters.Add(new MySqlParameter("@address", $"%{address}%"));
-                }
-
-                if (!string.IsNullOrWhiteSpace(taxNumber))
-                {
-                    conditions.Add("Tax_Number LIKE @taxNumber");
-                    parameters.Add(new MySqlParameter("@taxNumber", $"%{taxNumber}%"));
-                }
-
-                if (isActive.HasValue)
-                {
-                    conditions.Add("Is_Active = @isActive");
-                    parameters.Add(new MySqlParameter("@isActive", isActive.Value));
-                }
-
-                var whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
-
-                // Lấy totalRecords
-                var countSql = $"SELECT COUNT(*) FROM suppliers {whereClause}";
-                int totalRecords;
-                using (var connection = _dataSource.GetConnection())
-                {
-                    using var countCommand = new MySqlCommand(countSql, connection);
-                    foreach (var param in parameters)
-                        countCommand.Parameters.Add(param);
-
-                    totalRecords = Convert.ToInt32(countCommand.ExecuteScalar());
-                }
-
-                // Lấy dữ liệu
                 var offset = (page - 1) * pageSize;
-                var sql = $@"SELECT * FROM suppliers {whereClause} ORDER BY id LIMIT @pageSize OFFSET @offset";
+                var sql = $@"SELECT * FROM suppliers {whereClause} ORDER BY Id LIMIT @pageSize OFFSET @offset";
 
-                using (var connection = _dataSource.GetConnection())
+                using var connection = _dataSource.GetConnection();
+                using var command = new MySqlCommand(sql, connection);
+
+                foreach (var param in parameters)
+                    command.Parameters.Add(param);
+
+                command.Parameters.AddWithValue("@pageSize", pageSize);
+                command.Parameters.AddWithValue("@offset", offset);
+
+                using var reader = command.ExecuteReader();
+                while (reader.Read())
                 {
-                    using var command = new MySqlCommand(sql, connection);
-                    foreach (var param in parameters)
-                        command.Parameters.Add(param);
-
-                    command.Parameters.AddWithValue("@pageSize", pageSize);
-                    command.Parameters.AddWithValue("@offset", offset);
-
-                    using var reader = command.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        suppliers.Add(MapFromReader(reader));
-                    }
+                    suppliers.Add(MapFromReader(reader));
                 }
 
-                var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
-                var info = new InfoTable(totalRecords, totalPages);
-
-                return new SupplierResult(suppliers, info);
+                return suppliers;
             });
         }
-
-
 
         public async Task<int> GetTotalPages(
             string? name, 

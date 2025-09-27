@@ -89,28 +89,4 @@ namespace PhoneStoreAdmin.Models
             _isActive = true;
         }
     }
-
-    public class InfoTable
-    {
-        public readonly int totalRecords;
-        public readonly int totalPages;
-
-        public InfoTable(int totalRecords, int totalPages)
-        {
-            this.totalRecords = totalRecords;
-            this.totalPages = totalPages;
-        }
-    }
-
-    public class SupplierResult
-    {
-        public IEnumerable<Supplier> Suppliers { get; set; }
-        public InfoTable Info { get; set; }
-
-        public SupplierResult(IEnumerable<Supplier> suppliers, InfoTable info)
-        {
-            Suppliers = suppliers;
-            Info = info;
-        }
-    }
 }

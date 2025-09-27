@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Repositories.Interfaces;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using PhoneStoreAdmin.ViewModels;
 namespace PhoneStoreAdmin.View
 {
     public sealed partial class SuppliersPage : Page
@@ -62,8 +64,8 @@ namespace PhoneStoreAdmin.View
                     return;
                 }
 
-                TotalPages = result.Info.totalPages;
-                TotalRecords = result.Info.totalRecords;
+                TotalPages = result.Info.TotalPages;
+                TotalRecords = result.Info.TotalRecords;
 
                 foreach (var supplier in result.Suppliers)
                 {
@@ -231,7 +233,16 @@ namespace PhoneStoreAdmin.View
                 }
             }
         }
-        
+
+        private void BtnActions_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement element)
+            {
+                FlyoutBase.ShowAttachedFlyout(element);
+            }
+        }
+
+
         private async void BtnNextPage_Click(object sender, RoutedEventArgs e)
         {
             if (CurrentPage < TotalPages)
@@ -294,17 +305,5 @@ namespace PhoneStoreAdmin.View
         {
             throw new NotImplementedException();
         }
-    }
-    public class SupplierViewModel
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Phone { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Address { get; set; } = string.Empty;
-        public string TaxNumber { get; set; } = string.Empty;
-        public bool IsActive { get; set; }
-        public string StatusText => IsActive ? "Active" : "Inactive";
-        public string StatusColor => IsActive ? "#28a745" : "#dc3545";
     }
 }
