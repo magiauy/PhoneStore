@@ -83,10 +83,27 @@ namespace PhoneStoreAdmin.View
                 PreviousPageButton.IsEnabled = CurrentPage > 1;
                 NextPageButton.IsEnabled = CurrentPage < TotalPages;
                 RecordCountText.Text = $"{Suppliers.Count} / {TotalRecords}";
+
+                // Show/hide empty state based on suppliers count
+                UpdateEmptyStateVisibility();
             }
             catch (Exception ex)
             {
                 await ShowErrorDialogAsync("Failed to load suppliers", ex.Message);
+            }
+        }
+
+        private void UpdateEmptyStateVisibility()
+        {
+            if (Suppliers.Count == 0)
+            {
+                EmptyStatePanel.Visibility = Visibility.Visible;
+                SuppliersListView.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                EmptyStatePanel.Visibility = Visibility.Collapsed;
+                SuppliersListView.Visibility = Visibility.Visible;
             }
         }
         private async void BtnSearch_Click(object sender, RoutedEventArgs e)
