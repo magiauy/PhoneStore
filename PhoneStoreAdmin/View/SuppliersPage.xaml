@@ -722,6 +722,44 @@
                             </ListView.ItemTemplate>
                         </ListView>
                     </ScrollViewer>
+                    <!--  Empty State Message  -->
+                    <Grid
+                        x:Name="EmptyStatePanel"
+                        Grid.Row="1"
+                        Padding="60"
+                        Visibility="Collapsed">
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Orientation="Vertical"
+                            Spacing="24">
+                            <Border
+                                Width="80"
+                                Height="80"
+                                Background="{StaticResource BrushPrimaryLight}"
+                                CornerRadius="40">
+                                <FontIcon
+                                    FontSize="32"
+                                    Foreground="{StaticResource BrushPrimary}"
+                                    Glyph="&#xE8A5;" />
+                            </Border>
+                            <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                <TextBlock
+                                    x:Uid="EmptyStateTitle"
+                                    FontSize="24"
+                                    FontWeight="SemiBold"
+                                    Foreground="{StaticResource BrushText}"
+                                    HorizontalAlignment="Center" />
+                                <TextBlock
+                                    x:Uid="EmptyStateDescription"
+                                    FontSize="16"
+                                    Foreground="{StaticResource BrushTextSecondary}"
+                                    HorizontalAlignment="Center"
+                                    TextAlignment="Center"
+                                    TextWrapping="WrapWholeWords" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
                     <!--  Table Footer with Pagination  -->
                     <Border
                         Grid.Row="2"

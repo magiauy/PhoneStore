@@ -669,4 +669,10 @@
   <data name="Status_Inactive" xml:space="preserve">
     <value>Inactive</value>
   </data>
+  <data name="EmptyStateTitle.Text" xml:space="preserve">
+    <value>No suppliers found</value>
+  </data>
+  <data name="EmptyStateDescription.Text" xml:space="preserve">
+    <value>There are no suppliers to display. Add a new supplier or check your filters.</value>
+  </data>
 </root>

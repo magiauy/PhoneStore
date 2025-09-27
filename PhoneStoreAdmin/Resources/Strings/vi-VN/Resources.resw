@@ -669,4 +669,10 @@
   <data name="Status_Inactive" xml:space="preserve">
     <value>Ngưng hoạt động</value>
   </data>
+  <data name="EmptyStateTitle.Text" xml:space="preserve">
+    <value>Không có nhà cung cấp nào</value>
+  </data>
+  <data name="EmptyStateDescription.Text" xml:space="preserve">
+    <value>Chưa có dữ liệu nhà cung cấp để hiển thị. Hãy thêm nhà cung cấp mới hoặc kiểm tra lại bộ lọc.</value>
+  </data>
 </root>
