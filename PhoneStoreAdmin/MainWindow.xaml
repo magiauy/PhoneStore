@@ -1,43 +1,77 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Window
     x:Class="PhoneStoreAdmin.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:PhoneStoreAdmin"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:PhoneStoreAdmin"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    Title="PhoneStoreAdmin">
+    Title="PhoneStoreAdmin"
+    mc:Ignorable="d">
 
     <Window.SystemBackdrop>
         <MicaBackdrop />
     </Window.SystemBackdrop>
 
-    <!-- Fluent 2 demo with NavigationView -->
+    <!--  Fluent 2 demo with NavigationView  -->
     <Grid>
-        <NavigationView x:Name="MainNavView" 
-                        PaneDisplayMode="Left" 
-                        IsBackButtonVisible="Collapsed"     
-                        OpenPaneLength="200" 
-                        CompactPaneLength="50"
-                        SelectionChanged="MainNavView_SelectionChanged">
+        <NavigationView
+            x:Name="MainNavView"
+            CompactPaneLength="50"
+            IsBackButtonVisible="Collapsed"
+            OpenPaneLength="200"
+            PaneDisplayMode="Left"
+            SelectionChanged="MainNavView_SelectionChanged">
 
-            
+
             <NavigationView.MenuItems>
-                <NavigationViewItem x:Name="DashboardNavItem" Content="Dashboard" Icon="Home" Tag="Dashboard"/>
-                <NavigationViewItem x:Name="ProductsNavItem" Content="Products" Icon="Shop" Tag="Products"/>
-                <NavigationViewItem x:Name="OrdersNavItem" Content="Orders" Icon="Mail" Tag="Orders"/>
-                <NavigationViewItem x:Name="SuppliersNavItem" Content="Suppliers" Icon="Contact"  Tag="Suppliers"/>
-                <NavigationViewItem x:Name="PurchaseOrdersNavItem" Content="PurchaseOrders" Icon="Paste" Tag="PurchaseOrders"/>
-                <NavigationViewItem x:Name="BatchesNavItem" Content="Batches" Icon="PreviewLink" Tag="Batches"/>
-                <NavigationViewItem x:Name="AccountsNavItem" Content="Tài khoản" Icon="People" Tag="Accounts"/>
-                <NavigationViewItem x:Name="SettingsNavItem" Content="Settings" Icon="Setting" Tag="Settings"/>
+                <NavigationViewItem
+                    x:Name="DashboardNavItem"
+                    Content="Dashboard"
+                    Icon="Home"
+                    Tag="Dashboard" />
+                <NavigationViewItem
+                    x:Name="ProductsNavItem"
+                    Content="Products"
+                    Icon="Shop"
+                    Tag="Products" />
+                <NavigationViewItem
+                    x:Name="OrdersNavItem"
+                    Content="Orders"
+                    Icon="Mail"
+                    Tag="Orders" />
+                <NavigationViewItem
+                    x:Name="SuppliersNavItem"
+                    x:Uid="MenuItemSuppliers"
+                    Icon="Contact"
+                    Tag="Suppliers" />
+                <NavigationViewItem
+                    x:Name="PurchaseOrdersNavItem"
+                    x:Uid="MenuItemPurchaseOrders"
+                    Icon="Paste"
+                    Tag="PurchaseOrders" />
+                <NavigationViewItem
+                    x:Name="BatchesNavItem"
+                    x:Uid="MenuItemBatches"
+                    Icon="PreviewLink"
+                    Tag="Batches" />
+                <NavigationViewItem
+                    x:Name="AccountsNavItem"
+                    Content="Tài khoản"
+                    Icon="People"
+                    Tag="Accounts" />
+                <NavigationViewItem
+                    x:Name="SettingsNavItem"
+                    Content="Settings"
+                    Icon="Setting"
+                    Tag="Settings" />
             </NavigationView.MenuItems>
 
-            <Frame x:Name="ContentFrame" 
-                   Background="{StaticResource BrushBackground}"
-                   Margin="0"
-                   Padding="0"/>
+            <Frame
+                x:Name="ContentFrame"
+                Margin="0"
+                Padding="0"
+                Background="{StaticResource BrushBackground}" />
 
         </NavigationView>
     </Grid>

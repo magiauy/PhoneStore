@@ -307,9 +307,9 @@
                             SelectedIndex="0"
                             SelectionChanged="FilterChange"
                             Style="{StaticResource ComboBoxInputStyle}">
-                            <ComboBoxItem Content="All" Tag="" />
-                            <ComboBoxItem Content="Active" Tag="1" />
-                            <ComboBoxItem Content="Inactive" Tag="0" />
+                            <ComboBoxItem x:Uid="SelectBoxAllValue" Tag="" />
+                            <ComboBoxItem x:Uid="SelectBoxActivateValue" Tag="1" />
+                            <ComboBoxItem x:Uid="SelectBoxInActivateValue" Tag="0" />
                         </ComboBox>
                     </StackPanel>
                     <!--  Filter Name  -->
@@ -666,7 +666,7 @@
                                                     FontSize="12"
                                                     FontWeight="SemiBold"
                                                     Foreground="White"
-                                                    Text="{Binding StatusText}" />
+                                                    Text="{Binding LocalizedStatusText}" />
                                             </StackPanel>
                                         </Border>
                                         <!--  Actions Button  -->
@@ -678,6 +678,7 @@
                                             VerticalAlignment="Center"
                                             Background="Transparent"
                                             BorderThickness="0"
+                                            Click="BtnActions_Click"
                                             CornerRadius="8"
                                             Tag="{Binding}">
                                             <FontIcon
@@ -685,8 +686,36 @@
                                                 Foreground="{StaticResource BrushTextSecondary}"
                                                 Glyph="&#xE712;" />
                                             <ToolTipService.ToolTip>
-                                                <ToolTip Content="Thao tác" Placement="Left" />
+                                                <ToolTip x:Uid="BtnActionSupplier" Placement="Left" />
                                             </ToolTipService.ToolTip>
+                                            <FlyoutBase.AttachedFlyout>
+                                                <MenuFlyout>
+                                                    <MenuFlyoutItem
+                                                        x:Uid="BtnDetailSupplier"
+                                                        Click="BtnDetail_Click"
+                                                        Tag="{Binding}">
+                                                        <MenuFlyoutItem.Icon>
+                                                            <FontIcon Glyph="&#xE8A7;" />
+                                                        </MenuFlyoutItem.Icon>
+                                                    </MenuFlyoutItem>
+                                                    <MenuFlyoutItem
+                                                        x:Uid="BtnEditSupplier"
+                                                        Click="BtnEdit_Click"
+                                                        Tag="{Binding}">
+                                                        <MenuFlyoutItem.Icon>
+                                                            <FontIcon Glyph="&#xE104;" />
+                                                        </MenuFlyoutItem.Icon>
+                                                    </MenuFlyoutItem>
+                                                    <MenuFlyoutItem
+                                                        x:Uid="BtnDeActivateSupplier"
+                                                        Click="BtnDeActivate_Click"
+                                                        Tag="{Binding}">
+                                                        <MenuFlyoutItem.Icon>
+                                                            <FontIcon Glyph="&#xE711;" />
+                                                        </MenuFlyoutItem.Icon>
+                                                    </MenuFlyoutItem>
+                                                </MenuFlyout>
+                                            </FlyoutBase.AttachedFlyout>
                                         </Button>
                                     </Grid>
                                 </DataTemplate>

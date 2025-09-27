@@ -2,6 +2,7 @@ using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Repositories.Implementations;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using PhoneStoreAdmin.ViewModels;
 
 namespace PhoneStoreAdmin.Repositories.Interfaces
 {
@@ -23,7 +24,7 @@ namespace PhoneStoreAdmin.Repositories.Interfaces
         Task DeleteAsync(int id);
 
         // Updated signature to match SuppliersPage expectations
-        Task<SupplierResult> GetSuppliersFiltered(
+        Task<IEnumerable<Supplier>> GetSuppliersFiltered(
         string? name,
         string? phone,
         string? email,
@@ -42,5 +43,13 @@ namespace PhoneStoreAdmin.Repositories.Interfaces
             string? taxNumber, 
             bool? isActive, 
             int pageSize);
+
+        Task<int> GetTotalRecords(
+            string? name,
+            string? phone,
+            string? email,
+            string? address,
+            string? taxNumber,
+            bool? isActive);
     }
 }

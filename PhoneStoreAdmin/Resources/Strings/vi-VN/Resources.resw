@@ -585,10 +585,10 @@
   <data name="ColActionsSupplier.Text" xml:space="preserve">
     <value>THAO TÁC</value>
   </data>
-  <data name="BtnDeleteSupplier.Content" xml:space="preserve">
-    <value>Xóa</value>
+  <data name="BtnDeActivateSupplier.Text" xml:space="preserve">
+    <value>Vô hiệu hóa</value>
   </data>
-  <data name="BtnDetailSupplier.Content" xml:space="preserve">
+  <data name="BtnDetailSupplier.Text" xml:space="preserve">
     <value>Chi tiết</value>
   </data>
   <data name="AllItemSupplier.Content" xml:space="preserve">
@@ -621,7 +621,7 @@
   <data name="BtnExportSupplier.Text" xml:space="preserve">
     <value>Xuất Excel</value>
   </data>
-  <data name="BtnEditSupplierToolTip.ToolTipService.ToolTip" xml:space="preserve">
+  <data name="BtnEditSupplier.Text" xml:space="preserve">
     <value>Sửa</value>
   </data>
   <data name="SubHeaderTitleSupplier.Text" xml:space="preserve">
@@ -641,5 +641,32 @@
   </data>
   <data name="PageSupplier.Text" xml:space="preserve">
     <value>Trang</value>
+  </data>
+  <data name="BtnActionSupplier.Content" xml:space="preserve">
+    <value>Thao tác</value>
+  </data>
+  <data name="SelectBoxAllValue.Content" xml:space="preserve">
+    <value>Tất cả</value>
+  </data>
+  <data name="SelectBoxInActivateValue.Content" xml:space="preserve">
+    <value>Ngưng hoạt động</value>
+  </data>
+  <data name="SelectBoxActivateValue.Content" xml:space="preserve">
+    <value>Hoạt động</value>
+  </data>
+  <data name="MenuItemPurchaseOrders.Content" xml:space="preserve">
+    <value>Lô nhập</value>
+  </data>
+  <data name="MenuItemBatches.Content" xml:space="preserve">
+    <value>Phiếu nhập</value>
+  </data>
+  <data name="MenuItemSuppliers.Content" xml:space="preserve">
+    <value>Nhà cung cấp</value>
+  </data>
+  <data name="Status_Active" xml:space="preserve">
+    <value>Hoạt động</value>
+  </data>
+  <data name="Status_Inactive" xml:space="preserve">
+    <value>Ngưng hoạt động</value>
   </data>
 </root>

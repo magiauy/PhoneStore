@@ -585,10 +585,10 @@
   <data name="ColActionsSupplier.Text" xml:space="preserve">
     <value>ACTIONS</value>
   </data>
-  <data name="BtnDeleteSupplier.Content" xml:space="preserve">
-    <value>Delete</value>
+  <data name="BtnDeActivateSupplier.Text" xml:space="preserve">
+    <value>Inactive</value>
   </data>
-  <data name="BtnDetailSupplier.Content" xml:space="preserve">
+  <data name="BtnDetailSupplier.Text" xml:space="preserve">
     <value>Detail</value>
   </data>
   <data name="AllItemSupplier.Content" xml:space="preserve">
@@ -621,7 +621,7 @@
   <data name="BtnExportSupplier.Text" xml:space="preserve">
     <value>Export Excel</value>
   </data>
-  <data name="BtnEditSupplierToolTip.ToolTipService.ToolTip" xml:space="preserve">
+  <data name="BtnEditSupplier.Text" xml:space="preserve">
     <value>Edit</value>
   </data>
   <data name="SubHeaderTitleSupplier.Text" xml:space="preserve">
@@ -641,5 +641,32 @@
   </data>
   <data name="PageSupplier.Text" xml:space="preserve">
     <value>Page</value>
+  </data>
+  <data name="BtnActionSupplier.Content" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="SelectBoxAllValue.Content" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="SelectBoxInActivateValue.Content" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="SelectBoxActivateValue.Content" xml:space="preserve">
+    <value>Activate</value>
+  </data>
+  <data name="MenuItemPurchaseOrders.Content" xml:space="preserve">
+    <value>Batches</value>
+  </data>
+  <data name="MenuItemBatches.Content" xml:space="preserve">
+    <value>Purchase Orders</value>
+  </data>
+  <data name="MenuItemSuppliers.Content" xml:space="preserve">
+    <value>Suppliers</value>
+  </data>
+  <data name="Status_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Status_Inactive" xml:space="preserve">
+    <value>Inactive</value>
   </data>
 </root>
