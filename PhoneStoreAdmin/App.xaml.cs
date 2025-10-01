@@ -50,9 +50,13 @@ namespace PhoneStoreAdmin
 
             // Initialize DI container
             ServiceContainer.Initialize();
-
             this.RequestedTheme = ApplicationTheme.Light;
-
+            this.UnhandledException += (s, e) =>
+            {
+                var msg = $"Unhandled:\n{e.Exception}\n{e.Message}\n{e.Exception?.StackTrace}";
+                System.Diagnostics.Debug.WriteLine(msg);
+                e.Handled = false;
+            };
             LoadLanguageSettings();
         }
 

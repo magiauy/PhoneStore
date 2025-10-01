@@ -79,7 +79,6 @@
 	<ItemGroup>
 	  <Folder Include="Database\" />
 	  <Folder Include="Resources\Strings\en-US\" />
-	  <Folder Include="Services\Interfaces\" />
 	</ItemGroup>
 
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">

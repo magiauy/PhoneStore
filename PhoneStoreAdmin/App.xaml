@@ -101,9 +101,7 @@
             </Style>
 
             <!--  Other app resources here  -->
-            <SolidColorBrush x:Key="BrushBackground" Color="White" />
-            <SolidColorBrush x:Key="BrushSecondaryBackground" Color="#FFF0F0F0" />
-            <SolidColorBrush x:Key="BrushText" Color="Black" />
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

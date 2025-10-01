@@ -655,10 +655,10 @@
     <value>Hoạt động</value>
   </data>
   <data name="MenuItemPurchaseOrders.Content" xml:space="preserve">
-    <value>Lô nhập</value>
+    <value>Phiếu nhập</value>
   </data>
   <data name="MenuItemBatches.Content" xml:space="preserve">
-    <value>Phiếu nhập</value>
+    <value>Lô nhập</value>
   </data>
   <data name="MenuItemSuppliers.Content" xml:space="preserve">
     <value>Nhà cung cấp</value>
@@ -670,9 +670,171 @@
     <value>Ngưng hoạt động</value>
   </data>
   <data name="EmptyStateTitle.Text" xml:space="preserve">
-    <value>Không có nhà cung cấp nào</value>
+    <value>Không có dữ liệu</value>
   </data>
   <data name="EmptyStateDescription.Text" xml:space="preserve">
-    <value>Chưa có dữ liệu nhà cung cấp để hiển thị. Hãy thêm nhà cung cấp mới hoặc kiểm tra lại bộ lọc.</value>
+    <value>Chưa có dữ liệu để hiển thị. Hãy thêm dữ liệu mới hoặc kiểm tra lại bộ lọc.</value>
+  </data>
+  <data name="HeaderTitlePurchaseOrder.Text" xml:space="preserve">
+    <value>Phiếu nhập</value>
+  </data>
+  <data name="SubHeaderTitlePurchaseOrder.Text" xml:space="preserve">
+    <value>Thêm, sửa, xóa và quản lý trạng thái phiếu nhập</value>
+  </data>
+  <data name="BtnNewPurchaseOrder.Text" xml:space="preserve">
+    <value>Tạo mới phiếu nhập</value>
+  </data>
+  <data name="BtnFilterPurchaseOrder.Text" xml:space="preserve">
+    <value>Lọc</value>
+  </data>
+  <data name="FilterStatusBoxPurchaseOrder.Text" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="FilterSupplierBoxPurchaseOrder.Text" xml:space="preserve">
+    <value>Nhà cung cấp</value>
+  </data>
+  <data name="ColIDPurchaseOrder.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="ColOrderDatePurchaseOrder.Text" xml:space="preserve">
+    <value>NGÀY NHẬP</value>
+  </data>
+  <data name="ColSupplierPurchaseOrder.Text" xml:space="preserve">
+    <value>NHÀ CUNG CẤP</value>
+  </data>
+  <data name="ColStatusPurchaseOrder.Text" xml:space="preserve">
+    <value>TRẠNG THÁI</value>
+  </data>
+  <data name="ColTotalAmountPurchaseOrder.Text" xml:space="preserve">
+    <value>TỔNG TIỀN</value>
+  </data>
+  <data name="ColNotePurchaseOrder.Text" xml:space="preserve">
+    <value>GHI CHÚ</value>
+  </data>
+  <data name="ColActionsPurchaseOrder.Text" xml:space="preserve">
+    <value>ACTIONS</value>
+  </data>
+  <data name="BtnActionPurchaseOrder.Content" xml:space="preserve">
+    <value>Thao tác</value>
+  </data>
+  <data name="BtnEditPurchaseOrder.Text" xml:space="preserve">
+    <value>Sửa</value>
+  </data>
+  <data name="BtnDetailPurchaseOrder.Text" xml:space="preserve">
+    <value>Chi tiết</value>
+  </data>
+  <data name="ShowIngPurchaseOrder.Text" xml:space="preserve">
+    <value>Hiển thị</value>
+  </data>
+  <data name="PurchaseOrders.Text" xml:space="preserve">
+    <value>Phiếu nhập</value>
+  </data>
+  <data name="PagePurchaseOrder.Text" xml:space="preserve">
+    <value>Trang</value>
+  </data>
+  <data name="POStatus_RECEIVED.Content" xml:space="preserve">
+    <value>Đã nhận</value>
+  </data>
+  <data name="POStatus_CANCELLED.Content" xml:space="preserve">
+    <value>Đã hủy</value>
+  </data>
+  <data name="POStatus_DRAFT.Content" xml:space="preserve">
+    <value>Bảng nháp</value>
+  </data>
+  <data name="FilterOrderDateFromBoxPurchaseOrder.Text" xml:space="preserve">
+    <value>Từ ngày</value>
+  </data>
+  <data name="FilterOrderDateToBoxPurchaseOrder.Text" xml:space="preserve">
+    <value>Đến ngày</value>
+  </data>
+  <data name="FilterTotalAmountMaxBoxPurchaseOrder.Text" xml:space="preserve">
+    <value>Tổng tiền đến</value>
+  </data>
+  <data name="FilterTotalAmountMinBoxPurchaseOrder.Text" xml:space="preserve">
+    <value>Tổng tiền từ</value>
+  </data>
+  <data name="POSTATUS_DRAFT_DATA" xml:space="preserve">
+    <value>Bảng nháp</value>
+  </data>
+  <data name="POSTATUS_CANCELLED_DATA" xml:space="preserve">
+    <value>Đã hủy</value>
+  </data>
+  <data name="POSTATUS_RECEIVED_DATA" xml:space="preserve">
+    <value>Đã nhận</value>
+  </data>
+  <data name="HeaderTitleBatch.Text" xml:space="preserve">
+    <value>Lô nhập</value>
+  </data>
+  <data name="SubHeaderTitleBatch.Text" xml:space="preserve">
+    <value>Thêm, sửa, xóa và quản lý trạng thái lô nhập</value>
+  </data>
+  <data name="BtnNewBatch.Text" xml:space="preserve">
+    <value>Tạo mới lô nhập</value>
+  </data>
+  <data name="SearchBatch.PlaceholderText" xml:space="preserve">
+    <value>Tìm kiếm theo mã lô nhập...</value>
+  </data>
+  <data name="BtnFilterBatch.Text" xml:space="preserve">
+    <value>Lọc</value>
+  </data>
+  <data name="ColIDBatch.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="ColBatchCode.Text" xml:space="preserve">
+    <value>MÃ</value>
+  </data>
+  <data name="ColCreatedAt.Text" xml:space="preserve">
+    <value>NGÀY TẠO</value>
+  </data>
+  <data name="ColPurchaseOrderId.Text" xml:space="preserve">
+    <value>ID PHIẾU NHẬP</value>
+  </data>
+  <data name="ColNoteBatch.Text" xml:space="preserve">
+    <value>GHI CHÚ</value>
+  </data>
+  <data name="ColActionsBatch.Text" xml:space="preserve">
+    <value>ACTIONS</value>
+  </data>
+  <data name="BtnActionBatch.Content" xml:space="preserve">
+    <value>Thao tác</value>
+  </data>
+  <data name="BtnDetailBatch.Text" xml:space="preserve">
+    <value>Chi tiết</value>
+  </data>
+  <data name="BtnEditBatch.Text" xml:space="preserve">
+    <value>Sửa</value>
+  </data>
+  <data name="BtnDeleteBatch.Text" xml:space="preserve">
+    <value>Xóa</value>
+  </data>
+  <data name="ShowIngBatch.Text" xml:space="preserve">
+    <value>Hiển thị</value>
+  </data>
+  <data name="Batches.Text" xml:space="preserve">
+    <value>Lô nhập</value>
+  </data>
+  <data name="PageBatch.Text" xml:space="preserve">
+    <value>Trang</value>
+  </data>
+  <data name="BtnCancelPurchaseOrder.Text" xml:space="preserve">
+    <value>Hủy</value>
+  </data>
+  <data name="FilterPurchaseOrderCode.Text" xml:space="preserve">
+    <value>Mã</value>
+  </data>
+  <data name="FilterCreatedDateFrom.Text" xml:space="preserve">
+    <value>Ngày tạo từ</value>
+  </data>
+  <data name="FilterCreatedDateTo.Text" xml:space="preserve">
+    <value>Ngày tạo đến</value>
+  </data>
+  <data name="FilterBatchCode.Text" xml:space="preserve">
+    <value>Mã</value>
+  </data>
+  <data name="FilterNote.Text" xml:space="preserve">
+    <value>Ghi chú</value>
+  </data>
+  <data name="ColSupplierName.Text" xml:space="preserve">
+    <value>NHÀ CUNG CẤP</value>
   </data>
 </root>

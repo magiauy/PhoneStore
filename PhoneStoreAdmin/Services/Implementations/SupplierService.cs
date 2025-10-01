@@ -1,11 +1,11 @@
 using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Repositories.Implementations;
 using PhoneStoreAdmin.Repositories.Interfaces;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Utils;
-using System;
-using System.Threading.Tasks;
 using PhoneStoreAdmin.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace PhoneStoreAdmin.Services.Implementations
 {
@@ -18,12 +18,24 @@ namespace PhoneStoreAdmin.Services.Implementations
             _supplierRepository = supplierRepository ?? throw new ArgumentNullException(nameof(supplierRepository));
         }
 
-        public async Task<Supplier?> GetSupplierByIdAsync(int supplierId)
+        public IEnumerable<Supplier> GetAll()
+        {
+            try
+            {
+                return _supplierRepository.GetAll();
+            } catch (Exception ex)
+            {
+                Logger.Error("Failed to get Supplier all", ex);
+                return Enumerable.Empty<Supplier>(); 
+            }
+        }
+
+        public Supplier? GetSupplierById(int supplierId)
         {
             try
             {
                 Logger.Info($"Getting Supplier by ID: {supplierId}");
-                return await _supplierRepository.GetByIdAsync(supplierId);
+                return _supplierRepository.GetById(supplierId);
             }
             catch (Exception ex)
             {
@@ -32,7 +44,7 @@ namespace PhoneStoreAdmin.Services.Implementations
             }
         }
 
-        public async Task<SupplierResult> GetSuppliersFilteredAsync(
+        public SupplierResult GetSuppliersFiltered(
             string? name,
             string? phone,
             string? email,
@@ -44,9 +56,9 @@ namespace PhoneStoreAdmin.Services.Implementations
         {
             try
             {
-                var suppliers = await _supplierRepository.GetSuppliersFiltered(name, phone, email, address, taxNumber, isActive, page, pageSize);
-                var totalPages = await _supplierRepository.GetTotalPages(name, phone, email, address, taxNumber, isActive, pageSize);
-                var totalRecords = await _supplierRepository.GetTotalRecords(name, phone, email, address, taxNumber, isActive);
+                var suppliers = _supplierRepository.GetSuppliersFiltered(name, phone, email, address, taxNumber, isActive, page, pageSize);
+                var totalPages = _supplierRepository.GetTotalPages(name, phone, email, address, taxNumber, isActive, pageSize);
+                var totalRecords = _supplierRepository.GetTotalRecords(name, phone, email, address, taxNumber, isActive);
                 return new SupplierResult(suppliers, new InfoTable(totalRecords, totalPages));
             }
             catch (Exception ex)
@@ -56,23 +68,23 @@ namespace PhoneStoreAdmin.Services.Implementations
             }
         }
 
-        public async Task ActivateSupplierAsync(int supplierId)
+        public void ActivateSupplier(int supplierId)
         {
-            var supplier = await GetSupplierByIdAsync(supplierId);
+            var supplier = GetSupplierById(supplierId);
             if (supplier != null && !supplier.IsActive)
             {
                 supplier.IsActive = true;
-                await _supplierRepository.UpdateAsync(supplier);
+                _supplierRepository.Update(supplier);
             }
         }
 
-        public async Task DeactivateSupplierAsync(int supplierId)
+        public void DeactivateSupplier(int supplierId)
         {
-            var supplier = await GetSupplierByIdAsync(supplierId);
+            var supplier = GetSupplierById(supplierId);
             if (supplier != null && supplier.IsActive)
             {
                 supplier.IsActive = false;
-                await _supplierRepository.UpdateAsync(supplier);
+                _supplierRepository.Update(supplier);
             }
         }
     }

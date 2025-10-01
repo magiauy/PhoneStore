@@ -3,9 +3,7 @@ using PhoneStoreAdmin.Repositories.Interfaces;
 using PhoneStoreAdmin.Data;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using MySqlConnector;
-using PhoneStoreAdmin.ViewModels;
 
 namespace PhoneStoreAdmin.Repositories.Implementations
 {
@@ -18,8 +16,9 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             _dataSource = dataSource;
         }
 
-        #region Synchronous Methods
+        #region Basic CRUD
 
+        // Tìm theo ID
         public Supplier GetById(int id)
         {
             using var connection = _dataSource.GetConnection();
@@ -34,7 +33,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
 
             throw new InvalidOperationException($"Supplier with ID {id} not found.");
         }
-
+        // Lấy tất cả
         public IEnumerable<Supplier> GetAll()
         {
             var suppliers = new List<Supplier>();
@@ -50,35 +49,13 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             return suppliers;
         }
 
-        public IEnumerable<Supplier> GetSuppliers(int page, int pageSize)
-        {
-            var suppliers = new List<Supplier>();
-            var offset = (page - 1) * pageSize;
-
-            using var connection = _dataSource.GetConnection();
-            using var command = new MySqlCommand(
-                "SELECT * FROM suppliers ORDER BY Name LIMIT @pageSize OFFSET @offset", 
-                connection);
-            
-            command.Parameters.AddWithValue("@pageSize", pageSize);
-            command.Parameters.AddWithValue("@offset", offset);
-            
-            using var reader = command.ExecuteReader();
-
-            while (reader.Read())
-            {
-                suppliers.Add(MapFromReader(reader));
-            }
-
-            return suppliers;
-        }
-
+        // Thêm
         public void Insert(Supplier entity)
         {
             using var connection = _dataSource.GetConnection();
             using var command = new MySqlCommand(
                 @"INSERT INTO suppliers (Name, Phone, Email, Address, Tax_Number, Is_Active) 
-                  VALUES (@name, @phone, @email, @address, @taxNumber, @isActive)", 
+                  VALUES (@name, @phone, @email, @address, @taxNumber, @isActive)",
                 connection);
 
             command.Parameters.AddWithValue("@name", entity.Name);
@@ -91,6 +68,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             command.ExecuteNonQuery();
         }
 
+        // Sửa
         public void Update(Supplier entity)
         {
             using var connection = _dataSource.GetConnection();
@@ -98,7 +76,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                 @"UPDATE suppliers 
                   SET Name = @name, Phone = @phone, Email = @email, Address = @address, 
                       Tax_Number = @taxNumber, Is_Active = @isActive 
-                  WHERE Id = @id", 
+                  WHERE Id = @id",
                 connection);
 
             command.Parameters.AddWithValue("@id", entity.Id);
@@ -116,6 +94,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             }
         }
 
+        // Xóa
         public void Delete(int id)
         {
             using var connection = _dataSource.GetConnection();
@@ -131,67 +110,8 @@ namespace PhoneStoreAdmin.Repositories.Implementations
 
         #endregion
 
-        #region Asynchronous Methods
-
-        public async Task<IEnumerable<Supplier>> GetAllAsync()
-        {
-            return await Task.Run(() => GetAll());
-        }
-
-        public async Task<Supplier?> GetByIdAsync(int id)
-        {
-            return await Task.Run(() =>
-            {
-                try
-                {
-                    return GetById(id);
-                }
-                catch (InvalidOperationException)
-                {
-                    return null;
-                }
-            });
-        }
-
-        public async Task<Supplier?> AddAsync(Supplier entity)
-        {
-            return await Task.Run(() =>
-            {
-                using var connection = _dataSource.GetConnection();
-                using var command = new MySqlCommand(
-                    @"INSERT INTO suppliers (Name, Phone, Email, Address, Tax_Number, Is_Active) 
-                      VALUES (@name, @phone, @email, @address, @taxNumber, @isActive); 
-                      SELECT LAST_INSERT_ID();", 
-                    connection);
-
-                command.Parameters.AddWithValue("@name", entity.Name);
-                command.Parameters.AddWithValue("@phone", entity.Phone ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@email", entity.Email ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@address", entity.Address ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@taxNumber", entity.TaxNumber ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@isActive", entity.IsActive);
-
-                var newId = Convert.ToInt32(command.ExecuteScalar());
-                entity.Id = newId;
-                return entity;
-            });
-        }
-
-        public async Task UpdateAsync(Supplier entity)
-        {
-            await Task.Run(() => Update(entity));
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            await Task.Run(() => Delete(id));
-        }
-
-        #endregion
-
-        #region Filtered Search Methods
-
-        // Hàm build điều kiện chung
+        #region Filtered Search
+        // Filter
         private (string whereClause, List<MySqlParameter> parameters) BuildConditions(
             string? name,
             string? phone,
@@ -246,8 +166,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             return (whereClause, parameters);
         }
 
-        // Hàm lấy tổng số bản ghi
-        public async Task<int> GetTotalRecords(
+        public int GetTotalRecords(
             string? name,
             string? phone,
             string? email,
@@ -255,22 +174,18 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             string? taxNumber,
             bool? isActive)
         {
-            return await Task.Run(() =>
-            {
-                var (whereClause, parameters) = BuildConditions(name, phone, email, address, taxNumber, isActive);
-                var sql = $"SELECT COUNT(*) FROM suppliers {whereClause}";
+            var (whereClause, parameters) = BuildConditions(name, phone, email, address, taxNumber, isActive);
+            var sql = $"SELECT COUNT(*) FROM suppliers {whereClause}";
 
-                using var connection = _dataSource.GetConnection();
-                using var command = new MySqlCommand(sql, connection);
-                foreach (var param in parameters)
-                    command.Parameters.Add(param);
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand(sql, connection);
+            foreach (var param in parameters)
+                command.Parameters.Add(param);
 
-                return Convert.ToInt32(command.ExecuteScalar());
-            });
+            return Convert.ToInt32(command.ExecuteScalar());
         }
 
-        // Hàm lấy dữ liệu theo filter + paging
-        public async Task<IEnumerable<Supplier>> GetSuppliersFiltered(
+        public IEnumerable<Supplier> GetSuppliersFiltered(
             string? name,
             string? phone,
             string? email,
@@ -280,104 +195,46 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             int page = 1,
             int pageSize = 20)
         {
-            return await Task.Run(() =>
+            var suppliers = new List<Supplier>();
+            var (whereClause, parameters) = BuildConditions(name, phone, email, address, taxNumber, isActive);
+
+            var offset = (page - 1) * pageSize;
+            var sql = $@"SELECT * FROM suppliers {whereClause} ORDER BY Id LIMIT @pageSize OFFSET @offset";
+
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand(sql, connection);
+
+            foreach (var param in parameters)
+                command.Parameters.Add(param);
+
+            command.Parameters.AddWithValue("@pageSize", pageSize);
+            command.Parameters.AddWithValue("@offset", offset);
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
             {
-                var suppliers = new List<Supplier>();
-                var (whereClause, parameters) = BuildConditions(name, phone, email, address, taxNumber, isActive);
+                suppliers.Add(MapFromReader(reader));
+            }
 
-                var offset = (page - 1) * pageSize;
-                var sql = $@"SELECT * FROM suppliers {whereClause} ORDER BY Id LIMIT @pageSize OFFSET @offset";
-
-                using var connection = _dataSource.GetConnection();
-                using var command = new MySqlCommand(sql, connection);
-
-                foreach (var param in parameters)
-                    command.Parameters.Add(param);
-
-                command.Parameters.AddWithValue("@pageSize", pageSize);
-                command.Parameters.AddWithValue("@offset", offset);
-
-                using var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    suppliers.Add(MapFromReader(reader));
-                }
-
-                return suppliers;
-            });
+            return suppliers;
         }
 
-        public async Task<int> GetTotalPages(
-            string? name, 
-            string? phone, 
-            string? email, 
-            string? address, 
-            string? taxNumber, 
-            bool? isActive, 
+        public int GetTotalPages(
+            string? name,
+            string? phone,
+            string? email,
+            string? address,
+            string? taxNumber,
+            bool? isActive,
             int pageSize)
         {
-            return await Task.Run(() =>
-            {
-                var conditions = new List<string>();
-                var parameters = new List<MySqlParameter>();
-
-                // Build WHERE conditions (same as GetSuppliersFiltered)
-                if (!string.IsNullOrWhiteSpace(name))
-                {
-                    conditions.Add("Name LIKE @name");
-                    parameters.Add(new MySqlParameter("@name", $"%{name}%"));
-                }
-
-                if (!string.IsNullOrWhiteSpace(phone))
-                {
-                    conditions.Add("Phone LIKE @phone");
-                    parameters.Add(new MySqlParameter("@phone", $"%{phone}%"));
-                }
-
-                if (!string.IsNullOrWhiteSpace(email))
-                {
-                    conditions.Add("Email LIKE @email");
-                    parameters.Add(new MySqlParameter("@email", $"%{email}%"));
-                }
-
-                if (!string.IsNullOrWhiteSpace(address))
-                {
-                    conditions.Add("Address LIKE @address");
-                    parameters.Add(new MySqlParameter("@address", $"%{address}%"));
-                }
-
-                if (!string.IsNullOrWhiteSpace(taxNumber))
-                {
-                    conditions.Add("Tax_Number LIKE @taxNumber");
-                    parameters.Add(new MySqlParameter("@taxNumber", $"%{taxNumber}%"));
-                }
-
-                if (isActive.HasValue)
-                {
-                    conditions.Add("Is_Active = @isActive");
-                    parameters.Add(new MySqlParameter("@isActive", isActive.Value));
-                }
-
-                var whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
-                var sql = $"SELECT COUNT(*) FROM suppliers {whereClause}";
-
-                using var connection = _dataSource.GetConnection();
-                using var command = new MySqlCommand(sql, connection);
-                
-                foreach (var param in parameters)
-                {
-                    command.Parameters.Add(param);
-                }
-
-                var totalRecords = Convert.ToInt32(command.ExecuteScalar());
-                
-                return (int)Math.Ceiling((double)totalRecords / pageSize);
-            });
+            var totalRecords = GetTotalRecords(name, phone, email, address, taxNumber, isActive);
+            return (int)Math.Ceiling((double)totalRecords / pageSize);
         }
 
         #endregion
 
-        #region Private Helper Methods
+        #region Private Helper
 
         private static Supplier MapFromReader(MySqlDataReader reader)
         {

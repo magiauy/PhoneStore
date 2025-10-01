@@ -1,15 +1,16 @@
 using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Repositories.Implementations;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using PhoneStoreAdmin.ViewModels;
+using System.Collections.Generic;
 
 namespace PhoneStoreAdmin.Services.Interfaces
 {
     public interface ISupplierService
     {
-        Task<Supplier?> GetSupplierByIdAsync(int supplierId);
-        Task<SupplierResult> GetSuppliersFilteredAsync(
+        Supplier? GetSupplierById(int supplierId);
+
+        IEnumerable<Supplier> GetAll();
+
+        SupplierResult GetSuppliersFiltered(
             string? name,
             string? phone,
             string? email,
@@ -19,7 +20,8 @@ namespace PhoneStoreAdmin.Services.Interfaces
             int page = 1,
             int pageSize = 10);
 
-        Task ActivateSupplierAsync(int supplierId);
-        Task DeactivateSupplierAsync(int supplierId);
+        void ActivateSupplier(int supplierId);
+
+        void DeactivateSupplier(int supplierId);
     }
 }
