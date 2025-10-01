@@ -33,17 +33,31 @@ namespace PhoneStoreAdmin.Repositories.Implementations
 
             throw new InvalidOperationException($"Supplier with ID {id} not found.");
         }
-        // Lấy tất cả
+
         public IEnumerable<Supplier> GetAll()
         {
             var suppliers = new List<Supplier>();
             using var connection = _dataSource.GetConnection();
-            using var command = new MySqlCommand("SELECT * FROM suppliers ORDER BY Name", connection);
+            using var command = new MySqlCommand("SELECT * FROM suppliers", connection);
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                suppliers.Add(MapFromReader(reader));
+            }
+            return suppliers;
+        }
+
+        // Lấy selectbox
+        public IEnumerable<Supplier> GetSelectBox()
+        {
+            var suppliers = new List<Supplier>();
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand("SELECT id, name FROM suppliers ORDER BY Name", connection);
             using var reader = command.ExecuteReader();
 
             while (reader.Read())
             {
-                suppliers.Add(MapFromReader(reader));
+                suppliers.Add(MapSelectBoxFromReader(reader));
             }
 
             return suppliers;
@@ -175,7 +189,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             bool? isActive)
         {
             var (whereClause, parameters) = BuildConditions(name, phone, email, address, taxNumber, isActive);
-            var sql = $"SELECT COUNT(*) FROM suppliers {whereClause}";
+            var sql = $"SELECT COUNT(id) FROM suppliers {whereClause}";
 
             using var connection = _dataSource.GetConnection();
             using var command = new MySqlCommand(sql, connection);
@@ -247,6 +261,15 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                 Address = reader.IsDBNull(reader.GetOrdinal("address")) ? null : reader.GetString("address"),
                 TaxNumber = reader.IsDBNull(reader.GetOrdinal("tax_number")) ? null : reader.GetString("tax_number"),
                 IsActive = reader.GetBoolean("is_active")
+            };
+        }
+
+        private static Supplier MapSelectBoxFromReader(MySqlDataReader reader)
+        {
+            return new Supplier
+            {
+                Id = reader.GetInt32("id"),
+                Name = reader.GetString("name")
             };
         }
 

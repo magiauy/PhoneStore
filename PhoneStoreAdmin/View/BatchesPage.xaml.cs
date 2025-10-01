@@ -279,7 +279,7 @@ namespace PhoneStoreAdmin.View
         private void LoadSuppliers()
         {
             Suppliers.Clear();
-            var list = SupplierService.GetAll();
+            var list = SupplierService.GetSelectBox();
             foreach (var s in list)
                 Suppliers.Add(s);
 

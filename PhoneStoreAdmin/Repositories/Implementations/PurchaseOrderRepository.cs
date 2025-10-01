@@ -190,7 +190,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             DateTime? fromDate, DateTime? toDate, decimal? minAmount, decimal? maxAmount)
         {
             var (whereClause, parameters, joinClause) = BuildConditions(supplierName, supplierId, createdBy, status, note, fromDate, toDate, minAmount, maxAmount);
-            var sql = $"SELECT COUNT(*) FROM purchase_orders {joinClause} {whereClause}";
+            var sql = $"SELECT COUNT(purchase_orders.id) FROM purchase_orders {joinClause} {whereClause}";
 
             using var connection = _dataSource.GetConnection();
             using var command = new MySqlCommand(sql, connection);

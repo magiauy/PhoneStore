@@ -167,7 +167,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         public int GetTotalRecords(int? purchaseOrderId, int? supplierId, string? batchCode, DateTime? fromDate, DateTime? toDate, string? note)
         {
             var (whereClause, parameters, joinClause) = BuildConditions(purchaseOrderId, supplierId, batchCode, fromDate, toDate, note);
-            var sql = $"SELECT COUNT(*) FROM batches {joinClause} {whereClause}";
+            var sql = $"SELECT COUNT(batches.id) FROM batches {joinClause} {whereClause}";
 
             using var connection = _dataSource.GetConnection();
             using var command = new MySqlCommand(sql, connection);

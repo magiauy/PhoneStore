@@ -8,7 +8,7 @@ namespace PhoneStoreAdmin.Services.Interfaces
     {
         Supplier? GetSupplierById(int supplierId);
 
-        IEnumerable<Supplier> GetAll();
+        IEnumerable<Supplier> GetSelectBox();
 
         SupplierResult GetSuppliersFiltered(
             string? name,
