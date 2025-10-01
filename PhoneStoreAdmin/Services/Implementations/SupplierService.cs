@@ -18,11 +18,11 @@ namespace PhoneStoreAdmin.Services.Implementations
             _supplierRepository = supplierRepository ?? throw new ArgumentNullException(nameof(supplierRepository));
         }
 
-        public IEnumerable<Supplier> GetAll()
+        public IEnumerable<Supplier> GetSelectBox()
         {
             try
             {
-                return _supplierRepository.GetAll();
+                return _supplierRepository.GetSelectBox();
             } catch (Exception ex)
             {
                 Logger.Error("Failed to get Supplier all", ex);
