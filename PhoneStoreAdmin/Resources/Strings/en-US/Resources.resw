@@ -655,10 +655,10 @@
     <value>Activate</value>
   </data>
   <data name="MenuItemPurchaseOrders.Content" xml:space="preserve">
-    <value>Batches</value>
+    <value>Purchase orders</value>
   </data>
   <data name="MenuItemBatches.Content" xml:space="preserve">
-    <value>Purchase Orders</value>
+    <value>Batches</value>
   </data>
   <data name="MenuItemSuppliers.Content" xml:space="preserve">
     <value>Suppliers</value>
@@ -670,9 +670,171 @@
     <value>Inactive</value>
   </data>
   <data name="EmptyStateTitle.Text" xml:space="preserve">
-    <value>No suppliers found</value>
+    <value>No found</value>
   </data>
   <data name="EmptyStateDescription.Text" xml:space="preserve">
-    <value>There are no suppliers to display. Add a new supplier or check your filters.</value>
+    <value>There are no to display. Add a new or check your filters.</value>
+  </data>
+  <data name="HeaderTitlePurchaseOrder.Text" xml:space="preserve">
+    <value>Purchase order</value>
+  </data>
+  <data name="SubHeaderTitlePurchaseOrder.Text" xml:space="preserve">
+    <value>Add, edit, delete and manage purchase order statuses</value>
+  </data>
+  <data name="BtnNewPurchaseOrder.Text" xml:space="preserve">
+    <value>New purchase order</value>
+  </data>
+  <data name="BtnFilterPurchaseOrder.Text" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="FilterStatusBoxPurchaseOrder.Text" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="FilterSupplierBoxPurchaseOrder.Text" xml:space="preserve">
+    <value>Supplier</value>
+  </data>
+  <data name="ColIDPurchaseOrder.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="ColOrderDatePurchaseOrder.Text" xml:space="preserve">
+    <value>DATE ORDER</value>
+  </data>
+  <data name="ColSupplierPurchaseOrder.Text" xml:space="preserve">
+    <value>SUPPLIER</value>
+  </data>
+  <data name="ColStatusPurchaseOrder.Text" xml:space="preserve">
+    <value>STATUS</value>
+  </data>
+  <data name="ColTotalAmountPurchaseOrder.Text" xml:space="preserve">
+    <value>AMOUNT</value>
+  </data>
+  <data name="ColNotePurchaseOrder.Text" xml:space="preserve">
+    <value>NOTE</value>
+  </data>
+  <data name="ColActionsPurchaseOrder.Text" xml:space="preserve">
+    <value>ACTIONS</value>
+  </data>
+  <data name="BtnActionPurchaseOrder.Content" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="BtnEditPurchaseOrder.Text" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="BtnDetailPurchaseOrder.Text" xml:space="preserve">
+    <value>Detail</value>
+  </data>
+  <data name="ShowIngPurchaseOrder.Text" xml:space="preserve">
+    <value>Showing</value>
+  </data>
+  <data name="PurchaseOrders.Text" xml:space="preserve">
+    <value>Purchase orders</value>
+  </data>
+  <data name="PagePurchaseOrder.Text" xml:space="preserve">
+    <value>Page</value>
+  </data>
+  <data name="POStatus_RECEIVED.Content" xml:space="preserve">
+    <value>Received</value>
+  </data>
+  <data name="POStatus_CANCELLED.Content" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="POStatus_DRAFT.Content" xml:space="preserve">
+    <value>Draft</value>
+  </data>
+  <data name="FilterOrderDateFromBoxPurchaseOrder.Text" xml:space="preserve">
+    <value>Date from</value>
+  </data>
+  <data name="FilterOrderDateToBoxPurchaseOrder.Text" xml:space="preserve">
+    <value>Date to</value>
+  </data>
+  <data name="FilterTotalAmountMaxBoxPurchaseOrder.Text" xml:space="preserve">
+    <value>Amount max</value>
+  </data>
+  <data name="FilterTotalAmountMinBoxPurchaseOrder.Text" xml:space="preserve">
+    <value>Amount min</value>
+  </data>
+  <data name="POSTATUS_DRAFT_DATA" xml:space="preserve">
+    <value>Draft</value>
+  </data>
+  <data name="POSTATUS_CANCELLED_DATA" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="POSTATUS_RECEIVED_DATA" xml:space="preserve">
+    <value>Received</value>
+  </data>
+  <data name="HeaderTitleBatch.Text" xml:space="preserve">
+    <value>Batches</value>
+  </data>
+  <data name="SubHeaderTitleBatch.Text" xml:space="preserve">
+    <value>Add, edit, delete and manage batches statuses</value>
+  </data>
+  <data name="BtnNewBatch.Text" xml:space="preserve">
+    <value>New batches</value>
+  </data>
+  <data name="SearchBatch.PlaceholderText" xml:space="preserve">
+    <value>Search by batches code...</value>
+  </data>
+  <data name="BtnFilterBatch.Text" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="ColIDBatch.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="ColBatchCode.Text" xml:space="preserve">
+    <value>CODE</value>
+  </data>
+  <data name="ColCreatedAt.Text" xml:space="preserve">
+    <value>CREATED AT</value>
+  </data>
+  <data name="ColPurchaseOrderId.Text" xml:space="preserve">
+    <value>PURCHASE ORDER ID</value>
+  </data>
+  <data name="ColNoteBatch.Text" xml:space="preserve">
+    <value>NOTE</value>
+  </data>
+  <data name="ColActionsBatch.Text" xml:space="preserve">
+    <value>ACTIONS</value>
+  </data>
+  <data name="BtnActionBatch.Content" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="BtnDetailBatch.Text" xml:space="preserve">
+    <value>Detail</value>
+  </data>
+  <data name="BtnEditBatch.Text" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="BtnDeleteBatch.Text" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="ShowIngBatch.Text" xml:space="preserve">
+    <value>Showing</value>
+  </data>
+  <data name="Batches.Text" xml:space="preserve">
+    <value>Batches</value>
+  </data>
+  <data name="PageBatch.Text" xml:space="preserve">
+    <value>Page</value>
+  </data>
+  <data name="BtnCancelPurchaseOrder.Text" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="FilterPurchaseOrderCode.Text" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="FilterCreatedDateFrom.Text" xml:space="preserve">
+    <value>Created date from</value>
+  </data>
+  <data name="FilterCreatedDateTo.Text" xml:space="preserve">
+    <value>Created date to</value>
+  </data>
+  <data name="FilterBatchCode.Text" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="FilterNote.Text" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="ColSupplierName.Text" xml:space="preserve">
+    <value>SUPPLIER</value>
   </data>
 </root>

@@ -304,7 +304,6 @@
                             FontWeight="SemiBold" />
                         <ComboBox
                             x:Name="FilterActiveBoxSupplier"
-                            SelectedIndex="0"
                             SelectionChanged="FilterChange"
                             Style="{StaticResource ComboBoxInputStyle}">
                             <ComboBoxItem x:Uid="SelectBoxAllValue" Tag="" />
@@ -746,15 +745,15 @@
                             <StackPanel HorizontalAlignment="Center" Spacing="8">
                                 <TextBlock
                                     x:Uid="EmptyStateTitle"
+                                    HorizontalAlignment="Center"
                                     FontSize="24"
                                     FontWeight="SemiBold"
-                                    Foreground="{StaticResource BrushText}"
-                                    HorizontalAlignment="Center" />
+                                    Foreground="{StaticResource BrushText}" />
                                 <TextBlock
                                     x:Uid="EmptyStateDescription"
+                                    HorizontalAlignment="Center"
                                     FontSize="16"
                                     Foreground="{StaticResource BrushTextSecondary}"
-                                    HorizontalAlignment="Center"
                                     TextAlignment="Center"
                                     TextWrapping="WrapWholeWords" />
                             </StackPanel>
@@ -821,7 +820,7 @@
                                         FontWeight="Bold"
                                         Foreground="{StaticResource BrushPrimary}">
                                         <Run x:Uid="PageSupplier" />
-                                        <Run x:Name="PageInfoText" />
+                                        <Run x:Name="PageInfoText" Text="1 / 1" />
                                     </TextBlock>
                                 </Border>
                                 <Button

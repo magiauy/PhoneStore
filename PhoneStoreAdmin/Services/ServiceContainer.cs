@@ -41,12 +41,18 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<IAccountRepository>(() => new AccountRepository(GetService<DataSource>()));
             RegisterSingleton<IPersonRepository>(() => new PersonRepository(GetService<DataSource>()));
             RegisterSingleton<ISupplierRepository>(() => new SupplierRepository(GetService<DataSource>()));
+            RegisterSingleton<IPurchaseOrderLineRepository>(() => new PurchaseOrderLineRepository(GetService<DataSource>()));
+            RegisterSingleton<IPurchaseOrderRepository>(() => new PurchaseOrderRepository(GetService<DataSource>()));
+            RegisterSingleton<IBatchProductRepository>(() => new BatchProductRepository(GetService<DataSource>()));
+            RegisterSingleton<IBatchesRepository>(() => new BatchesRepository(GetService<DataSource>()));
 
             // Register services
             RegisterSingleton<IAuthService>(() => new AuthService(GetService<IAuthRepository>()));
             RegisterSingleton<IAccountService>(() => new AccountService(GetService<IAccountRepository>()));
             RegisterSingleton<IPersonService>(() => new PersonService(GetService<IPersonRepository>()));
             RegisterSingleton<ISupplierService>(() => new SupplierService(GetService<ISupplierRepository>()));
+            RegisterSingleton<IPurchaseOrderService>(() => new PurchaseOrderService(GetService<IPurchaseOrderRepository>(), GetService<IPurchaseOrderLineRepository>()));
+            RegisterSingleton<IBatchesService>(() => new BatchesService(GetService<IBatchesRepository>(), GetService<IBatchProductRepository>(), GetService<IPurchaseOrderRepository>(), GetService<ISupplierRepository>()));
             RegisterSingleton<ILocalStorageService>(() => new LocalStorageService());
 
             // Register UserSession singleton

@@ -14,25 +14,34 @@ namespace PhoneStoreAdmin.View
 {
     public sealed partial class SuppliersPage : Page
     {
-        private ISupplierService SupplierService =>  App.GetService<ISupplierService>();
+        private ISupplierService SupplierService => App.GetService<ISupplierService>();
+
         public ObservableCollection<SupplierViewModel> Suppliers { get; } = new ObservableCollection<SupplierViewModel>();
         public int CurrentPage { get; set; } = 1;
         public int PageSize { get; set; } = 10;
         public int TotalPages { get; set; } = 1;
-
         public int TotalRecords { get; set; } = 0;
+
+        private bool _isInitialized = false;
 
         public SuppliersPage()
         {
             this.InitializeComponent();
             this.Loaded += SuppliersPage_Loaded;
         }
-        private async void SuppliersPage_Loaded(object sender, RoutedEventArgs e)
+
+        private void SuppliersPage_Loaded(object sender, RoutedEventArgs e)
         {
-            await LoadSuppliersAsync();
+            _isInitialized = true;
+            LoadSuppliers();
         }
-        private async Task LoadSuppliersAsync()
+
+        private void LoadSuppliers()
         {
+            // Prevent execution if UI controls are not yet initialized
+            if (!_isInitialized)
+                return;
+
             try
             {
                 Suppliers.Clear();
@@ -48,7 +57,7 @@ namespace PhoneStoreAdmin.View
                     };
                 }
 
-                var result = await SupplierService.GetSuppliersFilteredAsync(
+                var result = SupplierService.GetSuppliersFiltered(
                     FilterNameBoxSupplier?.Text,
                     FilterPhoneBoxSupplier?.Text,
                     FilterEmailBoxSupplier?.Text,
@@ -60,7 +69,7 @@ namespace PhoneStoreAdmin.View
 
                 if (result == null)
                 {
-                    await ShowErrorDialogAsync("Error", "Failed to load suppliers.");
+                    ShowErrorDialog("Error", "Failed to load suppliers.");
                     return;
                 }
 
@@ -81,172 +90,158 @@ namespace PhoneStoreAdmin.View
                     });
                 }
 
-                PageInfoText.Text = $"{CurrentPage} / {TotalPages}";
-                PreviousPageButton.IsEnabled = CurrentPage > 1;
-                NextPageButton.IsEnabled = CurrentPage < TotalPages;
-                RecordCountText.Text = $"{Suppliers.Count} / {TotalRecords}";
+                // Safely update UI controls with null checks
+                if (PageInfoText != null)
+                    PageInfoText.Text = $"{CurrentPage} / {TotalPages}";
 
-                // Show/hide empty state based on suppliers count
+                if (PreviousPageButton != null)
+                    PreviousPageButton.IsEnabled = CurrentPage > 1;
+
+                if (NextPageButton != null)
+                    NextPageButton.IsEnabled = CurrentPage < TotalPages;
+
+                if (RecordCountText != null)
+                    RecordCountText.Text = $"{Suppliers.Count} / {TotalRecords}";
+
                 UpdateEmptyStateVisibility();
             }
             catch (Exception ex)
             {
-                await ShowErrorDialogAsync("Failed to load suppliers", ex.Message);
+                ShowErrorDialog("Failed to load suppliers", ex.Message);
             }
         }
 
         private void UpdateEmptyStateVisibility()
         {
-            if (Suppliers.Count == 0)
-            {
-                EmptyStatePanel.Visibility = Visibility.Visible;
-                SuppliersListView.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                EmptyStatePanel.Visibility = Visibility.Collapsed;
-                SuppliersListView.Visibility = Visibility.Visible;
-            }
+            if (EmptyStatePanel != null)
+                EmptyStatePanel.Visibility = Suppliers.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+            if (SuppliersListView != null)
+                SuppliersListView.Visibility = Suppliers.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
-        private async void BtnSearch_Click(object sender, RoutedEventArgs e)
+
+        private void BtnSearch_Click(object sender, RoutedEventArgs e)
         {
             CurrentPage = 1;
-            await LoadSuppliersAsync();
+            LoadSuppliers();
         }
+
         private void FilterButton_Click(object sender, RoutedEventArgs e)
         {
-            if (FilterPanel.Visibility == Visibility.Collapsed)
+            if (FilterPanel != null)
             {
-                FilterPanel.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                FilterPanel.Visibility = Visibility.Collapsed;
+                FilterPanel.Visibility = FilterPanel.Visibility == Visibility.Collapsed
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
             }
         }
-        private async void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+
+        private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
-            if (FilterNameBoxSupplier != null)
-                FilterNameBoxSupplier.Text = string.Empty;
+            FilterNameBoxSupplier.Text = SearchBox.Text;
             CurrentPage = 1;
-            await LoadSuppliersAsync();
+            LoadSuppliers();
         }
-        private async void BtnClearFilter_Click(object sender, RoutedEventArgs e)
+
+        private void BtnClearFilter_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                // Safely clear filter values with null checks
-                if (FilterNameBoxSupplier != null)
-                    FilterNameBoxSupplier.Text = string.Empty;
-                if (FilterPhoneBoxSupplier != null)
-                    FilterPhoneBoxSupplier.Text = string.Empty;
-                if (FilterEmailBoxSupplier != null)
-                    FilterEmailBoxSupplier.Text = string.Empty;
-                if (FilterAddressBoxSupplier != null)
-                    FilterAddressBoxSupplier.Text = string.Empty;
-                if (FilterTaxBoxSupplier != null)
-                    FilterTaxBoxSupplier.Text = string.Empty;
-                if (FilterActiveBoxSupplier != null)
-                    FilterActiveBoxSupplier.SelectedIndex = 0;
+                FilterNameBoxSupplier?.ClearValue(TextBox.TextProperty);
+                FilterPhoneBoxSupplier?.ClearValue(TextBox.TextProperty);
+                FilterEmailBoxSupplier?.ClearValue(TextBox.TextProperty);
+                FilterAddressBoxSupplier?.ClearValue(TextBox.TextProperty);
+                FilterTaxBoxSupplier?.ClearValue(TextBox.TextProperty);
+                FilterActiveBoxSupplier?.ClearValue(ComboBox.SelectedIndexProperty);
+                SearchBox?.ClearValue(TextBox.TextProperty);
+
                 CurrentPage = 1;
-                await LoadSuppliersAsync();
+                LoadSuppliers();
             }
             catch (Exception ex)
             {
-                await ShowErrorDialogAsync("Error clearing filters", ex.Message);
+                ShowErrorDialog("Error clearing filters", ex.Message);
             }
         }
-        private async Task ShowErrorDialogAsync(string title, string message)
+
+        private async void ShowErrorDialog(string title, string message)
         {
-            try
+            var dialog = new ContentDialog
             {
-                var dialog = new ContentDialog
-                {
-                    Title = title,
-                    Content = message,
-                    CloseButtonText = "OK",
-                    XamlRoot = this.XamlRoot
-                };
-                await dialog.ShowAsync();
-            }
-            catch (Exception ex)
-            {
-                // Fallback: just log the error if dialog fails
-                System.Diagnostics.Debug.WriteLine($"Dialog error: {ex.Message}");
-            }
+                Title = title,
+                Content = message,
+                CloseButtonText = "OK",
+                XamlRoot = this.XamlRoot
+            };
+            await dialog.ShowAsync();
         }
-        private async void BtnCreate_Click(object sender, RoutedEventArgs e)
+
+        private void BtnCreate_Click(object sender, RoutedEventArgs e)
         {
-            await ShowErrorDialogAsync("Info", "Create supplier functionality - Coming Soon!");
+            ShowErrorDialog("Info", "Create supplier functionality - Coming Soon!");
         }
-        private async void BtnEdit_Click(object sender, RoutedEventArgs e)
+
+        private void BtnEdit_Click(object sender, RoutedEventArgs e)
         {
             var id = (sender as Button)?.Tag?.ToString();
             if (int.TryParse(id, out int supplierId))
             {
-                await ShowErrorDialogAsync("Info", $"Edit supplier ID: {supplierId} - Coming Soon!");
+                ShowErrorDialog("Info", $"Edit supplier ID: {supplierId} - Coming Soon!");
             }
         }
-        private async void BtnDetail_Click(object sender, RoutedEventArgs e)
+
+        private void BtnDetail_Click(object sender, RoutedEventArgs e)
         {
             var id = (sender as Button)?.Tag?.ToString();
             if (int.TryParse(id, out int supplierId))
             {
-                var supplier = await SupplierService.GetSupplierByIdAsync(supplierId);
+                var supplier = SupplierService.GetSupplierById(supplierId);
                 if (supplier != null)
                 {
                     var details = $"ID: {supplier.Id}\n" +
-                    $"Name: {supplier.Name}\n" +
-                    $"Phone: {supplier.Phone ?? "N/A"}\n" +
-                    $"Email: {supplier.Email ?? "N/A"}\n" +
-                    $"Address: {supplier.Address ?? "N/A"}\n" +
-                    $"Tax Number: {supplier.TaxNumber ?? "N/A"}\n" +
-                    $"Status: {(supplier.IsActive ? "Active" : "Inactive")}";
-                    await ShowErrorDialogAsync("Supplier Details", details);
+                                  $"Name: {supplier.Name}\n" +
+                                  $"Phone: {supplier.Phone ?? "N/A"}\n" +
+                                  $"Email: {supplier.Email ?? "N/A"}\n" +
+                                  $"Address: {supplier.Address ?? "N/A"}\n" +
+                                  $"Tax Number: {supplier.TaxNumber ?? "N/A"}\n" +
+                                  $"Status: {(supplier.IsActive ? "Active" : "Inactive")}";
+                    ShowErrorDialog("Supplier Details", details);
                 }
             }
         }
-        private async void BtnActivate_Click(object sender, RoutedEventArgs e)
+
+        private void BtnActivate_Click(object sender, RoutedEventArgs e)
         {
             var id = (sender as Button)?.Tag?.ToString();
             if (int.TryParse(id, out int supplierId))
             {
                 try
                 {
-                    var supplier = await SupplierService.GetSupplierByIdAsync(supplierId);
-                    if (supplier != null)
-                    {
-                        supplier.IsActive = true;
-                        await SupplierService.ActivateSupplierAsync(supplier.Id);
-                        await LoadSuppliersAsync(); // Refresh the list
-                        await ShowErrorDialogAsync("Success", "Supplier activated successfully!");
-                    }
+                    SupplierService.ActivateSupplier(supplierId);
+                    LoadSuppliers();
+                    ShowErrorDialog("Success", "Supplier activated successfully!");
                 }
                 catch (Exception ex)
                 {
-                    await ShowErrorDialogAsync("Error", $"Failed to activate supplier: {ex.Message}");
+                    ShowErrorDialog("Error", $"Failed to activate supplier: {ex.Message}");
                 }
             }
         }
-        private async void BtnDeActivate_Click(object sender, RoutedEventArgs e)
+
+        private void BtnDeActivate_Click(object sender, RoutedEventArgs e)
         {
             var id = (sender as Button)?.Tag?.ToString();
             if (int.TryParse(id, out int supplierId))
             {
                 try
                 {
-                    var supplier = await SupplierService.GetSupplierByIdAsync(supplierId);
-                    if (supplier != null)
-                    {
-                        supplier.IsActive = false;
-                        await SupplierService.DeactivateSupplierAsync(supplier.Id);
-                        await LoadSuppliersAsync(); // Refresh the list
-                        await ShowErrorDialogAsync("Success", "Supplier deactivated successfully!");
-                    }
+                    SupplierService.DeactivateSupplier(supplierId);
+                    LoadSuppliers();
+                    ShowErrorDialog("Success", "Supplier deactivated successfully!");
                 }
                 catch (Exception ex)
                 {
-                    await ShowErrorDialogAsync("Error", $"Failed to deactivate supplier: {ex.Message}");
+                    ShowErrorDialog("Error", $"Failed to deactivate supplier: {ex.Message}");
                 }
             }
         }
@@ -259,35 +254,32 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-
-        private async void BtnNextPage_Click(object sender, RoutedEventArgs e)
+        private void BtnNextPage_Click(object sender, RoutedEventArgs e)
         {
             if (CurrentPage < TotalPages)
             {
                 CurrentPage++;
-                await LoadSuppliersAsync();
-            }
-        }
-        private async void BtnLastPage_Click(object sender, RoutedEventArgs e)
-        {
-            if (CurrentPage >= 1)
-            {
-                CurrentPage--;
-                await LoadSuppliersAsync();
+                LoadSuppliers();
             }
         }
 
-        private async void FilterChange(object sender, RoutedEventArgs e)
+        private void BtnLastPage_Click(object sender, RoutedEventArgs e)
         {
-            try
+            if (CurrentPage > 1)
             {
-                CurrentPage = 1;
-                await LoadSuppliersAsync();
+                CurrentPage--;
+                LoadSuppliers();
             }
-            catch (Exception ex)
-            {
-                await ShowErrorDialogAsync("Error clearing filters", ex.Message);
-            }
+        }
+
+        private void FilterChange(object sender, RoutedEventArgs e)
+        {
+            // Only process filter changes if the page is fully initialized
+            if (!_isInitialized)
+                return;
+
+            CurrentPage = 1;
+            LoadSuppliers();
         }
     }
 

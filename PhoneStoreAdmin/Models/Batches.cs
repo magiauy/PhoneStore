@@ -15,6 +15,8 @@ namespace PhoneStoreAdmin.Models
         private string? _batchCode;
         private DateTime _createdAt;
         private string? _note;
+        private ICollection<BatchProduct> _batchProducts = new List<BatchProduct>();
+        private PurchaseOrder _purchaseOrder = new PurchaseOrder();
 
         // Public properties with backing fields
         [Required]
@@ -52,6 +54,19 @@ namespace PhoneStoreAdmin.Models
             set => _note = value;
         }
 
+        // Navigation property
+        public ICollection<BatchProduct> BatchProducts
+        {
+            get => _batchProducts;
+            set => _batchProducts = value ?? new List<BatchProduct>();
+        }
+
+        public PurchaseOrder PurchaseOrder
+        {
+            get => _purchaseOrder;
+            set => _purchaseOrder = value ?? new PurchaseOrder();
+        }
+
         // Constructors
         public Batches()
         {
@@ -60,6 +75,7 @@ namespace PhoneStoreAdmin.Models
             _batchCode = null;
             _createdAt = DateTime.Now;
             _note = null;
+            _batchProducts = new List<BatchProduct>();
         }
 
         public Batches(int purchaseOrderId, string? batchCode)
@@ -69,6 +85,7 @@ namespace PhoneStoreAdmin.Models
             _batchCode = batchCode;
             _createdAt = DateTime.Now;
             _note = null;
+            _batchProducts = new List<BatchProduct>();
         }
     }
 }

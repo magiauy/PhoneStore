@@ -184,7 +184,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             try
             {
                 // Nếu DB trả về int
-                person.PersonType = (PhoneStoreAdmin.Models.Enums.PersonType)reader.GetInt32("person_type");
+                //person.PersonType = (PhoneStoreAdmin.Models.Enums.PersonType)reader.GetInt32("person_type");
             }
             catch
             {

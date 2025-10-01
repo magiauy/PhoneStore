@@ -17,6 +17,9 @@ namespace PhoneStoreAdmin.Models
         private string? _note;
         private ICollection<PurchaseOrderLine> _purchaseOrderLines = new List<PurchaseOrderLine>();
 
+        // Navigation property to Supplier can be added if needed
+        private Supplier _supplier = new Supplier();
+
         // Public properties with backing fields
         public int Id
         {
@@ -74,6 +77,12 @@ namespace PhoneStoreAdmin.Models
             set => _purchaseOrderLines = value ?? new List<PurchaseOrderLine>();
         }
 
+        public Supplier Supplier
+        {
+            get => _supplier;
+            set => _supplier = value ?? new Supplier();
+        }
+
         // Constructors
         public PurchaseOrder()
         {
@@ -85,6 +94,7 @@ namespace PhoneStoreAdmin.Models
             _totalAmount = 0;
             _note = null;
             _purchaseOrderLines = new List<PurchaseOrderLine>();
+            _supplier = new Supplier();
         }
 
         public PurchaseOrder(int supplierId, int createdBy)
@@ -97,6 +107,7 @@ namespace PhoneStoreAdmin.Models
             _totalAmount = 0;
             _note = null;
             _purchaseOrderLines = new List<PurchaseOrderLine>();
+            _createdBy = createdBy;
         }
     }
 }
