@@ -20,7 +20,8 @@ namespace PhoneStoreAdmin
     {
         private readonly ResourceLoader _resourceLoader;
         private AppWindow _appWindow;
-
+        private bool _isDialogOpen = false;
+        private bool _isProcessingLogin = false;
 
         public LoginWindow()
         {
@@ -58,6 +59,27 @@ namespace PhoneStoreAdmin
             await PerformLoginAsync();
         }
         private async System.Threading.Tasks.Task PerformLoginAsync()
+        {
+            // Prevent multiple simultaneous login attempts
+            if (_isProcessingLogin)
+            {
+                Logger.Info("Login already in progress, ignoring duplicate request");
+                return;
+            }
+
+            _isProcessingLogin = true;
+
+            try
+            {
+                await PerformLoginInternalAsync();
+            }
+            finally
+            {
+                _isProcessingLogin = false;
+            }
+        }
+
+        private async System.Threading.Tasks.Task PerformLoginInternalAsync()
         {
             // Validate input
             if (string.IsNullOrWhiteSpace(UsernameTextBox.Text))
@@ -188,6 +210,27 @@ namespace PhoneStoreAdmin
         }
 
         private async System.Threading.Tasks.Task ShowSuccessDialog()
+        {
+            // Prevent multiple dialogs from opening
+            if (_isDialogOpen)
+            {
+                Logger.Warning("Dialog already open, skipping success dialog");
+                return;
+            }
+
+            _isDialogOpen = true;
+
+            try
+            {
+                await ShowSuccessDialogInternal();
+            }
+            finally
+            {
+                _isDialogOpen = false;
+            }
+        }
+
+        private async System.Threading.Tasks.Task ShowSuccessDialogInternal()
         {
             var contentGrid = new Grid();
             contentGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
@@ -398,6 +441,13 @@ namespace PhoneStoreAdmin
 
         private async void ShowErrorOnField(Control field, string message)
         {
+            // Prevent multiple dialogs from opening
+            if (_isDialogOpen)
+            {
+                Logger.Warning("Dialog already open, skipping error dialog");
+                return;
+            }
+
             // Focus the field
             field.Focus(FocusState.Keyboard);
 
@@ -405,69 +455,94 @@ namespace PhoneStoreAdmin
             field.BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.IndianRed);
             field.BorderThickness = new Thickness(2);
 
-            // Show error dialog
-            var dialog = new ContentDialog()
-            {
-                Title = _resourceLoader.GetString("ErrorInputTitle/Text"),
-                Content = new StackPanel
-                {
-                    Spacing = 12,
-                    Children =
-                    {
-                        new TextBlock
-                        {
-                            Text = message,
-                            TextWrapping = TextWrapping.Wrap,
-                            FontSize = 14
-                        }
-                    }
-                },
-                CloseButtonText = "OK",
-                XamlRoot = this.Content.XamlRoot
-            };
+            _isDialogOpen = true;
 
-            await dialog.ShowAsync();
+            try
+            {
+                // Show error dialog
+                var dialog = new ContentDialog()
+                {
+                    Title = _resourceLoader.GetString("ErrorInputTitle/Text"),
+                    Content = new StackPanel
+                    {
+                        Spacing = 12,
+                        Children =
+                        {
+                            new TextBlock
+                            {
+                                Text = message,
+                                TextWrapping = TextWrapping.Wrap,
+                                FontSize = 14
+                            }
+                        }
+                    },
+                    CloseButtonText = "OK",
+                    XamlRoot = this.Content.XamlRoot
+                };
+
+                await dialog.ShowAsync();
+            }
+            finally
+            {
+                _isDialogOpen = false;
+            }
         }
 
         private async void ForgotPassword_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new ContentDialog()
+            // Prevent multiple dialogs from opening
+            if (_isDialogOpen)
             {
-                Title = _resourceLoader.GetString("ResetPasswordTitle/Text"),
-                Content = new StackPanel
-                {
-                    Spacing = 12,
-                    Children =
-                    {
-                        new TextBlock
-                        {
-                            Text = _resourceLoader.GetString("ResetPasswordInstruction/Text"),
-                            TextWrapping = TextWrapping.Wrap
-                        },
-                        new TextBox
-                        {
-                            PlaceholderText = _resourceLoader.GetString("EmailPlaceholder/PlaceholderText"),
-                            Header = _resourceLoader.GetString("EmailHeader/Text")
-                        }
-                    }
-                },
-                PrimaryButtonText = _resourceLoader.GetString("ResetLinkButton/Content"),
-                CloseButtonText = _resourceLoader.GetString("CancelButton/Content"),
-                XamlRoot = this.Content.XamlRoot
-            };
+                Logger.Warning("Dialog already open, skipping forgot password dialog");
+                return;
+            }
 
-            var result = await dialog.ShowAsync();
-            if (result == ContentDialogResult.Primary)
+            _isDialogOpen = true;
+
+            try
             {
-                // TODO: Implement password reset logic
-                var infoDialog = new ContentDialog()
+                var dialog = new ContentDialog()
                 {
-                    Title = "Feature Coming Soon",
-                    Content = _resourceLoader.GetString("FeatureComingSoon/Text"),
-                    CloseButtonText = "OK",
+                    Title = _resourceLoader.GetString("ResetPasswordTitle/Text"),
+                    Content = new StackPanel
+                    {
+                        Spacing = 12,
+                        Children =
+                        {
+                            new TextBlock
+                            {
+                                Text = _resourceLoader.GetString("ResetPasswordInstruction/Text"),
+                                TextWrapping = TextWrapping.Wrap
+                            },
+                            new TextBox
+                            {
+                                PlaceholderText = _resourceLoader.GetString("EmailPlaceholder/PlaceholderText"),
+                                Header = _resourceLoader.GetString("EmailHeader/Text")
+                            }
+                        }
+                    },
+                    PrimaryButtonText = _resourceLoader.GetString("ResetLinkButton/Content"),
+                    CloseButtonText = _resourceLoader.GetString("CancelButton/Content"),
                     XamlRoot = this.Content.XamlRoot
                 };
-                await infoDialog.ShowAsync();
+
+                var result = await dialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    // TODO: Implement password reset logic
+                    var infoDialog = new ContentDialog()
+                    {
+                        Title = "Feature Coming Soon",
+                        Content = _resourceLoader.GetString("FeatureComingSoon/Text"),
+                        CloseButtonText = "OK",
+                        XamlRoot = this.Content.XamlRoot
+                    };
+                    await infoDialog.ShowAsync();
+                }
+            }
+            finally
+            {
+                _isDialogOpen = false;
             }
         }
 
