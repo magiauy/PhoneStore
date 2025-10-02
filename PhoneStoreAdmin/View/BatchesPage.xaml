@@ -231,19 +231,6 @@
                         FontSize="16"
                         Foreground="{StaticResource BrushTextSecondary}" />
                 </StackPanel>
-                <Button
-                    x:Name="AddBatchButton"
-                    Grid.Column="1"
-                    Padding="20,14"
-                    VerticalAlignment="Center"
-                    Click="BtnCreate_Click"
-                    Shadow="{StaticResource SharedShadow}"
-                    Style="{StaticResource PrimaryButtonStyle}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <FontIcon FontSize="18" Glyph="&#xE710;" />
-                        <TextBlock x:Uid="BtnNewBatch" FontSize="15" />
-                    </StackPanel>
-                </Button>
             </Grid>
         </Border>
         <!--  Main Content Area  -->
@@ -263,6 +250,7 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <AutoSuggestBox
@@ -328,28 +316,10 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <!--  Filter Batch Code  -->
-                    <StackPanel
-                        Grid.Row="0"
-                        Grid.Column="0"
-                        Margin="4">
-                        <TextBlock
-                            x:Uid="FilterBatchCode"
-                            Margin="0,0,0,4"
-                            FontWeight="SemiBold" />
-                        <TextBox
-                            x:Name="FilterBatchCodeBox"
-                            Style="{StaticResource InputStyle}"
-                            TextChanged="FilterChange" />
-                    </StackPanel>
                     <!--  Filter Note  -->
                     <StackPanel
-                        Grid.Row="0"
                         Grid.Column="1"
                         Margin="4">
                         <TextBlock
@@ -363,27 +333,41 @@
                     </StackPanel>
                     <!--  Filter Supplier  -->
                     <StackPanel
-                        Grid.Row="0"
-                        Grid.Column="2"
+                        Grid.Column="0"
                         Margin="4">
                         <TextBlock
                             x:Uid="FilterSupplierBoxPurchaseOrder"
                             Margin="0,0,0,4"
                             FontWeight="SemiBold" />
-                        <ComboBox
-                            x:Name="FilterSupplierBoxPurchaseOrder"
-                            MinWidth="160"
-                            DisplayMemberPath="Name"
-                            ItemsSource="{x:Bind Suppliers, Mode=OneWay}"
-                            SelectedIndex="0"
-                            SelectedValuePath="Id"
-                            SelectionChanged="FilterChange"
-                            Style="{StaticResource ComboBoxInputStyle}" />
+                        <Button
+                            x:Name="SelectSupplierButton"
+                            Height="44"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Background="Transparent"
+                            BorderBrush="{StaticResource BrushBorder}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Click="SelectSupplierButton_Click"
+                            Padding="16,10">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon
+                                    FontSize="16"
+                                    Foreground="{StaticResource BrushPrimary}"
+                                    Glyph="&#xE716;" />
+                                <TextBlock
+                                    x:Name="SelectedSupplierText"
+                                    FontSize="15"
+                                    FontWeight="Medium"
+                                    Foreground="{StaticResource BrushText}"
+                                    Text="All Suppliers"
+                                    TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                     <!--  Filter Created Date From  -->
                     <StackPanel
-                        Grid.Row="1"
-                        Grid.Column="0"
+                        Grid.Column="2"
                         Margin="4">
                         <TextBlock
                             x:Uid="FilterCreatedDateFrom"
@@ -395,11 +379,9 @@
                             DateChanged="FilterChangeDate"
                             Style="{StaticResource CalendarDatePickerInputStyle}" />
                     </StackPanel>
-
                     <!--  Filter Created Date To  -->
                     <StackPanel
-                        Grid.Row="1"
-                        Grid.Column="1"
+                        Grid.Column="3"
                         Margin="4">
                         <TextBlock
                             x:Uid="FilterCreatedDateTo"
@@ -411,7 +393,6 @@
                             DateChanged="FilterChangeDate"
                             Style="{StaticResource CalendarDatePickerInputStyle}" />
                     </StackPanel>
-
                 </Grid>
             </Border>
             <!--  Data Table Section  -->

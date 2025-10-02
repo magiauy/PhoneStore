@@ -24,9 +24,8 @@ namespace PhoneStoreAdmin.View
         public int TotalPages { get; set; } = 1;
         public int TotalRecords { get; set; } = 0;
 
-        public ObservableCollection<Supplier> Suppliers { get; } = new ObservableCollection<Supplier>();
-
         private bool _isInitialized = false;
+        private Supplier? _selectedSupplier = null;
 
         public BatchesPage()
         {
@@ -37,7 +36,6 @@ namespace PhoneStoreAdmin.View
         private void BatchesPage_Loaded(object sender, RoutedEventArgs e)
         {
             _isInitialized = true;
-            LoadSuppliers();
             LoadBatches();
         }
 
@@ -53,7 +51,7 @@ namespace PhoneStoreAdmin.View
 
                 int? purchaseOrderId = null;
 
-                string? batchCode = FilterBatchCodeBox?.Text;
+                string? batchCode = SearchBox?.Text;
                 DateTime? dateFrom = null;
                 var dateOffsetFrom = FilterCreatedDateFromBox?.Date;
                 if (dateOffsetFrom.HasValue && dateOffsetFrom.Value.Year > 1900)
@@ -66,9 +64,7 @@ namespace PhoneStoreAdmin.View
 
                 string? note = FilterNoteBox?.Text;
 
-                int? supplierId = null;
-                if (FilterSupplierBoxPurchaseOrder.SelectedItem is Supplier sup && sup.Id > 0)
-                    supplierId = sup.Id;
+                int? supplierId = _selectedSupplier?.Id;
 
                 var result = BatchesService.GetBatchesFiltered(
                     purchaseOrderId,
@@ -153,8 +149,6 @@ namespace PhoneStoreAdmin.View
             {
                 if (SearchBox != null)
                     SearchBox.Text = string.Empty;
-                if (FilterBatchCodeBox != null)
-                    FilterBatchCodeBox.Text = string.Empty;
                 if (FilterCreatedDateFromBox != null)
                     FilterCreatedDateFromBox.SetValue(
                         CalendarDatePicker.DateProperty, null);
@@ -276,16 +270,44 @@ namespace PhoneStoreAdmin.View
             LoadBatches();
         }
 
-        private void LoadSuppliers()
+        private async void SelectSupplierButton_Click(object sender, RoutedEventArgs e)
         {
-            Suppliers.Clear();
-            var list = SupplierService.GetSelectBox();
-            foreach (var s in list)
-                Suppliers.Add(s);
+            var dialog = new Controls.SupplierSelectorDialog(SupplierService, _selectedSupplier)
+            {
+                XamlRoot = this.XamlRoot
+            };
 
-            // Thêm item "Tất cả"
-            Suppliers.Insert(0, new Supplier { Name = "All suppliers" });
-            FilterSupplierBoxPurchaseOrder.SelectedIndex = 0;
+            var result = await dialog.ShowAsync();
+
+            if (result == ContentDialogResult.Primary)
+            {
+                _selectedSupplier = dialog.SelectedSupplier;
+                UpdateSupplierUI();
+                CurrentPage = 1;
+                LoadBatches();
+            }
+        }
+
+        private void UpdateSupplierUI()
+        {
+            if (_selectedSupplier != null)
+            {
+                // Show chip with supplier name
+                SelectedSupplierText.Text = _selectedSupplier.Name;
+            }
+            else
+            {
+                // Show default text
+                SelectedSupplierText.Text = "All Suppliers";
+            }
+        }
+
+        private void ClearSupplierFilter_Click(object sender, RoutedEventArgs e)
+        {
+            _selectedSupplier = null;
+            UpdateSupplierUI();
+            CurrentPage = 1;
+            LoadBatches();
         }
 
         public async void LogMessage(string message)

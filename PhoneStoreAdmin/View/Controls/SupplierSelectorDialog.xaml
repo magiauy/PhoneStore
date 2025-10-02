@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="PhoneStoreAdmin.View.Controls.SupplierSelectorDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PhoneStoreAdmin.View.Controls"
+    xmlns:models="using:PhoneStoreAdmin.Models"
+    Title="Select Supplier"
+    PrimaryButtonText="Select"
+    SecondaryButtonText="Cancel"
+    PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
+    SecondaryButtonClick="ContentDialog_SecondaryButtonClick"
+    DefaultButton="Primary"
+    Width="1000"
+    MinWidth="1000"
+    MaxWidth="1700"
+    MinHeight="520"
+    MaxHeight="720"
+    Height="640">
+
+    <ContentDialog.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Theme/Colors.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!--  Shadow  -->
+            <ThemeShadow x:Name="SharedShadow" />
+
+            <!--  Card Style for Supplier Items  -->
+            <Style x:Key="SupplierCardStyle" TargetType="Border">
+                <Setter Property="Background" Value="{StaticResource BrushSurface}" />
+                <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="MaxWidth" Value="490" />
+                <Setter Property="MinWidth" Value="490" />
+                <Setter Property="Padding" Value="16,12" />
+                <Setter Property="Margin" Value="0,0,0,8" />
+            </Style>
+
+            <!--  Search Box Style  -->
+            <Style x:Key="DialogSearchBoxStyle" TargetType="TextBox">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Padding" Value="40,10,16,10" />
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="Height" Value="44" />
+            </Style>
+        </ResourceDictionary>
+    </ContentDialog.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!--  Search Section  -->
+        <Grid Grid.Row="0" Margin="0,0,8,16">
+
+
+            <!--  Search Box with Icon  -->
+                <TextBox
+                    x:Name="SearchBox"
+                    PlaceholderText="Search suppliers by name, contact..."
+                    Style="{StaticResource DialogSearchBoxStyle}"
+                    TextChanged="SearchBox_TextChanged"                    
+                    HorizontalAlignment="Stretch" />
+                <FontIcon
+                    Margin="12,0,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    FontSize="16"
+                    Foreground="{StaticResource BrushTextSecondary}"
+                    Glyph="&#xE721;"
+                    IsHitTestVisible="False" />
+
+        </Grid>
+
+        <!--  Suppliers List  -->
+        <Grid Grid.Row="1">
+            <!--  Loading State  -->
+            <StackPanel
+                x:Name="LoadingPanel"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Spacing="16"
+                Visibility="Collapsed">
+                <ProgressRing
+                    Width="48"
+                    Height="48"
+                    IsActive="True"
+                    Foreground="{StaticResource BrushPrimary}" />
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    FontSize="15"
+                    Foreground="{StaticResource BrushTextSecondary}"
+                    Text="Loading suppliers..." />
+            </StackPanel>
+
+            <!--  Empty State  -->
+            <StackPanel
+                x:Name="EmptyStatePanel"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Spacing="16"
+                Visibility="Collapsed">
+                <FontIcon
+                    FontSize="64"
+                    Foreground="{StaticResource BrushTextTertiary}"
+                    Glyph="&#xE7C1;" />
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    FontSize="16"
+                    FontWeight="SemiBold"
+                    Foreground="{StaticResource BrushText}"
+                    Text="No suppliers found" />
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    FontSize="14"
+                    Foreground="{StaticResource BrushTextSecondary}"
+                    Text="Try adjusting your search criteria"
+                    TextAlignment="Center" />
+            </StackPanel>
+
+            <!--  Suppliers ListView  -->
+            <ScrollViewer
+                x:Name="SuppliersScrollViewer"
+                VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Disabled"
+                Margin="0"
+                Padding="0"
+                VerticalAlignment="Stretch"
+                HorizontalAlignment="Stretch"
+                Height="480"
+                >
+                <ItemsRepeater x:Name="SuppliersRepeater" Margin="0,0,8,0">
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="models:Supplier">
+                            <Border
+                                x:Name="SupplierCard"
+                                DataContext="{x:Bind}"
+                                Style="{StaticResource SupplierCardStyle}"
+                                PointerEntered="SupplierCard_PointerEntered"
+                                PointerExited="SupplierCard_PointerExited"
+                                Tapped="SupplierCard_Tapped">
+                                <Border.RenderTransform>
+                                    <ScaleTransform x:Name="CardScaleTransform" CenterX="0" CenterY="0" ScaleX="1" ScaleY="1" />
+                                </Border.RenderTransform>
+
+                                <Grid IsHitTestVisible="False">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!--  Supplier Icon  -->
+                                    <Border
+                                        Grid.Column="0"
+                                        Width="48"
+                                        Height="48"
+                                        Margin="0,0,16,0"
+                                        Background="{StaticResource BrushPrimaryLight}"
+                                        CornerRadius="24">
+                                        <FontIcon
+                                            FontSize="24"
+                                            Foreground="{StaticResource BrushPrimary}"
+                                            Glyph="&#xE716;" />
+                                    </Border>
+
+                                    <!--  Supplier Info  -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                        <TextBlock
+                                            FontSize="16"
+                                            FontWeight="SemiBold"
+                                            Foreground="{StaticResource BrushText}"
+                                            Text="{x:Bind Name}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            FontSize="13"
+                                            Foreground="{StaticResource BrushTextSecondary}"
+                                            TextTrimming="CharacterEllipsis">
+                                            <Run Text="Phone:" />
+                                            <Run Text="{x:Bind Phone}" />
+                                        </TextBlock>
+                                        <TextBlock
+                                            FontSize="13"
+                                            Foreground="{StaticResource BrushTextSecondary}"
+                                            Text="{x:Bind Email}"
+                                            TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+
+                                    <!--  Selection Indicator  -->
+                                    <FontIcon
+                                        x:Name="SelectionIndicator"
+                                        Grid.Column="2"
+                                        FontSize="20"
+                                        Foreground="{StaticResource BrushPrimary}"
+                                        Glyph="&#xE73E;"
+                                        Visibility="Collapsed" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </ScrollViewer>
+        </Grid>
+
+    </Grid>
+</ContentDialog>
