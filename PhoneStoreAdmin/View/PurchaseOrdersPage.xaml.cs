@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using PhoneStoreAdmin.Models;
+using PhoneStoreAdmin.View.Controls;
 using PhoneStoreAdmin.Models.Enums;
 using PhoneStoreAdmin.Repositories.Interfaces;
 using PhoneStoreAdmin.Services.Implementations;
@@ -24,6 +25,7 @@ namespace PhoneStoreAdmin.View
 
         public ObservableCollection<PurchaseOrderViewModel> PurchaseOrders { get; } = new ObservableCollection<PurchaseOrderViewModel>();
         public ObservableCollection<Supplier> Suppliers { get; } = new();
+        private Supplier? _selectedSupplier = null;
         public int CurrentPage { get; set; } = 1;
         public int PageSize { get; set; } = 10;
         public int TotalPages { get; set; } = 1;
@@ -40,7 +42,6 @@ namespace PhoneStoreAdmin.View
         private void PurchaseOrdersPage_Loaded(object sender, RoutedEventArgs e)
         {
             _isInitialized = true;
-            LoadSuppliers();
             LoadPurchaseOrders();
         }
 
@@ -79,9 +80,8 @@ namespace PhoneStoreAdmin.View
                     amountMax = max;
 
                 int? supplierId = null;
-                if (FilterSupplierBoxPurchaseOrder.SelectedItem is Supplier sup && sup.Id > 0)
-                    supplierId = sup.Id;
-
+                if (_selectedSupplier != null && _selectedSupplier.Id > 0)
+                    supplierId = _selectedSupplier.Id;
 
                 int? createdBy = null;
                 string? note = null;
@@ -163,8 +163,6 @@ namespace PhoneStoreAdmin.View
 
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
-            if (FilterSupplierBoxPurchaseOrder != null)
-                FilterSupplierBoxPurchaseOrder.Text = SearchBox.Text;
             CurrentPage = 1;
             LoadPurchaseOrders();
         }
@@ -197,8 +195,12 @@ namespace PhoneStoreAdmin.View
                     FilterTotalAmountMinBoxPurchaseOrder.Text = string.Empty;
                 if (FilterTotalAmountMaxBoxPurchaseOrder != null)
                     FilterTotalAmountMaxBoxPurchaseOrder.Text = string.Empty;
-                if (FilterSupplierBoxPurchaseOrder != null)
-                    FilterSupplierBoxPurchaseOrder.SelectedIndex = 0;
+                
+                // Clear supplier selection
+                _selectedSupplier = null;
+                if (SelectedSupplierText != null)
+                    SelectedSupplierText.Text = "All Suppliers";
+                
                 if (SearchBox != null)
                     SearchBox.Text = string.Empty;
 
@@ -316,16 +318,36 @@ namespace PhoneStoreAdmin.View
             LoadPurchaseOrders();
         }
 
-        private void LoadSuppliers()
+        private async void SelectSupplierButton_Click(object sender, RoutedEventArgs e)
         {
-            Suppliers.Clear();
-            var list = SupplierService.GetSelectBox();
-            foreach (var s in list)
-                Suppliers.Add(s);
+            try
+            {
+                var dialog = new SupplierSelectorDialog(SupplierService, _selectedSupplier)
+                {
+                    XamlRoot = this.Content.XamlRoot,
+                    Title = "Select Supplier",
+                    PrimaryButtonText = "Select"
+                };
 
-            // Thêm item "Tất cả"
-            Suppliers.Insert(0, new Supplier { Name = "All suppliers" });
-            FilterSupplierBoxPurchaseOrder.SelectedIndex = 0;
+                var result = await dialog.ShowAsync();
+
+                if (result == ContentDialogResult.Primary && dialog.SelectedSupplier != null)
+                {
+                    _selectedSupplier = dialog.SelectedSupplier;
+                    if (SelectedSupplierText != null)
+                    {
+                        SelectedSupplierText.Text = _selectedSupplier.Name;
+                    }
+                    
+                    // Reload data with new filter
+                    CurrentPage = 1;
+                    LoadPurchaseOrders();
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorDialog("Error selecting supplier", ex.Message);
+            }
         }
 
         public async void LogMessage(string message)

@@ -4,11 +4,11 @@ using System.Collections.Generic;
 
 namespace PhoneStoreAdmin.Services.Interfaces
 {
-    public interface ISupplierService
+    public interface ISupplierService 
     {
         Supplier? GetSupplierById(int supplierId);
 
-        IEnumerable<Supplier> GetSelectBox();
+        IEnumerable<Supplier> GetAll();
 
         SupplierResult GetSuppliersFiltered(
             string? name,

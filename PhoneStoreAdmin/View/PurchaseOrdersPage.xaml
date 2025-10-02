@@ -363,15 +363,31 @@
                             x:Uid="FilterSupplierBoxPurchaseOrder"
                             Margin="0,0,0,4"
                             FontWeight="SemiBold" />
-                        <ComboBox
-                            x:Name="FilterSupplierBoxPurchaseOrder"
-                            MinWidth="160"
-                            DisplayMemberPath="Name"
-                            ItemsSource="{x:Bind Suppliers, Mode=OneWay}"
-                            SelectedIndex="0"
-                            SelectedValuePath="Id"
-                            SelectionChanged="FilterChange"
-                            Style="{StaticResource ComboBoxInputStyle}" />
+                        <Button
+                            x:Name="SelectSupplierButton"
+                            Height="44"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Background="Transparent"
+                            BorderBrush="{StaticResource BrushBorder}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Click="SelectSupplierButton_Click"
+                            Padding="16,10">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon
+                                    FontSize="16"
+                                    Foreground="{StaticResource BrushPrimary}"
+                                    Glyph="&#xE716;" />
+                                <TextBlock
+                                    x:Name="SelectedSupplierText"
+                                    FontSize="15"
+                                    FontWeight="Medium"
+                                    Foreground="{StaticResource BrushText}"
+                                    Text="All Suppliers"
+                                    TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                     <!--  Filter Order Date From  -->
                     <StackPanel
