@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using PhoneStoreAdmin.ViewModels;
+using PhoneStoreAdmin.View.Controls; // Assuming SupplierDialog is here
+
 namespace PhoneStoreAdmin.View
 {
     public sealed partial class SuppliersPage : Page
@@ -23,6 +25,7 @@ namespace PhoneStoreAdmin.View
         public int TotalRecords { get; set; } = 0;
 
         private bool _isInitialized = false;
+        private ContentDialog? _currentDialog;
 
         public SuppliersPage()
         {
@@ -76,18 +79,10 @@ namespace PhoneStoreAdmin.View
                 TotalPages = result.Info.TotalPages;
                 TotalRecords = result.Info.TotalRecords;
 
+                // Use existing ViewModels from result.Suppliers
                 foreach (var supplier in result.Suppliers)
                 {
-                    Suppliers.Add(new SupplierViewModel
-                    {
-                        Id = supplier.Id,
-                        Name = supplier.Name,
-                        Phone = supplier.Phone ?? string.Empty,
-                        Email = supplier.Email ?? string.Empty,
-                        Address = supplier.Address ?? string.Empty,
-                        TaxNumber = supplier.TaxNumber ?? string.Empty,
-                        IsActive = supplier.IsActive
-                    });
+                    Suppliers.Add(supplier);
                 }
 
                 // Safely update UI controls with null checks
@@ -176,44 +171,106 @@ namespace PhoneStoreAdmin.View
             await dialog.ShowAsync();
         }
 
-        private void BtnCreate_Click(object sender, RoutedEventArgs e)
+        private async void BtnCreate_Click(object sender, RoutedEventArgs e)
         {
-            ShowErrorDialog("Info", "Create supplier functionality - Coming Soon!");
-        }
+            var supplierDialog = new SupplierDialog();
+            supplierDialog.SetMode(SupplierDialog.DialogMode.Add);
 
-        private void BtnEdit_Click(object sender, RoutedEventArgs e)
-        {
-            var id = (sender as Button)?.Tag?.ToString();
-            if (int.TryParse(id, out int supplierId))
-            {
-                ShowErrorDialog("Info", $"Edit supplier ID: {supplierId} - Coming Soon!");
-            }
-        }
+            var dialog = CreateContentDialog(supplierDialog, "Add Supplier");
+            dialog.PrimaryButtonText = "Add";
+            dialog.CloseButtonText = "Cancel";
 
-        private void BtnDetail_Click(object sender, RoutedEventArgs e)
-        {
-            var id = (sender as Button)?.Tag?.ToString();
-            if (int.TryParse(id, out int supplierId))
+            supplierDialog.SupplierSaved += (s, model) =>
             {
-                var supplier = SupplierService.GetSupplierById(supplierId);
-                if (supplier != null)
+                if (model != null)
                 {
-                    var details = $"ID: {supplier.Id}\n" +
-                                  $"Name: {supplier.Name}\n" +
-                                  $"Phone: {supplier.Phone ?? "N/A"}\n" +
-                                  $"Email: {supplier.Email ?? "N/A"}\n" +
-                                  $"Address: {supplier.Address ?? "N/A"}\n" +
-                                  $"Tax Number: {supplier.TaxNumber ?? "N/A"}\n" +
-                                  $"Status: {(supplier.IsActive ? "Active" : "Inactive")}";
-                    ShowErrorDialog("Supplier Details", details);
+                    LoadSuppliers(); // Refresh list
                 }
+            };
+
+            supplierDialog.DialogClosed += (s, args) => dialog.Hide();
+
+            _currentDialog = dialog;
+            await dialog.ShowAsync();
+        }
+
+        private async void BtnEdit_Click(object sender, RoutedEventArgs e)
+        {
+            var idStr = (sender as Button)?.Tag?.ToString();
+            if (!int.TryParse(idStr, out int supplierId))
+                return;
+
+            var supplier = SupplierService.GetSupplierById(supplierId);
+            if (supplier == null)
+            {
+                ShowErrorDialog("Error", "Supplier not found.");
+                return;
             }
+
+            var viewModel = new SupplierViewModel(supplier);
+            var supplierDialog = new SupplierDialog();
+            supplierDialog.SetMode(SupplierDialog.DialogMode.Edit, viewModel);
+
+            var dialog = CreateContentDialog(supplierDialog, "Edit Supplier");
+            dialog.PrimaryButtonText = "Update";
+            dialog.CloseButtonText = "Cancel";
+
+            supplierDialog.SupplierSaved += (s, model) =>
+            {
+                if (model != null)
+                {
+                    LoadSuppliers(); // Refresh list
+                }
+            };
+
+            supplierDialog.DialogClosed += (s, args) => dialog.Hide();
+
+            _currentDialog = dialog;
+            await dialog.ShowAsync();
+        }
+
+        private async void BtnDetail_Click(object sender, RoutedEventArgs e)
+        {
+            var idStr = (sender as Button)?.Tag?.ToString();
+            if (!int.TryParse(idStr, out int supplierId))
+                return;
+
+            var supplier = SupplierService.GetSupplierById(supplierId);
+            if (supplier == null)
+            {
+                ShowErrorDialog("Error", "Supplier not found.");
+                return;
+            }
+
+            var viewModel = new SupplierViewModel(supplier);
+            var supplierDialog = new SupplierDialog();
+            supplierDialog.SetMode(SupplierDialog.DialogMode.View, viewModel);
+
+            var dialog = CreateContentDialog(supplierDialog, "Supplier Details");
+            dialog.PrimaryButtonText = "Close";
+            dialog.CloseButtonText = string.Empty; // No secondary button
+
+            supplierDialog.DialogClosed += (s, args) => dialog.Hide();
+
+            _currentDialog = dialog;
+            await dialog.ShowAsync();
+        }
+
+        private ContentDialog CreateContentDialog(ContentControl content, string title)
+        {
+            return new ContentDialog
+            {
+                Title = title,
+                Content = content,
+                XamlRoot = this.XamlRoot,
+                DefaultButton = ContentDialogButton.Primary
+            };
         }
 
         private void BtnActivate_Click(object sender, RoutedEventArgs e)
         {
-            var id = (sender as Button)?.Tag?.ToString();
-            if (int.TryParse(id, out int supplierId))
+            var idStr = (sender as Button)?.Tag?.ToString();
+            if (int.TryParse(idStr, out int supplierId))
             {
                 try
                 {
@@ -230,8 +287,8 @@ namespace PhoneStoreAdmin.View
 
         private void BtnDeActivate_Click(object sender, RoutedEventArgs e)
         {
-            var id = (sender as Button)?.Tag?.ToString();
-            if (int.TryParse(id, out int supplierId))
+            var idStr = (sender as Button)?.Tag?.ToString();
+            if (int.TryParse(idStr, out int supplierId))
             {
                 try
                 {
@@ -263,7 +320,7 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private void BtnLastPage_Click(object sender, RoutedEventArgs e)
+        private void BtnLastPage_Click(object sender, RoutedEventArgs e) // Fixed name from BtnLastPage_Click
         {
             if (CurrentPage > 1)
             {

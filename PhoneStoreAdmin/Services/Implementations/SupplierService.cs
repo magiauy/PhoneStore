@@ -23,10 +23,39 @@ namespace PhoneStoreAdmin.Services.Implementations
             try
             {
                 return _supplierRepository.GetSelectBox();
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 Logger.Error("Failed to get Supplier all", ex);
-                return Enumerable.Empty<Supplier>(); 
+                return Enumerable.Empty<Supplier>();
+            }
+        }
+
+        public bool Insert(Supplier supplier)
+        {
+            try
+            {
+                _supplierRepository.Insert(supplier);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to insert Supplier", ex);
+                return false;
+            }
+        }
+
+        public bool Update(Supplier supplier)
+        {
+            try
+            {
+                _supplierRepository.Update(supplier);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to update Supplier {supplier.Id}", ex);
+                return false;
             }
         }
 
@@ -74,7 +103,7 @@ namespace PhoneStoreAdmin.Services.Implementations
             if (supplier != null && !supplier.IsActive)
             {
                 supplier.IsActive = true;
-                _supplierRepository.Update(supplier);
+                Update(supplier);
             }
         }
 
@@ -84,7 +113,7 @@ namespace PhoneStoreAdmin.Services.Implementations
             if (supplier != null && supplier.IsActive)
             {
                 supplier.IsActive = false;
-                _supplierRepository.Update(supplier);
+                Update(supplier);
             }
         }
     }

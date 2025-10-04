@@ -837,4 +837,58 @@
   <data name="ColSupplierName.Text" xml:space="preserve">
     <value>SUPPLIER</value>
   </data>
+  <data name="NameRequired/Text" xml:space="preserve">
+    <value>Name is required (min 2 characters)</value>
+  </data>
+  <data name="InvalidPhone/Text" xml:space="preserve">
+    <value>Invalid phone format</value>
+  </data>
+  <data name="InvalidEmail/Text" xml:space="preserve">
+    <value>Invalid email format</value>
+  </data>
+  <data name="InvalidTaxNumber/Text" xml:space="preserve">
+    <value>Invalid tax number (10 or 13 digits)</value>
+  </data>
+  <data name="SupplierSaveError/Text" xml:space="preserve">
+    <value>Failed to save supplier. Please try again.</value>
+  </data>
+  <data name="UnexpectedError/Text&quot;" xml:space="preserve">
+    <value>An unexpected error occurred:</value>
+  </data>
+  <data name="AddSupplierTitle/Text" xml:space="preserve">
+    <value>Add Supplier</value>
+  </data>
+  <data name="EditSupplierTitle/Text" xml:space="preserve">
+    <value>Edit Supplier</value>
+  </data>
+  <data name="ViewSupplierTitle/Text" xml:space="preserve">
+    <value>View Supplier</value>
+  </data>
+  <data name="SupplierDialogTitle/Text" xml:space="preserve">
+    <value>Supplier</value>
+  </data>
+  <data name="AddSupplierDescription/Text" xml:space="preserve">
+    <value>Create a new supplier in the system</value>
+  </data>
+  <data name="EditSupplierDescription/Text" xml:space="preserve">
+    <value>Edit supplier details</value>
+  </data>
+  <data name="ViewSupplierDescription/Text" xml:space="preserve">
+    <value>View supplier details</value>
+  </data>
+  <data name="SupplierDialogDescription/Text" xml:space="preserve">
+    <value>Manage supplier information</value>
+  </data>
+  <data name="AddButton/Text" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="UpdateButton/Text" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="CloseButton/Text" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="LoadError/Text" xml:space="preserve">
+    <value>Failed to load data:</value>
+  </data>
 </root>
