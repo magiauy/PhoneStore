@@ -181,7 +181,7 @@
     <value>Nhập địa chỉ email của bạn và chúng tôi sẽ gửi cho bạn liên kết để đặt lại mật khẩu.</value>
   </data>
   <data name="EmailPlaceholder.PlaceholderText" xml:space="preserve">
-    <value>Nhập địa chỉ email của bạn</value>
+    <value>Nhập địa chỉ email (tùy chọn)</value>
   </data>
   <data name="EmailHeader.Text" xml:space="preserve">
     <value>Địa Chỉ Email</value>
@@ -606,7 +606,7 @@
   <data name="ComboBoxItemActivate.Content" xml:space="preserve">
     <value>Hoạt động</value>
   </data>
-  <data name="ComboBoxItemDeActivate.Content" xml:space="preserve">
+  <data name="ComboBoxItemDe Activate.Content" xml:space="preserve">
     <value>Ngưng hoạt động</value>
   </data>
   <data name="ComboBoxItemAll.Content" xml:space="preserve">
@@ -682,7 +682,7 @@
     <value>Thêm, sửa, xóa và quản lý trạng thái phiếu nhập</value>
   </data>
   <data name="BtnNewPurchaseOrder.Text" xml:space="preserve">
-    <value>Tạo mới phiếu nhập</value>
+    <value>Tạo Phiếu Nhập Mới</value>
   </data>
   <data name="BtnFilterPurchaseOrder.Text" xml:space="preserve">
     <value>Lọc</value>
@@ -766,7 +766,7 @@
     <value>Lô nhập</value>
   </data>
   <data name="SubHeaderTitleBatch.Text" xml:space="preserve">
-    <value>Thêm, sửa, xóa và quản lý trạng thái lô nhập</value>
+    <value>Quản lý trạng thái lô nhập</value>
   </data>
   <data name="BtnNewBatch.Text" xml:space="preserve">
     <value>Tạo mới lô nhập</value>
@@ -890,5 +890,297 @@
   </data>
   <data name="LoadError/Text" xml:space="preserve">
     <value>Không thể tải dữ liệu</value>
+  </data>
+  <data name="SupplierIdLabel.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="SupplierNameLabel.Text" xml:space="preserve">
+    <value>Tên</value>
+  </data>
+  <data name="SupplierPhoneLabel.Text" xml:space="preserve">
+    <value>Số điện thoại</value>
+  </data>
+  <data name="SupplierEmailLabel.Text" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="SupplierAddressLabel.Text" xml:space="preserve">
+    <value>Địa chỉ</value>
+  </data>
+  <data name="SupplierTaxNumberLabel.Text" xml:space="preserve">
+    <value>Mã số thuê</value>
+  </data>
+  <data name="SupplierIsActiveLabel.Text" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="SupplierIdTextBox.PlaceholderText" xml:space="preserve">
+    <value>Nhập ID</value>
+  </data>
+  <data name="SupplierNamePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập tên</value>
+  </data>
+  <data name="AddressPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập địa chỉ (tùy chọn)</value>
+  </data>
+  <data name="TaxNumberPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập mã số thuế (tùy chọn)</value>
+  </data>
+  <data name="DialogAddSupplier" xml:space="preserve">
+    <value>Thêm</value>
+  </data>
+  <data name="DialogUpdateSupplier" xml:space="preserve">
+    <value>Sửa</value>
+  </data>
+  <data name="DialogCancelSupplier" xml:space="preserve">
+    <value>Hủy</value>
+  </data>
+  <data name="DialogCloseSupplier" xml:space="preserve">
+    <value>Đóng</value>
+  </data>
+  <data name="BtnActivateSupplier.Text" xml:space="preserve">
+    <value>Kích hoạt</value>
+  </data>
+  <data name="ConfirmActivateSupplierTitle" xml:space="preserve">
+    <value>Kích hoạt nhà cung cấp</value>
+  </data>
+  <data name="ConfirmActivateSupplierContent" xml:space="preserve">
+    <value>Bạn có chắc chắn muốn kích hoạt nhà cung cấp này?</value>
+  </data>
+  <data name="ConfirmDeactivateSupplierTitle" xml:space="preserve">
+    <value>Vô hiệu hóa nhà cung cấp</value>
+  </data>
+  <data name="ConfirmDeactivateSupplierContent" xml:space="preserve">
+    <value>Bạn có chắc chắn muốn vô hiệu hóa nhà cung cấp này?</value>
+  </data>
+  <data name="BtnConfirm" xml:space="preserve">
+    <value>Xác nhận</value>
+  </data>
+  <data name="BtnCancel" xml:space="preserve">
+    <value>Hủy</value>
+  </data>
+  <data name="TxtSelectedSupplierName.Text" xml:space="preserve">
+    <value>Chọn nhà cung cấp</value>
+  </data>
+  <data name="BtnSelectedSupplierName.Content" xml:space="preserve">
+    <value>Chọn nhà cung cấp</value>
+  </data>
+  <data name="CreatePurchaseOrderTitle.Text" xml:space="preserve">
+    <value>Tạo phiếu nhập hàng</value>
+  </data>
+  <data name="CreatePurchaseOrderSubtitle.Text" xml:space="preserve">
+    <value>Chọn sản phẩm và tạo phiếu nhập từ nhà cung cấp</value>
+  </data>
+  <data name="ListProdcutTitle.Text" xml:space="preserve">
+    <value>Danh sách sản phẩm</value>
+  </data>
+  <data name="SearchTextBoxProduct.PlaceholderText" xml:space="preserve">
+    <value>Tìm sản phẩm</value>
+  </data>
+  <data name="CategoryComboBox.Header" xml:space="preserve">
+    <value>Danh mục</value>
+  </data>
+  <data name="CategoryComboBox.PlaceholderText" xml:space="preserve">
+    <value>Chọn danh mục</value>
+  </data>
+  <data name="BrandComboBox.Header" xml:space="preserve">
+    <value>Thương hiệu</value>
+  </data>
+  <data name="BrandComboBox.PlaceholderText" xml:space="preserve">
+    <value>Chọn thương hiệu</value>
+  </data>
+  <data name="BtnAddButton.Text" xml:space="preserve">
+    <value>Thêm</value>
+  </data>
+  <data name="NoteTextBox.Header" xml:space="preserve">
+    <value>Ghi chú</value>
+  </data>
+  <data name="NoteTextBox.PlaceholderText" xml:space="preserve">
+    <value>Nhập ghi chú (tùy chọn)</value>
+  </data>
+  <data name="HeaderPurchaseOrderChoise.Text" xml:space="preserve">
+    <value>Danh sách sản phẩm</value>
+  </data>
+  <data name="ClearPurchaseOrderButton.Text" xml:space="preserve">
+    <value>Làm mới</value>
+  </data>
+  <data name="InputCost.Header" xml:space="preserve">
+    <value>Giá</value>
+  </data>
+  <data name="InputQuantity.Header" xml:space="preserve">
+    <value>Số lượng</value>
+  </data>
+  <data name="DeleteProduct.Content" xml:space="preserve">
+    <value>Xóa sản phẩm</value>
+  </data>
+  <data name="TxtTotal.Text" xml:space="preserve">
+    <value>Tổng cộng</value>
+  </data>
+  <data name="SelectedSupplierName" xml:space="preserve">
+    <value>Chọn nhà cung cấp</value>
+  </data>
+  <data name="Select" xml:space="preserve">
+    <value>Chọn</value>
+  </data>
+  <data name="PurchaseOrderInfoHeader.Text" xml:space="preserve">
+    <value>Thông tin phiếu nhập</value>
+  </data>
+  <data name="TxtSubTotal.Text" xml:space="preserve">
+    <value>Tạm tính:</value>
+  </data>
+  <data name="NotificationTitle" xml:space="preserve">
+    <value>Thông báo</value>
+  </data>
+  <data name="PleaseSelectSupplierAndProducts" xml:space="preserve">
+    <value>Vui lòng chọn nhà cung cấp và thêm sản phẩm vào đơn đặt hàng</value>
+  </data>
+  <data name="PleaseSelectSupplier" xml:space="preserve">
+    <value>Vui lòng chọn một nhà cung cấp</value>
+  </data>
+  <data name="PurchaseOrderSuccessTitle" xml:space="preserve">
+    <value>Thành công</value>
+  </data>
+  <data name="PurchaseOrderCreatedSuccessfully" xml:space="preserve">
+    <value>Đã tạo phiếu nhập thành công!</value>
+  </data>
+  <data name="TotalAmountLabel" xml:space="preserve">
+    <value>Tổng tiền</value>
+  </data>
+  <data name="PurchaseOrderErrorTitle" xml:space="preserve">
+    <value>Lỗi</value>
+  </data>
+  <data name="CannotCreatePurchaseOrder" xml:space="preserve">
+    <value>Không thể tạo phiếu nhập</value>
+  </data>
+  <data name="CannotLoadData" xml:space="preserve">
+    <value>Không thể tải dữ liệu</value>
+  </data>
+  <data name="ErrorSelectSupplier" xml:space="preserve">
+    <value>Không thể chọn nhà cung cấp</value>
+  </data>
+  <data name="CategoryComboBoxAll" xml:space="preserve">
+    <value>Tất cả danh mục</value>
+  </data>
+  <data name="BrandComboBoxAll" xml:space="preserve">
+    <value>Tất cả thương hiệu</value>
+  </data>
+  <data name="CreatePurchaseOrderPageTitle.Text" xml:space="preserve">
+    <value>Phiếu nhập</value>
+  </data>
+  <data name="CreatePurchaseOrderPageSubtitle.Text" xml:space="preserve">
+    <value>Chọn sản phẩm và tạo phiếu nhập</value>
+  </data>
+  <data name="ProductListSectionTitle.Text" xml:space="preserve">
+    <value>Danh Sách Sản Phẩm</value>
+  </data>
+  <data name="BtnAddProduct.Content" xml:space="preserve">
+    <value>Thêm</value>
+  </data>
+  <data name="PurchaseOrderSectionTitle.Text" xml:space="preserve">
+    <value>Phiếu Nhập Hàng</value>
+  </data>
+  <data name="PurchaseOrderIdLabel" xml:space="preserve">
+    <value>Số PN: </value>
+  </data>
+  <data name="SupplierInfoTitle.Text" xml:space="preserve">
+    <value>Thông tin nhà cung cấp</value>
+  </data>
+  <data name="BtnSelectSupplier.Content" xml:space="preserve">
+    <value>Chọn</value>
+  </data>
+  <data name="SelectedProductsTitle.Text" xml:space="preserve">
+    <value>Sản phẩm nhập</value>
+  </data>
+  <data name="QuantityLabel.Text" xml:space="preserve">
+    <value>SL:</value>
+  </data>
+  <data name="UnitCostLabel.Text" xml:space="preserve">
+    <value>Đơn giá:</value>
+  </data>
+  <data name="ViewDeviceDetailsHeader.Text" xml:space="preserve">
+    <value>Xem chi tiết máy</value>
+  </data>
+  <data name="SerialLabel.Text" xml:space="preserve">
+    <value>Serial: </value>
+  </data>
+  <data name="Imei1Label.Text" xml:space="preserve">
+    <value>IMEI 1: </value>
+  </data>
+  <data name="Imei2Label.Text" xml:space="preserve">
+    <value>IMEI 2: </value>
+  </data>
+  <data name="SubtotalLabel.Text" xml:space="preserve">
+    <value>Tạm tính:</value>
+  </data>
+  <data name="TotalLabel.Text" xml:space="preserve">
+    <value>Tổng cộng:</value>
+  </data>
+  <data name="BtnPrintPurchaseOrder.Content" xml:space="preserve">
+    <value>In Phiếu Nhập</value>
+  </data>
+  <data name="BtnCompletePurchaseOrder.Content" xml:space="preserve">
+    <value>Hoàn Tất Nhập Hàng</value>
+  </data>
+  <data name="SerialNumberInputDialog.PrimaryButtonText" xml:space="preserve">
+    <value>Xác nhận</value>
+  </data>
+  <data name="SerialNumberInputDialog.SecondaryButtonText" xml:space="preserve">
+    <value>Hủy</value>
+  </data>
+  <data name="SerialNumberTextBox.Header" xml:space="preserve">
+    <value>Số Serial</value>
+  </data>
+  <data name="SerialNumberTextBox.PlaceholderText" xml:space="preserve">
+    <value>Nhập số serial...</value>
+  </data>
+  <data name="Imei1TextBox.Header" xml:space="preserve">
+    <value>IMEI 1</value>
+  </data>
+  <data name="Imei1TextBox.PlaceholderText" xml:space="preserve">
+    <value>Nhập IMEI 1...</value>
+  </data>
+  <data name="Imei2TextBox.Header" xml:space="preserve">
+    <value>IMEI 2</value>
+  </data>
+  <data name="Imei2TextBox.PlaceholderText" xml:space="preserve">
+    <value>Nhập IMEI 2 (tùy chọn)...</value>
+  </data>
+  <data name="SerialNumberDialogTitle" xml:space="preserve">
+    <value>Nhập thông tin Serial</value>
+  </data>
+  <data name="SerialNumberDialogQuantityText" xml:space="preserve">
+    <value>Vui lòng nhập thông tin cho {0} máy</value>
+  </data>
+  <data name="ValidationErrorTitle" xml:space="preserve">
+    <value>Lỗi nhập liệu</value>
+  </data>
+  <data name="SerialNumberValidationMessage" xml:space="preserve">
+    <value>Vui lòng nhập đầy đủ số Serial và IMEI 1 cho tất cả các máy</value>
+  </data>
+  <data name="MachineNumberLabel" xml:space="preserve">
+    <value>Máy {0}</value>
+  </data>
+  <data name="AddProductDialogTitle" xml:space="preserve">
+    <value>Thêm sản phẩm</value>
+  </data>
+  <data name="AddProductExistingMessage" xml:space="preserve">
+    <value>Sản phẩm này đã có {0} máy trong phiếu.
+Bạn muốn thêm bao nhiêu máy?</value>
+  </data>
+  <data name="AddProductQuantityLabel" xml:space="preserve">
+    <value>Số lượng muốn thêm:</value>
+  </data>
+  <data name="AddProductButton" xml:space="preserve">
+    <value>Thêm</value>
+  </data>
+  <data name="AddProductError" xml:space="preserve">
+    <value>Không thể thêm sản phẩm</value>
+  </data>
+  <data name="ProductNotFoundError" xml:space="preserve">
+    <value>Không tìm thấy thông tin sản phẩm</value>
+  </data>
+  <data name="ValidationErrorInfoBar.Title" xml:space="preserve">
+    <value>Lỗi nhập liệu</value>
+  </data>
+  <data name="ValidationErrorInfoBar.Message" xml:space="preserve">
+    <value>Vui lòng nhập đầy đủ Số Serial và IMEI 1 cho tất cả các máy</value>
   </data>
 </root>

@@ -29,15 +29,19 @@
     <!--  Neutral  -->
     <Color x:Key="ColorBackground">#FFF5F7FF</Color>
     <Color x:Key="ColorSurface">#FFFFFFFF</Color>
+    <Color x:Key="ColorSurfaceVariant">#FFF0F2FF</Color>
     <Color x:Key="ColorBorder">#FFE0E3F5</Color>
     <Color x:Key="ColorText">#FF1E1E2F</Color>
     <Color x:Key="ColorTextSecondary">#FF6B6B8C</Color>
+    <Color x:Key="ColorTextTertiary">#FF9E9EAD</Color>
 
     <SolidColorBrush x:Key="BrushBackground" Color="{StaticResource ColorBackground}" />
     <SolidColorBrush x:Key="BrushSurface" Color="{StaticResource ColorSurface}" />
+    <SolidColorBrush x:Key="BrushSurfaceVariant" Color="{StaticResource ColorSurfaceVariant}" />
     <SolidColorBrush x:Key="BrushBorder" Color="{StaticResource ColorBorder}" />
     <SolidColorBrush x:Key="BrushText" Color="{StaticResource ColorText}" />
     <SolidColorBrush x:Key="BrushTextSecondary" Color="{StaticResource ColorTextSecondary}" />
+    <SolidColorBrush x:Key="BrushTextTertiary" Color="{StaticResource ColorTextTertiary}" />
 
     <!--  Status  -->
     <Color x:Key="ColorSuccess">#FF4CAF50</Color>
