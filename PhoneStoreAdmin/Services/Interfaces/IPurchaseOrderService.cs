@@ -29,6 +29,8 @@ namespace PhoneStoreAdmin.Services.Interfaces
             int page = 1,
             int pageSize = 10);
 
+        int CountAll();
+
         void MarkAsReceived(int id);
 
         void CancelOrder(int id);

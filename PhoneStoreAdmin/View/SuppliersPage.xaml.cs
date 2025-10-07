@@ -10,7 +10,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using PhoneStoreAdmin.ViewModels;
-using PhoneStoreAdmin.View.Controls; // Assuming SupplierDialog is here
+using PhoneStoreAdmin.View.Controls;
+using Microsoft.Windows.ApplicationModel.Resources;
 
 namespace PhoneStoreAdmin.View
 {
@@ -27,8 +28,11 @@ namespace PhoneStoreAdmin.View
         private bool _isInitialized = false;
         private ContentDialog? _currentDialog;
 
+        private readonly ResourceLoader _resourceLoader;
+
         public SuppliersPage()
         {
+            this._resourceLoader = new ResourceLoader();
             this.InitializeComponent();
             this.Loaded += SuppliersPage_Loaded;
         }
@@ -177,8 +181,8 @@ namespace PhoneStoreAdmin.View
             supplierDialog.SetMode(SupplierDialog.DialogMode.Add);
 
             var dialog = CreateContentDialog(supplierDialog, "Add Supplier");
-            dialog.PrimaryButtonText = "Add";
-            dialog.CloseButtonText = "Cancel";
+            dialog.PrimaryButtonText = _resourceLoader.GetString("DialogAddSupplier");
+            dialog.CloseButtonText = _resourceLoader.GetString("DialogCancelSupplier");
 
             supplierDialog.SupplierSaved += (s, model) =>
             {
@@ -188,7 +192,14 @@ namespace PhoneStoreAdmin.View
                 }
             };
 
-            supplierDialog.DialogClosed += (s, args) => dialog.Hide();
+            dialog.PrimaryButtonClick += (s, args) =>
+            {
+                var ctrl = (SupplierDialog)dialog.Content;
+                ctrl.Save();
+
+                if (!ctrl.IsValid())
+                    args.Cancel = true; 
+            };
 
             _currentDialog = dialog;
             await dialog.ShowAsync();
@@ -196,9 +207,8 @@ namespace PhoneStoreAdmin.View
 
         private async void BtnEdit_Click(object sender, RoutedEventArgs e)
         {
-            var idStr = (sender as Button)?.Tag?.ToString();
-            if (!int.TryParse(idStr, out int supplierId))
-                return;
+            var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
+            if (!int.TryParse(idStr, out int supplierId)) return;
 
             var supplier = SupplierService.GetSupplierById(supplierId);
             if (supplier == null)
@@ -212,18 +222,20 @@ namespace PhoneStoreAdmin.View
             supplierDialog.SetMode(SupplierDialog.DialogMode.Edit, viewModel);
 
             var dialog = CreateContentDialog(supplierDialog, "Edit Supplier");
-            dialog.PrimaryButtonText = "Update";
-            dialog.CloseButtonText = "Cancel";
+            dialog.PrimaryButtonText = _resourceLoader.GetString("DialogUpdateSupplier");
+            dialog.CloseButtonText = _resourceLoader.GetString("DialogCancelSupplier");
 
             supplierDialog.SupplierSaved += (s, model) =>
             {
-                if (model != null)
-                {
-                    LoadSuppliers(); // Refresh list
-                }
+                if (model != null) LoadSuppliers();
             };
 
-            supplierDialog.DialogClosed += (s, args) => dialog.Hide();
+            dialog.PrimaryButtonClick += (s, args) =>
+            {
+                var ctrl = (SupplierDialog)dialog.Content;
+                ctrl.Save();
+                if (!ctrl.IsValid()) args.Cancel = true;
+            };
 
             _currentDialog = dialog;
             await dialog.ShowAsync();
@@ -231,9 +243,8 @@ namespace PhoneStoreAdmin.View
 
         private async void BtnDetail_Click(object sender, RoutedEventArgs e)
         {
-            var idStr = (sender as Button)?.Tag?.ToString();
-            if (!int.TryParse(idStr, out int supplierId))
-                return;
+            var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
+            if (!int.TryParse(idStr, out int supplierId)) return;
 
             var supplier = SupplierService.GetSupplierById(supplierId);
             if (supplier == null)
@@ -247,8 +258,8 @@ namespace PhoneStoreAdmin.View
             supplierDialog.SetMode(SupplierDialog.DialogMode.View, viewModel);
 
             var dialog = CreateContentDialog(supplierDialog, "Supplier Details");
-            dialog.PrimaryButtonText = "Close";
-            dialog.CloseButtonText = string.Empty; // No secondary button
+            dialog.PrimaryButtonText = _resourceLoader.GetString("DialogCloseSupplier");
+            dialog.CloseButtonText = string.Empty;
 
             supplierDialog.DialogClosed += (s, args) => dialog.Hide();
 
@@ -267,16 +278,28 @@ namespace PhoneStoreAdmin.View
             };
         }
 
-        private void BtnActivate_Click(object sender, RoutedEventArgs e)
+        private async void BtnActivate_Click(object sender, RoutedEventArgs e)
         {
-            var idStr = (sender as Button)?.Tag?.ToString();
-            if (int.TryParse(idStr, out int supplierId))
+            var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
+            if (!int.TryParse(idStr, out int supplierId)) return;
+
+            var dialog = new ContentDialog
+            {
+                Title = _resourceLoader.GetString("ConfirmActivateSupplierTitle"),
+                Content = _resourceLoader.GetString("ConfirmActivateSupplierContent"),
+                PrimaryButtonText = _resourceLoader.GetString("BtnConfirm"),
+                CloseButtonText = _resourceLoader.GetString("BtnCancel"),
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = this.XamlRoot
+            };
+
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
             {
                 try
                 {
                     SupplierService.ActivateSupplier(supplierId);
                     LoadSuppliers();
-                    ShowErrorDialog("Success", "Supplier activated successfully!");
                 }
                 catch (Exception ex)
                 {
@@ -285,16 +308,28 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private void BtnDeActivate_Click(object sender, RoutedEventArgs e)
+        private async void BtnDeActivate_Click(object sender, RoutedEventArgs e)
         {
-            var idStr = (sender as Button)?.Tag?.ToString();
-            if (int.TryParse(idStr, out int supplierId))
+            var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
+            if (!int.TryParse(idStr, out int supplierId)) return;
+
+            var dialog = new ContentDialog
+            {
+                Title = _resourceLoader.GetString("ConfirmDeactivateSupplierTitle"),
+                Content = _resourceLoader.GetString("ConfirmDeactivateSupplierContent"),
+                PrimaryButtonText = _resourceLoader.GetString("BtnConfirm"),
+                CloseButtonText = _resourceLoader.GetString("BtnCancel"),
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = this.XamlRoot
+            };
+
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
             {
                 try
                 {
                     SupplierService.DeactivateSupplier(supplierId);
                     LoadSuppliers();
-                    ShowErrorDialog("Success", "Supplier deactivated successfully!");
                 }
                 catch (Exception ex)
                 {

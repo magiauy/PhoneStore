@@ -57,9 +57,10 @@
         </Style>
 
         <Style x:Key="ToggleSwitchStyle" TargetType="ToggleSwitch">
-            <Setter Property="Margin" Value="0,4,0,8" />
+            <Setter Property="Margin" Value="0,0,0,0" />
+            <Setter Property="Padding" Value="0,0,0,0" />
             <Setter Property="Header" Value="" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="Width" Value="400" />
         </Style>
     </ContentControl.Resources>
@@ -94,7 +95,7 @@
                         Visibility="Collapsed" />
 
                     <!--  Phone  -->
-                    <TextBlock x:Uid="PhoneLabel" Style="{StaticResource InputLabelStyle}" />
+                    <TextBlock x:Uid="SupplierPhoneLabel" Style="{StaticResource InputLabelStyle}" />
                     <TextBox
                         x:Name="PhoneTextBox"
                         x:Uid="PhonePlaceholder"
@@ -106,7 +107,7 @@
                         Visibility="Collapsed" />
 
                     <!--  Email  -->
-                    <TextBlock x:Uid="EmailLabel" Style="{StaticResource InputLabelStyle}" />
+                    <TextBlock x:Uid="SupplierEmailLabel" Style="{StaticResource InputLabelStyle}" />
                     <TextBox
                         x:Name="EmailTextBox"
                         x:Uid="EmailPlaceholder"
@@ -118,7 +119,7 @@
                         Visibility="Collapsed" />
 
                     <!--  Address  -->
-                    <TextBlock x:Uid="AddressLabel" Style="{StaticResource InputLabelStyle}" />
+                    <TextBlock x:Uid="SupplierAddressLabel" Style="{StaticResource InputLabelStyle}" />
                     <TextBox
                         x:Name="AddressTextBox"
                         x:Uid="AddressPlaceholder"
@@ -130,7 +131,7 @@
                         Visibility="Collapsed" />
 
                     <!--  Tax Number  -->
-                    <TextBlock x:Uid="TaxNumberLabel" Style="{StaticResource InputLabelStyle}" />
+                    <TextBlock x:Uid="SupplierTaxNumberLabel" Style="{StaticResource InputLabelStyle}" />
                     <TextBox
                         x:Name="TaxNumberTextBox"
                         x:Uid="TaxNumberPlaceholder"
@@ -142,7 +143,7 @@
                         Visibility="Collapsed" />
 
                     <!--  Is Active  -->
-                    <TextBlock x:Uid="IsActiveLabel" Style="{StaticResource InputLabelStyle}" />
+                    <TextBlock x:Uid="SupplierIsActiveLabel" Style="{StaticResource InputLabelStyle}" />
                     <ToggleSwitch
                         x:Name="IsActiveToggleSwitch"
                         Style="{StaticResource ToggleSwitchStyle}"

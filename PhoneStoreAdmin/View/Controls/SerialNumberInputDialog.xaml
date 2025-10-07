@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="PhoneStoreAdmin.View.Controls.SerialNumberInputDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PhoneStoreAdmin.View.Controls"
+    x:Uid="SerialNumberInputDialog"
+    Width="600"
+    DefaultButton="Primary"
+    PrimaryButtonClick="OnPrimaryButtonClick"
+    Style="{StaticResource DefaultContentDialogStyle}">
+
+    <ScrollViewer MaxHeight="600" VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,16,0,0" Spacing="16">
+            <!--  Validation Error InfoBar  -->
+            <InfoBar
+                x:Uid="ValidationErrorInfoBar"
+                Closed="ValidationErrorInfoBar_Closed"
+                IsClosable="True"
+                IsOpen="{x:Bind ShowValidationError, Mode=OneWay}"
+                Severity="Error" />
+
+            <TextBlock
+                FontSize="16"
+                FontWeight="SemiBold"
+                Text="{x:Bind ProductName, Mode=OneWay}"
+                TextWrapping="Wrap" />
+
+            <TextBlock
+                FontSize="14"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="{x:Bind GetQuantityText(), Mode=OneWay}"
+                TextWrapping="Wrap" />
+
+            <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+            <!--  Serial number inputs  -->
+            <ItemsRepeater ItemsSource="{x:Bind SerialEntries}">
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="local:SerialEntry">
+                        <Border
+                            Margin="0,0,0,16"
+                            Padding="16"
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8">
+                            <StackPanel Spacing="12">
+                                <TextBlock
+                                    FontSize="15"
+                                    FontWeight="SemiBold"
+                                    Text="{x:Bind GetMachineTitle(), Mode=OneWay}" />
+
+                                <TextBox x:Uid="SerialNumberTextBox" Text="{x:Bind SerialNumber, Mode=TwoWay}" />
+
+                                <TextBox x:Uid="Imei1TextBox" Text="{x:Bind Imei1, Mode=TwoWay}" />
+
+                                <TextBox x:Uid="Imei2TextBox" Text="{x:Bind Imei2, Mode=TwoWay}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

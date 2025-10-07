@@ -5,8 +5,6 @@ namespace PhoneStoreAdmin.Repositories.Interfaces
 {
     public interface ISupplierRepository : IRepository<Supplier>
     {
-        // Lấy selectbox
-        IEnumerable<Supplier> GetSelectBox();
 
         /// Lấy danh sách nhà cung cấp theo bộ lọc + phân trang.
         IEnumerable<Supplier> GetSuppliersFiltered(

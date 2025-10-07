@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text.RegularExpressions;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -111,7 +111,7 @@ namespace PhoneStoreAdmin.View.Controls
         {
             _isNameValid = !string.IsNullOrWhiteSpace(name) && name.Length >= 2;
 
-            if (!_isNameValid && !string.IsNullOrEmpty(name))
+            if (!_isNameValid)
             {
                 ShowError(SupplierNameError, GetString("NameRequired/Text") ?? "Name is required (min 2 characters)");
             }
@@ -351,13 +351,11 @@ namespace PhoneStoreAdmin.View.Controls
                 return;
             }
 
+            ValidateAllFields();
+
             bool isFormValid = _isNameValid && _isPhoneValid && _isEmailValid && _isTaxNumberValid;
             if (!isFormValid)
-            {
-                // Show validation errors if any
-                ValidateAllFields();
-                return;
-            }
+                return;   
 
             try
             {
@@ -376,21 +374,10 @@ namespace PhoneStoreAdmin.View.Controls
                 };
 
                 if (_currentMode == DialogMode.Add)
-                {
                     _supplierService.Insert(supplier);
-                }
                 else
-                {
                     _supplierService.Update(supplier);
-                }
 
-                // Clear fields for add
-                if (_currentMode == DialogMode.Add)
-                {
-                    Reset();
-                }
-
-                // Notify parent
                 var viewModel = new SupplierViewModel(supplier);
                 SupplierSaved?.Invoke(this, viewModel);
 
@@ -398,16 +385,19 @@ namespace PhoneStoreAdmin.View.Controls
             }
             catch (Exception ex)
             {
-                // Handle exceptions
-                ErrorInfoBar.Message = GetString("UnexpectedError/Text") ?? $"An unexpected error occurred: {ex.Message}";
+                ErrorInfoBar.Message = _resourceLoader.GetString("UnexpectedError");
                 ErrorInfoBar.IsOpen = true;
-
-                SupplierSaved?.Invoke(this, null);
             }
             finally
             {
                 ShowLoading(false);
             }
+        }
+
+        public bool IsValid()
+        {
+            ValidateAllFields();
+            return _isNameValid && _isPhoneValid && _isEmailValid && _isTaxNumberValid;
         }
 
         /// <summary>

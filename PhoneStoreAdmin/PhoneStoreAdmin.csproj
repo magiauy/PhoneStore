@@ -68,17 +68,24 @@
 	  <Page Update="View\PurchaseOrdersPage.xaml">
 	    <SubType>Designer</SubType>
 	  </Page>
+	  <Page Update="View\AddPurchaseOrderPage.xaml">
+	    <SubType>Designer</SubType>
+	  </Page>
 	</ItemGroup>
 
 	<ItemGroup>
 	  <None Update="appsettings.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
+	  <None Update="View\Controls\SerialNumberInputDialog.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </None>
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Folder Include="Database\" />
 	  <Folder Include="Resources\Strings\en-US\" />
+	  <Folder Include="View\AddContainers\" />
 	</ItemGroup>
 
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
