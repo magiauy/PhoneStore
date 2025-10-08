@@ -5,6 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using PhoneStoreAdmin.Models;
+using PhoneStoreAdmin.Services;
+using PhoneStoreAdmin.Services.Interfaces;
+using PhoneStoreAdmin.Utils;
 
 namespace PhoneStoreAdmin.View
 {
@@ -12,60 +18,343 @@ namespace PhoneStoreAdmin.View
     {
         // ObservableCollection để bind với ListView
         public ObservableCollection<AccountViewModel> Accounts { get; set; }
-        
-        // Danh sách gốc để thực hiện tìm kiếm
-        private List<AccountViewModel> _allAccounts;
+        public ObservableCollection<EmployeeViewModel> EmployeesWithoutAccount { get; set; }
         
         // Phân trang
         private int _currentPage = 1;
-        private int _itemsPerPage = 20;
+        private int _itemsPerPage = 10;
         private int _totalPages = 1;
+        private int _totalCount = 0;
+        private string _currentSearchText = string.Empty;
+
+        // Search debounce
+        private Timer? _searchTimer;
+        private const int SearchDelayMs = 300;
+
+        // Page caching
+        private readonly Dictionary<string, (List<Account> Accounts, int TotalCount)> _pageCache = new();
+        private const int CachePagesAround = 3; // Cache 3 pages before and after
+        private CancellationTokenSource? _cachingCts;
+
+        // Service
+        private readonly IAccountService _accountService;
+        private readonly IEmployeeService _employeeService;
+        
+        // Selected employee for account creation
+        private Employee? _selectedEmployee;
+        
+        // All employees for filtering
+        private List<EmployeeViewModel> _allEmployees = new();
+        
+        // Filter criteria
+        private AccountFilterCriteria? _currentFilterCriteria;
+        
+        // Filter tags collection
+        public ObservableCollection<FilterTag> FilterTags { get; set; }
 
         public AccountsPage()
         {
             this.InitializeComponent();
             Accounts = new ObservableCollection<AccountViewModel>();
-            _allAccounts = new List<AccountViewModel>();
+            EmployeesWithoutAccount = new ObservableCollection<EmployeeViewModel>();
+            FilterTags = new ObservableCollection<FilterTag>();
+            
+            // Bind FilterTags to ItemsControl
+            if (FilterTagsPanel != null)
+            {
+                FilterTagsPanel.ItemsSource = FilterTags;
+            }
             
             // Gán DataContext cho binding
             this.DataContext = this;
             
-            // Load dữ liệu mẫu (sẽ thay thế bằng dữ liệu thật sau)
-            LoadSampleData();
+            // Get service from ServiceContainer
+            _accountService = ServiceContainer.GetService<IAccountService>() 
+                ?? throw new InvalidOperationException("AccountService not registered");
+            _employeeService = ServiceContainer.GetService<IEmployeeService>()
+                ?? throw new InvalidOperationException("EmployeeService not registered");
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
+        protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            // Refresh data when navigated to this page
-            RefreshData();
+            // Load data from database when navigated to this page
+            await LoadDataFromDatabaseAsync();
         }
 
         #region Event Handlers
 
-        private void AddAccountButton_Click(object sender, RoutedEventArgs e)
+        private void AccountsListTab_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Mở dialog thêm tài khoản mới
-            ShowNotImplementedMessage("Thêm tài khoản");
+            // Switch to Accounts List tab
+            UpdateTabStyle(AccountsListTab, EmployeesWithoutAccountTab, true);
+            
+            // Show accounts list content
+            AccountsListContent.Visibility = Visibility.Visible;
+            EmployeesWithoutAccountContent.Visibility = Visibility.Collapsed;
+        }
+
+        private async void EmployeesWithoutAccountTab_Click(object sender, RoutedEventArgs e)
+        {
+            // Switch to Employees Without Account tab
+            UpdateTabStyle(EmployeesWithoutAccountTab, AccountsListTab, false);
+            
+            // Show employees without account content
+            AccountsListContent.Visibility = Visibility.Collapsed;
+            EmployeesWithoutAccountContent.Visibility = Visibility.Visible;
+            
+            // Load employees without account
+            await LoadEmployeesWithoutAccountAsync();
+        }
+
+        private void UpdateTabStyle(Button activeTab, Button inactiveTab, bool isFirstTab)
+        {
+            // First, reset both tabs to Normal state by clearing hover
+            Microsoft.UI.Xaml.VisualStateManager.GoToState(activeTab, "Normal", false);
+            Microsoft.UI.Xaml.VisualStateManager.GoToState(inactiveTab, "Normal", false);
+            
+            // Disable active tab to prevent hover
+            activeTab.IsEnabled = false;
+            
+            // Active tab - light blue background
+            activeTab.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                Windows.UI.Color.FromArgb(255, 219, 234, 254)); // #dbeafe
+            activeTab.CornerRadius = isFirstTab ? new CornerRadius(12, 0, 0, 12) : new CornerRadius(0, 12, 12, 0);
+            
+            // Enable inactive tab for hover
+            inactiveTab.IsEnabled = true;
+            
+            // Inactive tab - transparent background
+            inactiveTab.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                Windows.UI.Color.FromArgb(0, 0, 0, 0)); // Transparent
+            inactiveTab.CornerRadius = isFirstTab ? new CornerRadius(0, 12, 12, 0) : new CornerRadius(12, 0, 0, 12);
+            
+            // Update text colors and weights
+            UpdateButtonTextStyle(activeTab, true);
+            UpdateButtonTextStyle(inactiveTab, false);
+        }
+
+        private void UpdateButtonTextStyle(Button button, bool isActive)
+        {
+            if (button.Content is TextBlock textBlock)
+            {
+                textBlock.Foreground = isActive 
+                    ? (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BrushPrimary"]
+                    : (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BrushTextSecondary"];
+                textBlock.FontWeight = isActive 
+                    ? Microsoft.UI.Text.FontWeights.SemiBold 
+                    : Microsoft.UI.Text.FontWeights.Normal;
+            }
         }
 
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
             {
-                FilterAccounts(sender.Text);
+                var previousSearchText = _currentSearchText;
+                _currentSearchText = sender.Text;
+                _currentPage = 1; // Reset to first page when searching
+                
+                // Clear cache if search text changed
+                if (previousSearchText != _currentSearchText)
+                {
+                    ClearCache();
+                    _cachingCts?.Cancel(); // Cancel any ongoing caching
+                }
+                
+                // Debounce: Cancel previous timer and create new one
+                _searchTimer?.Dispose();
+                _searchTimer = new Timer(
+                    async _ =>
+                    {
+                        // Execute search on UI thread
+                        DispatcherQueue.TryEnqueue(async () =>
+                        {
+                            await LoadPageDataAsync();
+                        });
+                    },
+                    null,
+                    SearchDelayMs,
+                    Timeout.Infinite
+                );
             }
         }
 
-        private void FilterButton_Click(object sender, RoutedEventArgs e)
+        private async void FilterButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Mở dialog lọc nâng cao
-            ShowNotImplementedMessage("Lọc nâng cao");
+            var dialog = new Controls.AccountFilterDialog
+            {
+                XamlRoot = this.XamlRoot
+            };
+
+            // Set current filters if any
+            if (_currentFilterCriteria != null)
+            {
+                dialog.SetCurrentFilters(_currentFilterCriteria);
+            }
+
+            var result = await dialog.ShowAsync();
+
+            // If user clicked Apply button
+            if (dialog.IsApplied)
+            {
+                _currentFilterCriteria = dialog.FilterCriteria;
+                
+                // Reset to first page when applying filters
+                _currentPage = 1;
+                
+                // Update filter tags display
+                UpdateFilterTags();
+                
+                // Clear cache and reload data with filters
+                ClearCache();
+                await LoadDataFromDatabaseAsync();
+                
+                Logger.Info($"Filters applied: {(_currentFilterCriteria.HasAnyFilter() ? "Yes" : "No")}");
+            }
         }
 
-        private void RefreshButton_Click(object sender, RoutedEventArgs e)
+        private void UpdateFilterTags()
         {
-            RefreshData();
+            FilterTags.Clear();
+            
+            if (_currentFilterCriteria == null || !_currentFilterCriteria.HasAnyFilter())
+            {
+                FilterTagsPanel.Visibility = Visibility.Collapsed;
+                FilterActiveBadge.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            // Status filter
+            if (_currentFilterCriteria.Status != "All")
+            {
+                var statusLabel = _currentFilterCriteria.Status == "Activated" 
+                    ? "Đã kích hoạt" 
+                    : "Chưa kích hoạt";
+                FilterTags.Add(new FilterTag 
+                { 
+                    Key = "Status", 
+                    Label = $"Trạng thái: {statusLabel}" 
+                });
+            }
+
+            // Account Type filter
+            if (_currentFilterCriteria.AccountType != "All")
+            {
+                var typeLabel = _currentFilterCriteria.AccountType == "Employee" 
+                    ? "Nhân viên" 
+                    : "Khách hàng";
+                FilterTags.Add(new FilterTag 
+                { 
+                    Key = "AccountType", 
+                    Label = $"Loại: {typeLabel}" 
+                });
+            }
+
+            // Created Date Range
+            if (_currentFilterCriteria.CreatedFrom.HasValue || _currentFilterCriteria.CreatedTo.HasValue)
+            {
+                var from = _currentFilterCriteria.CreatedFrom?.ToString("dd/MM/yyyy") ?? "...";
+                var to = _currentFilterCriteria.CreatedTo?.ToString("dd/MM/yyyy") ?? "...";
+                FilterTags.Add(new FilterTag 
+                { 
+                    Key = "CreatedDate", 
+                    Label = $"Ngày tạo: {from} - {to}" 
+                });
+            }
+
+            // Last Login filter
+            if (_currentFilterCriteria.NeverLoggedIn)
+            {
+                FilterTags.Add(new FilterTag 
+                { 
+                    Key = "NeverLoggedIn", 
+                    Label = "Chưa đăng nhập" 
+                });
+            }
+            else if (_currentFilterCriteria.LastLoginFrom.HasValue || _currentFilterCriteria.LastLoginTo.HasValue)
+            {
+                var from = _currentFilterCriteria.LastLoginFrom?.ToString("dd/MM/yyyy") ?? "...";
+                var to = _currentFilterCriteria.LastLoginTo?.ToString("dd/MM/yyyy") ?? "...";
+                FilterTags.Add(new FilterTag 
+                { 
+                    Key = "LastLogin", 
+                    Label = $"Đăng nhập: {from} - {to}" 
+                });
+            }
+
+            // Show filter tags panel and badge
+            FilterTagsPanel.Visibility = FilterTags.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            FilterActiveBadge.Visibility = FilterTags.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private async void RemoveFilterTag_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var filterKey = button?.Tag?.ToString();
+            
+            if (string.IsNullOrEmpty(filterKey) || _currentFilterCriteria == null)
+                return;
+
+            // Remove specific filter based on key
+            switch (filterKey)
+            {
+                case "Status":
+                    _currentFilterCriteria.Status = "All";
+                    break;
+                case "AccountType":
+                    _currentFilterCriteria.AccountType = "All";
+                    break;
+                case "CreatedDate":
+                    _currentFilterCriteria.CreatedFrom = null;
+                    _currentFilterCriteria.CreatedTo = null;
+                    break;
+                case "NeverLoggedIn":
+                    _currentFilterCriteria.NeverLoggedIn = false;
+                    break;
+                case "LastLogin":
+                    _currentFilterCriteria.LastLoginFrom = null;
+                    _currentFilterCriteria.LastLoginTo = null;
+                    break;
+            }
+
+            // Check if all filters are cleared
+            if (!_currentFilterCriteria.HasAnyFilter())
+            {
+                _currentFilterCriteria = null;
+            }
+
+            // Update display and reload data
+            _currentPage = 1;
+            UpdateFilterTags();
+            ClearCache();
+            await LoadDataFromDatabaseAsync();
+            
+            Logger.Info($"Filter '{filterKey}' removed");
+        }
+
+        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Clear search box
+            if (SearchBox != null)
+            {
+                SearchBox.Text = string.Empty;
+            }
+            
+            // Clear search text and reset to first page
+            _currentSearchText = string.Empty;
+            _currentPage = 1;
+            
+            // Clear filters
+            _currentFilterCriteria = null;
+            UpdateFilterTags();
+            
+            // Clear cache and cancel any ongoing caching
+            ClearCache();
+            _cachingCts?.Cancel();
+            
+            // Reload data
+            await LoadDataFromDatabaseAsync();
         }
 
         private void AccountsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -73,14 +362,14 @@ namespace PhoneStoreAdmin.View
             // Not used anymore since SelectionMode="None"
         }
 
-        private void ActionsButton_Click(object sender, RoutedEventArgs e)
+        private async void ActionsButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
             var account = button?.Tag as AccountViewModel;
             if (account != null)
             {
                 // TODO: Show context menu or actions dialog
-                ShowNotImplementedMessage($"Thao tác cho tài khoản: {account.Username}");
+                await ShowNotImplementedMessage($"Thao tác cho tài khoản: {account.Username}");
             }
         }
 
@@ -89,8 +378,7 @@ namespace PhoneStoreAdmin.View
             if (_currentPage > 1)
             {
                 _currentPage--;
-                UpdatePagination();
-                LoadPageData();
+                _ = LoadPageDataAsync();
             }
         }
 
@@ -99,8 +387,7 @@ namespace PhoneStoreAdmin.View
             if (_currentPage < _totalPages)
             {
                 _currentPage++;
-                UpdatePagination();
-                LoadPageData();
+                _ = LoadPageDataAsync();
             }
         }
 
@@ -108,371 +395,122 @@ namespace PhoneStoreAdmin.View
 
         #region Private Methods
 
-        private void LoadSampleData()
+        private async Task LoadDataFromDatabaseAsync()
         {
-            // Tạo dữ liệu mẫu cho demo với nhiều records để test phân trang
-            _allAccounts = new List<AccountViewModel>
-            {
-                // Admin accounts
-                new AccountViewModel
-                {
-                    Id = 1,
-                    Username = "admin",
-                    FullName = "Nguyễn Văn Admin",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-90),
-                    LastLogin = DateTime.Now.AddHours(-1)
-                },
-                new AccountViewModel
-                {
-                    Id = 2,
-                    Username = "superadmin",
-                    FullName = "Trần Thị Siêu Admin",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-120),
-                    LastLogin = DateTime.Now.AddHours(-3)
-                },
-                
-                // Manager accounts
-                new AccountViewModel
-                {
-                    Id = 3,
-                    Username = "manager01",
-                    FullName = "Lê Văn Quản Lý",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-80),
-                    LastLogin = DateTime.Now.AddHours(-5)
-                },
-                new AccountViewModel
-                {
-                    Id = 4,
-                    Username = "manager02",
-                    FullName = "Phạm Thị Minh",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-75),
-                    LastLogin = DateTime.Now.AddDays(-1)
-                },
-                new AccountViewModel
-                {
-                    Id = 5,
-                    Username = "sales_manager",
-                    FullName = "Hoàng Văn Bán Hàng",
-                    PersonType = "Nhân viên",
-                    IsActive = false,
-                    CreatedAt = DateTime.Now.AddDays(-60),
-                    LastLogin = DateTime.Now.AddDays(-15)
-                },
-                
-                // Staff accounts
-                new AccountViewModel
-                {
-                    Id = 6,
-                    Username = "staff_nguyen",
-                    FullName = "Nguyễn Văn Nhân Viên",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-50),
-                    LastLogin = DateTime.Now.AddHours(-2)
-                },
-                new AccountViewModel
-                {
-                    Id = 7,
-                    Username = "staff_tran",
-                    FullName = "Trần Thị Lan",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-45),
-                    LastLogin = DateTime.Now.AddHours(-8)
-                },
-                new AccountViewModel
-                {
-                    Id = 8,
-                    Username = "staff_le",
-                    FullName = "Lê Minh Tuấn",
-                    PersonType = "Nhân viên",
-                    IsActive = false,
-                    CreatedAt = DateTime.Now.AddDays(-40),
-                    LastLogin = DateTime.Now.AddDays(-7)
-                },
-                new AccountViewModel
-                {
-                    Id = 9,
-                    Username = "staff_pham",
-                    FullName = "Phạm Thị Hoa",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-35),
-                    LastLogin = DateTime.Now.AddDays(-2)
-                },
-                new AccountViewModel
-                {
-                    Id = 10,
-                    Username = "staff_hoang",
-                    FullName = "Hoàng Văn Nam",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-30),
-                    LastLogin = DateTime.Now.AddHours(-12)
-                },
-                
-                // Customer accounts
-                new AccountViewModel
-                {
-                    Id = 11,
-                    Username = "customer01",
-                    FullName = "Nguyễn Văn Khách",
-                    PersonType = "Khách hàng",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-25),
-                    LastLogin = DateTime.Now.AddHours(-4)
-                },
-                new AccountViewModel
-                {
-                    Id = 12,
-                    Username = "customer02",
-                    FullName = "Trần Thị Mua",
-                    PersonType = "Khách hàng",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-22),
-                    LastLogin = DateTime.Now.AddHours(-6)
-                },
-                new AccountViewModel
-                {
-                    Id = 13,
-                    Username = "customer03",
-                    FullName = "Lê Văn Đức",
-                    PersonType = "Khách hàng",
-                    IsActive = false,
-                    CreatedAt = DateTime.Now.AddDays(-20),
-                    LastLogin = DateTime.Now.AddDays(-10)
-                },
-                new AccountViewModel
-                {
-                    Id = 14,
-                    Username = "vip_customer",
-                    FullName = "Phạm Thị VIP",
-                    PersonType = "Khách hàng",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-18),
-                    LastLogin = DateTime.Now.AddHours(-1)
-                },
-                
-                // Customer service accounts
-                new AccountViewModel
-                {
-                    Id = 15,
-                    Username = "cs_support01",
-                    FullName = "Nguyễn Văn Hỗ Trợ",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-15),
-                    LastLogin = DateTime.Now.AddMinutes(-30)
-                },
-                new AccountViewModel
-                {
-                    Id = 16,
-                    Username = "cs_support02",
-                    FullName = "Trần Thị Chăm Sóc",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-12),
-                    LastLogin = DateTime.Now.AddHours(-2)
-                },
-                new AccountViewModel
-                {
-                    Id = 17,
-                    Username = "cs_supervisor",
-                    FullName = "Lê Văn Giám Sát",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-10),
-                    LastLogin = DateTime.Now.AddHours(-3)
-                },
-                
-                // Technical accounts
-                new AccountViewModel
-                {
-                    Id = 18,
-                    Username = "tech_support",
-                    FullName = "Phạm Văn Kỹ Thuật",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-8),
-                    LastLogin = DateTime.Now.AddHours(-5)
-                },
-                new AccountViewModel
-                {
-                    Id = 19,
-                    Username = "developer",
-                    FullName = "Hoàng Thị Dev",
-                    PersonType = "Nhân viên",
-                    IsActive = false,
-                    CreatedAt = DateTime.Now.AddDays(-7),
-                    LastLogin = DateTime.Now.AddDays(-3)
-                },
-                new AccountViewModel
-                {
-                    Id = 20,
-                    Username = "system_admin",
-                    FullName = "Nguyễn Văn Hệ Thống",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-5),
-                    LastLogin = DateTime.Now.AddHours(-1)
-                },
-                
-                // More customers
-                new AccountViewModel
-                {
-                    Id = 21,
-                    Username = "customer_long",
-                    FullName = "Trần Văn Long",
-                    PersonType = "Khách hàng",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-4),
-                    LastLogin = DateTime.Now.AddHours(-7)
-                },
-                new AccountViewModel
-                {
-                    Id = 22,
-                    Username = "customer_mai",
-                    FullName = "Lê Thị Mai",
-                    PersonType = "Khách hàng",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-3),
-                    LastLogin = DateTime.Now.AddHours(-9)
-                },
-                new AccountViewModel
-                {
-                    Id = 23,
-                    Username = "customer_duc",
-                    FullName = "Phạm Minh Đức",
-                    PersonType = "Khách hàng",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-2),
-                    LastLogin = DateTime.Now.AddHours(-4)
-                },
-                
-                // Mixed accounts
-                new AccountViewModel
-                {
-                    Id = 24,
-                    Username = "accountant01",
-                    FullName = "Hoàng Thị Kế Toán",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddDays(-1),
-                    LastLogin = DateTime.Now.AddHours(-6)
-                },
-                new AccountViewModel
-                {
-                    Id = 25,
-                    Username = "finance_manager",
-                    FullName = "Nguyễn Văn Tài Chính",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddHours(-12),
-                    LastLogin = DateTime.Now.AddHours(-2)
-                },
-                
-                // Inactive accounts
-                new AccountViewModel
-                {
-                    Id = 26,
-                    Username = "old_customer01",
-                    FullName = "Trần Thị Cũ",
-                    PersonType = "Khách hàng",
-                    IsActive = false,
-                    CreatedAt = DateTime.Now.AddDays(-180),
-                    LastLogin = DateTime.Now.AddDays(-30)
-                },
-                new AccountViewModel
-                {
-                    Id = 27,
-                    Username = "old_employee",
-                    FullName = "Lê Văn Nghỉ Việc",
-                    PersonType = "Nhân viên",
-                    IsActive = false,
-                    CreatedAt = DateTime.Now.AddDays(-200),
-                    LastLogin = DateTime.Now.AddDays(-45)
-                },
-                new AccountViewModel
-                {
-                    Id = 28,
-                    Username = "temp_customer",
-                    FullName = "Phạm Thị Tạm Thời",
-                    PersonType = "Khách hàng",
-                    IsActive = false,
-                    CreatedAt = DateTime.Now.AddDays(-100),
-                    LastLogin = DateTime.Now.AddDays(-60)
-                },
-                
-                // Recent accounts
-                new AccountViewModel
-                {
-                    Id = 29,
-                    Username = "new_customer",
-                    FullName = "Hoàng Văn Mới",
-                    PersonType = "Khách hàng",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddHours(-6),
-                    LastLogin = DateTime.Now.AddHours(-1)
-                },
-                new AccountViewModel
-                {
-                    Id = 30,
-                    Username = "trainee01",
-                    FullName = "Nguyễn Thị Thực Tập",
-                    PersonType = "Nhân viên",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddHours(-2),
-                    LastLogin = null // Chưa đăng nhập lần nào
-                }
-            };
-
-            UpdatePagination();
-            LoadPageData();
+            await LoadPageDataAsync();
         }
 
-        private void FilterAccounts(string searchText)
+        private async Task LoadPageDataAsync()
         {
-            if (string.IsNullOrWhiteSpace(searchText))
+            // Capture the current search text at the start
+            var searchTextSnapshot = _currentSearchText;
+            var cacheKey = GetCacheKey(_currentPage, searchTextSnapshot);
+            
+            try
             {
-                // Hiển thị tất cả tài khoản
-                UpdatePagination();
-                LoadPageData();
-            }
-            else
-            {
-                // Lọc theo tên đăng nhập
-                var filteredAccounts = _allAccounts
-                    .Where(a => a.Username.Contains(searchText, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
+                // Show loading overlay
+                LoadingOverlay?.Show("Đang tải dữ liệu...");
 
+                // Check cache first
+                if (_pageCache.TryGetValue(cacheKey, out var cachedData))
+                {
+                    Logger.Info($"Loading page {_currentPage} from cache");
+                    var (cachedAccounts, cachedTotalCount) = cachedData;
+                    
+                    _totalCount = cachedTotalCount;
+                    Accounts.Clear();
+                    foreach (var account in cachedAccounts.Select(MapToViewModel))
+                    {
+                        Accounts.Add(account);
+                    }
+
+                    UpdatePagination();
+                    UpdateRecordCount(Accounts.Count, _totalCount);
+                    UpdateEmptyStateVisibility();
+                    
+                    Logger.Info($"Loaded {Accounts.Count} accounts from cache");
+                    
+                    // Still trigger background caching for surrounding pages
+                    _ = StartBackgroundCachingAsync(searchTextSnapshot);
+                    return;
+                }
+
+                // Not in cache, fetch from service
+                var result = await _accountService.GetPagedAccountsAsync(_currentPage, _itemsPerPage, searchTextSnapshot, _currentFilterCriteria);
+                
+                // Check if search text has changed during the query
+                if (searchTextSnapshot != _currentSearchText)
+                {
+                    // Search text changed, need to reload with new search text
+                    Logger.Info($"Search text changed from '{searchTextSnapshot}' to '{_currentSearchText}', reloading...");
+                    await LoadPageDataAsync();
+                    return;
+                }
+                
+                if (result.HasValue)
+                {
+                    var (accounts, totalCount) = result.Value;
+                    _totalCount = totalCount;
+                    
+                    // Cache the result
+                    _pageCache[cacheKey] = (accounts, totalCount);
+                    
+                    Accounts.Clear();
+                    foreach (var account in accounts.Select(MapToViewModel))
+                    {
+                        Accounts.Add(account);
+                    }
+
+                    UpdatePagination();
+                    UpdateRecordCount(Accounts.Count, _totalCount);
+                    UpdateEmptyStateVisibility();
+
+                    Logger.Info($"Đã tải {Accounts.Count} tài khoản (trang {_currentPage}/{_totalPages}, tổng: {_totalCount})");
+                    
+                    // Start background caching after successful load
+                    _ = StartBackgroundCachingAsync(searchTextSnapshot);
+                }
+                else
+                {
+                    Logger.Error("Không thể tải danh sách tài khoản từ cơ sở dữ liệu.");
+                    Accounts.Clear();
+                    _totalCount = 0;
+                    UpdatePagination();
+                    UpdateEmptyStateVisibility();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Đã xảy ra lỗi khi tải dữ liệu tài khoản", ex);
                 Accounts.Clear();
-                foreach (var account in filteredAccounts)
-                {
-                    Accounts.Add(account);
-                }
-
-                UpdateRecordCount(filteredAccounts.Count, _allAccounts.Count);
+                _totalCount = 0;
+                UpdatePagination();
+                UpdateEmptyStateVisibility();
+            }
+            finally
+            {
+                // Hide loading overlay
+                LoadingOverlay?.Hide();
             }
         }
 
-        private void RefreshData()
+        private AccountViewModel MapToViewModel(Account account)
         {
-            // TODO: Load data from database
-            // Hiện tại chỉ refresh dữ liệu mẫu
-            LoadSampleData();
+            return new AccountViewModel
+            {
+                Id = account.Id,
+                Username = account.Username,
+                FullName = account.Person?.FullName ?? "N/A",
+                PersonType = account.Person?.PersonType == Models.Enums.PersonType.EMPLOYEE ? "Nhân viên" : "Khách hàng",
+                IsActive = account.IsActive,
+                CreatedAt = account.CreatedAt,
+                LastLogin = account.LastLogin
+            };
         }
 
         private void UpdatePagination()
         {
-            _totalPages = (int)Math.Ceiling((double)_allAccounts.Count / _itemsPerPage);
+            _totalPages = (int)Math.Ceiling((double)_totalCount / _itemsPerPage);
             if (_totalPages == 0) _totalPages = 1;
             
             if (_currentPage > _totalPages) _currentPage = _totalPages;
@@ -483,18 +521,12 @@ namespace PhoneStoreAdmin.View
             PageInfoText.Text = $"Trang {_currentPage} / {_totalPages}";
         }
 
-        private void LoadPageData()
+        private void UpdateEmptyStateVisibility()
         {
-            var skip = (_currentPage - 1) * _itemsPerPage;
-            var pageData = _allAccounts.Skip(skip).Take(_itemsPerPage).ToList();
-
-            Accounts.Clear();
-            foreach (var account in pageData)
-            {
-                Accounts.Add(account);
-            }
-
-            UpdateRecordCount(pageData.Count, _allAccounts.Count);
+            if (EmptyStatePanel != null)
+                EmptyStatePanel.Visibility = Accounts.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (AccountsListView != null)
+                AccountsListView.Visibility = Accounts.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void UpdateRecordCount(int displayed, int total)
@@ -502,7 +534,7 @@ namespace PhoneStoreAdmin.View
             RecordCountText.Text = $"Hiển thị {displayed} / {total} tài khoản";
         }
 
-        private async void ShowNotImplementedMessage(string feature)
+        private async Task ShowNotImplementedMessage(string feature)
         {
             var dialog = new ContentDialog
             {
@@ -515,6 +547,97 @@ namespace PhoneStoreAdmin.View
             await dialog.ShowAsync();
         }
 
+        private async Task StartBackgroundCachingAsync(string searchText)
+        {
+            // Cancel any existing caching operation
+            _cachingCts?.Cancel();
+            _cachingCts = new CancellationTokenSource();
+            var token = _cachingCts.Token;
+
+            try
+            {
+                // Determine pages to cache (3 before and 3 after current page)
+                var pagesToCache = new List<int>();
+                for (int i = Math.Max(1, _currentPage - CachePagesAround); 
+                     i <= Math.Min(_totalPages, _currentPage + CachePagesAround); 
+                     i++)
+                {
+                    if (i != _currentPage) // Don't cache current page (already loaded)
+                    {
+                        pagesToCache.Add(i);
+                    }
+                }
+
+                Logger.Info($"Starting background cache for {pagesToCache.Count} pages: [{string.Join(", ", pagesToCache)}]");
+
+                // Cache pages in background
+                foreach (var pageIndex in pagesToCache)
+                {
+                    if (token.IsCancellationRequested)
+                        break;
+
+                    await CachePageAsync(pageIndex, searchText, token);
+                    
+                    // Small delay between caching to avoid overloading
+                    await Task.Delay(100, token);
+                }
+
+                Logger.Info($"Background caching completed. Cache size: {_pageCache.Count}");
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.Info("Background caching cancelled");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Error during background caching", ex);
+            }
+        }
+
+        private async Task CachePageAsync(int pageIndex, string searchText, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var cacheKey = GetCacheKey(pageIndex, searchText);
+                
+                // Skip if already cached
+                if (_pageCache.ContainsKey(cacheKey))
+                {
+                    Logger.Info($"Page {pageIndex} already cached, skipping");
+                    return;
+                }
+
+                // Fetch page data
+                var result = await _accountService.GetPagedAccountsAsync(pageIndex, _itemsPerPage, searchText, _currentFilterCriteria);
+                
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
+                if (result.HasValue)
+                {
+                    var (accounts, totalCount) = result.Value;
+                    _pageCache[cacheKey] = (accounts, totalCount);
+                    Logger.Info($"Cached page {pageIndex} with {accounts.Count} accounts");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to cache page {pageIndex}", ex);
+            }
+        }
+
+        private string GetCacheKey(int pageIndex, string searchText)
+        {
+            var filterKey = _currentFilterCriteria?.GetCacheKey() ?? "nofilter";
+            return $"{pageIndex}_{searchText ?? ""}_{filterKey}".ToLowerInvariant();
+        }
+
+        private void ClearCache()
+        {
+            _pageCache.Clear();
+            Logger.Info("Page cache cleared");
+        }
+
         #endregion
 
         private void AddAccountButton_Holding(object sender, Microsoft.UI.Xaml.Input.HoldingRoutedEventArgs e)
@@ -522,6 +645,239 @@ namespace PhoneStoreAdmin.View
             
 
         }
+
+        #region Tab 2: Employees Without Account
+
+        private async Task LoadEmployeesWithoutAccountAsync()
+        {
+            try
+            {
+                var employees = await _employeeService.GetEmployeesWithoutAccountAsync();
+                
+                _allEmployees.Clear();
+                EmployeesWithoutAccount.Clear();
+                
+                if (employees != null && employees.Count > 0)
+                {
+                    foreach (var employee in employees)
+                    {
+                        var viewModel = MapToEmployeeViewModel(employee);
+                        _allEmployees.Add(viewModel);
+                        EmployeesWithoutAccount.Add(viewModel);
+                    }
+                    
+                    EmptyEmployeeState.Visibility = Visibility.Collapsed;
+                    EmployeesListView.Visibility = Visibility.Visible;
+                    
+                    Logger.Info($"Loaded {employees.Count} employees without account");
+                }
+                else
+                {
+                    EmptyEmployeeState.Visibility = Visibility.Visible;
+                    EmployeesListView.Visibility = Visibility.Collapsed;
+                    Logger.Info("No employees without account found");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Error loading employees without account", ex);
+                EmptyEmployeeState.Visibility = Visibility.Visible;
+                EmployeesListView.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void EmployeeSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        {
+            if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+            {
+                FilterEmployees(sender.Text);
+            }
+        }
+
+        private void FilterEmployees(string searchText)
+        {
+            EmployeesWithoutAccount.Clear();
+
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                // Show all employees
+                foreach (var employee in _allEmployees)
+                {
+                    EmployeesWithoutAccount.Add(employee);
+                }
+            }
+            else
+            {
+                // Filter employees by name, code, phone, or email
+                var searchLower = searchText.ToLower();
+                var filtered = _allEmployees.Where(e =>
+                    e.FullName.ToLower().Contains(searchLower) ||
+                    e.EmployeeCode.ToLower().Contains(searchLower) ||
+                    e.Phone.ToLower().Contains(searchLower) ||
+                    e.Email.ToLower().Contains(searchLower)
+                );
+
+                foreach (var employee in filtered)
+                {
+                    EmployeesWithoutAccount.Add(employee);
+                }
+            }
+
+            // Update visibility
+            if (EmployeesWithoutAccount.Count == 0)
+            {
+                EmptyEmployeeState.Visibility = Visibility.Visible;
+                EmployeesListView.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                EmptyEmployeeState.Visibility = Visibility.Collapsed;
+                EmployeesListView.Visibility = Visibility.Visible;
+            }
+        }
+
+        private EmployeeViewModel MapToEmployeeViewModel(Employee employee)
+        {
+            return new EmployeeViewModel
+            {
+                Id = employee.Id,
+                FullName = employee.FullName ?? "N/A",
+                EmployeeCode = $"NV{employee.Id:D3}",
+                Phone = employee.Phone ?? "Chưa có",
+                Email = employee.Email ?? "Chưa có"
+            };
+        }
+
+        private void EmployeesListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (EmployeesListView.SelectedItem is EmployeeViewModel selectedEmployee)
+            {
+                // Store selected employee ID
+                var employeeId = selectedEmployee.Id;
+                _selectedEmployee = new Employee { Id = employeeId };
+                
+                // Show form panel
+                NoEmployeeSelectedPanel.Visibility = Visibility.Collapsed;
+                AccountFormPanel.Visibility = Visibility.Visible;
+                
+                // Clear form
+                ClearAccountForm();
+                
+                Logger.Info($"Selected employee: {selectedEmployee.FullName}");
+            }
+            else
+            {
+                _selectedEmployee = null;
+                NoEmployeeSelectedPanel.Visibility = Visibility.Visible;
+                AccountFormPanel.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private async void CreateAccountButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedEmployee == null)
+            {
+                ShowFormError("Vui lòng chọn nhân viên");
+                return;
+            }
+
+            // Validate inputs
+            var username = UsernameTextBox.Text.Trim();
+            var password = AccountPasswordBox.Password;
+            var confirmPassword = AccountConfirmPasswordBox.Password;
+            
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                ShowFormError("Vui lòng nhập tên đăng nhập");
+                UsernameTextBox.Focus(FocusState.Programmatic);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                ShowFormError("Vui lòng nhập mật khẩu");
+                AccountPasswordBox.Focus(FocusState.Programmatic);
+                return;
+            }
+
+            if (password != confirmPassword)
+            {
+                ShowFormError("Mật khẩu xác nhận không khớp");
+                AccountConfirmPasswordBox.Focus(FocusState.Programmatic);
+                return;
+            }
+
+            if (RoleComboBox.SelectedItem == null)
+            {
+                ShowFormError("Vui lòng chọn vai trò");
+                RoleComboBox.Focus(FocusState.Programmatic);
+                return;
+            }
+
+            try
+            {
+                // TODO: Create account using AccountService
+                // var newAccount = new Account
+                // {
+                //     Username = username,
+                //     PasswordHash = password, // Should be hashed
+                //     PersonId = _selectedEmployee.PersonId,
+                //     IsActive = ActivateAccountCheckBox.IsChecked ?? true
+                // };
+                // 
+                // var success = await _accountService.CreateAccountAsync(newAccount);
+                
+                await ShowSuccessMessage($"Tạo tài khoản thành công cho nhân viên");
+                
+                // Reload employees list
+                await LoadEmployeesWithoutAccountAsync();
+                
+                // Clear selection
+                EmployeesListView.SelectedItem = null;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Error creating account", ex);
+                ShowFormError($"Lỗi: {ex.Message}");
+            }
+        }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Clear selection
+            EmployeesListView.SelectedItem = null;
+        }
+
+        private void ClearAccountForm()
+        {
+            UsernameTextBox.Text = string.Empty;
+            AccountPasswordBox.Password = string.Empty;
+            AccountConfirmPasswordBox.Password = string.Empty;
+            RoleComboBox.SelectedIndex = -1;
+            ActivateAccountCheckBox.IsChecked = true;
+            FormErrorInfoBar.IsOpen = false;
+        }
+
+        private void ShowFormError(string message)
+        {
+            FormErrorInfoBar.Message = message;
+            FormErrorInfoBar.IsOpen = true;
+        }
+
+        private async Task ShowSuccessMessage(string message)
+        {
+            var dialog = new ContentDialog
+            {
+                Title = "Thành công",
+                Content = message,
+                CloseButtonText = "Đóng",
+                XamlRoot = this.XamlRoot
+            };
+
+            await dialog.ShowAsync();
+        }
+
+        #endregion
     }
 
     #region ViewModel Classes
@@ -546,6 +902,21 @@ namespace PhoneStoreAdmin.View
 
         public string LastLoginText => LastLogin?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa đăng nhập";
         public string PersonTypeColor => PersonType == "Nhân viên" ? "#007bff" : "#17a2b8";
+    }
+
+    public class EmployeeViewModel
+    {
+        public int Id { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string EmployeeCode { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+    }
+
+    public class FilterTag
+    {
+        public string Key { get; set; } = string.Empty;
+        public string Label { get; set; } = string.Empty;
     }
 
     #endregion
