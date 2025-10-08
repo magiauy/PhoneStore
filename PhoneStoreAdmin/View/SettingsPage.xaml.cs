@@ -396,17 +396,13 @@ namespace PhoneStoreAdmin.View
                     var sessionService = ServiceContainer.GetService<ISessionService>();
                     await sessionService.LogoutAsync();
 
-                    // Clear any cached data if needed
                     // Navigate to login window
                     var loginWindow = new LoginWindow();
                     loginWindow.Activate();
 
-                    // Close current window
-                    if (Application.Current is App app)
-                    {
-                        var currentWindow = app.CurrentWindow;
-                        currentWindow?.Close();
-                    }
+                    (App.Current as App)?.CurrentWindow?.Close(); // Đóng cửa sổ hiện tại (MainWindow)
+
+
                 }
             }
             catch (Exception)

@@ -60,11 +60,6 @@
                     Content="Tài khoản"
                     Icon="People"
                     Tag="Accounts" />
-                <NavigationViewItem
-                    x:Name="SettingsNavItem"
-                    Content="Settings"
-                    Icon="Setting"
-                    Tag="Settings" />
             </NavigationView.MenuItems>
 
             <Frame
