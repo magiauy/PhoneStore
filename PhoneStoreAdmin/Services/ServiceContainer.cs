@@ -40,6 +40,7 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<IAuthRepository>(() => new AuthRepository(GetService<DataSource>()));
             RegisterSingleton<IAccountRepository>(() => new AccountRepository(GetService<DataSource>()));
             RegisterSingleton<IPersonRepository>(() => new PersonRepository(GetService<DataSource>()));
+            RegisterSingleton<IEmployeeRepository>(() => new EmployeeRepository(GetService<DataSource>()));
             RegisterSingleton<ISupplierRepository>(() => new SupplierRepository(GetService<DataSource>()));
             RegisterSingleton<IPurchaseOrderLineRepository>(() => new PurchaseOrderLineRepository(GetService<DataSource>()));
             RegisterSingleton<IPurchaseOrderRepository>(() => new PurchaseOrderRepository(GetService<DataSource>()));
@@ -50,6 +51,7 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<IAuthService>(() => new AuthService(GetService<IAuthRepository>()));
             RegisterSingleton<IAccountService>(() => new AccountService(GetService<IAccountRepository>()));
             RegisterSingleton<IPersonService>(() => new PersonService(GetService<IPersonRepository>()));
+            RegisterSingleton<IEmployeeService>(() => new EmployeeService(GetService<IEmployeeRepository>()));
             RegisterSingleton<ISupplierService>(() => new SupplierService(GetService<ISupplierRepository>()));
             RegisterSingleton<IPurchaseOrderService>(() => new PurchaseOrderService(GetService<IPurchaseOrderRepository>(), GetService<IPurchaseOrderLineRepository>()));
             RegisterSingleton<IBatchesService>(() => new BatchesService(GetService<IBatchesRepository>(), GetService<IBatchProductRepository>(), GetService<IPurchaseOrderRepository>(), GetService<ISupplierRepository>()));

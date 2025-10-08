@@ -54,5 +54,28 @@ namespace PhoneStoreAdmin.Services.Interfaces
         /// <param name="accountId">Account ID</param>
         /// <returns>True if successful, false otherwise</returns>
         Task<bool> UpdateLastLoginAsync(int accountId);
+
+        /// <summary>
+        /// Get all accounts with person information
+        /// </summary>
+        /// <returns>List of all accounts</returns>
+        Task<List<Account>?> GetAllAccountsAsync();
+
+        /// <summary>
+        /// Get paged accounts with person information
+        /// </summary>
+        /// <param name="pageIndex">Page index (1-based)</param>
+        /// <param name="pageSize">Number of items per page</param>
+        /// <param name="searchText">Optional search text for username or full name</param>
+        /// <param name="filterCriteria">Optional filter criteria for advanced filtering</param>
+        /// <returns>Tuple containing list of accounts and total count</returns>
+        Task<(List<Account> Accounts, int TotalCount)?> GetPagedAccountsAsync(int pageIndex, int pageSize, string? searchText = null, AccountFilterCriteria? filterCriteria = null);
+
+        /// <summary>
+        /// Add a new account with person information
+        /// </summary>
+        /// <param name="account">Account to add (includes Employee or Customer)</param>
+        /// <returns>ID of created account, or 0 if failed</returns>
+        Task<int> AddAccountAsync(Account account);
     }
 }
