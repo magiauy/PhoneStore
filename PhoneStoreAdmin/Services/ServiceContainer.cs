@@ -46,6 +46,10 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<IPurchaseOrderRepository>(() => new PurchaseOrderRepository(GetService<DataSource>()));
             RegisterSingleton<IBatchProductRepository>(() => new BatchProductRepository(GetService<DataSource>()));
             RegisterSingleton<IBatchesRepository>(() => new BatchesRepository(GetService<DataSource>()));
+            RegisterSingleton<IProductCategoryRepository>(() => new ProductCategoryRepository(GetService<DataSource>()));
+            RegisterSingleton<IBrandRepository>(() => new BrandRepository(GetService<DataSource>()));
+            RegisterSingleton<IProductRepository>(() => new ProductRepository(GetService<DataSource>()));
+            RegisterSingleton<IProductSerialRepository>(() => new ProductSerialRepository(GetService<DataSource>()));
 
             // Register services
             RegisterSingleton<IAuthService>(() => new AuthService(GetService<IAuthRepository>()));
@@ -53,8 +57,17 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<IPersonService>(() => new PersonService(GetService<IPersonRepository>()));
             RegisterSingleton<IEmployeeService>(() => new EmployeeService(GetService<IEmployeeRepository>()));
             RegisterSingleton<ISupplierService>(() => new SupplierService(GetService<ISupplierRepository>()));
-            RegisterSingleton<IPurchaseOrderService>(() => new PurchaseOrderService(GetService<IPurchaseOrderRepository>(), GetService<IPurchaseOrderLineRepository>()));
-            RegisterSingleton<IBatchesService>(() => new BatchesService(GetService<IBatchesRepository>(), GetService<IBatchProductRepository>(), GetService<IPurchaseOrderRepository>(), GetService<ISupplierRepository>()));
+            RegisterSingleton<IPurchaseOrderService>(() => new PurchaseOrderService(
+                GetService<IPurchaseOrderRepository>(), 
+                GetService<IPurchaseOrderLineRepository>(),
+                GetService<IBatchesRepository>(),
+                GetService<IBatchProductRepository>(),
+                GetService<IProductRepository>()));
+            RegisterSingleton<IBatchesService>(() => new BatchesService(
+                GetService<IBatchesRepository>(), 
+                GetService<IBatchProductRepository>(), 
+                GetService<IPurchaseOrderRepository>(), 
+                GetService<ISupplierRepository>()));
             RegisterSingleton<ILocalStorageService>(() => new LocalStorageService());
 
             // Register UserSession singleton

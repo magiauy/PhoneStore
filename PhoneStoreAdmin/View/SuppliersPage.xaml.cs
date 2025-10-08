@@ -10,6 +10,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using PhoneStoreAdmin.ViewModels;
+using PhoneStoreAdmin.View.Controls;
+using Microsoft.Windows.ApplicationModel.Resources;
+
 namespace PhoneStoreAdmin.View
 {
     public sealed partial class SuppliersPage : Page
@@ -23,9 +26,13 @@ namespace PhoneStoreAdmin.View
         public int TotalRecords { get; set; } = 0;
 
         private bool _isInitialized = false;
+        private ContentDialog? _currentDialog;
+
+        private readonly ResourceLoader _resourceLoader;
 
         public SuppliersPage()
         {
+            this._resourceLoader = new ResourceLoader();
             this.InitializeComponent();
             this.Loaded += SuppliersPage_Loaded;
         }
@@ -76,18 +83,10 @@ namespace PhoneStoreAdmin.View
                 TotalPages = result.Info.TotalPages;
                 TotalRecords = result.Info.TotalRecords;
 
+                // Use existing ViewModels from result.Suppliers
                 foreach (var supplier in result.Suppliers)
                 {
-                    Suppliers.Add(new SupplierViewModel
-                    {
-                        Id = supplier.Id,
-                        Name = supplier.Name,
-                        Phone = supplier.Phone ?? string.Empty,
-                        Email = supplier.Email ?? string.Empty,
-                        Address = supplier.Address ?? string.Empty,
-                        TaxNumber = supplier.TaxNumber ?? string.Empty,
-                        IsActive = supplier.IsActive
-                    });
+                    Suppliers.Add(supplier);
                 }
 
                 // Safely update UI controls with null checks
@@ -176,50 +175,131 @@ namespace PhoneStoreAdmin.View
             await dialog.ShowAsync();
         }
 
-        private void BtnCreate_Click(object sender, RoutedEventArgs e)
+        private async void BtnCreate_Click(object sender, RoutedEventArgs e)
         {
-            ShowErrorDialog("Info", "Create supplier functionality - Coming Soon!");
-        }
+            var supplierDialog = new SupplierDialog();
+            supplierDialog.SetMode(SupplierDialog.DialogMode.Add);
 
-        private void BtnEdit_Click(object sender, RoutedEventArgs e)
-        {
-            var id = (sender as Button)?.Tag?.ToString();
-            if (int.TryParse(id, out int supplierId))
-            {
-                ShowErrorDialog("Info", $"Edit supplier ID: {supplierId} - Coming Soon!");
-            }
-        }
+            var dialog = CreateContentDialog(supplierDialog, "Add Supplier");
+            dialog.PrimaryButtonText = _resourceLoader.GetString("DialogAddSupplier");
+            dialog.CloseButtonText = _resourceLoader.GetString("DialogCancelSupplier");
 
-        private void BtnDetail_Click(object sender, RoutedEventArgs e)
-        {
-            var id = (sender as Button)?.Tag?.ToString();
-            if (int.TryParse(id, out int supplierId))
+            supplierDialog.SupplierSaved += (s, model) =>
             {
-                var supplier = SupplierService.GetSupplierById(supplierId);
-                if (supplier != null)
+                if (model != null)
                 {
-                    var details = $"ID: {supplier.Id}\n" +
-                                  $"Name: {supplier.Name}\n" +
-                                  $"Phone: {supplier.Phone ?? "N/A"}\n" +
-                                  $"Email: {supplier.Email ?? "N/A"}\n" +
-                                  $"Address: {supplier.Address ?? "N/A"}\n" +
-                                  $"Tax Number: {supplier.TaxNumber ?? "N/A"}\n" +
-                                  $"Status: {(supplier.IsActive ? "Active" : "Inactive")}";
-                    ShowErrorDialog("Supplier Details", details);
+                    LoadSuppliers(); // Refresh list
                 }
-            }
+            };
+
+            dialog.PrimaryButtonClick += (s, args) =>
+            {
+                var ctrl = (SupplierDialog)dialog.Content;
+                ctrl.Save();
+
+                if (!ctrl.IsValid())
+                    args.Cancel = true; 
+            };
+
+            _currentDialog = dialog;
+            await dialog.ShowAsync();
         }
 
-        private void BtnActivate_Click(object sender, RoutedEventArgs e)
+        private async void BtnEdit_Click(object sender, RoutedEventArgs e)
         {
-            var id = (sender as Button)?.Tag?.ToString();
-            if (int.TryParse(id, out int supplierId))
+            var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
+            if (!int.TryParse(idStr, out int supplierId)) return;
+
+            var supplier = SupplierService.GetSupplierById(supplierId);
+            if (supplier == null)
+            {
+                ShowErrorDialog("Error", "Supplier not found.");
+                return;
+            }
+
+            var viewModel = new SupplierViewModel(supplier);
+            var supplierDialog = new SupplierDialog();
+            supplierDialog.SetMode(SupplierDialog.DialogMode.Edit, viewModel);
+
+            var dialog = CreateContentDialog(supplierDialog, "Edit Supplier");
+            dialog.PrimaryButtonText = _resourceLoader.GetString("DialogUpdateSupplier");
+            dialog.CloseButtonText = _resourceLoader.GetString("DialogCancelSupplier");
+
+            supplierDialog.SupplierSaved += (s, model) =>
+            {
+                if (model != null) LoadSuppliers();
+            };
+
+            dialog.PrimaryButtonClick += (s, args) =>
+            {
+                var ctrl = (SupplierDialog)dialog.Content;
+                ctrl.Save();
+                if (!ctrl.IsValid()) args.Cancel = true;
+            };
+
+            _currentDialog = dialog;
+            await dialog.ShowAsync();
+        }
+
+        private async void BtnDetail_Click(object sender, RoutedEventArgs e)
+        {
+            var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
+            if (!int.TryParse(idStr, out int supplierId)) return;
+
+            var supplier = SupplierService.GetSupplierById(supplierId);
+            if (supplier == null)
+            {
+                ShowErrorDialog("Error", "Supplier not found.");
+                return;
+            }
+
+            var viewModel = new SupplierViewModel(supplier);
+            var supplierDialog = new SupplierDialog();
+            supplierDialog.SetMode(SupplierDialog.DialogMode.View, viewModel);
+
+            var dialog = CreateContentDialog(supplierDialog, "Supplier Details");
+            dialog.PrimaryButtonText = _resourceLoader.GetString("DialogCloseSupplier");
+            dialog.CloseButtonText = string.Empty;
+
+            supplierDialog.DialogClosed += (s, args) => dialog.Hide();
+
+            _currentDialog = dialog;
+            await dialog.ShowAsync();
+        }
+
+        private ContentDialog CreateContentDialog(ContentControl content, string title)
+        {
+            return new ContentDialog
+            {
+                Title = title,
+                Content = content,
+                XamlRoot = this.XamlRoot,
+                DefaultButton = ContentDialogButton.Primary
+            };
+        }
+
+        private async void BtnActivate_Click(object sender, RoutedEventArgs e)
+        {
+            var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
+            if (!int.TryParse(idStr, out int supplierId)) return;
+
+            var dialog = new ContentDialog
+            {
+                Title = _resourceLoader.GetString("ConfirmActivateSupplierTitle"),
+                Content = _resourceLoader.GetString("ConfirmActivateSupplierContent"),
+                PrimaryButtonText = _resourceLoader.GetString("BtnConfirm"),
+                CloseButtonText = _resourceLoader.GetString("BtnCancel"),
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = this.XamlRoot
+            };
+
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
             {
                 try
                 {
                     SupplierService.ActivateSupplier(supplierId);
                     LoadSuppliers();
-                    ShowErrorDialog("Success", "Supplier activated successfully!");
                 }
                 catch (Exception ex)
                 {
@@ -228,16 +308,28 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private void BtnDeActivate_Click(object sender, RoutedEventArgs e)
+        private async void BtnDeActivate_Click(object sender, RoutedEventArgs e)
         {
-            var id = (sender as Button)?.Tag?.ToString();
-            if (int.TryParse(id, out int supplierId))
+            var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
+            if (!int.TryParse(idStr, out int supplierId)) return;
+
+            var dialog = new ContentDialog
+            {
+                Title = _resourceLoader.GetString("ConfirmDeactivateSupplierTitle"),
+                Content = _resourceLoader.GetString("ConfirmDeactivateSupplierContent"),
+                PrimaryButtonText = _resourceLoader.GetString("BtnConfirm"),
+                CloseButtonText = _resourceLoader.GetString("BtnCancel"),
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = this.XamlRoot
+            };
+
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
             {
                 try
                 {
                     SupplierService.DeactivateSupplier(supplierId);
                     LoadSuppliers();
-                    ShowErrorDialog("Success", "Supplier deactivated successfully!");
                 }
                 catch (Exception ex)
                 {
@@ -263,7 +355,7 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private void BtnLastPage_Click(object sender, RoutedEventArgs e)
+        private void BtnLastPage_Click(object sender, RoutedEventArgs e) // Fixed name from BtnLastPage_Click
         {
             if (CurrentPage > 1)
             {

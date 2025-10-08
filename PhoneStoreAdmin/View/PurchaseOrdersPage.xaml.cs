@@ -227,7 +227,7 @@ namespace PhoneStoreAdmin.View
 
         private void BtnCreate_Click(object sender, RoutedEventArgs e)
         {
-            ShowErrorDialog("Info", "Create purchase order functionality - Coming Soon!");
+            Frame.Navigate(typeof(AddPurchaseOrderPage));
         }
 
         private void BtnEdit_Click(object sender, RoutedEventArgs e)
