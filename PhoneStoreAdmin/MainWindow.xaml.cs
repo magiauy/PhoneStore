@@ -18,6 +18,7 @@ namespace PhoneStoreAdmin
         public MainWindow()
         {
             InitializeComponent();
+            (Application.Current as App)!.CurrentWindow = this;
 
             // Set window icon using logo
             AppWindow.SetIcon("Assets/logo.png");

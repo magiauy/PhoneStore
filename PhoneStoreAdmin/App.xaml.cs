@@ -36,7 +36,12 @@ namespace PhoneStoreAdmin
         /// <summary>
         /// Gets the current application window
         /// </summary>
-        public Window? CurrentWindow => _window;
+        public Window? CurrentWindow
+        {
+            get => _window;
+            set => _window = value;
+        }
+
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
