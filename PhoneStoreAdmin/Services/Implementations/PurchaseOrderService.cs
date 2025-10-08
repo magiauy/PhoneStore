@@ -14,12 +14,23 @@ namespace PhoneStoreAdmin.Services.Implementations
     public class PurchaseOrderService : IPurchaseOrderService
     {
         private readonly IPurchaseOrderRepository _poRepository;
-        private readonly IPurchaseOrderLineRepository _lineRepository;  
+        private readonly IPurchaseOrderLineRepository _lineRepository;
+        private readonly IBatchesRepository _batchesRepository;
+        private readonly IBatchProductRepository _batchProductRepository;
+        private readonly IProductRepository _productRepository;
 
-        public PurchaseOrderService(IPurchaseOrderRepository poRepository, IPurchaseOrderLineRepository lineRepository)
+        public PurchaseOrderService(
+            IPurchaseOrderRepository poRepository, 
+            IPurchaseOrderLineRepository lineRepository,
+            IBatchesRepository batchesRepository,
+            IBatchProductRepository batchProductRepository,
+            IProductRepository productRepository)
         {
             _poRepository = poRepository ?? throw new ArgumentNullException(nameof(poRepository));
             _lineRepository = lineRepository ?? throw new ArgumentNullException(nameof(lineRepository));
+            _batchesRepository = batchesRepository ?? throw new ArgumentNullException(nameof(batchesRepository));
+            _batchProductRepository = batchProductRepository ?? throw new ArgumentNullException(nameof(batchProductRepository));
+            _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         }
 
         public PurchaseOrder? GetById(int id)
@@ -47,16 +58,67 @@ namespace PhoneStoreAdmin.Services.Implementations
             {
                 po.TotalAmount = po.PurchaseOrderLines.Sum(l => l.TotalCost);
                 Logger.Info($"Inserting PurchaseOrder for Supplier {po.SupplierId}");
+                
+                // Insert purchase order
                 _poRepository.Insert(po);
+                
+                // Insert purchase order lines
                 foreach (var line in po.PurchaseOrderLines)
                 {
                     line.PurchaseOrderId = po.Id;
                     _lineRepository.Insert(line);
                 }
+
+                // Create batch automatically
+                CreateBatchForPurchaseOrder(po);
             }
             catch (Exception ex)
             {
                 Logger.Error("Failed to insert PurchaseOrder", ex);
+                throw;
+            }
+        }
+
+        private void CreateBatchForPurchaseOrder(PurchaseOrder po)
+        {
+            try
+            {
+                // Generate batch code: BATCH-POID-YYYYMMDD-HHMMSS
+                var batchCode = $"BATCH-{po.Id}-{DateTime.Now:yyyyMMdd-HHmmss}";
+
+                // Create batch
+                var batch = new Batches
+                {
+                    PurchaseOrderId = po.Id,
+                    BatchCode = batchCode,
+                    CreatedAt = DateTime.Now,
+                    Note = po.Note
+                };
+
+                _batchesRepository.Insert(batch);
+                Logger.Info($"Created batch {batchCode} for PurchaseOrder {po.Id}");
+
+                // Create batch products for each line
+                foreach (var line in po.PurchaseOrderLines)
+                {
+                    var product = _productRepository.GetById(line.ProductId);
+                    
+                    var batchProduct = new BatchProduct
+                    {
+                        BatchId = batch.id,
+                        ProductId = line.ProductId,
+                        Quantity = line.Quantity,
+                        CostPrice = line.UnitCost,
+                        SellingPrice = product.Price
+                    };
+
+                    _batchProductRepository.Insert(batchProduct);
+                    Logger.Info($"Created batch product for Product {line.ProductId} in Batch {batch.id}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to create batch for PurchaseOrder {po.Id}", ex);
                 throw;
             }
         }
@@ -87,13 +149,38 @@ namespace PhoneStoreAdmin.Services.Implementations
             try
             {
                 Logger.Info($"Deleting PurchaseOrder ID {id}");
+                
+                // Delete batches and batch products first
+                var batches = _batchesRepository.GetByPurchaseOrderId(id);
+                foreach (var batch in batches)
+                {
+                    _batchProductRepository.DeleteByBatchId(batch.id);
+                }
+                _batchesRepository.DeleteByPurchaseOrderId(id);
+                
+                // Delete purchase order lines
                 _lineRepository.DeleteByPurchaseOrderId(id);
+                
+                // Delete purchase order
                 _poRepository.Delete(id);
             }
             catch (Exception ex)
             {
                 Logger.Error($"Failed to delete PurchaseOrder {id}", ex);
                 throw;
+            }
+        }
+
+        public int CountAll()
+        {
+            try
+            {
+                return _poRepository.GetTotalRecords(null, null, null, null, null, null, null, null, null);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to count all PurchaseOrders", ex);
+                return 0;
             }
         }
 

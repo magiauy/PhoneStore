@@ -8,6 +8,7 @@
     Background="{StaticResource BrushBackground}"
     mc:Ignorable="d">
     <Page.Resources>
+        <local:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <!--  Shadow Styles  -->
         <ThemeShadow x:Name="SharedShadow" />
         <!--  Card Style  -->
@@ -692,7 +693,7 @@
                                                     <MenuFlyoutItem
                                                         x:Uid="BtnDetailSupplier"
                                                         Click="BtnDetail_Click"
-                                                        Tag="{Binding}">
+                                                        Tag="{Binding Id}">
                                                         <MenuFlyoutItem.Icon>
                                                             <FontIcon Glyph="&#xE8A7;" />
                                                         </MenuFlyoutItem.Icon>
@@ -700,15 +701,26 @@
                                                     <MenuFlyoutItem
                                                         x:Uid="BtnEditSupplier"
                                                         Click="BtnEdit_Click"
-                                                        Tag="{Binding}">
+                                                        Tag="{Binding Id}">
                                                         <MenuFlyoutItem.Icon>
                                                             <FontIcon Glyph="&#xE104;" />
                                                         </MenuFlyoutItem.Icon>
                                                     </MenuFlyoutItem>
                                                     <MenuFlyoutItem
+                                                        x:Uid="BtnActivateSupplier"
+                                                        Click="BtnActivate_Click"
+                                                        Tag="{Binding Id}"
+                                                        Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}">
+                                                        <MenuFlyoutItem.Icon>
+                                                            <FontIcon Glyph="&#xE8FB;" />
+                                                        </MenuFlyoutItem.Icon>
+                                                    </MenuFlyoutItem>
+
+                                                    <MenuFlyoutItem
                                                         x:Uid="BtnDeActivateSupplier"
                                                         Click="BtnDeActivate_Click"
-                                                        Tag="{Binding}">
+                                                        Tag="{Binding Id}"
+                                                        Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=True}">
                                                         <MenuFlyoutItem.Icon>
                                                             <FontIcon Glyph="&#xE711;" />
                                                         </MenuFlyoutItem.Icon>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentDialog
     x:Class="PhoneStoreAdmin.View.Controls.SupplierSelectorDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -6,17 +6,17 @@
     xmlns:local="using:PhoneStoreAdmin.View.Controls"
     xmlns:models="using:PhoneStoreAdmin.Models"
     Title="Select Supplier"
-    PrimaryButtonText="Select"
-    SecondaryButtonText="Cancel"
-    PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
-    SecondaryButtonClick="ContentDialog_SecondaryButtonClick"
-    DefaultButton="Primary"
     Width="1000"
+    Height="640"
     MinWidth="1000"
-    MaxWidth="1700"
     MinHeight="520"
+    MaxWidth="1700"
     MaxHeight="720"
-    Height="640">
+    DefaultButton="Primary"
+    PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
+    PrimaryButtonText="Select"
+    SecondaryButtonClick="ContentDialog_SecondaryButtonClick"
+    SecondaryButtonText="Cancel">
 
     <ContentDialog.Resources>
         <ResourceDictionary>
@@ -64,20 +64,20 @@
 
 
             <!--  Search Box with Icon  -->
-                <TextBox
-                    x:Name="SearchBox"
-                    PlaceholderText="Search suppliers by name, contact..."
-                    Style="{StaticResource DialogSearchBoxStyle}"
-                    TextChanged="SearchBox_TextChanged"                    
-                    HorizontalAlignment="Stretch" />
-                <FontIcon
-                    Margin="12,0,0,0"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
-                    FontSize="16"
-                    Foreground="{StaticResource BrushTextSecondary}"
-                    Glyph="&#xE721;"
-                    IsHitTestVisible="False" />
+            <TextBox
+                x:Name="SearchBox"
+                x:Uid="SearchSupplier"
+                HorizontalAlignment="Stretch"
+                Style="{StaticResource DialogSearchBoxStyle}"
+                TextChanged="SearchBox_TextChanged" />
+            <FontIcon
+                Margin="12,0,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                FontSize="16"
+                Foreground="{StaticResource BrushTextSecondary}"
+                Glyph="&#xE721;"
+                IsHitTestVisible="False" />
 
         </Grid>
 
@@ -93,8 +93,8 @@
                 <ProgressRing
                     Width="48"
                     Height="48"
-                    IsActive="True"
-                    Foreground="{StaticResource BrushPrimary}" />
+                    Foreground="{StaticResource BrushPrimary}"
+                    IsActive="True" />
                 <TextBlock
                     HorizontalAlignment="Center"
                     FontSize="15"
@@ -130,23 +130,22 @@
             <!--  Suppliers ListView  -->
             <ScrollViewer
                 x:Name="SuppliersScrollViewer"
-                VerticalScrollBarVisibility="Auto"
-                HorizontalScrollBarVisibility="Disabled"
+                Height="480"
                 Margin="0"
                 Padding="0"
-                VerticalAlignment="Stretch"
                 HorizontalAlignment="Stretch"
-                Height="480"
-                >
+                VerticalAlignment="Stretch"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
                 <ItemsRepeater x:Name="SuppliersRepeater" Margin="0,0,8,0">
                     <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="models:Supplier">
                             <Border
                                 x:Name="SupplierCard"
                                 DataContext="{x:Bind}"
-                                Style="{StaticResource SupplierCardStyle}"
                                 PointerEntered="SupplierCard_PointerEntered"
                                 PointerExited="SupplierCard_PointerExited"
+                                Style="{StaticResource SupplierCardStyle}"
                                 Tapped="SupplierCard_Tapped">
                                 <Border.RenderTransform>
                                     <ScaleTransform x:Name="CardScaleTransform" CenterX="0" CenterY="0" ScaleX="1" ScaleY="1" />
@@ -174,7 +173,10 @@
                                     </Border>
 
                                     <!--  Supplier Info  -->
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                    <StackPanel
+                                        Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Spacing="4">
                                         <TextBlock
                                             FontSize="16"
                                             FontWeight="SemiBold"
