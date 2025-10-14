@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using PhoneStoreAdmin.Helpers;
 
 namespace PhoneStoreAdmin.View.Controls
 {
@@ -14,9 +15,9 @@ namespace PhoneStoreAdmin.View.Controls
         /// Show loading overlay with optional custom message
         /// </summary>
         /// <param name="message">Loading message to display</param>
-        public void Show(string message = "Đang tải...")
+        public void Show(string? message = null)
         {
-            LoadingText.Text = message;
+            LoadingText.Text = message ?? LocalizationHelper.GetString("Loading");
             LoadingRing.IsActive = true;
             RootGrid.Visibility = Visibility.Visible;
         }

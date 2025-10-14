@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="PhoneStoreAdmin.View.AccountEditPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PhoneStoreAdmin.View"
+    Background="{StaticResource BrushBackground}">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Theme/Colors.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <ThemeShadow x:Key="SharedShadow"/>
+
+            <Style x:Key="CardStyle" TargetType="Border">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <SolidColorBrush Color="{StaticResource ColorSurface}" Opacity="0.95"/>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="12"/>
+            </Style>
+
+            <!-- Custom BreadCrumb Style with Gradient -->
+            <Style x:Key="GradientBreadCrumbStyle" TargetType="BreadcrumbBar">
+                <Setter Property="FontSize" Value="36"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+            </Style>
+
+            <LinearGradientBrush x:Key="BreadCrumbGradient" StartPoint="0,0" EndPoint="1,0">
+                <GradientStop Color="{StaticResource ColorPrimary}" Offset="0"/>
+                <GradientStop Color="{StaticResource ColorAccent}" Offset="1"/>
+            </LinearGradientBrush>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Gradient background similar to accounts list page -->
+        <Grid Grid.RowSpan="2">
+            <Rectangle>
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="{StaticResource ColorBackground}" Offset="0"/>
+                        <GradientStop Color="#FFF0F2FF" Offset="0.5"/>
+                        <GradientStop Color="#FFE8ECFF" Offset="1"/>
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <Grid>
+                <Ellipse Width="360" Height="360"
+                         HorizontalAlignment="Left"
+                         VerticalAlignment="Top"
+                         Margin="-180,-120,0,0"
+                         Opacity="0.1">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="{StaticResource ColorPrimary}" Offset="0"/>
+                            <GradientStop Color="{StaticResource ColorPrimaryLight}" Offset="1"/>
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+
+                <Ellipse Width="280" Height="280"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Bottom"
+                         Margin="0,0,-140,-140"
+                         Opacity="0.1">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="{StaticResource ColorAccent}" Offset="0"/>
+                            <GradientStop Color="Transparent" Offset="1"/>
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+            </Grid>
+        </Grid>
+
+        <!-- Header with BreadCrumb as Page Title -->
+        <Border Grid.Row="0"
+                Margin="32,32,32,24"
+                Style="{StaticResource CardStyle}"
+                Shadow="{StaticResource SharedShadow}">
+            <Grid Padding="32,24">
+                <StackPanel Orientation="Vertical" Spacing="8">
+                    <!-- BreadCrumb với Gradient liền và Cursor phù hợp -->
+                    <RichTextBlock IsTextSelectionEnabled="False" VerticalAlignment="Center">
+                        <Paragraph LineHeight="48" LineStackingStrategy="BlockLineHeight">
+                            <Hyperlink x:Name="BreadcrumbHomeLink"
+                                      Click="BreadcrumbHome_Click"
+                                      UnderlineStyle="None">
+                                <Run x:Name="BreadcrumbHomeText"
+                                     Text="Quản lý tài khoản" 
+                                     FontSize="36" 
+                                     FontWeight="Bold">
+                                    <Run.Foreground>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="{StaticResource ColorPrimary}" Offset="0"/>
+                                            <GradientStop Color="{StaticResource ColorAccent}" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Run.Foreground>
+                                </Run>
+                            </Hyperlink>
+                            <Run Text=" › " 
+                                 FontSize="36" 
+                                 FontWeight="Bold"
+                                 Foreground="{StaticResource BrushTextSecondary}"/>
+                            <Run x:Name="BreadcrumbCurrentText"
+                                 Text="Chỉnh sửa tài khoản" 
+                                 FontSize="36" 
+                                 FontWeight="Bold">
+                                <Run.Foreground>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="{StaticResource ColorPrimary}" Offset="0"/>
+                                        <GradientStop Color="{StaticResource ColorAccent}" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Run.Foreground>
+                            </Run>
+                        </Paragraph>
+                    </RichTextBlock>
+                    
+                    <TextBlock x:Name="SubtitleTextBlock"
+                               FontSize="16"
+                               Foreground="{StaticResource BrushTextSecondary}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Content -->
+        <Border Grid.Row="1"
+                Margin="32,0,32,32"
+                Style="{StaticResource CardStyle}"
+                Shadow="{StaticResource SharedShadow}">
+            <ScrollViewer Padding="28">
+                <StackPanel Spacing="24">
+                    <!-- Section 1: Basic Information -->
+                    <Border Background="{StaticResource BrushSurface}"
+                            Padding="28"
+                            CornerRadius="16"
+                            BorderBrush="{StaticResource BrushBorder}"
+                            BorderThickness="1"
+                            Shadow="{StaticResource SharedShadow}">
+                        <StackPanel Spacing="20">
+                            <!-- Section Header -->
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <FontIcon Glyph="&#xE77B;"
+                                          FontSize="24"
+                                          Foreground="{StaticResource BrushPrimary}"/>
+                                <TextBlock x:Uid="AccountEdit_BasicInfoSection"
+                                           Text="Thông tin cơ bản"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource BrushText}"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <Rectangle Height="1"
+                                       Fill="{StaticResource BrushBorder}"
+                                       Opacity="0.5"/>
+
+                            <TextBox x:Name="UsernameTextBox"
+                                     x:Uid="AccountEdit_UsernameTextBox"
+                                     Header="Tên đăng nhập"
+                                     PlaceholderText="Nhập tên đăng nhập"
+                                     HorizontalAlignment="Stretch"/>
+
+                            <TextBox x:Name="FullNameTextBox"
+                                     x:Uid="AccountEdit_FullNameTextBox"
+                                     Header="Họ và tên"
+                                     PlaceholderText="Nhập họ và tên"
+                                     HorizontalAlignment="Stretch"/>
+
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox x:Name="EmailTextBox"
+                                         x:Uid="AccountEdit_EmailTextBox"
+                                         Grid.Column="0"
+                                         Header="Email"
+                                         PlaceholderText="example@email.com"
+                                         HorizontalAlignment="Stretch"/>
+
+                                <TextBox x:Name="PhoneTextBox"
+                                         x:Uid="AccountEdit_PhoneTextBox"
+                                         Grid.Column="1"
+                                         Header="Số điện thoại"
+                                         PlaceholderText="0REMOVED_SECRET789"
+                                         HorizontalAlignment="Stretch"/>
+                            </Grid>
+
+                            <ToggleSwitch x:Name="IsActiveToggle"
+                                          x:Uid="AccountEdit_IsActiveToggle"
+                                          Header="Trạng thái hoạt động"
+                                          OnContent="Đang hoạt động"
+                                          OffContent="Đã vô hiệu hóa"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Section 2: Security -->
+                    <Border Background="{StaticResource BrushSurface}"
+                            Padding="28"
+                            CornerRadius="16"
+                            BorderBrush="{StaticResource BrushBorder}"
+                            BorderThickness="1"
+                            Shadow="{StaticResource SharedShadow}">
+                        <StackPanel Spacing="20">
+                            <!-- Section Header -->
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <FontIcon Glyph="&#xE72E;"
+                                          FontSize="24"
+                                          Foreground="{StaticResource BrushPrimary}"/>
+                                <TextBlock x:Uid="AccountEdit_SecuritySection"
+                                           Text="Bảo mật"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource BrushText}"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <Rectangle Height="1"
+                                       Fill="{StaticResource BrushBorder}"
+                                       Opacity="0.5"/>
+
+                            <PasswordBox x:Name="PasswordBox"
+                                         x:Uid="AccountEdit_PasswordBox"
+                                         Header="Mật khẩu mới (tùy chọn)"
+                                         PlaceholderText="Nhập mật khẩu mới"
+                                         Description="Để trống nếu không muốn thay đổi mật khẩu"/>
+
+                            <PasswordBox x:Name="ConfirmPasswordBox"
+                                         x:Uid="AccountEdit_ConfirmPasswordBox"
+                                         Header="Xác nhận mật khẩu"
+                                         PlaceholderText="Nhập lại mật khẩu"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Section 3: Roles and Permissions -->
+                    <Border Background="{StaticResource BrushSurface}"
+                            Padding="28"
+                            CornerRadius="16"
+                            BorderBrush="{StaticResource BrushBorder}"
+                            BorderThickness="1"
+                            Shadow="{StaticResource SharedShadow}">
+                        <StackPanel Spacing="20">
+                            <!-- Section Header -->
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <FontIcon Glyph="&#xE902;"
+                                          FontSize="24"
+                                          Foreground="{StaticResource BrushPrimary}"/>
+                                <TextBlock x:Uid="AccountEdit_RolesSection"
+                                           Text="Vai trò và quyền hạn"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource BrushText}"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <Rectangle Height="1"
+                                       Fill="{StaticResource BrushBorder}"
+                                       Opacity="0.5"/>
+
+                            <StackPanel Spacing="12">
+                                <TextBlock x:Uid="AccountEdit_AssignedRolesLabel"
+                                           Text="Các vai trò được gán"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource BrushTextSecondary}"/>
+                                
+                                <Border Background="{StaticResource BrushBackgroundSecondary}"
+                                        Padding="16"
+                                        CornerRadius="8"
+                                        BorderBrush="{StaticResource BrushBorder}"
+                                        BorderThickness="1">
+                                    <TextBlock x:Name="SelectedRolesTextBlock"
+                                               TextWrapping="Wrap"
+                                               Foreground="{StaticResource BrushText}"
+                                               Text="Chưa chọn vai trò nào"/>
+                                </Border>
+                                
+                                <Button x:Name="SelectRolesButton"
+                                        Content="Chọn vai trò"
+                                        Style="{ThemeResource AccentButtonStyle}"
+                                        Click="SelectRolesButton_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Grid Background="{TemplateBinding Background}"
+                                                  CornerRadius="8"
+                                                  Padding="16,10">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <FontIcon Glyph="&#xE710;" FontSize="16"/>
+                                                    <TextBlock Text="{TemplateBinding Content}"
+                                                               VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <InfoBar x:Name="ErrorInfoBar"
+                             Severity="Error"
+                             IsOpen="False"
+                             Margin="0,0,0,8"/>
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Spacing="12">
+                        <Button x:Name="SaveButton"
+                                Style="{ThemeResource AccentButtonStyle}"
+                                Click="SaveButton_Click"/>
+                        <Button x:Name="CancelButton"
+                                Click="CancelButton_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Page>

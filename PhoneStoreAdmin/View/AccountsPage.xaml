@@ -208,7 +208,7 @@
                 Shadow="{StaticResource SharedShadow}">
             <Grid Padding="32,24">
                 <StackPanel Orientation="Vertical" Spacing="8">
-                    <TextBlock Text="Quản lý tài khoản" 
+                    <TextBlock x:Uid="Accounts_PageTitle" 
                               FontSize="36"
                               FontWeight="Bold">
                         <TextBlock.Foreground>
@@ -218,7 +218,7 @@
                             </LinearGradientBrush>
                         </TextBlock.Foreground>
                     </TextBlock>
-                    <TextBlock Text="Thêm, sửa, xóa và quản lý trạng thái tài khoản người dùng" 
+                    <TextBlock x:Uid="Accounts_PageDescription" 
                               FontSize="16"
                               Foreground="{StaticResource BrushTextSecondary}"/>
                 </StackPanel>
@@ -246,6 +246,7 @@
 
                     <!-- Active Tab: Danh sách tài khoản -->
                     <Button x:Name="AccountsListTab"
+                            x:Uid="Accounts_TabAccountsList"
                             Grid.Column="0"
                             Style="{StaticResource TabButtonStyle}"
                             Click="AccountsListTab_Click"
@@ -254,21 +255,20 @@
                         <Button.Background>
                             <SolidColorBrush Color="#dbeafe"/>
                         </Button.Background>
-                        <TextBlock Text="Danh sách tài khoản" 
-                                  FontSize="15"
+                        <TextBlock FontSize="15"
                                   FontWeight="SemiBold"
                                   Foreground="{StaticResource BrushPrimary}"/>
                     </Button>
                     
                     <!-- Inactive Tab: Nhân viên chưa có tài khoản -->
                     <Button x:Name="EmployeesWithoutAccountTab"
+                            x:Uid="Accounts_TabEmployeesWithoutAccount"
                             Grid.Column="1"
                             Style="{StaticResource TabButtonStyle}"
                             Click="EmployeesWithoutAccountTab_Click"
                             Background="Transparent"
                             CornerRadius="0,12,12,0">
-                        <TextBlock Text="Nhân viên chưa có tài khoản" 
-                                  FontSize="15"
+                        <TextBlock FontSize="15"
                                   FontWeight="Normal"
                                   Foreground="{StaticResource BrushTextSecondary}"/>
                     </Button>
@@ -316,8 +316,8 @@
 
                             <!-- Search Box -->
                             <AutoSuggestBox x:Name="SearchBox"
+                                           x:Uid="Accounts_SearchBox"
                                            Grid.Column="0"
-                                           PlaceholderText="Tìm kiếm theo tên đăng nhập..."
                                            QueryIcon="Find"
                                            Background="{StaticResource BrushBackground}"
                                            BorderBrush="{StaticResource BrushBorder}"
@@ -376,9 +376,9 @@
                             <!-- Filter and Refresh Buttons -->
                             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
                                 <Button x:Name="FilterButton"
+                                        x:Uid="Accounts_FilterButton"
                                         Style="{StaticResource SecondaryButtonStyle}"
                                         Padding="10,8"
-                                        ToolTipService.ToolTip="Lọc"
                                         Click="FilterButton_Click">
                                     <Grid>
                                         <FontIcon Glyph="&#xE16E;" FontSize="16" Foreground="{StaticResource BrushText}"/>
@@ -401,9 +401,9 @@
                                 </Button>
 
                                 <Button x:Name="RefreshButton"
+                                        x:Uid="Accounts_RefreshButton"
                                         Style="{StaticResource SecondaryButtonStyle}"
                                         Padding="10,8"
-                                        ToolTipService.ToolTip="Làm mới"
                                         Click="RefreshButton_Click">
                                     <FontIcon Glyph="&#xE72C;" FontSize="16" Foreground="{StaticResource BrushText}"/>
                                 </Button>
@@ -434,38 +434,38 @@
                                 <ColumnDefinition Width="80"/>
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Column="0" Text="ID" 
+                            <TextBlock x:Uid="Accounts_HeaderId" Grid.Column="0" 
                                       Foreground="{StaticResource BrushTextSecondary}" 
                                       FontWeight="SemiBold"
                                       FontSize="13"
                                        Padding="28 0 0 0"
                                       VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="TÊN ĐĂNG NHẬP" 
+                            <TextBlock x:Uid="Accounts_HeaderUsername" Grid.Column="1" 
                                       Foreground="{StaticResource BrushTextSecondary}" 
                                       FontWeight="SemiBold"
                                       FontSize="13"
                                       VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="2" Text="HỌ VÀ TÊN" 
+                            <TextBlock x:Uid="Accounts_HeaderFullName" Grid.Column="2" 
                                       Foreground="{StaticResource BrushTextSecondary}" 
                                       FontWeight="SemiBold"
                                       FontSize="13"
                                       VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="3" Text="TRẠNG THÁI" 
+                            <TextBlock x:Uid="Accounts_HeaderStatus" Grid.Column="3" 
                                       Foreground="{StaticResource BrushTextSecondary}" 
                                       FontWeight="SemiBold"
                                       FontSize="13"
                                       VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="4" Text="NGÀY TẠO" 
+                            <TextBlock x:Uid="Accounts_HeaderCreatedDate" Grid.Column="4" 
                                       Foreground="{StaticResource BrushTextSecondary}" 
                                       FontWeight="SemiBold"
                                       FontSize="13"
                                       VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="5" Text="ĐĂNG NHẬP CUỐI" 
+                            <TextBlock x:Uid="Accounts_HeaderLastLogin" Grid.Column="5" 
                                       Foreground="{StaticResource BrushTextSecondary}" 
                                       FontWeight="SemiBold"
                                       FontSize="13"
                                       VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="6" Text="HÀNH ĐỘNG" 
+                            <TextBlock x:Uid="Accounts_HeaderActions" Grid.Column="6" 
                                       Foreground="{StaticResource BrushTextSecondary}" 
                                       FontWeight="SemiBold"
                                       FontSize="13"
@@ -612,20 +612,29 @@
 
                                         <!-- Actions Button -->
                                         <Button Grid.Column="7"
-                                               Background="Transparent"
-                                               BorderThickness="0"
-                                               VerticalAlignment="Center"
-                                               HorizontalAlignment="Center"
-                                               Width="36" Height="36"
-                                               CornerRadius="8"
-                                               Click="ActionsButton_Click"
-                                               Tag="{Binding}">
-                                            <FontIcon Glyph="&#xE712;" 
-                                                     FontSize="16" 
-                                                     Foreground="{StaticResource BrushTextSecondary}"/>
-                                            <ToolTipService.ToolTip>
-                                                <ToolTip Content="Thao tác" Placement="Left"/>
-                                            </ToolTipService.ToolTip>
+                                                x:Uid="Accounts_ActionsButton"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                VerticalAlignment="Center"
+                                                HorizontalAlignment="Center"
+                                                Width="36" Height="36"
+                                                CornerRadius="8"
+                                                Click="ActionsButton_Click"
+                                                Tag="{Binding}">
+                                            <FlyoutBase.AttachedFlyout>
+                                                <MenuFlyout>
+                                                    <MenuFlyoutItem x:Uid="Accounts_EditMenuItem"
+                                                                    Tag="{Binding}"
+                                                                    Click="EditAccountMenuItem_Click">
+                                                        <MenuFlyoutItem.Icon>
+                                                            <FontIcon Glyph="&#xE70F;"/>
+                                                        </MenuFlyoutItem.Icon>
+                                                    </MenuFlyoutItem>
+                                                </MenuFlyout>
+                                            </FlyoutBase.AttachedFlyout>
+                                            <FontIcon Glyph="&#xE712;"
+                                                      FontSize="16"
+                                                      Foreground="{StaticResource BrushTextSecondary}"/>
                                         </Button>
                                     </Grid>
                                 </DataTemplate>
@@ -650,12 +659,12 @@
                                          Glyph="&#xE77B;"/>
                             </Border>
                             <StackPanel HorizontalAlignment="Center" Spacing="8">
-                                <TextBlock Text="Không có tài khoản nào"
+                                <TextBlock x:Uid="Accounts_EmptyStateTitle"
                                           HorizontalAlignment="Center"
                                           FontSize="24"
                                           FontWeight="SemiBold"
                                           Foreground="{StaticResource BrushText}"/>
-                                <TextBlock Text="Danh sách tài khoản đang trống. Vui lòng thêm tài khoản mới hoặc kiểm tra lại bộ lọc."
+                                <TextBlock x:Uid="Accounts_EmptyStateMessage"
                                           HorizontalAlignment="Center"
                                           FontSize="16"
                                           Foreground="{StaticResource BrushTextSecondary}"
@@ -693,7 +702,6 @@
                                        CornerRadius="16"
                                        Padding="16,8">
                                     <TextBlock x:Name="RecordCountText"
-                                              Text="Hiển thị 0 / 0 tài khoản"
                                               Foreground="{StaticResource BrushPrimary}"
                                               FontSize="14"
                                               FontWeight="SemiBold"/>
@@ -717,7 +725,6 @@
                                        Padding="20,10"
                                        VerticalAlignment="Center">
                                     <TextBlock x:Name="PageInfoText" 
-                                              Text="Trang 1 / 1"
                                               Foreground="{StaticResource BrushPrimary}"
                                               FontSize="14"
                                               FontWeight="Bold"/>
@@ -735,9 +742,9 @@
                         </Grid>
                     </Border>
                     
-                    <!-- Loading Overlay for Table only -->
-                    <controls:LoadingOverlay x:Name="LoadingOverlay" 
-                                            Grid.RowSpan="4"/>
+                    <!-- Loading Overlay covering table content only -->
+                    <controls:LoadingOverlay x:Name="LoadingOverlay"
+                                            Grid.Row="2"/>
                 </Grid>
             </Border>
 
@@ -781,12 +788,12 @@
                                         </LinearGradientBrush>
                                     </Border.Background>
                                     <StackPanel Spacing="12">
-                                        <TextBlock Text="Danh sách nhân viên"
+                                        <TextBlock x:Uid="Accounts_EmployeeListTitle"
                                                   FontSize="16"
                                                   FontWeight="SemiBold"
                                                   Foreground="{StaticResource BrushText}"/>
                                         <AutoSuggestBox x:Name="EmployeeSearchBox"
-                                                       PlaceholderText="Tìm kiếm nhân viên..."
+                                                       x:Uid="Accounts_EmployeeSearchBox"
                                                        QueryIcon="Find"
                                                        Background="{StaticResource BrushSurface}"
                                                        BorderBrush="{StaticResource BrushBorder}"
@@ -834,7 +841,7 @@
                                                               FontSize="13"
                                                               Foreground="{StaticResource BrushTextSecondary}"
                                                               Margin="0,0,0,6">
-                                                        <Run Text="Mã NV:"/>
+                                                        <Run x:Uid="Accounts_EmployeeCodeLabel"/>
                                                         <Run Text="{Binding EmployeeCode}" FontWeight="Medium"/>
                                                     </TextBlock>
 
@@ -876,7 +883,7 @@
                                              FontSize="64"
                                              Foreground="{StaticResource BrushTextSecondary}"
                                              Opacity="0.5"/>
-                                    <TextBlock Text="Tất cả nhân viên đã có tài khoản"
+                                    <TextBlock x:Uid="Accounts_AllEmployeesHaveAccount"
                                               FontSize="16"
                                               FontWeight="SemiBold"
                                               Foreground="{StaticResource BrushTextSecondary}"
@@ -899,21 +906,19 @@
                                                Spacing="24"
                                                Visibility="Collapsed">
                                         <!-- Form Header -->
-                                        <TextBlock Text="Thêm tài khoản mới"
+                                        <TextBlock x:Uid="Accounts_FormTitle"
                                                   FontSize="20"
                                                   FontWeight="Bold"
                                                   Foreground="{StaticResource BrushPrimary}"/>
 
                                     <!-- Username -->
                                     <StackPanel Spacing="8">
-                                        <TextBlock FontSize="14"
+                                        <TextBlock x:Uid="Accounts_UsernameLabel"
+                                                  FontSize="14"
                                                   FontWeight="SemiBold"
-                                                  Foreground="{StaticResource BrushText}">
-                                            <Run Text="Tên đăng nhập"/>
-                                            <Run Text=" *" Foreground="#dc3545"/>
-                                        </TextBlock>
+                                                  Foreground="{StaticResource BrushText}"/>
                                         <TextBox x:Name="UsernameTextBox"
-                                                PlaceholderText="Nhập tên đăng nhập"
+                                                x:Uid="Accounts_UsernameInput"
                                                 BorderBrush="{StaticResource BrushBorder}"
                                                 BorderThickness="1"
                                                 CornerRadius="8"
@@ -922,14 +927,12 @@
 
                                     <!-- Password -->
                                     <StackPanel Spacing="8">
-                                        <TextBlock FontSize="14"
+                                        <TextBlock x:Uid="Accounts_PasswordLabel"
+                                                  FontSize="14"
                                                   FontWeight="SemiBold"
-                                                  Foreground="{StaticResource BrushText}">
-                                            <Run Text="Mật khẩu"/>
-                                            <Run Text=" *" Foreground="#dc3545"/>
-                                        </TextBlock>
+                                                  Foreground="{StaticResource BrushText}"/>
                                         <PasswordBox x:Name="AccountPasswordBox"
-                                                    PlaceholderText="Nhập mật khẩu"
+                                                    x:Uid="Accounts_PasswordInput"
                                                     BorderBrush="{StaticResource BrushBorder}"
                                                     BorderThickness="1"
                                                     CornerRadius="8"
@@ -938,14 +941,12 @@
 
                                     <!-- Confirm Password -->
                                     <StackPanel Spacing="8">
-                                        <TextBlock FontSize="14"
+                                        <TextBlock x:Uid="Accounts_ConfirmPasswordLabel"
+                                                  FontSize="14"
                                                   FontWeight="SemiBold"
-                                                  Foreground="{StaticResource BrushText}">
-                                            <Run Text="Xác nhận mật khẩu"/>
-                                            <Run Text=" *" Foreground="#dc3545"/>
-                                        </TextBlock>
+                                                  Foreground="{StaticResource BrushText}"/>
                                         <PasswordBox x:Name="AccountConfirmPasswordBox"
-                                                    PlaceholderText="Nhập lại mật khẩu"
+                                                    x:Uid="Accounts_ConfirmPasswordInput"
                                                     BorderBrush="{StaticResource BrushBorder}"
                                                     BorderThickness="1"
                                                     CornerRadius="8"
@@ -954,24 +955,41 @@
 
                                     <!-- Role Selection -->
                                     <StackPanel Spacing="8">
-                                        <TextBlock FontSize="14"
+                                        <TextBlock x:Uid="Accounts_RoleLabel"
+                                                  FontSize="14"
                                                   FontWeight="SemiBold"
-                                                  Foreground="{StaticResource BrushText}">
-                                            <Run Text="Vai trò"/>
-                                            <Run Text=" *" Foreground="#dc3545"/>
-                                        </TextBlock>
-                                        <ComboBox x:Name="RoleComboBox"
-                                                 PlaceholderText="Chọn vai trò..."
-                                                 HorizontalAlignment="Stretch"
-                                                 BorderBrush="{StaticResource BrushBorder}"
-                                                 BorderThickness="1"
-                                                 CornerRadius="8"
-                                                 Padding="12"/>
+                                                  Foreground="{StaticResource BrushText}"/>
+                                        <Button x:Name="SelectRolesButton"
+                                               Click="SelectRolesButton_Click"
+                                               HorizontalAlignment="Stretch"
+                                               HorizontalContentAlignment="Left"
+                                               BorderBrush="{StaticResource BrushBorder}"
+                                               BorderThickness="1"
+                                               Background="{StaticResource BrushSurface}"
+                                               CornerRadius="8"
+                                               Padding="12"
+                                               Height="42">
+                                            <Grid Height="40" VerticalAlignment="Center">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock x:Name="SelectedRolesText"
+                                                          Grid.Column="0"
+                                                          FontSize="14"
+                                                          Foreground="{StaticResource BrushTextSecondary}"
+                                                          VerticalAlignment="Center"/>
+                                                <FontIcon Grid.Column="1"
+                                                         Glyph="&#xE76C;"
+                                                         FontSize="12"
+                                                         Foreground="{StaticResource BrushTextSecondary}"/>
+                                            </Grid>
+                                        </Button>
                                     </StackPanel>
 
                                     <!-- Active Account Checkbox -->
                                     <CheckBox x:Name="ActivateAccountCheckBox"
-                                             Content="Kích hoạt tài khoản ngay"
+                                             x:Uid="Accounts_ActivateCheckbox"
                                              IsChecked="True"
                                              FontSize="14"
                                              Margin="0,8,0,0"/>
@@ -992,7 +1010,6 @@
 
                                         <Button x:Name="CreateAccountButton"
                                                Grid.Column="0"
-                                               Content="Thêm"
                                                Click="CreateAccountButton_Click"
                                                HorizontalAlignment="Stretch"
                                                Style="{StaticResource AccentButtonStyle}"
@@ -1002,7 +1019,6 @@
 
                                         <Button x:Name="CancelButton"
                                                Grid.Column="2"
-                                               Content="Hủy"
                                                Click="CancelButton_Click"
                                                HorizontalAlignment="Stretch"
                                                Style="{StaticResource SecondaryButtonStyle}"
@@ -1021,7 +1037,7 @@
                                                  FontSize="64"
                                                  Foreground="{StaticResource BrushTextSecondary}"
                                                  Opacity="0.5"/>
-                                        <TextBlock Text="Chọn nhân viên để tạo tài khoản"
+                                        <TextBlock x:Uid="Accounts_SelectEmployeePrompt"
                                                   FontSize="16"
                                                   FontWeight="SemiBold"
                                                   Foreground="{StaticResource BrushTextSecondary}"

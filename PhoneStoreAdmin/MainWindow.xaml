@@ -56,10 +56,15 @@
                     Icon="PreviewLink"
                     Tag="Batches" />
                 <NavigationViewItem
+                    x:Uid="MenuAccount"
                     x:Name="AccountsNavItem"
-                    Content="Tài khoản"
                     Icon="People"
                     Tag="Accounts" />
+                <NavigationViewItem
+                    x:Uid="MenuRoles"
+                    x:Name="RolesNavItem"
+                    Icon="Permissions"
+                    Tag="Roles" />
             </NavigationView.MenuItems>
 
             <Frame
