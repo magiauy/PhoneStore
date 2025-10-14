@@ -77,5 +77,20 @@ namespace PhoneStoreAdmin.Services.Interfaces
         /// <param name="account">Account to add (includes Employee or Customer)</param>
         /// <returns>ID of created account, or 0 if failed</returns>
         Task<int> AddAccountAsync(Account account);
+
+        /// <summary>
+        /// Update an existing account
+        /// </summary>
+        /// <param name="account">Account with updated fields</param>
+        /// <returns>True if update succeeded, false otherwise</returns>
+        Task<bool> UpdateAccountAsync(Account account);
+
+        /// <summary>
+        /// Replace the list of role ids assigned to an account
+        /// </summary>
+        /// <param name="accountId">Account ID</param>
+        /// <param name="roleIds">Collection of role IDs to assign</param>
+        /// <returns>True if update succeeded, false otherwise</returns>
+        Task<bool> UpdateAccountRolesAsync(int accountId, IEnumerable<int> roleIds);
     }
 }

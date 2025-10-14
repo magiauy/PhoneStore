@@ -71,6 +71,13 @@ namespace PhoneStoreAdmin.Repositories.Interfaces
         Task UpdateAsync(Account entity);
 
         /// <summary>
+        /// Replace roles assigned to account
+        /// </summary>
+        /// <param name="accountId">Account id</param>
+        /// <param name="roleIds">Collection of role ids to assign</param>
+        Task UpdateRolesAsync(int accountId, IEnumerable<int> roleIds);
+
+        /// <summary>
         /// Delete account async
         /// </summary>
         /// <param name="id">Account ID to delete</param>

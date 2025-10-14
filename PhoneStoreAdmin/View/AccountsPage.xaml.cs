@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
@@ -11,11 +12,16 @@ using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Utils;
+using Microsoft.Windows.ApplicationModel.Resources;
+using PhoneStoreAdmin.Helpers;
 
 namespace PhoneStoreAdmin.View
 {
     public sealed partial class AccountsPage : Page
     {
+        // ResourceLoader for localization
+        private readonly ResourceLoader _resourceLoader = new();
+        
         // ObservableCollection để bind với ListView
         public ObservableCollection<AccountViewModel> Accounts { get; set; }
         public ObservableCollection<EmployeeViewModel> EmployeesWithoutAccount { get; set; }
@@ -42,6 +48,9 @@ namespace PhoneStoreAdmin.View
         
         // Selected employee for account creation
         private Employee? _selectedEmployee;
+        
+        // Selected role IDs for account creation
+        private List<int> _selectedRoleIds = new();
         
         // All employees for filtering
         private List<EmployeeViewModel> _allEmployees = new();
@@ -73,6 +82,29 @@ namespace PhoneStoreAdmin.View
                 ?? throw new InvalidOperationException("AccountService not registered");
             _employeeService = ServiceContainer.GetService<IEmployeeService>()
                 ?? throw new InvalidOperationException("EmployeeService not registered");
+            
+            // Initialize localized strings
+            InitializeLocalizedStrings();
+        }
+        
+        private void InitializeLocalizedStrings()
+        {
+            // Set ToolTip content for pagination buttons
+            ToolTipService.SetToolTip(PreviousPageButton, _resourceLoader.GetString("Common/PreviousPage"));
+            ToolTipService.SetToolTip(NextPageButton, _resourceLoader.GetString("Common/NextPage"));
+            
+            // Set Button content
+            CreateAccountButton.Content = _resourceLoader.GetString("Common/Create");
+            CancelButton.Content = _resourceLoader.GetString("Common/Cancel");
+            
+            // Set initial text for dynamic elements
+            RecordCountText.Text = string.Format(
+                _resourceLoader.GetString("Accounts_RecordCount"), 
+                0, 0);
+            PageInfoText.Text = string.Format(
+                _resourceLoader.GetString("Accounts_PageInfo"), 
+                1, 1);
+            SelectedRolesText.Text = _resourceLoader.GetString("Accounts_SelectRolesPlaceholder");
         }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)
@@ -139,7 +171,7 @@ namespace PhoneStoreAdmin.View
             if (button.Content is TextBlock textBlock)
             {
                 textBlock.Foreground = isActive 
-                    ? (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BrushPrimary"]
+                    ? (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BrushTextPrimary"]
                     : (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BrushTextSecondary"];
                 textBlock.FontWeight = isActive 
                     ? Microsoft.UI.Text.FontWeights.SemiBold 
@@ -229,12 +261,13 @@ namespace PhoneStoreAdmin.View
             if (_currentFilterCriteria.Status != "All")
             {
                 var statusLabel = _currentFilterCriteria.Status == "Activated" 
-                    ? "Đã kích hoạt" 
-                    : "Chưa kích hoạt";
+                    ? LocalizationHelper.GetString("Accounts_Status_Activated")
+                    : LocalizationHelper.GetString("Accounts_Status_Deactivated");
+                var filterLabel = string.Format(LocalizationHelper.GetString("Accounts_Filter_Status"), statusLabel);
                 FilterTags.Add(new FilterTag 
                 { 
                     Key = "Status", 
-                    Label = $"Trạng thái: {statusLabel}" 
+                    Label = filterLabel
                 });
             }
 
@@ -242,12 +275,13 @@ namespace PhoneStoreAdmin.View
             if (_currentFilterCriteria.AccountType != "All")
             {
                 var typeLabel = _currentFilterCriteria.AccountType == "Employee" 
-                    ? "Nhân viên" 
-                    : "Khách hàng";
+                    ? LocalizationHelper.GetString("Accounts_Type_Employee")
+                    : LocalizationHelper.GetString("Accounts_Type_Customer");
+                var filterLabel = string.Format(LocalizationHelper.GetString("Accounts_Filter_Type"), typeLabel);
                 FilterTags.Add(new FilterTag 
                 { 
                     Key = "AccountType", 
-                    Label = $"Loại: {typeLabel}" 
+                    Label = filterLabel
                 });
             }
 
@@ -256,10 +290,11 @@ namespace PhoneStoreAdmin.View
             {
                 var from = _currentFilterCriteria.CreatedFrom?.ToString("dd/MM/yyyy") ?? "...";
                 var to = _currentFilterCriteria.CreatedTo?.ToString("dd/MM/yyyy") ?? "...";
+                var filterLabel = string.Format(LocalizationHelper.GetString("Accounts_Filter_CreatedDate"), from, to);
                 FilterTags.Add(new FilterTag 
                 { 
                     Key = "CreatedDate", 
-                    Label = $"Ngày tạo: {from} - {to}" 
+                    Label = filterLabel
                 });
             }
 
@@ -269,17 +304,18 @@ namespace PhoneStoreAdmin.View
                 FilterTags.Add(new FilterTag 
                 { 
                     Key = "NeverLoggedIn", 
-                    Label = "Chưa đăng nhập" 
+                    Label = LocalizationHelper.GetString("Accounts_Filter_NeverLoggedIn")
                 });
             }
             else if (_currentFilterCriteria.LastLoginFrom.HasValue || _currentFilterCriteria.LastLoginTo.HasValue)
             {
                 var from = _currentFilterCriteria.LastLoginFrom?.ToString("dd/MM/yyyy") ?? "...";
                 var to = _currentFilterCriteria.LastLoginTo?.ToString("dd/MM/yyyy") ?? "...";
+                var filterLabel = string.Format(LocalizationHelper.GetString("Accounts_Filter_LastLogin"), from, to);
                 FilterTags.Add(new FilterTag 
                 { 
                     Key = "LastLogin", 
-                    Label = $"Đăng nhập: {from} - {to}" 
+                    Label = filterLabel
                 });
             }
 
@@ -362,14 +398,19 @@ namespace PhoneStoreAdmin.View
             // Not used anymore since SelectionMode="None"
         }
 
-        private async void ActionsButton_Click(object sender, RoutedEventArgs e)
+        private void ActionsButton_Click(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
-            var account = button?.Tag as AccountViewModel;
-            if (account != null)
+            if (sender is Button button)
             {
-                // TODO: Show context menu or actions dialog
-                await ShowNotImplementedMessage($"Thao tác cho tài khoản: {account.Username}");
+                FlyoutBase.ShowAttachedFlyout(button);
+            }
+        }
+
+        private void EditAccountMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuFlyoutItem menuItem && menuItem.Tag is AccountViewModel account)
+            {
+                Frame.Navigate(typeof(AccountEditPage), account);
             }
         }
 
@@ -409,7 +450,7 @@ namespace PhoneStoreAdmin.View
             try
             {
                 // Show loading overlay
-                LoadingOverlay?.Show("Đang tải dữ liệu...");
+                LoadingOverlay?.Show(LocalizationHelper.GetString("LoadingData"));
 
                 // Check cache first
                 if (_pageCache.TryGetValue(cacheKey, out var cachedData))
@@ -500,8 +541,10 @@ namespace PhoneStoreAdmin.View
             {
                 Id = account.Id,
                 Username = account.Username,
-                FullName = account.Person?.FullName ?? "N/A",
-                PersonType = account.Person?.PersonType == Models.Enums.PersonType.EMPLOYEE ? "Nhân viên" : "Khách hàng",
+                FullName = account.Person?.FullName ?? _resourceLoader.GetString("Common/NotAvailable"),
+                PersonType = account.Person?.PersonType == Models.Enums.PersonType.EMPLOYEE 
+                    ? LocalizationHelper.GetString("Accounts_Type_Employee")
+                    : LocalizationHelper.GetString("Accounts_Type_Customer"),
                 IsActive = account.IsActive,
                 CreatedAt = account.CreatedAt,
                 LastLogin = account.LastLogin
@@ -518,7 +561,7 @@ namespace PhoneStoreAdmin.View
             PreviousPageButton.IsEnabled = _currentPage > 1;
             NextPageButton.IsEnabled = _currentPage < _totalPages;
             
-            PageInfoText.Text = $"Trang {_currentPage} / {_totalPages}";
+            PageInfoText.Text = string.Format(_resourceLoader.GetString("Accounts_PageInfo"), _currentPage, _totalPages);
         }
 
         private void UpdateEmptyStateVisibility()
@@ -531,7 +574,7 @@ namespace PhoneStoreAdmin.View
 
         private void UpdateRecordCount(int displayed, int total)
         {
-            RecordCountText.Text = $"Hiển thị {displayed} / {total} tài khoản";
+            RecordCountText.Text = string.Format(_resourceLoader.GetString("Accounts_RecordCount"), displayed, total);
         }
 
         private async Task ShowNotImplementedMessage(string feature)
@@ -741,10 +784,10 @@ namespace PhoneStoreAdmin.View
             return new EmployeeViewModel
             {
                 Id = employee.Id,
-                FullName = employee.FullName ?? "N/A",
+                FullName = employee.FullName ?? _resourceLoader.GetString("Common/NotAvailable"),
                 EmployeeCode = $"NV{employee.Id:D3}",
-                Phone = employee.Phone ?? "Chưa có",
-                Email = employee.Email ?? "Chưa có"
+                Phone = employee.Phone ?? _resourceLoader.GetString("Common/NotAvailable"),
+                Email = employee.Email ?? _resourceLoader.GetString("Common/NotAvailable")
             };
         }
 
@@ -773,11 +816,56 @@ namespace PhoneStoreAdmin.View
             }
         }
 
+        private async void SelectRolesButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var roleService = ServiceContainer.GetService<IRoleService>();
+                if (roleService == null)
+                {
+                    ShowFormError(_resourceLoader.GetString("Accounts_Error_RoleServiceNotAvailable"));
+                    return;
+                }
+
+                var dialog = new Controls.RoleMultiSelectorDialog(roleService, _selectedRoleIds)
+                {
+                    XamlRoot = this.XamlRoot
+                };
+
+                var result = await dialog.ShowAsync();
+
+                if (result == ContentDialogResult.Primary)
+                {
+                    _selectedRoleIds = dialog.SelectedRoleIds;
+                    UpdateSelectedRolesText();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error opening role selector: {ex.Message}", ex);
+                ShowFormError(string.Format(_resourceLoader.GetString("Accounts_Error_RoleSelectorFailed"), ex.Message));
+            }
+        }
+
+        private void UpdateSelectedRolesText()
+        {
+            if (_selectedRoleIds.Count == 0)
+            {
+                SelectedRolesText.Text = _resourceLoader.GetString("Accounts_SelectRolesPlaceholder");
+                SelectedRolesText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BrushTextSecondary"];
+            }
+            else
+            {
+                SelectedRolesText.Text = string.Format(_resourceLoader.GetString("Accounts_RolesSelectedCount"), _selectedRoleIds.Count);
+                SelectedRolesText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BrushTextPrimary"];
+            }
+        }
+
         private async void CreateAccountButton_Click(object sender, RoutedEventArgs e)
         {
             if (_selectedEmployee == null)
             {
-                ShowFormError("Vui lòng chọn nhân viên");
+                ShowFormError(LocalizationHelper.GetString("Accounts_Validation_SelectEmployee"));
                 return;
             }
 
@@ -788,29 +876,29 @@ namespace PhoneStoreAdmin.View
             
             if (string.IsNullOrWhiteSpace(username))
             {
-                ShowFormError("Vui lòng nhập tên đăng nhập");
+                ShowFormError(LocalizationHelper.GetString("Accounts_Validation_EnterUsername"));
                 UsernameTextBox.Focus(FocusState.Programmatic);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(password))
             {
-                ShowFormError("Vui lòng nhập mật khẩu");
+                ShowFormError(LocalizationHelper.GetString("Accounts_Validation_EnterPassword"));
                 AccountPasswordBox.Focus(FocusState.Programmatic);
                 return;
             }
 
             if (password != confirmPassword)
             {
-                ShowFormError("Mật khẩu xác nhận không khớp");
+                ShowFormError(LocalizationHelper.GetString("Accounts_Validation_PasswordMismatch"));
                 AccountConfirmPasswordBox.Focus(FocusState.Programmatic);
                 return;
             }
 
-            if (RoleComboBox.SelectedItem == null)
+            if (_selectedRoleIds.Count == 0)
             {
-                ShowFormError("Vui lòng chọn vai trò");
-                RoleComboBox.Focus(FocusState.Programmatic);
+                ShowFormError(_resourceLoader.GetString("Accounts_Validation_SelectRole"));
+                SelectRolesButton.Focus(FocusState.Programmatic);
                 return;
             }
 
@@ -827,7 +915,7 @@ namespace PhoneStoreAdmin.View
                 // 
                 // var success = await _accountService.CreateAccountAsync(newAccount);
                 
-                await ShowSuccessMessage($"Tạo tài khoản thành công cho nhân viên");
+                await ShowSuccessMessage(LocalizationHelper.GetString("Accounts_Success_AccountCreated"));
                 
                 // Reload employees list
                 await LoadEmployeesWithoutAccountAsync();
@@ -838,7 +926,7 @@ namespace PhoneStoreAdmin.View
             catch (Exception ex)
             {
                 Logger.Error("Error creating account", ex);
-                ShowFormError($"Lỗi: {ex.Message}");
+                ShowFormError(string.Format(LocalizationHelper.GetString("Accounts_Error_AccountCreationFailed"), ex.Message));
             }
         }
 
@@ -853,7 +941,8 @@ namespace PhoneStoreAdmin.View
             UsernameTextBox.Text = string.Empty;
             AccountPasswordBox.Password = string.Empty;
             AccountConfirmPasswordBox.Password = string.Empty;
-            RoleComboBox.SelectedIndex = -1;
+            _selectedRoleIds.Clear();
+            UpdateSelectedRolesText();
             ActivateAccountCheckBox.IsChecked = true;
             FormErrorInfoBar.IsOpen = false;
         }
@@ -868,9 +957,9 @@ namespace PhoneStoreAdmin.View
         {
             var dialog = new ContentDialog
             {
-                Title = "Thành công",
+                Title = _resourceLoader.GetString("Common/Success"),
                 Content = message,
-                CloseButtonText = "Đóng",
+                CloseButtonText = _resourceLoader.GetString("Common/Close"),
                 XamlRoot = this.XamlRoot
             };
 
@@ -883,7 +972,7 @@ namespace PhoneStoreAdmin.View
     #region ViewModel Classes
 
     public class AccountViewModel
-    {
+    {        
         public int Id { get; set; }
         public string Username { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
@@ -893,15 +982,20 @@ namespace PhoneStoreAdmin.View
         public DateTime? LastLogin { get; set; }
         
         // Properties for UI display
-        public string StatusText => IsActive ? "Activate" : "Deactivated";
+        public string StatusText => IsActive 
+            ? LocalizationHelper.GetString("Accounts_VM_Status_Active")
+            : LocalizationHelper.GetString("Accounts_VM_Status_Deactivated");
         public string StatusColor => IsActive ? "#28a745" : "#dc3545";
         public string StatusIcon => IsActive ? "\uE8BB" : "\uE711";
 // E8BB = CheckMark (active), E711 = Block/Close (inactive)
 
         public string CreatedAtText => CreatedAt.ToString("dd/MM/yyyy");
 
-        public string LastLoginText => LastLogin?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa đăng nhập";
-        public string PersonTypeColor => PersonType == "Nhân viên" ? "#007bff" : "#17a2b8";
+        public string LastLoginText => LastLogin?.ToString("dd/MM/yyyy HH:mm") 
+            ?? LocalizationHelper.GetString("Accounts_NeverLoggedIn");
+        public string PersonTypeColor => PersonType == LocalizationHelper.GetString("Accounts_Type_Employee") 
+            ? "#007bff" 
+            : "#17a2b8";
     }
 
     public class EmployeeViewModel

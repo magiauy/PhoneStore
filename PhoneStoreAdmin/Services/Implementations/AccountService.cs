@@ -4,6 +4,7 @@ using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Utils;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace PhoneStoreAdmin.Services.Implementations
@@ -169,6 +170,40 @@ namespace PhoneStoreAdmin.Services.Implementations
             {
                 Logger.Error($"Failed to add account: {account.Username}", ex);
                 return 0;
+            }
+        }
+
+        public async Task<bool> UpdateAccountAsync(Account account)
+        {
+            try
+            {
+                if (account == null)
+                    throw new ArgumentNullException(nameof(account));
+
+                Logger.Info($"Updating account ID: {account.Id}");
+                await _accountRepository.UpdateAsync(account);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to update account ID: {account?.Id}", ex);
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateAccountRolesAsync(int accountId, IEnumerable<int> roleIds)
+        {
+            try
+            {
+                var normalizedRoleIds = roleIds?.Distinct().ToList() ?? new List<int>();
+                Logger.Info($"Updating roles for account ID: {accountId} (count: {normalizedRoleIds.Count})");
+                await _accountRepository.UpdateRolesAsync(accountId, normalizedRoleIds);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to update roles for account ID: {accountId}", ex);
+                return false;
             }
         }
     }

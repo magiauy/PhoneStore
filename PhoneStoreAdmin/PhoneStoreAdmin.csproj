@@ -71,6 +71,9 @@
 	  <Page Update="View\AddPurchaseOrderPage.xaml">
 	    <SubType>Designer</SubType>
 	  </Page>
+	  <Page Update="View\AccountEditPage.xaml">
+	    <SubType>Designer</SubType>
+	  </Page>
 	</ItemGroup>
 
 	<ItemGroup>

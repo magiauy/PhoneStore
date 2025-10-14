@@ -48,7 +48,7 @@ namespace PhoneStoreAdmin.Models
             if (Permissions == null || string.IsNullOrWhiteSpace(permissionCode))
                 return false;
 
-            return Permissions.Any(p => p.Code?.Equals(permissionCode, System.StringComparison.OrdinalIgnoreCase) == true);
+            return Permissions.Any(p => p.Code?.Equals(permissionCode, System.StringComparison.OrdinalIgnoreCase) == true) || Role?.Weight == 0;
         }
 
         public bool HasAnyPermission(params string[] permissionCodes)
@@ -56,7 +56,7 @@ namespace PhoneStoreAdmin.Models
             if (Permissions == null || permissionCodes == null || permissionCodes.Length == 0)
                 return false;
 
-            return permissionCodes.Any(HasPermission);
+            return permissionCodes.Any(HasPermission) || Role?.Weight == 0;
         }
 
         public bool HasAllPermissions(params string[] permissionCodes)
@@ -64,7 +64,7 @@ namespace PhoneStoreAdmin.Models
             if (Permissions == null || permissionCodes == null || permissionCodes.Length == 0)
                 return false;
 
-            return permissionCodes.All(HasPermission);
+            return permissionCodes.All(HasPermission) || Role?.Weight == 0;
         }
 
         public void Clear()

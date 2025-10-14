@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Product Permissions -->
+  <data name="PRODUCT_VIEW" xml:space="preserve">
+    <value>Xem sản phẩm</value>
+  </data>
+  <data name="PRODUCT_CREATE" xml:space="preserve">
+    <value>Tạo sản phẩm mới</value>
+  </data>
+  <data name="PRODUCT_EDIT" xml:space="preserve">
+    <value>Chỉnh sửa sản phẩm</value>
+  </data>
+  <data name="PRODUCT_DELETE" xml:space="preserve">
+    <value>Xóa sản phẩm</value>
+  </data>
+  
+  <!-- Account Permissions -->
+  <data name="ACCOUNT_VIEW" xml:space="preserve">
+    <value>Xem tài khoản</value>
+  </data>
+  <data name="ACCOUNT_CREATE" xml:space="preserve">
+    <value>Tạo tài khoản mới</value>
+  </data>
+  <data name="ACCOUNT_EDIT" xml:space="preserve">
+    <value>Chỉnh sửa tài khoản</value>
+  </data>
+  <data name="ACCOUNT_DELETE" xml:space="preserve">
+    <value>Xóa tài khoản</value>
+  </data>
+  
+  <!-- Order Permissions -->
+  <data name="ORDER_VIEW" xml:space="preserve">
+    <value>Xem đơn hàng</value>
+  </data>
+  <data name="ORDER_CREATE" xml:space="preserve">
+    <value>Tạo đơn hàng mới</value>
+  </data>
+  <data name="ORDER_EDIT" xml:space="preserve">
+    <value>Chỉnh sửa đơn hàng</value>
+  </data>
+  <data name="ORDER_DELETE" xml:space="preserve">
+    <value>Xóa đơn hàng</value>
+  </data>
+  
+  <!-- Invoice Permissions -->
+  <data name="INVOICE_VIEW" xml:space="preserve">
+    <value>Xem hóa đơn</value>
+  </data>
+  <data name="INVOICE_CREATE" xml:space="preserve">
+    <value>Tạo hóa đơn</value>
+  </data>
+  <data name="INVOICE_EDIT" xml:space="preserve">
+    <value>Chỉnh sửa hóa đơn</value>
+  </data>
+  <data name="INVOICE_DELETE" xml:space="preserve">
+    <value>Xóa hóa đơn</value>
+  </data>
+  
+  <!-- Customer Permissions -->
+  <data name="CUSTOMER_VIEW" xml:space="preserve">
+    <value>Xem khách hàng</value>
+  </data>
+  <data name="CUSTOMER_MANAGE" xml:space="preserve">
+    <value>Quản lý khách hàng</value>
+  </data>
+  
+  <!-- Supplier Permissions -->
+  <data name="SUPPLIER_VIEW" xml:space="preserve">
+    <value>Xem nhà cung cấp</value>
+  </data>
+  <data name="SUPPLIER_MANAGE" xml:space="preserve">
+    <value>Quản lý nhà cung cấp</value>
+  </data>
+  
+  <!-- Report Permissions -->
+  <data name="REPORT_VIEW" xml:space="preserve">
+    <value>Xem báo cáo</value>
+  </data>
+  <data name="REPORT_EXPORT" xml:space="preserve">
+    <value>Xuất báo cáo</value>
+  </data>
+  
+  <!-- Setting Permissions -->
+  <data name="SETTING_VIEW" xml:space="preserve">
+    <value>Xem cài đặt</value>
+  </data>
+  <data name="SETTING_EDIT" xml:space="preserve">
+    <value>Chỉnh sửa cài đặt</value>
+  </data>
+</root>

@@ -4,19 +4,16 @@ using PhoneStoreAdmin.Repositories.Interfaces;
 using PhoneStoreAdmin.Utils;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MySqlConnector;
 
 namespace PhoneStoreAdmin.Repositories.Implementations
 {
-    public class AccountRepository : IAccountRepository
+    public class AccountRepository(DataSource dataSource) : IAccountRepository
     {
-        private readonly DataSource _dataSource;
+        private readonly DataSource _dataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
 
-        public AccountRepository(DataSource dataSource)
-        {
-            _dataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
-        }
 
         #region Synchronous Methods (Legacy)
         
@@ -58,16 +55,16 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         {
             try
             {
-                using var conn = _dataSource.GetConnection();
-                using var cmd = conn.CreateCommand();
+                await using var conn = _dataSource.GetConnection();
+                await using var cmd = conn.CreateCommand();
                 cmd.CommandText = @"
                     SELECT id, username, password_hash, person_id, is_active, created_at, last_login
-                    FROM Accounts
+                    FROM accounts
                     WHERE id = @id
                     LIMIT 1;";
                 cmd.Parameters.AddWithValue("@id", id);
 
-                using var reader = await cmd.ExecuteReaderAsync();
+                await using var reader = await cmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
                     return new Account
@@ -98,8 +95,8 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                 if (string.IsNullOrWhiteSpace(username))
                     return null;
 
-                using var conn = _dataSource.GetConnection();
-                using var cmd = conn.CreateCommand();
+                await using var conn = _dataSource.GetConnection();
+                await using var cmd = conn.CreateCommand();
                 cmd.CommandText = @"
                     SELECT id, username, password_hash, person_id, is_active, created_at, last_login
                     FROM Accounts
@@ -107,7 +104,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                     LIMIT 1;";
                 cmd.Parameters.AddWithValue("@username", username);
 
-                using var reader = await cmd.ExecuteReaderAsync();
+                await using var reader = await cmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
                     return new Account
@@ -140,8 +137,8 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                     return null;
 
                 // Get roles for this account
-                using var conn = _dataSource.GetConnection();
-                using var cmd = conn.CreateCommand();
+                await using var conn = _dataSource.GetConnection();
+                await using var cmd = conn.CreateCommand();
                 cmd.CommandText = @"
                     SELECT r.id, r.name, r.description, r.weight
                     FROM Roles r
@@ -149,7 +146,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                     WHERE ar.account_id = @accountId;";
                 cmd.Parameters.AddWithValue("@accountId", accountId);
 
-                using var reader = await cmd.ExecuteReaderAsync();
+                await using var reader = await cmd.ExecuteReaderAsync();
                 var accountRoles = new List<AccountRole>();
                 
                 while (await reader.ReadAsync())
@@ -184,8 +181,8 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         {
             try
             {
-                using var conn = _dataSource.GetConnection();
-                using var cmd = conn.CreateCommand();
+                await using var conn = _dataSource.GetConnection();
+                await using var cmd = conn.CreateCommand();
                 cmd.CommandText = @"
                     SELECT r.id, r.name, r.description, r.weight
                     FROM Roles r
@@ -193,7 +190,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                     WHERE ar.account_id = @accountId;";
                 cmd.Parameters.AddWithValue("@accountId", accountId);
 
-                using var reader = await cmd.ExecuteReaderAsync();
+                await using var reader = await cmd.ExecuteReaderAsync();
                 var roles = new List<Role>();
 
                 while (await reader.ReadAsync())
@@ -220,8 +217,8 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         {
             try
             {
-                using var conn = _dataSource.GetConnection();
-                using var cmd = conn.CreateCommand();
+                await using var conn = _dataSource.GetConnection();
+                await using var cmd = conn.CreateCommand();
                 cmd.CommandText = @"
                     SELECT DISTINCT p.id, p.code, p.description
                     FROM Permissions p
@@ -230,7 +227,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                     WHERE ar.account_id = @accountId;";
                 cmd.Parameters.AddWithValue("@accountId", accountId);
 
-                using var reader = await cmd.ExecuteReaderAsync();
+                await using var reader = await cmd.ExecuteReaderAsync();
                 var permissions = new List<Permission>();
 
                 while (await reader.ReadAsync())
@@ -256,8 +253,8 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         {
             try
             {
-                using var conn = _dataSource.GetConnection();
-                using var cmd = conn.CreateCommand();
+                await using var conn = _dataSource.GetConnection();
+                await using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT is_active FROM Accounts WHERE id = @id LIMIT 1;";
                 cmd.Parameters.AddWithValue("@id", accountId);
 
@@ -275,8 +272,8 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         {
             try
             {
-                using var conn = _dataSource.GetConnection();
-                using var cmd = conn.CreateCommand();
+                await using var conn = _dataSource.GetConnection();
+                await using var cmd = conn.CreateCommand();
                 cmd.CommandText = "UPDATE Accounts SET last_login = @lastLogin WHERE id = @id;";
                 cmd.Parameters.AddWithValue("@lastLogin", DateTime.Now);
                 cmd.Parameters.AddWithValue("@id", accountId);
@@ -315,7 +312,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                 transaction = await conn.BeginTransactionAsync();
 
                 // Insert Person first
-                using var personCmd = conn.CreateCommand();
+                await using var personCmd = conn.CreateCommand();
                 personCmd.Transaction = transaction;
                 personCmd.CommandText = @"
                     INSERT INTO Persons (full_name, email, phone, person_type, created_at, is_active)
@@ -339,7 +336,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                 var passwordHash = PasswordHasher.HashPassword(entity.PasswordHash);
 
                 // Insert Account
-                using var accountCmd = conn.CreateCommand();
+                await using var accountCmd = conn.CreateCommand();
                 accountCmd.Transaction = transaction;
                 accountCmd.CommandText = @"
                     INSERT INTO Accounts (username, password_hash, person_id, is_active, created_at)
@@ -385,8 +382,8 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                 if (entity == null)
                     throw new ArgumentNullException(nameof(entity));
 
-                using var conn = _dataSource.GetConnection();
-                using var cmd = conn.CreateCommand();
+                await using var conn = _dataSource.GetConnection();
+                await using var cmd = conn.CreateCommand();
                 cmd.CommandText = @"
                     UPDATE Accounts 
                     SET username = @username,
@@ -417,8 +414,8 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         {
             try
             {
-                using var conn = _dataSource.GetConnection();
-                using var cmd = conn.CreateCommand();
+                await using var conn = _dataSource.GetConnection();
+                await using var cmd = conn.CreateCommand();
                 
                 // Soft delete by setting is_active to false
                 cmd.CommandText = "UPDATE Accounts SET is_active = 0 WHERE id = @id;";
@@ -438,16 +435,17 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         {
             try
             {
-                using var conn = _dataSource.GetConnection();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = @"
+                await using var conn = _dataSource.GetConnection();
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = """
                     SELECT a.id, a.username, a.password_hash, a.person_id, a.is_active, a.created_at, a.last_login,
                            p.full_name, p.person_type, p.email, p.phone
                     FROM Accounts a
                     INNER JOIN Persons p ON a.person_id = p.id
-                    ORDER BY a.created_at DESC;";
+                    ORDER BY a.created_at DESC;
+                    """;
 
-                using var reader = await cmd.ExecuteReaderAsync();
+                await using var reader = await cmd.ExecuteReaderAsync();
                 var accounts = new List<Account>();
 
                 // Helper to safely get DateTime, handling zero dates
@@ -482,7 +480,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("person_id")),
                             FullName = reader.GetString(reader.GetOrdinal("full_name")),
-                            PersonType = Enum.TryParse<PhoneStoreAdmin.Models.Enums.PersonType>(reader.GetString(reader.GetOrdinal("person_type")), out var pt) ? pt : default,
+                            PersonType = Enum.TryParse<Models.Enums.PersonType>(reader.GetString(reader.GetOrdinal("person_type")), out var pt) ? pt : default,
                             Email = reader.IsDBNull(reader.GetOrdinal("email")) ? null : reader.GetString(reader.GetOrdinal("email")),
                             Phone = reader.IsDBNull(reader.GetOrdinal("phone")) ? null : reader.GetString(reader.GetOrdinal("phone"))
                         }
@@ -505,7 +503,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         {
             try
             {
-                using var conn = _dataSource.GetConnection();
+                await using var conn = _dataSource.GetConnection();
                 
                 // Build WHERE clause dynamically based on filters
                 var whereClauses = new List<string>();
@@ -582,13 +580,14 @@ namespace PhoneStoreAdmin.Repositories.Implementations
 
                 // Get total count with filters
                 int totalCount;
-                using (var countCmd = conn.CreateCommand())
+                await using (var countCmd = conn.CreateCommand())
                 {
-                    countCmd.CommandText = $@"
+                    countCmd.CommandText = $"""
                         SELECT COUNT(*)
                         FROM Accounts a
                         INNER JOIN Persons p ON a.person_id = p.id
-                        {whereClause};";
+                        {whereClause};
+                        """;
                     
                     foreach (var param in parameters)
                     {
@@ -600,9 +599,9 @@ namespace PhoneStoreAdmin.Repositories.Implementations
 
                 // Get paged data with filters
                 var offset = (pageIndex - 1) * pageSize;
-                using (var cmd = conn.CreateCommand())
+                await using (var cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = $@"
+                    cmd.CommandText = $"""
                         SELECT 
                             a.id, a.username, a.password_hash, a.person_id, 
                             a.is_active, a.created_at, a.last_login,
@@ -611,7 +610,8 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                         INNER JOIN Persons p ON a.person_id = p.id
                         {whereClause}
                         ORDER BY a.id DESC
-                        LIMIT @limit OFFSET @offset;";
+                        LIMIT @limit OFFSET @offset;
+                        """;
                     
                     cmd.Parameters.AddWithValue("@limit", pageSize);
                     cmd.Parameters.AddWithValue("@offset", offset);
@@ -621,7 +621,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                         cmd.Parameters.AddWithValue(param.Key, param.Value);
                     }
 
-                    using var reader = await cmd.ExecuteReaderAsync();
+                    await using var reader = await cmd.ExecuteReaderAsync();
                     var accounts = new List<Account>();
 
                     // Helper to safely get DateTime, handling zero dates
@@ -673,6 +673,44 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             {
                 Logger.Error($"Failed to get paged accounts (page: {pageIndex}, size: {pageSize})", ex);
                 return null;
+            }
+        }
+
+        public async Task UpdateRolesAsync(int accountId, IEnumerable<int> roleIds)
+        {
+            await using var conn = _dataSource.GetConnection();
+            await using var transaction = await conn.BeginTransactionAsync();
+
+            try
+            {
+                var roles = roleIds?.Distinct().ToList() ?? new List<int>();
+
+                await using (var deleteCmd = conn.CreateCommand())
+                {
+                    deleteCmd.Transaction = transaction;
+                    deleteCmd.CommandText = "DELETE FROM Account_Roles WHERE account_id = @accountId;";
+                    deleteCmd.Parameters.AddWithValue("@accountId", accountId);
+                    await deleteCmd.ExecuteNonQueryAsync();
+                }
+
+                foreach (var roleId in roles)
+                {
+                    await using var insertCmd = conn.CreateCommand();
+                    insertCmd.Transaction = transaction;
+                    insertCmd.CommandText = "INSERT INTO Account_Roles (account_id, role_id) VALUES (@accountId, @roleId);";
+                    insertCmd.Parameters.AddWithValue("@accountId", accountId);
+                    insertCmd.Parameters.AddWithValue("@roleId", roleId);
+                    await insertCmd.ExecuteNonQueryAsync();
+                }
+
+                await transaction.CommitAsync();
+                Logger.Info($"Updated roles for account ID {accountId} with {roles.Count} entries.");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                Logger.Error($"Failed to update roles for account ID: {accountId}", ex);
+                throw;
             }
         }
 

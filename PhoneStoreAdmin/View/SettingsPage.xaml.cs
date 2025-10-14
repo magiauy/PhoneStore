@@ -7,20 +7,20 @@ using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Models;
 using Windows.Globalization;
+using PhoneStoreAdmin.Helpers;
+
 
 namespace PhoneStoreAdmin.View
 {
     public sealed partial class SettingsPage : Page
     {
         private readonly ILocalStorageService _localStorageService;
-        private readonly ResourceLoader _resourceLoader;
         private bool _isLoadingSettings = false;
 
         public SettingsPage()
         {
             this.InitializeComponent();
             _localStorageService = ServiceContainer.GetService<ILocalStorageService>();
-            _resourceLoader = new ResourceLoader();
             LoadUserInfo();
             LoadSettings();
         }
@@ -49,7 +49,7 @@ namespace PhoneStoreAdmin.View
                         }
                         else
                         {
-                            UserEmailTextBlock.Text = _resourceLoader.GetString("NoEmailAvailable/Text") ?? "No email available";
+                            UserEmailTextBlock.Text = LocalizationHelper.GetString("NoEmailAvailable/Text") ?? "No email available";
                         }
                     }
 
@@ -81,7 +81,7 @@ namespace PhoneStoreAdmin.View
                 {
                     // User not logged in - show default values
                     if (UserNameTextBlock != null)
-                        UserNameTextBlock.Text = _resourceLoader.GetString("NotLoggedIn/Text") ?? "Not logged in";
+                        UserNameTextBlock.Text = LocalizationHelper.GetString("NotLoggedIn/Text") ?? "Not logged in";
                     
                     if (UserEmailTextBlock != null)
                         UserEmailTextBlock.Text = "";
@@ -97,7 +97,7 @@ namespace PhoneStoreAdmin.View
             {
                 // Error loading user info - set fallback values
                 if (UserNameTextBlock != null)
-                    UserNameTextBlock.Text = _resourceLoader.GetString("ErrorLoadingUser/Text") ?? "Error loading user info";
+                    UserNameTextBlock.Text = LocalizationHelper.GetString("ErrorLoadingUser/Text") ?? "Error loading user info";
                 
                 if (UserEmailTextBlock != null)
                     UserEmailTextBlock.Text = "";
@@ -188,9 +188,9 @@ namespace PhoneStoreAdmin.View
                         // Show confirmation dialog
                         var dialog = new ContentDialog()
                         {
-                            Title = _resourceLoader.GetString("LanguageChangedTitle/Text"),
-                            Content = _resourceLoader.GetString("LanguageChangedMessage/Text"),
-                            CloseButtonText = _resourceLoader.GetString("OK/Content"),
+                            Title = LocalizationHelper.GetString("LanguageChangedTitle/Text"),
+                            Content = LocalizationHelper.GetString("LanguageChangedMessage/Text"),
+                            CloseButtonText = LocalizationHelper.GetString("OK/Content"),
                             XamlRoot = this.XamlRoot
                         };
                         await dialog.ShowAsync();
@@ -202,9 +202,9 @@ namespace PhoneStoreAdmin.View
                 // Show error dialog
                 var errorDialog = new ContentDialog()
                 {
-                    Title = _resourceLoader.GetString("ErrorTitle/Text"),
-                    Content = _resourceLoader.GetString("LanguageErrorMessage/Text"),
-                    CloseButtonText = _resourceLoader.GetString("OK/Content"),
+                    Title = LocalizationHelper.GetString("ErrorTitle/Text"),
+                    Content = LocalizationHelper.GetString("LanguageErrorMessage/Text"),
+                    CloseButtonText = LocalizationHelper.GetString("OK/Content"),
                     XamlRoot = this.XamlRoot
                 };
                 await errorDialog.ShowAsync();
@@ -257,9 +257,9 @@ namespace PhoneStoreAdmin.View
                 // Show error dialog
                 var errorDialog = new ContentDialog()
                 {
-                    Title = _resourceLoader.GetString("ErrorTitle/Text") ?? "Error",
-                    Content = $"{_resourceLoader.GetString("ProfileUpdateError/Text") ?? "An error occurred while trying to update your profile"}: {ex.Message}",
-                    CloseButtonText = _resourceLoader.GetString("OK/Content") ?? "OK",
+                    Title = LocalizationHelper.GetString("ErrorTitle/Text") ?? "Error",
+                    Content = $"{LocalizationHelper.GetString("ProfileUpdateError/Text") ?? "An error occurred while trying to update your profile"}: {ex.Message}",
+                    CloseButtonText = LocalizationHelper.GetString("OK/Content") ?? "OK",
                     XamlRoot = this.XamlRoot
                 };
                 await errorDialog.ShowAsync();
@@ -309,9 +309,9 @@ namespace PhoneStoreAdmin.View
                     // Show success message
                     var successDialog = new ContentDialog()
                     {
-                        Title = _resourceLoader.GetString("PasswordChangeSuccessTitle/Text") ?? "Success",
-                        Content = _resourceLoader.GetString("PasswordChangeSuccessMessage/Text") ?? "Your password has been changed successfully!",
-                        CloseButtonText = _resourceLoader.GetString("OK/Content") ?? "OK",
+                        Title = LocalizationHelper.GetString("PasswordChangeSuccessTitle/Text") ?? "Success",
+                        Content = LocalizationHelper.GetString("PasswordChangeSuccessMessage/Text") ?? "Your password has been changed successfully!",
+                        CloseButtonText = LocalizationHelper.GetString("OK/Content") ?? "OK",
                         XamlRoot = this.XamlRoot
                     };
                     await successDialog.ShowAsync();
@@ -322,9 +322,9 @@ namespace PhoneStoreAdmin.View
                 // Show error dialog
                 var errorDialog = new ContentDialog()
                 {
-                    Title = _resourceLoader.GetString("ErrorTitle/Text") ?? "Error",
-                    Content = _resourceLoader.GetString("ChangePasswordErrorMessage/Text") ?? $"An error occurred while trying to change your password: {ex.Message}",
-                    CloseButtonText = _resourceLoader.GetString("OK/Content") ?? "OK",
+                    Title = LocalizationHelper.GetString("ErrorTitle/Text") ?? "Error",
+                    Content = LocalizationHelper.GetString("ChangePasswordErrorMessage/Text") ?? $"An error occurred while trying to change your password: {ex.Message}",
+                    CloseButtonText = LocalizationHelper.GetString("OK/Content") ?? "OK",
                     XamlRoot = this.XamlRoot
                 };
                 await errorDialog.ShowAsync();
@@ -340,36 +340,36 @@ namespace PhoneStoreAdmin.View
 
             aboutContent.Children.Add(new TextBlock()
             {
-                Text = _resourceLoader.GetString("AboutAppName/Text"),
+                Text = LocalizationHelper.GetString("AboutAppName/Text"),
                 FontSize = 20,
                 FontWeight = Microsoft.UI.Text.FontWeights.Bold
             });
 
             aboutContent.Children.Add(new TextBlock()
             {
-                Text = _resourceLoader.GetString("AboutVersion/Text"),
+                Text = LocalizationHelper.GetString("AboutVersion/Text"),
                 FontSize = 14
             });
 
             aboutContent.Children.Add(new TextBlock()
             {
-                Text = _resourceLoader.GetString("AboutDescription/Text"),
+                Text = LocalizationHelper.GetString("AboutDescription/Text"),
                 FontSize = 14,
                 TextWrapping = TextWrapping.Wrap
             });
 
             aboutContent.Children.Add(new TextBlock()
             {
-                Text = _resourceLoader.GetString("AboutCopyright/Text"),
+                Text = LocalizationHelper.GetString("AboutCopyright/Text"),
                 FontSize = 12,
                 Margin = new Thickness(0, 8, 0, 0)
             });
 
             var dialog = new ContentDialog()
             {
-                Title = _resourceLoader.GetString("AboutTitle/Text"),
+                Title = LocalizationHelper.GetString("AboutTitle/Text"),
                 Content = aboutContent,
-                CloseButtonText = _resourceLoader.GetString("OK/Content"),
+                CloseButtonText = LocalizationHelper.GetString("OK/Content"),
                 XamlRoot = this.XamlRoot
             };
             await dialog.ShowAsync();
@@ -381,10 +381,10 @@ namespace PhoneStoreAdmin.View
             {
                 var dialog = new ContentDialog()
                 {
-                    Title = _resourceLoader.GetString("SignOutConfirmTitle/Text"),
-                    Content = _resourceLoader.GetString("SignOutConfirmMessage/Text"),
-                    PrimaryButtonText = _resourceLoader.GetString("SignOutConfirmButton/Content"),
-                    CloseButtonText = _resourceLoader.GetString("CancelButton/Content"),
+                    Title = LocalizationHelper.GetString("SignOutConfirmTitle/Text"),
+                    Content = LocalizationHelper.GetString("SignOutConfirmMessage/Text"),
+                    PrimaryButtonText = LocalizationHelper.GetString("SignOutConfirmButton/Content"),
+                    CloseButtonText = LocalizationHelper.GetString("CancelButton/Content"),
                     DefaultButton = ContentDialogButton.Close,
                     XamlRoot = this.XamlRoot
                 };
@@ -409,9 +409,9 @@ namespace PhoneStoreAdmin.View
             {
                 var errorDialog = new ContentDialog()
                 {
-                    Title = _resourceLoader.GetString("ErrorTitle/Text"),
-                    Content = _resourceLoader.GetString("SignOutErrorMessage/Text"),
-                    CloseButtonText = _resourceLoader.GetString("OK/Content"),
+                    Title = LocalizationHelper.GetString("ErrorTitle/Text"),
+                    Content = LocalizationHelper.GetString("SignOutErrorMessage/Text"),
+                    CloseButtonText = LocalizationHelper.GetString("OK/Content"),
                     XamlRoot = this.XamlRoot
                 };
                 await errorDialog.ShowAsync();
