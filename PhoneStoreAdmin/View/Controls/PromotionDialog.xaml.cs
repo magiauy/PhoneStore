@@ -309,6 +309,7 @@ namespace PhoneStoreAdmin.View.Controls
                     ErrorInfoBar.Message = ex.Message;
                     ErrorInfoBar.IsOpen = true;
                 }
+                throw;
             }
             finally
             {

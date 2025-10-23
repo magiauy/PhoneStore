@@ -30,6 +30,17 @@ namespace PhoneStoreAdmin.View
             this._resourceLoader = new ResourceLoader();
             this.InitializeComponent();
             this.Loaded += BrandPage_Loaded;
+            this.Unloaded += BrandPage_Unloaded;
+        }
+
+        private void BrandPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            CleanupResources();
+        }
+
+        private void CleanupResources()
+        {
+            _currentDialog = null;
         }
 
         private void BrandPage_Loaded(object sender, RoutedEventArgs e)
@@ -148,10 +159,21 @@ namespace PhoneStoreAdmin.View
             dialog.PrimaryButtonClick += (s, args) =>
             {
                 var ctrl = (BrandDialog)dialog.Content;
-                ctrl.Save();
-
                 if (!ctrl.IsValid())
-                    args.Cancel = true; 
+                {
+                    args.Cancel = true;
+                    return;
+                }
+                try
+                {
+                    ctrl.Save();
+                    LoadBrands();
+                }
+                catch (Exception ex)
+                {
+                    args.Cancel = true;
+                    ShowErrorDialog("Error", ex.Message);
+                }
             };
 
             _currentDialog = dialog;
@@ -186,8 +208,21 @@ namespace PhoneStoreAdmin.View
             dialog.PrimaryButtonClick += (s, args) =>
             {
                 var ctrl = (BrandDialog)dialog.Content;
-                ctrl.Save();
-                if (!ctrl.IsValid()) args.Cancel = true;
+                if (!ctrl.IsValid())
+                {
+                    args.Cancel = true;
+                    return;
+                }
+                try
+                {
+                    ctrl.Save();
+                    LoadBrands();
+                }
+                catch (Exception ex)
+                {
+                    args.Cancel = true;
+                    ShowErrorDialog("Error", ex.Message);
+                }
             };
 
             _currentDialog = dialog;
