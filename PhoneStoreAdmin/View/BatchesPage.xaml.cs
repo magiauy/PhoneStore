@@ -2,6 +2,7 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Media;
 using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Repositories.Interfaces;
 using PhoneStoreAdmin.Services.Implementations;
@@ -10,6 +11,7 @@ using PhoneStoreAdmin.ViewModels;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using Microsoft.Windows.ApplicationModel.Resources;
 
 namespace PhoneStoreAdmin.View
 {
@@ -17,6 +19,7 @@ namespace PhoneStoreAdmin.View
     {
         private IBatchesService BatchesService => App.GetService<IBatchesService>();
         private ISupplierService SupplierService => App.GetService<ISupplierService>();
+        private readonly ResourceLoader _resourceLoader;
 
         public ObservableCollection<BatchViewModel> Batches { get; } = new ObservableCollection<BatchViewModel>();
         public int CurrentPage { get; set; } = 1;
@@ -30,6 +33,7 @@ namespace PhoneStoreAdmin.View
         public BatchesPage()
         {
             this.InitializeComponent();
+            _resourceLoader = new ResourceLoader();
             this.Loaded += BatchesPage_Loaded;
         }
 
@@ -194,28 +198,153 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private void BtnDetail_Click(object sender, RoutedEventArgs e)
+        private async void BtnDetail_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuFlyoutItem item && item.Tag is BatchViewModel batchVM)
             {
-                var batch = BatchesService.GetById(batchVM.Id);
-                if (batch != null)
+                try
                 {
-                    var details = $"ID: {batch.id}\n" +
-                                  $"Purchase Order ID: {batch.PurchaseOrderId}\n" +
-                                  $"Batch Code: {batch.BatchCode ?? "N/A"}\n" +
-                                  $"Created At: {batch.CreatedAt}\n" +
-                                  $"Note: {batch.Note ?? "N/A"}\n\n" +
-                                  "Batch Products:\n";
-
-                    foreach (var product in batch.BatchProducts)
+                    var batch = BatchesService.GetById(batchVM.Id);
+                    if (batch == null)
                     {
-                        details += $" - Product ID: {product.ProductId}, Quantity: {product.Quantity}, Cost Price: {product.CostPrice}, Selling Price: {product.SellingPrice}\n";
+                        ShowErrorDialog("Error", "Batch not found");
+                        return;
                     }
 
-                    ShowErrorDialog("Batch Details", details);
+                    var batchView = new BatchViewModel(batch);
+                    
+                    // Get related data
+                    var purchaseOrder = App.GetService<IPurchaseOrderService>().GetById(batch.PurchaseOrderId);
+                    if (purchaseOrder != null)
+                    {
+                        var supplier = SupplierService.GetSupplierById(purchaseOrder.SupplierId);
+                        batchView.SupplierName = supplier?.Name ?? _resourceLoader.GetString("Common_Unknown");
+                        batchView.PurchaseOrderOrderDate = purchaseOrder.OrderDate;
+                    }
+
+                    // Build formatted details
+                    var stack = new StackPanel { Spacing = 12 };
+
+                    // Header
+                    stack.Children.Add(new TextBlock
+                    {
+                        Text = $"{_resourceLoader.GetString("Dlg_BatchDetails_BatchLabel")} {batch.BatchCode ?? _resourceLoader.GetString("Common_NA")}",
+                        FontSize = 20,
+                        FontWeight = Microsoft.UI.Text.FontWeights.Bold
+                    });
+
+                    // Supplier
+                    stack.Children.Add(CreateInfoGrid(
+                        _resourceLoader.GetString("Dlg_BatchDetails_SupplierLabel"), 
+                        batchView.SupplierName ?? _resourceLoader.GetString("Common_NA")));
+                    
+                    // Batch ID
+                    stack.Children.Add(CreateInfoGrid(
+                        _resourceLoader.GetString("Dlg_BatchDetails_BatchIdLabel"), 
+                        string.Format(_resourceLoader.GetString("Common_BatchIdFormat"), batch.id)));
+                    
+                    // Purchase Order
+                    stack.Children.Add(CreateInfoGrid(
+                        _resourceLoader.GetString("Dlg_BatchDetails_PurchaseOrderLabel"), 
+                        string.Format(_resourceLoader.GetString("Common_POFormat"), batch.PurchaseOrderId)));
+                    
+                    // Created At
+                    stack.Children.Add(CreateInfoGrid(
+                        _resourceLoader.GetString("Dlg_BatchDetails_CreatedAtLabel"), 
+                        batch.CreatedAt.ToString("dd/MM/yyyy HH:mm")));
+                    
+                    // PO Date
+                    if (batchView.PurchaseOrderOrderDate != DateTime.MinValue)
+                    {
+                        stack.Children.Add(CreateInfoGrid(
+                            _resourceLoader.GetString("Dlg_BatchDetails_PODateLabel"), 
+                            batchView.PurchaseOrderOrderDate.ToString("dd/MM/yyyy")));
+                    }
+                    
+                    // Note
+                    stack.Children.Add(CreateInfoGrid(
+                        _resourceLoader.GetString("Dlg_BatchDetails_NoteLabel"), 
+                        batch.Note ?? _resourceLoader.GetString("Common_NA")));
+
+                    // Batch Products Header
+                    stack.Children.Add(new Border { Height = 1, Background = new SolidColorBrush(Microsoft.UI.Colors.Gray), Margin = new Thickness(0, 8, 0, 8) });
+                    stack.Children.Add(new TextBlock
+                    {
+                        Text = string.Format(_resourceLoader.GetString("Dlg_BatchDetails_BatchProductsHeader"), batch.BatchProducts.Count),
+                        FontSize = 16,
+                        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+                    });
+
+                    // Batch Products
+                    foreach (var product in batch.BatchProducts)
+                    {
+                        var productStack = new StackPanel { Spacing = 4, Margin = new Thickness(0, 8, 0, 0) };
+                        productStack.Children.Add(new TextBlock
+                        {
+                            Text = $"{_resourceLoader.GetString("Dlg_BatchDetails_ProductIdLabel")} {product.ProductId}",
+                            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+                        });
+                        productStack.Children.Add(new TextBlock { 
+                            Text = $"{_resourceLoader.GetString("Dlg_BatchDetails_QuantityLabel")} {product.Quantity}" 
+                        });
+                        productStack.Children.Add(new TextBlock { 
+                            Text = $"{_resourceLoader.GetString("Dlg_BatchDetails_CostPriceLabel")} {product.CostPrice:C0}".Replace("₫", "VND") 
+                        });
+                        productStack.Children.Add(new TextBlock
+                        {
+                            Text = $"{_resourceLoader.GetString("Dlg_BatchDetails_SellingPriceLabel")} {product.SellingPrice:C0}".Replace("₫", "VND"),
+                            FontWeight = Microsoft.UI.Text.FontWeights.Bold
+                        });
+                        stack.Children.Add(productStack);
+                    }
+
+                    var scrollViewer = new ScrollViewer
+                    {
+                        Content = stack,
+                        MaxHeight = 600
+                    };
+
+                    var dialog = new ContentDialog
+                    {
+                        Title = _resourceLoader.GetString("Dlg_BatchDetails_Title"),
+                        Content = scrollViewer,
+                        CloseButtonText = _resourceLoader.GetString("Dlg_BatchDetails_CloseButton"),
+                        XamlRoot = this.XamlRoot
+                    };
+
+                    await dialog.ShowAsync();
+                }
+                catch (Exception ex)
+                {
+                    ShowErrorDialog("Error", $"Cannot load batch details: {ex.Message}");
                 }
             }
+        }
+
+        private Grid CreateInfoGrid(string label, string value)
+        {
+            var grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            var labelBlock = new TextBlock
+            {
+                Text = label,
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray)
+            };
+            Grid.SetColumn(labelBlock, 0);
+            grid.Children.Add(labelBlock);
+
+            var valueBlock = new TextBlock
+            {
+                Text = value,
+                TextWrapping = TextWrapping.Wrap
+            };
+            Grid.SetColumn(valueBlock, 1);
+            grid.Children.Add(valueBlock);
+
+            return grid;
         }
 
         private void BtnDelete_Click(object sender, RoutedEventArgs e)

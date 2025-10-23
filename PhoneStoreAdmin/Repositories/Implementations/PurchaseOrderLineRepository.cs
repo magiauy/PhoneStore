@@ -105,9 +105,26 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         public void DeleteByPurchaseOrderId(int purchaseOrderId)
         {
             using var connection = _dataSource.GetConnection();
-            using var command = new MySqlCommand("DELETE FROM purchase_order_lines WHERE purchase_order_id = @purchaseOrderId", connection);
-            command.Parameters.AddWithValue("@purchaseOrderId", purchaseOrderId);
-            command.ExecuteNonQuery();
+            
+            // First, delete all product_serials that reference the purchase_order_lines
+            using (var deleteSerials = new MySqlCommand(
+                @"DELETE ps FROM product_serials ps
+                  INNER JOIN purchase_order_lines pol ON ps.purchase_order_line_id = pol.id
+                  WHERE pol.purchase_order_id = @purchaseOrderId", 
+                connection))
+            {
+                deleteSerials.Parameters.AddWithValue("@purchaseOrderId", purchaseOrderId);
+                deleteSerials.ExecuteNonQuery();
+            }
+            
+            // Then delete the purchase_order_lines
+            using (var deleteLines = new MySqlCommand(
+                "DELETE FROM purchase_order_lines WHERE purchase_order_id = @purchaseOrderId", 
+                connection))
+            {
+                deleteLines.Parameters.AddWithValue("@purchaseOrderId", purchaseOrderId);
+                deleteLines.ExecuteNonQuery();
+            }
         }
 
         private int GetLastInsertedId(MySqlConnection connection)
