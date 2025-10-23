@@ -31,6 +31,17 @@ namespace PhoneStoreAdmin.View
             this._resourceLoader = new ResourceLoader();
             this.InitializeComponent();
             this.Loaded += PromotionsPage_Loaded;
+            this.Unloaded += PromotionsPage_Unloaded;
+        }
+
+        private void PromotionsPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            CleanupResources();
+        }
+
+        private void CleanupResources()
+        {
+            _currentDialog = null;
         }
 
         private void PromotionsPage_Loaded(object sender, RoutedEventArgs e)
@@ -249,8 +260,20 @@ namespace PhoneStoreAdmin.View
             dialog.PrimaryButtonClick += (s, args) =>
             {
                 var ctrl = (PromotionDialog)dialog.Content;
-                ctrl.Save();
-                if (!ctrl.IsValid()) args.Cancel = true;
+                if (!ctrl.IsValid())
+                {
+                    args.Cancel = true;
+                    return;
+                }
+                try
+                {
+                    ctrl.Save();
+                }
+                catch (Exception ex)
+                {
+                    args.Cancel = true;
+                    ShowErrorDialog("Error", ex.Message);
+                }
             };
 
             _currentDialog = dialog;

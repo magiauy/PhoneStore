@@ -44,8 +44,8 @@ namespace PhoneStoreAdmin.View.Controls
                 _resourceLoader = new ResourceLoader();
                 Logger.Info("Services initialized");
                 
-                // Defer initialization until Loaded event to ensure all controls are ready
                 this.Loaded += PromotionCodeDialog_Loaded;
+                this.Unloaded += PromotionCodeDialog_Unloaded;
                 
                 Logger.Info("PromotionCodeDialog constructor completed successfully");
             }
@@ -76,6 +76,16 @@ namespace PhoneStoreAdmin.View.Controls
             {
                 Logger.Error("Failed in PromotionCodeDialog_Loaded", ex);
             }
+        }
+
+        private void PromotionCodeDialog_Unloaded(object sender, RoutedEventArgs e)
+        {
+            CleanupResources();
+        }
+
+        private void CleanupResources()
+        {
+            _pendingPromotionCodeData = null;
         }
 
         private void InitializeDialog()
@@ -154,7 +164,7 @@ namespace PhoneStoreAdmin.View.Controls
                     {
                         var promotionViewModels = PromotionComboBox?.ItemsSource as IEnumerable<PromotionViewModel>;
                         var selectedPromotion = promotionViewModels?.FirstOrDefault(p => p.Id == promotionCode.PromotionId);
-                        if (selectedPromotion != null)
+                        if (selectedPromotion != null && PromotionComboBox != null)
                         {
                             PromotionComboBox.SelectedItem = selectedPromotion;
                         }
@@ -508,6 +518,7 @@ namespace PhoneStoreAdmin.View.Controls
             {
                 Logger.Error("Failed to save promotion code in PromotionCodeDialog", ex);
                 ShowError(PromotionCodeError, ex.Message);
+                throw;
             }
         }
 

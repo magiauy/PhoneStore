@@ -28,6 +28,8 @@ namespace PhoneStoreAdmin.View
         private bool _isInitialized = false;
         private ContentDialog? _currentDialog;
         private List<string> _promotionNames = new List<string>();
+        private readonly List<EventHandler<PromotionCodeViewModel>> _eventHandlers = new List<EventHandler<PromotionCodeViewModel>>();
+        private System.Threading.Timer? _searchTimer;
 
         private readonly ResourceLoader _resourceLoader;
 
@@ -36,6 +38,21 @@ namespace PhoneStoreAdmin.View
             this._resourceLoader = new ResourceLoader();
             this.InitializeComponent();
             this.Loaded += PromotionCodesPage_Loaded;
+            this.Unloaded += PromotionCodesPage_Unloaded;
+        }
+
+        private void PromotionCodesPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            CleanupResources();
+        }
+
+        private void CleanupResources()
+        {
+            _searchTimer?.Dispose();
+            _searchTimer = null;
+            _currentDialog = null;
+            _eventHandlers.Clear();
+            _promotionNames.Clear();
         }
 
         private void PromotionCodesPage_Loaded(object sender, RoutedEventArgs e)
@@ -78,14 +95,14 @@ namespace PhoneStoreAdmin.View
                     isActiveFilter = false;
 
                 // Amount filters
-                decimal? minDiscountAmount = !double.IsNaN(MinDiscountAmountBox?.Value ?? double.NaN) ? (decimal?)MinDiscountAmountBox.Value : null;
-                decimal? maxDiscountAmount = !double.IsNaN(MaxDiscountAmountBox?.Value ?? double.NaN) ? (decimal?)MaxDiscountAmountBox.Value : null;
-                decimal? minMinimumAmount = !double.IsNaN(MinMinimumAmountBox?.Value ?? double.NaN) ? (decimal?)MinMinimumAmountBox.Value : null;
-                decimal? maxMinimumAmount = !double.IsNaN(MaxMinimumAmountBox?.Value ?? double.NaN) ? (decimal?)MaxMinimumAmountBox.Value : null;
+                decimal? minDiscountAmount = !double.IsNaN(MinDiscountAmountBox?.Value ?? double.NaN) ? (decimal?)MinDiscountAmountBox?.Value : null;
+                decimal? maxDiscountAmount = !double.IsNaN(MaxDiscountAmountBox?.Value ?? double.NaN) ? (decimal?)MaxDiscountAmountBox?.Value : null;
+                decimal? minMinimumAmount = !double.IsNaN(MinMinimumAmountBox?.Value ?? double.NaN) ? (decimal?)MinMinimumAmountBox?.Value : null;
+                decimal? maxMinimumAmount = !double.IsNaN(MaxMinimumAmountBox?.Value ?? double.NaN) ? (decimal?)MaxMinimumAmountBox?.Value : null;
 
                 // Usage limit filters
-                int? minUsageLimit = !double.IsNaN(MinUsageLimitBox?.Value ?? double.NaN) ? (int?)MinUsageLimitBox.Value : null;
-                int? maxUsageLimit = !double.IsNaN(MaxUsageLimitBox?.Value ?? double.NaN) ? (int?)MaxUsageLimitBox.Value : null;
+                int? minUsageLimit = !double.IsNaN(MinUsageLimitBox?.Value ?? double.NaN) ? (int?)MinUsageLimitBox?.Value : null;
+                int? maxUsageLimit = !double.IsNaN(MaxUsageLimitBox?.Value ?? double.NaN) ? (int?)MaxUsageLimitBox?.Value : null;
 
                 var result = PromotionCodeService.GetPromotionCodesWithAdvancedFilter(
                     string.IsNullOrWhiteSpace(codeFilter) ? null : codeFilter,
@@ -147,13 +164,15 @@ namespace PhoneStoreAdmin.View
 
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
-            CurrentPage = 1;
-            LoadPromotionCodes();
-        }
-        
-        private void SearchBox_Suggestion(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
-        {
-            
+            _searchTimer?.Dispose();
+            _searchTimer = new System.Threading.Timer(_ =>
+            {
+                this.DispatcherQueue.TryEnqueue(() =>
+                {
+                    CurrentPage = 1;
+                    LoadPromotionCodes();
+                });
+            }, null, 500, System.Threading.Timeout.Infinite);
         }
 
         private void FilterChange(object sender, RoutedEventArgs e)
@@ -225,30 +244,24 @@ namespace PhoneStoreAdmin.View
 
         private async void BtnCreate_Click(object sender, RoutedEventArgs e)
         {
-            Logger.Info("=== BtnCreate_Click started ===");
             try
             {
-                Logger.Info("Creating new PromotionCodeDialog...");
                 var promotionCodeDialog = new PromotionCodeDialog();
-                Logger.Info("PromotionCodeDialog created successfully");
-                
-                Logger.Info("Setting mode to Add...");
                 promotionCodeDialog.SetMode(PromotionCodeDialog.DialogMode.Add);
-                Logger.Info("SetMode completed successfully");
 
-                Logger.Info("Creating ContentDialog...");
                 var dialog = CreateContentDialog(promotionCodeDialog, _resourceLoader.GetString("AddPromotionCodeTitle"));
                 dialog.PrimaryButtonText = _resourceLoader.GetString("DialogAdd");
                 dialog.CloseButtonText = _resourceLoader.GetString("DialogCancel");
-                Logger.Info("ContentDialog created successfully");
 
-                promotionCodeDialog.PromotionCodeSaved += (s, model) =>
+                EventHandler<PromotionCodeViewModel> handler = (s, model) =>
                 {
                     if (model != null)
                     {
                         LoadPromotionCodes();
                     }
                 };
+                promotionCodeDialog.PromotionCodeSaved += handler;
+                _eventHandlers.Add(handler);
 
                 dialog.PrimaryButtonClick += (s, args) =>
                 {
@@ -270,9 +283,7 @@ namespace PhoneStoreAdmin.View
                 };
 
                 _currentDialog = dialog;
-                Logger.Info("About to show dialog...");
                 await dialog.ShowAsync();
-                Logger.Info("Dialog shown successfully");
             }
             catch (Exception ex)
             {
@@ -301,10 +312,12 @@ namespace PhoneStoreAdmin.View
             dialog.PrimaryButtonText = _resourceLoader.GetString("DialogUpdate");
             dialog.CloseButtonText = _resourceLoader.GetString("DialogCancel");
 
-            promotionCodeDialog.PromotionCodeSaved += (s, model) =>
+            EventHandler<PromotionCodeViewModel> editHandler = (s, model) =>
             {
                 if (model != null) LoadPromotionCodes();
             };
+            promotionCodeDialog.PromotionCodeSaved += editHandler;
+            _eventHandlers.Add(editHandler);
 
             dialog.PrimaryButtonClick += (s, args) =>
             {
