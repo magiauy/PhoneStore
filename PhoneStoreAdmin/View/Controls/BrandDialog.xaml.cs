@@ -5,6 +5,7 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.ViewModels;
+using PhoneStoreAdmin.Utils;
 
 namespace PhoneStoreAdmin.View.Controls
 {
@@ -27,13 +28,18 @@ namespace PhoneStoreAdmin.View.Controls
             this.InitializeComponent();
             _brandService = App.GetService<IBrandService>();
             _resourceLoader = new ResourceLoader();
-            InitializeDialog();
+            this.Unloaded += BrandDialog_Unloaded;
         }
 
-        private void InitializeDialog()
+        private void BrandDialog_Unloaded(object sender, RoutedEventArgs e)
         {
-            ResetValidationStates();
-            HideAllErrors();
+            CleanupResources();
+        }
+
+        private void CleanupResources()
+        {
+            BrandSaved = null;
+            DialogClosed = null;
         }
 
         #region Field Validation Events
@@ -168,8 +174,10 @@ namespace PhoneStoreAdmin.View.Controls
             }
             catch (Exception ex)
             {
+                Logger.Error("Error saving brand in BrandDialog", ex);
                 ErrorInfoBar.Message = _resourceLoader.GetString("UnexpectedError");
                 ErrorInfoBar.IsOpen = true;
+                throw;
             }
             finally
             {
