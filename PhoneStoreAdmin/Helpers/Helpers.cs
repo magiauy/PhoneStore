@@ -1,19 +1,59 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Windows.ApplicationModel.Resources;
+using PhoneStoreAdmin.Utils;
 
 namespace PhoneStoreAdmin.Helpers
 {
     public static class LocalizationHelper
     {
-        private static readonly ResourceLoader _resourceLoader = new();
+        private static readonly ResourceLoader _resourceLoader = new(); // Mặc định Resources.resw
+        private static ResourceManager? _permissionResourceManager;
 
+        /// <summary>
+        /// Lấy chuỗi từ Resources.resw (file mặc định)
+        /// </summary>
         public static string GetString(string key)
         {
-            return _resourceLoader.GetString(key);
+            try
+            {
+                string value = _resourceLoader.GetString(key);
+                return string.IsNullOrEmpty(value) ? key : value;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Missing localization key: {key}, ex: {ex.Message}");
+                return key;
+            }
+        }
+
+        /// <summary>
+        /// Lấy chuỗi từ Permission.resw
+        /// </summary>
+        public static string GetPermissionString(string key)
+        {
+            try
+            {
+                _permissionResourceManager ??= new ResourceManager();
+                var subtree = _permissionResourceManager.MainResourceMap.TryGetSubtree("Permission");
+
+                if (subtree is null)
+                {
+                    Logger.Warning("Permission resource subtree not found.");
+                    return key.Replace('_', ' ');
+                }
+
+                var resource = subtree.TryGetValue(key);
+                if (resource != null)
+                    return resource.ValueAsString;
+
+                Logger.Warning($"Permission key not found: {key}");
+                return key.Replace('_', ' ');
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error retrieving permission key: {key}. Ex: {ex.Message}");
+                return key.Replace('_', ' ');
+            }
         }
     }
 }

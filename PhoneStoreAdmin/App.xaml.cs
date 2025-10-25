@@ -36,7 +36,12 @@ namespace PhoneStoreAdmin
         /// <summary>
         /// Gets the current application window
         /// </summary>
-        public Window? CurrentWindow => _window;
+        public Window? CurrentWindow
+        {
+            get => _window;
+            set => _window = value;
+        }
+
 
         /// <summary>
         /// Sets the current application window (used when transitioning from LoginWindow to MainWindow)

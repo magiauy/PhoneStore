@@ -1,0 +1,172 @@
+<ContentDialog
+    x:Class="PhoneStoreAdmin.View.Controls.AccountFilterDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Bộ lọc tài khoản"
+    PrimaryButtonText="Áp dụng"
+    SecondaryButtonText="Đặt lại"
+    CloseButtonText="Hủy"
+    DefaultButton="Primary"
+    PrimaryButtonClick="ApplyButton_Click"
+    SecondaryButtonClick="ResetButton_Click"
+    CloseButtonClick="CancelButton_Click">
+
+    <ContentDialog.Resources>
+        <Style x:Key="FilterSectionStyle" TargetType="StackPanel">
+            <Setter Property="Spacing" Value="8"/>
+            <Setter Property="Margin" Value="0,0,0,20"/>
+        </Style>
+
+        <Style x:Key="FilterLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushText}"/>
+        </Style>
+    </ContentDialog.Resources>
+
+    <!-- 👇 Bọc toàn bộ nội dung bằng Grid có width cố định -->
+    <Grid Width="700">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="600">
+            <StackPanel Spacing="12" Padding="4,8,4,4">
+
+                <!-- Status Filter -->
+                <StackPanel Style="{StaticResource FilterSectionStyle}">
+                    <TextBlock Text="Trạng thái" Style="{StaticResource FilterLabelStyle}"/>
+                    <ComboBox x:Name="StatusComboBox"
+                             HorizontalAlignment="Stretch"
+                             BorderBrush="{StaticResource BrushBorder}"
+                             BorderThickness="1"
+                             CornerRadius="8"
+                             Padding="12"
+                             SelectedIndex="0">
+                        <ComboBoxItem Content="Tất cả" Tag="All"/>
+                        <ComboBoxItem Content="Đã kích hoạt" Tag="Activated"/>
+                        <ComboBoxItem Content="Chưa kích hoạt" Tag="Deactivated"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- Account Type Filter -->
+                <StackPanel Style="{StaticResource FilterSectionStyle}">
+                    <TextBlock Text="Loại tài khoản" Style="{StaticResource FilterLabelStyle}"/>
+                    <ComboBox x:Name="AccountTypeComboBox"
+                             HorizontalAlignment="Stretch"
+                             BorderBrush="{StaticResource BrushBorder}"
+                             BorderThickness="1"
+                             CornerRadius="8"
+                             Padding="12"
+                             SelectedIndex="0">
+                        <ComboBoxItem Content="Tất cả" Tag="All"/>
+                        <ComboBoxItem Content="Nhân viên" Tag="Employee"/>
+                        <ComboBoxItem Content="Khách hàng" Tag="Customer"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- Created Date Range Filter -->
+                <StackPanel Style="{StaticResource FilterSectionStyle}">
+                    <TextBlock Text="Ngày tạo" Style="{StaticResource FilterLabelStyle}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Spacing="6">
+                            <TextBlock Text="Từ ngày" 
+                                      FontSize="12" 
+                                      Foreground="{StaticResource BrushTextSecondary}"/>
+                            <DatePicker x:Name="CreatedFromDatePicker"
+                                       HorizontalAlignment="Stretch"
+                                       BorderBrush="{StaticResource BrushBorder}"
+                                       BorderThickness="1"
+                                       CornerRadius="8"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Spacing="6">
+                            <TextBlock Text="Đến ngày" 
+                                      FontSize="12" 
+                                      Foreground="{StaticResource BrushTextSecondary}"/>
+                            <DatePicker x:Name="CreatedToDatePicker"
+                                       HorizontalAlignment="Stretch"
+                                       BorderBrush="{StaticResource BrushBorder}"
+                                       BorderThickness="1"
+                                       CornerRadius="8"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+
+                <!-- Last Login Filter -->
+                <StackPanel Style="{StaticResource FilterSectionStyle}">
+                    <TextBlock Text="Đăng nhập cuối" Style="{StaticResource FilterLabelStyle}"/>
+
+                    <RadioButtons x:Name="LastLoginFilterType" 
+                                 SelectionChanged="LastLoginFilterType_SelectionChanged"
+                                 MaxColumns="2">
+                        <RadioButton Content="Khoảng thời gian" Tag="DateRange" IsChecked="True"/>
+                        <RadioButton Content="Chưa đăng nhập" Tag="NeverLoggedIn"/>
+                    </RadioButtons>
+
+                    <!-- Date Range Option -->
+                    <Grid x:Name="LastLoginDateRangePanel" Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Spacing="6">
+                            <TextBlock Text="Từ ngày" 
+                                      FontSize="12" 
+                                      Foreground="{StaticResource BrushTextSecondary}"/>
+                            <DatePicker x:Name="LastLoginFromDatePicker"
+                                       HorizontalAlignment="Stretch"
+                                       BorderBrush="{StaticResource BrushBorder}"
+                                       BorderThickness="1"
+                                       CornerRadius="8"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Spacing="6">
+                            <TextBlock Text="Đến ngày" 
+                                      FontSize="12" 
+                                      Foreground="{StaticResource BrushTextSecondary}"/>
+                            <DatePicker x:Name="LastLoginToDatePicker"
+                                       HorizontalAlignment="Stretch"
+                                       BorderBrush="{StaticResource BrushBorder}"
+                                       BorderThickness="1"
+                                       CornerRadius="8"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+
+                <!-- Active Filters Summary -->
+                <Border Background="{StaticResource BrushPrimaryLight}"
+                       BorderBrush="{StaticResource BrushPrimary}"
+                       BorderThickness="1"
+                       CornerRadius="8"
+                       Padding="16"
+                       Margin="0,8,0,0">
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE946;" 
+                                     FontSize="16" 
+                                     Foreground="{StaticResource BrushPrimary}"/>
+                            <TextBlock Text="Bộ lọc đang áp dụng"
+                                      FontSize="13"
+                                      FontWeight="SemiBold"
+                                      Foreground="{StaticResource BrushPrimary}"/>
+                        </StackPanel>
+                        <TextBlock x:Name="ActiveFiltersText"
+                                  Text="Chưa có bộ lọc nào"
+                                  FontSize="12"
+                                  Foreground="{StaticResource BrushText}"
+                                  TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</ContentDialog>
