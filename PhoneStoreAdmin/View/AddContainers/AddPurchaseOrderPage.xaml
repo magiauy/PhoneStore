@@ -352,7 +352,13 @@
                                             <StackPanel Spacing="0">
                                                 <!--  Product Header  -->
                                                 <Grid Padding="16">
-                                                    <StackPanel Spacing="4">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Grid.Column="0" Spacing="4">
                                                         <TextBlock
                                                             FontSize="14"
                                                             FontWeight="SemiBold"
@@ -382,7 +388,26 @@
                                                         </StackPanel>
                                                     </StackPanel>
 
+                                                    <!--  Edit Serials Button (only for serial-tracked products)  -->
                                                     <Button
+                                                        Grid.Column="1"
+                                                        Width="32"
+                                                        Height="32"
+                                                        Margin="0,0,8,0"
+                                                        Padding="0"
+                                                        HorizontalAlignment="Right"
+                                                        VerticalAlignment="Top"
+                                                        Click="{x:Bind EditSerialNumbers}"
+                                                        CornerRadius="16"
+                                                        Style="{ThemeResource SubtleButtonStyle}"
+                                                        ToolTipService.ToolTip="Edit Serial Numbers"
+                                                        Visibility="{x:Bind EditSerialsButtonVisibility, Mode=OneWay}">
+                                                        <FontIcon FontSize="14" Glyph="&#xE70F;" />
+                                                    </Button>
+
+                                                    <!--  Remove Button  -->
+                                                    <Button
+                                                        Grid.Column="2"
                                                         Width="32"
                                                         Height="32"
                                                         Padding="0"
@@ -390,7 +415,8 @@
                                                         VerticalAlignment="Top"
                                                         Click="{x:Bind RemoveFromPurchaseOrder}"
                                                         CornerRadius="16"
-                                                        Style="{ThemeResource SubtleButtonStyle}">
+                                                        Style="{ThemeResource SubtleButtonStyle}"
+                                                        ToolTipService.ToolTip="Remove Product">
                                                         <FontIcon FontSize="14" Glyph="&#xE738;" />
                                                     </Button>
                                                 </Grid>
@@ -411,7 +437,7 @@
                                                     HorizontalContentAlignment="Stretch"
                                                     Background="Transparent"
                                                     CornerRadius="0,0,8,8"
-                                                    Visibility="{x:Bind IsSerialTracked, Mode=OneWay}">
+                                                    Visibility="{x:Bind SerialExpanderVisibility, Mode=OneWay}">
                                                     <Expander.Header>
                                                         <TextBlock
                                                             x:Uid="ViewDeviceDetailsHeader"
@@ -419,7 +445,7 @@
                                                             FontWeight="SemiBold"
                                                             Text="View Device Details" />
                                                     </Expander.Header>
-                                                    <ItemsRepeater ItemsSource="{x:Bind SerialEntries}">
+                                                    <ItemsRepeater ItemsSource="{x:Bind SerialEntries, Mode=OneWay}">
                                                         <ItemsRepeater.ItemTemplate>
                                                             <DataTemplate x:DataType="controls:SerialEntry">
                                                                 <Border
@@ -505,8 +531,10 @@
                     <!--  Action Buttons  -->
                     <StackPanel Grid.Row="4" Spacing="10">
                         <Button
+                            x:Name="PrintPurchaseOrderButton"
                             x:Uid="BtnPrintPurchaseOrder"
                             HorizontalAlignment="Stretch"
+                            Click="{x:Bind OnPrintPurchaseOrder}"
                             Content="Print Purchase Order"
                             IsEnabled="{x:Bind HasPurchaseOrderItems, Mode=OneWay}"
                             Style="{ThemeResource DefaultButtonStyle}" />
@@ -516,7 +544,7 @@
                             x:Uid="BtnCompletePurchaseOrder"
                             HorizontalAlignment="Stretch"
                             Click="{x:Bind OnCreatePurchaseOrder}"
-                            Content="Complete Purchase Order"
+                            Content="{x:Bind SaveButtonText, Mode=OneWay}"
                             IsEnabled="{x:Bind HasPurchaseOrderItems, Mode=OneWay}"
                             Style="{StaticResource PrimaryButtonStyle}" />
                     </StackPanel>

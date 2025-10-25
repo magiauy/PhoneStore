@@ -1183,6 +1183,176 @@ How many devices do you want to add?</value>
   <data name="ValidationErrorInfoBar.Message" xml:space="preserve">
     <value>Please enter Serial Number and IMEI 1 for all devices</value>
   </data>
+  <data name="NotesInputDialog.Title" xml:space="preserve">
+    <value>Purchase Order Notes</value>
+  </data>
+  <data name="NotesInputDialog.PrimaryButtonText" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="NotesInputDialog.CloseButtonText" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="NotesInputLabel.Text" xml:space="preserve">
+    <value>Notes (Optional)</value>
+  </data>
+  <data name="NotesInputTextBox.PlaceholderText" xml:space="preserve">
+    <value>Enter notes for this purchase order...</value>
+  </data>
+  <data name="NoteTextBoxTitle" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="CreatePurchaseOrderButton" xml:space="preserve">
+    <value>Create purchase order</value>
+  </data>
+  <data name="UpdatePurchaseOrderButton" xml:space="preserve">
+    <value>Update purchase order</value>
+  </data>
+  <data name="SerialOrImeiEmptyError" xml:space="preserve">
+    <value>Please enter Serial Number and IMEI 1 for all devices</value>
+  </data>
+  <data name="BtnReceivePurchaseOrder.Text" xml:space="preserve">
+    <value>Receive</value>
+  </data>
+  <data name="ConfirmReceivePurchaseOrderTitle" xml:space="preserve">
+    <value>Receive Purchase Order</value>
+  </data>
+  <data name="ConfirmReceivePurchaseOrderContent" xml:space="preserve">
+    <value>Are you sure you want to mark this purchase order as received? This will create inventory batches.</value>
+  </data>
+  <data name="ConfirmCancelPurchaseOrderTitle" xml:space="preserve">
+    <value>Cancel Purchase Order</value>
+  </data>
+  <data name="ConfirmCancelPurchaseOrderContent" xml:space="preserve">
+    <value>Are you sure you want to cancel this purchase order? This will remove all associated batches.</value>
+  </data>
+  <data name="PurchaseOrderReceivedSuccessfully" xml:space="preserve">
+    <value>Purchase order received successfully!</value>
+  </data>
+  <data name="PurchaseOrderCancelledSuccessfully" xml:space="preserve">
+    <value>Purchase order cancelled successfully!</value>
+  </data>
+  <data name="Dlg_BatchDetails_Title" xml:space="preserve">
+    <value>Batch Details</value>
+  </data>
+  <data name="Dlg_BatchDetails_BatchLabel" xml:space="preserve">
+    <value>Batch:</value>
+  </data>
+  <data name="Dlg_BatchDetails_SupplierLabel" xml:space="preserve">
+    <value>Supplier:</value>
+  </data>
+  <data name="Dlg_BatchDetails_BatchIdLabel" xml:space="preserve">
+    <value>Batch ID:</value>
+  </data>
+  <data name="Dlg_BatchDetails_PurchaseOrderLabel" xml:space="preserve">
+    <value>Purchase Order:</value>
+  </data>
+  <data name="Dlg_BatchDetails_CreatedAtLabel" xml:space="preserve">
+    <value>Created At:</value>
+  </data>
+  <data name="Dlg_BatchDetails_PODateLabel" xml:space="preserve">
+    <value>PO Date:</value>
+  </data>
+  <data name="Dlg_BatchDetails_NoteLabel" xml:space="preserve">
+    <value>Note:</value>
+  </data>
+  <data name="Dlg_BatchDetails_BatchProductsHeader" xml:space="preserve">
+    <value>Batch Products ({0})</value>
+  </data>
+  <data name="Dlg_BatchDetails_ProductIdLabel" xml:space="preserve">
+    <value>Product ID:</value>
+  </data>
+  <data name="Dlg_BatchDetails_QuantityLabel" xml:space="preserve">
+    <value>Quantity:</value>
+  </data>
+  <data name="Dlg_BatchDetails_CostPriceLabel" xml:space="preserve">
+    <value>Cost Price:</value>
+  </data>
+  <data name="Dlg_BatchDetails_SellingPriceLabel" xml:space="preserve">
+    <value>Selling Price:</value>
+  </data>
+  <data name="Dlg_BatchDetails_CloseButton" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Dlg_PODetails_Title" xml:space="preserve">
+    <value>Purchase Order Details</value>
+  </data>
+  <data name="Dlg_PODetails_SupplierInfoTitle" xml:space="preserve">
+    <value>Supplier Information</value>
+  </data>
+  <data name="Dlg_PODetails_SupplierNameLabel" xml:space="preserve">
+    <value>Name:</value>
+  </data>
+  <data name="Dlg_PODetails_SupplierPhoneLabel" xml:space="preserve">
+    <value>Phone:</value>
+  </data>
+  <data name="Dlg_PODetails_SupplierEmailLabel" xml:space="preserve">
+    <value>Email:</value>
+  </data>
+  <data name="Dlg_PODetails_SupplierAddressLabel" xml:space="preserve">
+    <value>Address:</value>
+  </data>
+  <data name="Dlg_PODetails_OrderDetailsTitle" xml:space="preserve">
+    <value>Order Details</value>
+  </data>
+  <data name="Dlg_PODetails_CreatedByLabel" xml:space="preserve">
+    <value>Created By:</value>
+  </data>
+  <data name="Dlg_PODetails_TotalAmountLabel" xml:space="preserve">
+    <value>Total Amount:</value>
+  </data>
+  <data name="Dlg_PODetails_NoteLabel" xml:space="preserve">
+    <value>Note:</value>
+  </data>
+  <data name="Dlg_PODetails_OrderLinesTitle" xml:space="preserve">
+    <value>Order Lines ({0})</value>
+  </data>
+  <data name="Dlg_PODetails_ProductIdLabel" xml:space="preserve">
+    <value>Product ID:</value>
+  </data>
+  <data name="Dlg_PODetails_QtyLabel" xml:space="preserve">
+    <value>Qty:</value>
+  </data>
+  <data name="Dlg_PODetails_UnitLabel" xml:space="preserve">
+    <value>Unit:</value>
+  </data>
+  <data name="Dlg_PODetails_CloseButton" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Common_NA" xml:space="preserve">
+    <value>N/A</value>
+  </data>
+  <data name="Common_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Common_NoNotes" xml:space="preserve">
+    <value>No notes</value>
+  </data>
+  <data name="Common_UserIdFormat" xml:space="preserve">
+    <value>User ID: {0}</value>
+  </data>
+  <data name="Common_POFormat" xml:space="preserve">
+    <value>PO #{0}</value>
+  </data>
+  <data name="Common_BatchIdFormat" xml:space="preserve">
+    <value>#{0}</value>
+  </data>
+  <data name="AddPO_InfoTitle" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="AddPO_DraftSerialMessage" xml:space="preserve">
+    <value>This purchase order is in DRAFT status. Serial numbers are not yet saved to the database. You can re-enter serial information for serial-tracked products when editing.</value>
+  </data>
+  <data name="AddPO_UpdateSuccessMessage" xml:space="preserve">
+    <value>Purchase order updated successfully</value>
+  </data>
+  <data name="AddPO_CannotUpdateMessage" xml:space="preserve">
+    <value>Cannot update purchase order</value>
+  </data>
+  <data name="AddPO_CannotEditSerialMessage" xml:space="preserve">
+    <value>Cannot edit serial numbers</value>
+  </data>
+  <data name="Common_OpenFile" xml:space="preserve">
+    <value>Open File</value>
   <data name="Accounts_PageTitle.Text" xml:space="preserve">
     <value>Account Management</value>
   </data>
