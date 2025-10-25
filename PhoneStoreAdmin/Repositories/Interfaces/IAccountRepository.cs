@@ -71,9 +71,32 @@ namespace PhoneStoreAdmin.Repositories.Interfaces
         Task UpdateAsync(Account entity);
 
         /// <summary>
+        /// Replace roles assigned to account
+        /// </summary>
+        /// <param name="accountId">Account id</param>
+        /// <param name="roleIds">Collection of role ids to assign</param>
+        Task UpdateRolesAsync(int accountId, IEnumerable<int> roleIds);
+
+        /// <summary>
         /// Delete account async
         /// </summary>
         /// <param name="id">Account ID to delete</param>
         Task DeleteAsync(int id);
+
+        /// <summary>
+        /// Get all accounts with person information
+        /// </summary>
+        /// <returns>List of all accounts</returns>
+        Task<List<Account>?> GetAllAsync();
+
+        /// <summary>
+        /// Get paged accounts with person information
+        /// </summary>
+        /// <param name="pageIndex">Page index (1-based)</param>
+        /// <param name="pageSize">Number of items per page</param>
+        /// <param name="searchText">Optional search text for username or full name</param>
+        /// <param name="filterCriteria">Optional filter criteria for advanced filtering</param>
+        /// <returns>Tuple containing list of accounts and total count</returns>
+        Task<(List<Account> Accounts, int TotalCount)?> GetPagedAsync(int pageIndex, int pageSize, string? searchText = null, AccountFilterCriteria? filterCriteria = null);
     }
 }
