@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="PhoneStoreAdmin.View.Controls.NotesInputDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PhoneStoreAdmin.View.Controls"
+    x:Uid="NotesInputDialog"
+    Title="Purchase Order Notes"
+    PrimaryButtonText="OK"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    PrimaryButtonClick="OnPrimaryButtonClick"
+    Style="{StaticResource DefaultContentDialogStyle}">
+
+    <StackPanel Spacing="16" MinWidth="500">
+        <TextBlock 
+            x:Uid="NotesInputLabel"
+            Text="Notes (Optional)"
+            FontWeight="SemiBold"
+            FontSize="15"/>
+        
+        <TextBox 
+            x:Name="NotesTextBox"
+            x:Uid="NotesInputTextBox"
+            PlaceholderText="Enter notes for this purchase order..."
+            TextWrapping="Wrap"
+            AcceptsReturn="True"
+            Height="150"
+            MaxLength="500"/>
+        
+        <TextBlock 
+            FontSize="12"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+            <Run Text="{x:Bind NotesTextBox.Text.Length, Mode=OneWay}"/>
+            <Run Text="/500 characters"/>
+        </TextBlock>
+    </StackPanel>
+</ContentDialog>
