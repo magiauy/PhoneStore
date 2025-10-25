@@ -69,8 +69,8 @@ namespace PhoneStoreAdmin.Services.Implementations
                     _lineRepository.Insert(line);
                 }
 
-                // Create batch automatically
-                CreateBatchForPurchaseOrder(po);
+                // DO NOT create batch here - only create when status changes to RECEIVED
+                Logger.Info($"PurchaseOrder {po.Id} created with DRAFT status. Batch will be created when marked as RECEIVED.");
             }
             catch (Exception ex)
             {
@@ -223,21 +223,64 @@ namespace PhoneStoreAdmin.Services.Implementations
         #region Business logic
         public void MarkAsReceived(int id)
         {
-            var po = GetById(id);
-            if (po != null && po.Status == PoStatus.DRAFT)
+            try
             {
+                var po = GetById(id);
+                if (po == null)
+                {
+                    throw new Exception("Purchase order not found");
+                }
+                
+                if (po.Status != PoStatus.DRAFT)
+                {
+                    throw new Exception("Only DRAFT purchase orders can be marked as received");
+                }
+                
+                // Create batch when marking as received
+                CreateBatchForPurchaseOrder(po);
+                
                 po.Status = PoStatus.RECEIVED;
                 _poRepository.Update(po);
+                Logger.Info($"Purchase order {id} marked as RECEIVED and batch created");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to mark purchase order {id} as received", ex);
+                throw;
             }
         }
 
         public void CancelOrder(int id)
         {
-            var po = GetById(id);
-            if (po != null && po.Status != PoStatus.CANCELLED)
+            try
             {
+                var po = GetById(id);
+                if (po == null)
+                {
+                    throw new Exception("Purchase order not found");
+                }
+                
+                if (po.Status == PoStatus.CANCELLED)
+                {
+                    throw new Exception("Purchase order is already cancelled");
+                }
+                
+                // Delete associated batches and batch products
+                var batches = _batchesRepository.GetByPurchaseOrderId(id);
+                foreach (var batch in batches)
+                {
+                    _batchProductRepository.DeleteByBatchId(batch.id);
+                }
+                _batchesRepository.DeleteByPurchaseOrderId(id);
+                
                 po.Status = PoStatus.CANCELLED;
                 _poRepository.Update(po);
+                Logger.Info($"Purchase order {id} cancelled and associated batches deleted");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to cancel purchase order {id}", ex);
+                throw;
             }
         }
         #endregion
