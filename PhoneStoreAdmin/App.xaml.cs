@@ -44,6 +44,14 @@ namespace PhoneStoreAdmin
 
 
         /// <summary>
+        /// Sets the current application window (used when transitioning from LoginWindow to MainWindow)
+        /// </summary>
+        public void SetCurrentWindow(Window window)
+        {
+            _window = window;
+        }
+
+        /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>        
