@@ -113,6 +113,10 @@ namespace PhoneStoreAdmin
                     await ShowSuccessDialog();
 
                     var mainWindow = new MainWindow();
+                    
+                    // Update App.CurrentWindow to point to MainWindow
+                    (Application.Current as App)?.SetCurrentWindow(mainWindow);
+                    
                     mainWindow.Activate();
                     this.Close();
                 }

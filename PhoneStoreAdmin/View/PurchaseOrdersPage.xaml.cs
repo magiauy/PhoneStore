@@ -2,6 +2,8 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.View.Controls;
 using PhoneStoreAdmin.Models.Enums;
@@ -22,6 +24,7 @@ namespace PhoneStoreAdmin.View
     {
         private IPurchaseOrderService PurchaseOrderService => App.GetService<IPurchaseOrderService>();
         private ISupplierService SupplierService => App.GetService<ISupplierService>();
+        private readonly ResourceLoader _resourceLoader;
 
         public ObservableCollection<PurchaseOrderViewModel> PurchaseOrders { get; } = new ObservableCollection<PurchaseOrderViewModel>();
         public ObservableCollection<Supplier> Suppliers { get; } = new();
@@ -36,6 +39,7 @@ namespace PhoneStoreAdmin.View
         public PurchaseOrdersPage()
         {
             this.InitializeComponent();
+            _resourceLoader = new ResourceLoader();
             this.Loaded += PurchaseOrdersPage_Loaded;
         }
 
@@ -234,36 +238,321 @@ namespace PhoneStoreAdmin.View
         {
             if (sender is MenuFlyoutItem item && item.Tag is PurchaseOrderViewModel po)
             {
-                ShowErrorDialog("Info", $"Edit purchase order ID: {po.Id} - Coming Soon!");
+                // Only allow editing DRAFT purchase orders
+                if (po.Status != PoStatus.DRAFT)
+                {
+                    ShowErrorDialog("Cannot Edit", "Only DRAFT purchase orders can be edited.");
+                    return;
+                }
+
+                // Navigate to add page with purchase order ID for editing
+                Frame.Navigate(typeof(AddPurchaseOrderPage), po.Id);
             }
         }
 
-        private void BtnDetail_Click(object sender, RoutedEventArgs e)
+        private async void BtnReceive_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuFlyoutItem item && item.Tag is PurchaseOrderViewModel po)
+            {
+                // Only allow receiving DRAFT purchase orders
+                if (po.Status != PoStatus.DRAFT)
+                {
+                    ShowErrorDialog("Cannot Receive", "Only DRAFT purchase orders can be received.");
+                    return;
+                }
+
+                try
+                {
+                    // Show confirmation dialog
+                    var dialog = new ContentDialog
+                    {
+                        Title = "Confirm Receive Purchase Order",
+                        Content = "Are you sure you want to mark this purchase order as received? This will create inventory batches.",
+                        PrimaryButtonText = "Confirm",
+                        CloseButtonText = "Cancel",
+                        XamlRoot = this.XamlRoot
+                    };
+
+                    var result = await dialog.ShowAsync();
+                    if (result != ContentDialogResult.Primary)
+                        return;
+
+                    PurchaseOrderService.MarkAsReceived(po.Id);
+                    LoadPurchaseOrders();
+                    ShowErrorDialog("Success", "Purchase order received successfully!");
+                }
+                catch (Exception ex)
+                {
+                    ShowErrorDialog("Error", $"Failed to receive purchase order: {ex.Message}");
+                }
+            }
+        }
+
+        private async void BtnDetail_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuFlyoutItem item && item.Tag is PurchaseOrderViewModel poVM)
             {
-                var po = PurchaseOrderService.GetById(poVM.Id);
-                if (po != null)
+                try
                 {
-                    var poView = new PurchaseOrderViewModel(po);
-                    poView.SupplierName = SupplierService.GetSupplierById(po.SupplierId)?.Name ?? string.Empty;
-                    var details = $"ID: {po.Id}\n" +
-                                  $"Supplier: {poView.SupplierName} ({po.SupplierId})\n" +
-                                  $"Created By: {po.CreatedBy}\n" +
-                                  $"Order Date: {po.OrderDate}\n" +
-                                  $"Status: {poView.LocalizedStatusText}\n" +
-                                  $"Total Amount: {po.TotalAmount}\n" +
-                                  $"Note: {po.Note ?? "N/A"}\n\n" +
-                                  "Purchase Order Lines:\n";
-
-                    foreach (var line in poView.PurchaseOrderLines)
+                    var po = PurchaseOrderService.GetById(poVM.Id);
+                    if (po == null)
                     {
-                        details += $" - Product ID: {line.ProductId}, Quantity: {line.Quantity}, Unit Cost: {line.UnitCost}, Total Cost: {line.TotalCost}\n";
+                        ShowErrorDialog("Error", "Purchase order not found");
+                        return;
                     }
 
-                    ShowErrorDialog("Purchase Order Details", details);
+                    var supplier = SupplierService.GetSupplierById(po.SupplierId);
+                    
+                    var stack = new StackPanel { Spacing = 16, Padding = new Thickness(4) };
+
+                    // Header with Status Badge
+                    var headerGrid = new Grid();
+                    headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12, GridUnitType.Pixel) });
+                    headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+                    var idBorder = new Border
+                    {
+                        Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 232, 240, 254)),
+                        CornerRadius = new CornerRadius(8),
+                        Padding = new Thickness(12, 8, 12, 8)
+                    };
+                    idBorder.Child = new TextBlock
+                    {
+                        Text = string.Format(_resourceLoader.GetString("Common_POFormat"), po.Id),
+                        FontSize = 18,
+                        FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+                        Foreground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 79, 70, 229))
+                    };
+                    Grid.SetColumn(idBorder, 0);
+
+                    var statusBorder = new Border
+                    {
+                        Background = new SolidColorBrush(ParseHexColor(poVM.StatusColor)),
+                        CornerRadius = new CornerRadius(16),
+                        Padding = new Thickness(12, 6, 12, 6),
+                        VerticalAlignment = VerticalAlignment.Center
+                    };
+                    statusBorder.Child = new TextBlock
+                    {
+                        Text = poVM.LocalizedStatusText,
+                        FontSize = 13,
+                        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                        Foreground = new SolidColorBrush(Microsoft.UI.Colors.White)
+                    };
+                    Grid.SetColumn(statusBorder, 2);
+
+                    var dateBorder = new TextBlock
+                    {
+                        Text = po.OrderDate.ToString("dd/MM/yyyy HH:mm"),
+                        FontSize = 13,
+                        Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray),
+                        VerticalAlignment = VerticalAlignment.Center,
+                        HorizontalAlignment = HorizontalAlignment.Right
+                    };
+                    Grid.SetColumn(dateBorder, 3);
+
+                    headerGrid.Children.Add(idBorder);
+                    headerGrid.Children.Add(statusBorder);
+                    headerGrid.Children.Add(dateBorder);
+                    stack.Children.Add(headerGrid);
+
+                    // Supplier Information Card
+                    stack.Children.Add(CreateSectionCard(
+                        _resourceLoader.GetString("Dlg_PODetails_SupplierInfoTitle"),
+                        "\uE77B", 
+                        new[]
+                        {
+                            (_resourceLoader.GetString("Dlg_PODetails_SupplierNameLabel"), supplier?.Name ?? _resourceLoader.GetString("Common_Unknown")),
+                            (_resourceLoader.GetString("Dlg_PODetails_SupplierPhoneLabel"), supplier?.Phone ?? _resourceLoader.GetString("Common_NA")),
+                            (_resourceLoader.GetString("Dlg_PODetails_SupplierEmailLabel"), supplier?.Email ?? _resourceLoader.GetString("Common_NA")),
+                            (_resourceLoader.GetString("Dlg_PODetails_SupplierAddressLabel"), supplier?.Address ?? _resourceLoader.GetString("Common_NA"))
+                        }));
+
+                    // Order Details Card
+                    stack.Children.Add(CreateSectionCard(
+                        _resourceLoader.GetString("Dlg_PODetails_OrderDetailsTitle"),
+                        "\uE77F", 
+                        new[]
+                        {
+                            (_resourceLoader.GetString("Dlg_PODetails_CreatedByLabel"), string.Format(_resourceLoader.GetString("Common_UserIdFormat"), po.CreatedBy)),
+                            (_resourceLoader.GetString("Dlg_PODetails_TotalAmountLabel"), $"{po.TotalAmount:C0}".Replace("₫", "VND")),
+                            (_resourceLoader.GetString("Dlg_PODetails_NoteLabel"), po.Note ?? _resourceLoader.GetString("Common_NoNotes"))
+                        }));
+
+                    // Order Lines Card
+                    var linesCard = new Border
+                    {
+                        Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 249, 250, 251)),
+                        BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 229, 231, 235)),
+                        BorderThickness = new Thickness(1),
+                        CornerRadius = new CornerRadius(8),
+                        Padding = new Thickness(16)
+                    };
+
+                    var linesStack = new StackPanel { Spacing = 12 };
+                    
+                    var linesHeader = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+                    linesHeader.Children.Add(new FontIcon
+                    {
+                        Glyph = "\uE8F1",
+                        FontSize = 18,
+                        Foreground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 79, 70, 229))
+                    });
+                    linesHeader.Children.Add(new TextBlock
+                    {
+                        Text = string.Format(_resourceLoader.GetString("Dlg_PODetails_OrderLinesTitle"), po.PurchaseOrderLines.Count),
+                        FontSize = 16,
+                        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+                    });
+                    linesStack.Children.Add(linesHeader);
+
+                    foreach (var line in po.PurchaseOrderLines)
+                    {
+                        var lineItemBorder = new Border
+                        {
+                            Background = new SolidColorBrush(Microsoft.UI.Colors.White),
+                            BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 229, 231, 235)),
+                            BorderThickness = new Thickness(1),
+                            CornerRadius = new CornerRadius(6),
+                            Padding = new Thickness(12),
+                            Margin = new Thickness(0, 4, 0, 0)
+                        };
+
+                        var lineStack = new StackPanel { Spacing = 6 };
+                        lineStack.Children.Add(new TextBlock
+                        {
+                            Text = $"{_resourceLoader.GetString("Dlg_PODetails_ProductIdLabel")} {line.ProductId}",
+                            FontSize = 14,
+                            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+                        });
+
+                        var lineInfoGrid = new Grid();
+                        lineInfoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                        lineInfoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                        lineInfoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+                        var qtyText = new TextBlock { FontSize = 12, Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray) };
+                        qtyText.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run { Text = _resourceLoader.GetString("Dlg_PODetails_QtyLabel") + " " });
+                        qtyText.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run { Text = line.Quantity.ToString(), FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+                        Grid.SetColumn(qtyText, 0);
+
+                        var unitText = new TextBlock { FontSize = 12, Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray) };
+                        unitText.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run { Text = _resourceLoader.GetString("Dlg_PODetails_UnitLabel") + " " });
+                        unitText.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run { Text = $"{line.UnitCost:C0}".Replace("₫", "VND"), FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+                        Grid.SetColumn(unitText, 1);
+
+                        var totalText = new TextBlock
+                        {
+                            Text = $"{line.TotalCost:C0}".Replace("₫", "VND"),
+                            FontSize = 13,
+                            FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+                            Foreground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 79, 70, 229)),
+                            HorizontalAlignment = HorizontalAlignment.Right
+                        };
+                        Grid.SetColumn(totalText, 2);
+
+                        lineInfoGrid.Children.Add(qtyText);
+                        lineInfoGrid.Children.Add(unitText);
+                        lineInfoGrid.Children.Add(totalText);
+
+                        lineStack.Children.Add(lineInfoGrid);
+                        lineItemBorder.Child = lineStack;
+                        linesStack.Children.Add(lineItemBorder);
+                    }
+
+                    linesCard.Child = linesStack;
+                    stack.Children.Add(linesCard);
+
+                    var scrollViewer = new ScrollViewer
+                    {
+                        Content = stack,
+                        MaxHeight = 600
+                    };
+
+                    var dialog = new ContentDialog
+                    {
+                        Title = _resourceLoader.GetString("Dlg_PODetails_Title"),
+                        Content = scrollViewer,
+                        CloseButtonText = _resourceLoader.GetString("Dlg_PODetails_CloseButton"),
+                        XamlRoot = this.XamlRoot
+                    };
+
+                    await dialog.ShowAsync();
+                }
+                catch (Exception ex)
+                {
+                    ShowErrorDialog("Error", $"Cannot load purchase order details: {ex.Message}");
                 }
             }
+        }
+
+        private Border CreateSectionCard(string title, string icon, (string label, string value)[] items)
+        {
+            var card = new Border
+            {
+                Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 249, 250, 251)),
+                BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 229, 231, 235)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(16)
+            };
+
+            var stack = new StackPanel { Spacing = 12 };
+            
+            // Header
+            var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+            header.Children.Add(new FontIcon
+            {
+                Glyph = icon,
+                FontSize = 18,
+                Foreground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 79, 70, 229))
+            });
+            header.Children.Add(new TextBlock
+            {
+                Text = title,
+                FontSize = 16,
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+            });
+            stack.Children.Add(header);
+
+            // Items
+            var itemsStack = new StackPanel { Spacing = 8 };
+            foreach (var (label, value) in items)
+            {
+                itemsStack.Children.Add(CreateInfoGrid(label, value));
+            }
+            stack.Children.Add(itemsStack);
+
+            card.Child = stack;
+            return card;
+        }
+
+        private Grid CreateInfoGrid(string label, string value)
+        {
+            var grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            var labelBlock = new TextBlock
+            {
+                Text = label,
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray)
+            };
+            Grid.SetColumn(labelBlock, 0);
+            grid.Children.Add(labelBlock);
+
+            var valueBlock = new TextBlock
+            {
+                Text = value,
+                TextWrapping = TextWrapping.Wrap
+            };
+            Grid.SetColumn(valueBlock, 1);
+            grid.Children.Add(valueBlock);
+
+            return grid;
         }
 
         private void BtnCancel_Click(object sender, RoutedEventArgs e)
@@ -272,6 +561,13 @@ namespace PhoneStoreAdmin.View
             {
                 try
                 {
+                    // Only allow cancelling if not already cancelled
+                    if (po.Status == PoStatus.CANCELLED)
+                    {
+                        ShowErrorDialog("Cannot Cancel", "Purchase order is already cancelled.");
+                        return;
+                    }
+
                     PurchaseOrderService.CancelOrder(po.Id);
                     LoadPurchaseOrders();
                     ShowErrorDialog("Success", "Purchase order cancelled successfully!");
@@ -288,6 +584,59 @@ namespace PhoneStoreAdmin.View
             if (sender is FrameworkElement element)
             {
                 FlyoutBase.ShowAttachedFlyout(element);
+            }
+        }
+
+        private void ActionMenuFlyout_Opening(object sender, object e)
+        {
+            if (sender is MenuFlyout flyout && flyout.Target is FrameworkElement element)
+            {
+                var po = element.Tag as PurchaseOrderViewModel;
+                if (po == null) return;
+
+                // Find menu items - they are children of the flyout
+                MenuFlyoutItem? editMenuItem = null;
+                MenuFlyoutItem? receiveMenuItem = null;
+                MenuFlyoutItem? cancelMenuItem = null;
+
+                foreach (var item in flyout.Items)
+                {
+                    if (item is MenuFlyoutItem menuItem)
+                    {
+                        // Identify items by checking their Click event handlers or names
+                        if (menuItem.Name == "EditMenuItem")
+                            editMenuItem = menuItem;
+                        else if (menuItem.Name == "ReceiveMenuItem")
+                            receiveMenuItem = menuItem;
+                        else if (menuItem.Name == "CancelMenuItem")
+                            cancelMenuItem = menuItem;
+                    }
+                }
+
+                // Control visibility based on status
+                switch (po.Status)
+                {
+                    case PoStatus.DRAFT:
+                        // DRAFT: Can edit, receive, or cancel
+                        if (editMenuItem != null) editMenuItem.Visibility = Visibility.Visible;
+                        if (receiveMenuItem != null) receiveMenuItem.Visibility = Visibility.Visible;
+                        if (cancelMenuItem != null) cancelMenuItem.Visibility = Visibility.Visible;
+                        break;
+
+                    case PoStatus.RECEIVED:
+                        // RECEIVED: Can only cancel
+                        if (editMenuItem != null) editMenuItem.Visibility = Visibility.Collapsed;
+                        if (receiveMenuItem != null) receiveMenuItem.Visibility = Visibility.Collapsed;
+                        if (cancelMenuItem != null) cancelMenuItem.Visibility = Visibility.Visible;
+                        break;
+
+                    case PoStatus.CANCELLED:
+                        // CANCELLED: No actions available except view details
+                        if (editMenuItem != null) editMenuItem.Visibility = Visibility.Collapsed;
+                        if (receiveMenuItem != null) receiveMenuItem.Visibility = Visibility.Collapsed;
+                        if (cancelMenuItem != null) cancelMenuItem.Visibility = Visibility.Collapsed;
+                        break;
+                }
             }
         }
 
@@ -363,6 +712,38 @@ namespace PhoneStoreAdmin.View
             };
 
             await dialog.ShowAsync();
+        }
+
+        private Windows.UI.Color ParseHexColor(string hexColor)
+        {
+            // Remove the # if present
+            hexColor = hexColor.TrimStart('#');
+
+            byte a = 255; // Default alpha
+            byte r, g, b;
+
+            if (hexColor.Length == 6)
+            {
+                // #RRGGBB format
+                r = Convert.ToByte(hexColor.Substring(0, 2), 16);
+                g = Convert.ToByte(hexColor.Substring(2, 2), 16);
+                b = Convert.ToByte(hexColor.Substring(4, 2), 16);
+            }
+            else if (hexColor.Length == 8)
+            {
+                // #AARRGGBB format
+                a = Convert.ToByte(hexColor.Substring(0, 2), 16);
+                r = Convert.ToByte(hexColor.Substring(2, 2), 16);
+                g = Convert.ToByte(hexColor.Substring(4, 2), 16);
+                b = Convert.ToByte(hexColor.Substring(6, 2), 16);
+            }
+            else
+            {
+                // Invalid format, return gray
+                return Windows.UI.Color.FromArgb(255, 128, 128, 128);
+            }
+
+            return Windows.UI.Color.FromArgb(a, r, g, b);
         }
     }
 
