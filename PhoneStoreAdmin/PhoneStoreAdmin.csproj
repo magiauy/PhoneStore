@@ -14,6 +14,8 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Theme\Colors.xaml" />
+    <None Remove="View\InvoicePage.Xaml" />
+    <None Remove="View\PurchaseOrdersPage.xaml" />
   </ItemGroup>
   <ItemGroup>
     <Page Remove="LoginWindow.xaml" />
@@ -80,6 +82,10 @@
 	  <None Update="View\Controls\SerialNumberInputDialog.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </None>
+	  <Page Update="View\InvoicePage.Xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Page>
 	</ItemGroup>
 
 	<ItemGroup>
