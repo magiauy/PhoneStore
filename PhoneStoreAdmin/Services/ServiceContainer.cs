@@ -40,6 +40,7 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<IAuthRepository>(() => new AuthRepository(GetService<DataSource>()));
             RegisterSingleton<IAccountRepository>(() => new AccountRepository(GetService<DataSource>()));
             RegisterSingleton<IPersonRepository>(() => new PersonRepository(GetService<DataSource>()));
+            RegisterSingleton<IEmployeeRepository>(() => new EmployeeRepository(GetService<DataSource>()));
             RegisterSingleton<ISupplierRepository>(() => new SupplierRepository(GetService<DataSource>()));
             RegisterSingleton<IPurchaseOrderLineRepository>(() => new PurchaseOrderLineRepository(GetService<DataSource>()));
             RegisterSingleton<IPurchaseOrderRepository>(() => new PurchaseOrderRepository(GetService<DataSource>()));
@@ -49,11 +50,14 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<IBrandRepository>(() => new BrandRepository(GetService<DataSource>()));
             RegisterSingleton<IProductRepository>(() => new ProductRepository(GetService<DataSource>()));
             RegisterSingleton<IProductSerialRepository>(() => new ProductSerialRepository(GetService<DataSource>()));
+            RegisterSingleton<IRoleRepository>(() => new RoleRepository(GetService<DataSource>()));
+            RegisterSingleton<IPermissionRepository>(() => new PermissionRepository(GetService<DataSource>()));
 
             // Register services
             RegisterSingleton<IAuthService>(() => new AuthService(GetService<IAuthRepository>()));
             RegisterSingleton<IAccountService>(() => new AccountService(GetService<IAccountRepository>()));
             RegisterSingleton<IPersonService>(() => new PersonService(GetService<IPersonRepository>()));
+            RegisterSingleton<IEmployeeService>(() => new EmployeeService(GetService<IEmployeeRepository>()));
             RegisterSingleton<ISupplierService>(() => new SupplierService(GetService<ISupplierRepository>()));
             RegisterSingleton<IPurchaseOrderService>(() => new PurchaseOrderService(
                 GetService<IPurchaseOrderRepository>(), 
@@ -67,7 +71,8 @@ namespace PhoneStoreAdmin.Services
                 GetService<IPurchaseOrderRepository>(), 
                 GetService<ISupplierRepository>()));
             RegisterSingleton<ILocalStorageService>(() => new LocalStorageService());
-
+            RegisterSingleton<IRoleService>(() => new RoleService(GetService<IRoleRepository>()));
+            RegisterSingleton<IPermissionService>(() => new PermissionService(GetService<IPermissionRepository>()));
             // Register UserSession singleton
             RegisterSingleton<UserSession>(UserSession.Instance);
 
