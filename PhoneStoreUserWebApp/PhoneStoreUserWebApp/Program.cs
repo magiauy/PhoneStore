@@ -1,4 +1,3 @@
-using PhoneStoreUserWebApp.Client.Pages;
 using PhoneStoreUserWebApp.Components;
 
 var builder = WebApplication.CreateBuilder(args);
