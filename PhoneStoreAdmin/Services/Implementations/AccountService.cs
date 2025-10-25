@@ -123,7 +123,42 @@ namespace PhoneStoreAdmin.Services.Implementations
             try
             {
                 Logger.Info("Getting all accounts");
-                return await _accountRepository.GetAllAsync();
+                var accounts = await _accountRepository.GetAllAsync();
+                if (accounts == null)
+                    return null;
+
+                var currentSession = UserSession.Instance;
+                var currentAccountId = currentSession.Account?.Id;
+                var currentRoleWeight = currentSession.Role?.Weight;
+
+                var visibleAccounts = currentAccountId.HasValue
+                    ? accounts.Where(a => a.Id != currentAccountId.Value).ToList()
+                    : new List<Account>(accounts);
+
+                if (!currentRoleWeight.HasValue)
+                    return visibleAccounts;
+
+                var filteredAccounts = new List<Account>();
+
+                foreach (var account in visibleAccounts)
+                {
+                    var roles = await _accountRepository.GetRolesByAccountIdAsync(account.Id);
+
+                    if (roles == null || roles.Count == 0)
+                    {
+                        filteredAccounts.Add(account);
+                        continue;
+                    }
+
+                    var minRoleWeight = roles.Min(role => role.Weight);
+
+                    if (minRoleWeight > currentRoleWeight.Value)
+                    {
+                        filteredAccounts.Add(account);
+                    }
+                }
+
+                return filteredAccounts;
             }
             catch (Exception ex)
             {
