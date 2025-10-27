@@ -75,13 +75,6 @@
                 <!--  Form Fields  -->
                 <StackPanel HorizontalAlignment="Center" Spacing="4">
 
-                    <!--  Supplier ID (Read-only)  -->
-                    <TextBlock x:Uid="SupplierIdLabel" Style="{StaticResource InputLabelStyle}" />
-                    <TextBox
-                        x:Name="SupplierIdTextBox"
-                        IsEnabled="False"
-                        Style="{StaticResource ReadOnlyFieldStyle}" />
-
                     <!--  Supplier Name  -->
                     <TextBlock x:Uid="SupplierNameLabel" Style="{StaticResource InputLabelStyle}" />
                     <TextBox

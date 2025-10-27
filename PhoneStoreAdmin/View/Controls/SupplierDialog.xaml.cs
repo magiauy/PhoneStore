@@ -271,7 +271,6 @@ namespace PhoneStoreAdmin.View.Controls
         {
             if (supplier == null || _currentMode == DialogMode.Add)
             {
-                SupplierIdTextBox.Text = "";
                 SupplierNameTextBox.Text = "";
                 PhoneTextBox.Text = "";
                 EmailTextBox.Text = "";
@@ -281,7 +280,6 @@ namespace PhoneStoreAdmin.View.Controls
                 return;
             }
 
-            SupplierIdTextBox.Text = supplier.Id.ToString();
             SupplierNameTextBox.Text = supplier.Name;
             PhoneTextBox.Text = supplier.Phone;
             EmailTextBox.Text = supplier.Email;
@@ -301,7 +299,6 @@ namespace PhoneStoreAdmin.View.Controls
         {
             bool isEditable = _currentMode != DialogMode.View;
 
-            SupplierIdTextBox.IsReadOnly = true;
             SupplierNameTextBox.IsReadOnly = !isEditable;
             PhoneTextBox.IsReadOnly = !isEditable;
             EmailTextBox.IsReadOnly = !isEditable;
@@ -364,7 +361,6 @@ namespace PhoneStoreAdmin.View.Controls
 
                 var supplier = new Supplier
                 {
-                    Id = int.TryParse(SupplierIdTextBox.Text, out int id) ? id : 0,
                     Name = SupplierNameTextBox.Text ?? string.Empty,
                     Phone = PhoneTextBox.Text ?? string.Empty,
                     Email = EmailTextBox.Text ?? string.Empty,
