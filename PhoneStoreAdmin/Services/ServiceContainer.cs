@@ -48,6 +48,8 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<IBatchesRepository>(() => new BatchesRepository(GetService<DataSource>()));
             RegisterSingleton<IProductCategoryRepository>(() => new ProductCategoryRepository(GetService<DataSource>()));
             RegisterSingleton<IBrandRepository>(() => new BrandRepository(GetService<DataSource>()));
+            RegisterSingleton<IPromotionRepository>(() => new PromotionRepository(GetService<DataSource>()));
+            RegisterSingleton<IPromotionCodeRepository>(() => new PromotionCodeRepository(GetService<DataSource>()));
             RegisterSingleton<IProductRepository>(() => new ProductRepository(GetService<DataSource>()));
             RegisterSingleton<IProductSerialRepository>(() => new ProductSerialRepository(GetService<DataSource>()));
             RegisterSingleton<IRoleRepository>(() => new RoleRepository(GetService<DataSource>()));
@@ -59,6 +61,9 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<IPersonService>(() => new PersonService(GetService<IPersonRepository>()));
             RegisterSingleton<IEmployeeService>(() => new EmployeeService(GetService<IEmployeeRepository>()));
             RegisterSingleton<ISupplierService>(() => new SupplierService(GetService<ISupplierRepository>()));
+            RegisterSingleton<IBrandService>(() => new BrandService(GetService<IBrandRepository>()));
+            RegisterSingleton<IPromotionService>(() => new PromotionService(GetService<IPromotionRepository>()));
+            RegisterSingleton<IPromotionCodeService>(() => new PromotionCodeService(GetService<IPromotionCodeRepository>(), GetService<IPromotionRepository>()));
             RegisterSingleton<IPurchaseOrderService>(() => new PurchaseOrderService(
                 GetService<IPurchaseOrderRepository>(), 
                 GetService<IPurchaseOrderLineRepository>(),

@@ -46,6 +46,16 @@
                     Icon="Contact"
                     Tag="Suppliers" />
                 <NavigationViewItem
+                    x:Name="BrandsNavItem"
+                    x:Uid="MenuItemBrands"
+                    Icon="Tag"
+                    Tag="Brands" />
+                <NavigationViewItem
+                    x:Name="PromotionsNavItem"
+                    x:Uid="MenuItemPromotions"
+                    Icon="Calendar"
+                    Tag="Promotions" />
+                <NavigationViewItem
                     x:Name="PurchaseOrdersNavItem"
                     x:Uid="MenuItemPurchaseOrders"
                     Icon="Paste"

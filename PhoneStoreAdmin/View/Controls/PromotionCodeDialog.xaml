@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentControl
+    x:Class="PhoneStoreAdmin.View.Controls.PromotionCodeDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PhoneStoreAdmin.View.Controls"
+    Width="500">
+
+	<ContentControl.Resources>
+		<Style x:Key="InputFieldStyle" TargetType="TextBox">
+			<Setter Property="Height" Value="40" />
+			<Setter Property="CornerRadius" Value="6" />
+			<Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="Background" Value="{StaticResource BrushSurface}" />
+			<Setter Property="Margin" Value="0,4,0,8" />
+			<Setter Property="Padding" Value="12,8" />
+			<Setter Property="AcceptsReturn" Value="False" />
+			<Setter Property="TextWrapping" Value="NoWrap" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+			<Setter Property="Width" Value="450" />
+		</Style>
+
+		<Style
+            x:Key="ReadOnlyFieldStyle"
+            BasedOn="{StaticResource InputFieldStyle}"
+            TargetType="TextBox">
+			<Setter Property="IsReadOnly" Value="True" />
+			<Setter Property="Background" Value="{StaticResource BrushBackground}" />
+			<Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}" />
+		</Style>
+
+		<Style x:Key="InputLabelStyle" TargetType="TextBlock">
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Foreground" Value="{StaticResource BrushText}" />
+			<Setter Property="Margin" Value="0,8,0,4" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+			<Setter Property="Width" Value="450" />
+		</Style>
+
+		<Style x:Key="ComboBoxStyle" TargetType="ComboBox">
+			<Setter Property="HorizontalAlignment" Value="Center" />
+			<Setter Property="Width" Value="450" />
+			<Setter Property="Margin" Value="0,4,0,8" />
+			<Setter Property="Height" Value="40" />
+			<Setter Property="CornerRadius" Value="6" />
+			<Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="Background" Value="{StaticResource BrushSurface}" />
+		</Style>
+
+		<Style x:Key="NumberBoxStyle" TargetType="NumberBox">
+			<Setter Property="HorizontalAlignment" Value="Center" />
+			<Setter Property="Width" Value="450" />
+			<Setter Property="Margin" Value="0,4,0,8" />
+			<Setter Property="MinHeight" Value="40" />
+			<Setter Property="CornerRadius" Value="6" />
+			<Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="Background" Value="{StaticResource BrushSurface}" />
+		</Style>
+
+		<Style x:Key="ToggleSwitchStyle" TargetType="ToggleSwitch">
+			<Setter Property="HorizontalAlignment" Value="Center" />
+			<Setter Property="Width" Value="450" />
+			<Setter Property="Margin" Value="0,4,0,8" />
+		</Style>
+
+		<Style x:Key="ValidationErrorStyle" TargetType="TextBlock">
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="Foreground" Value="{StaticResource BrushError}" />
+			<Setter Property="Margin" Value="0,0,0,8" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+		</Style>
+	</ContentControl.Resources>
+
+	<ScrollViewer
+        Width="Auto"
+        Margin="12,12,12,0"
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto">
+		<Grid Padding="12,12,12,12">
+			<StackPanel HorizontalAlignment="Center">
+
+				<StackPanel HorizontalAlignment="Center" Spacing="4">
+
+					<TextBlock x:Uid="PromotionCodeIdLabel" Style="{StaticResource InputLabelStyle}" />
+					<TextBox
+                        x:Name="PromotionCodeIdTextBox"
+                        IsEnabled="False"
+                        Style="{StaticResource ReadOnlyFieldStyle}" />
+
+					<TextBlock x:Uid="PromotionCodeLabel" Style="{StaticResource InputLabelStyle}" />
+					<TextBox
+                        x:Name="PromotionCodeTextBox"
+                        x:Uid="PromotionCodePlaceholder"
+                        MaxLength="50"
+                        Style="{StaticResource InputFieldStyle}"
+                        TextChanged="PromotionCodeTextBox_TextChanged" />
+					<TextBlock
+                        x:Name="PromotionCodeError"
+                        Style="{StaticResource ValidationErrorStyle}"
+                        Visibility="Collapsed" />
+
+					<TextBlock x:Uid="PromotionCodePromotionLabel" Style="{StaticResource InputLabelStyle}" />
+					<ComboBox
+                        x:Name="PromotionComboBox"
+                        SelectedValuePath="Id"
+                        SelectionChanged="PromotionComboBox_SelectionChanged"
+                        DropDownOpened="PromotionComboBox_DropDownOpened"
+                        Style="{StaticResource ComboBoxStyle}">
+						<ComboBox.ItemTemplate>
+							<DataTemplate>
+								<TextBlock Text="{Binding Name}" />
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+					<TextBlock
+                        x:Name="PromotionError"
+                        Style="{StaticResource ValidationErrorStyle}"
+                        Visibility="Collapsed" />
+
+					<TextBlock x:Uid="PromotionCodeDiscountAmountLabel" Style="{StaticResource InputLabelStyle}" />
+					<NumberBox
+                        x:Name="DiscountAmountNumberBox"
+                        x:Uid="PromotionCodeDiscountAmountPlaceholder"
+                        Minimum="0"
+                        SpinButtonPlacementMode="Compact"
+                        Style="{StaticResource NumberBoxStyle}"
+                        ValueChanged="DiscountAmountNumberBox_ValueChanged" />
+					<TextBlock
+                        x:Name="DiscountAmountError"
+                        Style="{StaticResource ValidationErrorStyle}"
+                        Visibility="Collapsed" />
+
+					<TextBlock x:Uid="PromotionCodeMinimumAmountLabel" Style="{StaticResource InputLabelStyle}" />
+					<NumberBox
+                        x:Name="MinimumAmountNumberBox"
+                        x:Uid="PromotionCodeMinimumAmountPlaceholder"
+                        Minimum="0"
+                        SpinButtonPlacementMode="Compact"
+                        Style="{StaticResource NumberBoxStyle}"
+                        ValueChanged="MinimumAmountNumberBox_ValueChanged" />
+					<TextBlock
+                        x:Name="MinimumAmountError"
+                        Style="{StaticResource ValidationErrorStyle}"
+                        Visibility="Collapsed" />
+
+					<TextBlock x:Uid="PromotionCodeUsageLimitLabel" Style="{StaticResource InputLabelStyle}" />
+					<NumberBox
+                        x:Name="UsageLimitNumberBox"
+                        x:Uid="PromotionCodeUsageLimitPlaceholder"
+                        Minimum="1"
+                        Style="{StaticResource NumberBoxStyle}" />
+					<TextBlock
+                        x:Uid="PromotionCodeUsageLimitHint"
+                        FontSize="12"
+                        Foreground="{StaticResource BrushTextSecondary}"
+                        HorizontalAlignment="Center"
+                        TextWrapping="Wrap"
+                        Width="450"
+                        Margin="0,0,0,8" />
+
+					<TextBlock x:Uid="PromotionCodeUsedCountLabel" Style="{StaticResource InputLabelStyle}" />
+					<TextBox
+                        x:Name="UsedCountTextBox"
+                        IsEnabled="False"
+                        Style="{StaticResource ReadOnlyFieldStyle}" />
+
+					<TextBlock x:Uid="PromotionCodeIsActiveLabel" Style="{StaticResource InputLabelStyle}" />
+					<ToggleSwitch
+                        x:Name="IsActiveToggleSwitch"
+                        IsOn="True"
+                        Style="{StaticResource ToggleSwitchStyle}" />
+
+				</StackPanel>
+
+			</StackPanel>
+		</Grid>
+	</ScrollViewer>
+</ContentControl>
