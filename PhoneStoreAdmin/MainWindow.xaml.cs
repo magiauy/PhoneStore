@@ -18,6 +18,7 @@ namespace PhoneStoreAdmin
         public MainWindow()
         {
             InitializeComponent();
+            (Application.Current as App)!.CurrentWindow = this;
 
             // Set window icon using logo
             AppWindow.SetIcon("Assets/logo.png");
@@ -57,10 +58,13 @@ namespace PhoneStoreAdmin
                 "Dashboard" => typeof(DashboardPage),
                 "Products" => typeof(ProductsPage),
                 "Suppliers" => typeof(SuppliersPage),
+                "Brands" => typeof(BrandPage),
+                "Promotions" => typeof(PromotionsPage),
                 "PurchaseOrders" => typeof(PurchaseOrdersPage),
                 "Batches" => typeof(BatchesPage),
                 "Orders" => typeof(SalesPage),
                 "Accounts" => typeof(AccountsPage),
+                "Roles" => typeof(RolesPage),
                 "Settings" => typeof(SettingsPage),
                 _ => typeof(DashboardPage)
             };

@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Shapes;
 using Microsoft.Windows.ApplicationModel.Resources;
+using PhoneStoreAdmin.Helpers;
 using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Utils;
@@ -18,7 +19,6 @@ namespace PhoneStoreAdmin
 {
     public sealed partial class LoginWindow : Window
     {
-        private readonly ResourceLoader _resourceLoader;
         private AppWindow _appWindow;
         private bool _isDialogOpen = false;
         private bool _isProcessingLogin = false;
@@ -26,7 +26,6 @@ namespace PhoneStoreAdmin
         public LoginWindow()
         {
             this.InitializeComponent();
-            _resourceLoader = new ResourceLoader();
 
             // Set window properties for a modern look
             this.ExtendsContentIntoTitleBar = true;
@@ -86,7 +85,7 @@ namespace PhoneStoreAdmin
             {
                 try
                 {
-                    ShowErrorOnField(UsernameTextBox, _resourceLoader.GetString("ErrorUsernameRequired/Text"));
+                    ShowErrorOnField(UsernameTextBox, LocalizationHelper.GetString("ErrorUsernameRequired/Text"));
                 }
                 catch (Exception ex)
                 {
@@ -97,7 +96,7 @@ namespace PhoneStoreAdmin
 
             if (string.IsNullOrWhiteSpace(PasswordTextBox.Password))
             {
-                ShowErrorOnField(PasswordTextBox, _resourceLoader.GetString("ErrorPasswordRequired/Text"));
+                ShowErrorOnField(PasswordTextBox, LocalizationHelper.GetString("ErrorPasswordRequired/Text"));
                 return;
             }
 
@@ -126,7 +125,7 @@ namespace PhoneStoreAdmin
                     Logger.LogAuth(UsernameTextBox.Text, false);
                     Logger.Warning("Authentication failed - invalid credentials");
 
-                    ShowErrorOnField(UsernameTextBox, _resourceLoader.GetString("ErrorInvalidCredentials/Text"));
+                    ShowErrorOnField(UsernameTextBox, LocalizationHelper.GetString("ErrorInvalidCredentials/Text"));
                     PasswordTextBox.Password = string.Empty;
 
                     await AnimateLoginFailure();
@@ -135,7 +134,7 @@ namespace PhoneStoreAdmin
             catch (Exception ex)
             {
                 Logger.Error($"Login failed for user {UsernameTextBox.Text}", ex);
-                ShowErrorOnField(UsernameTextBox, string.Format(_resourceLoader.GetString("ErrorLoginFailed/Text"), ex.Message));
+                ShowErrorOnField(UsernameTextBox, string.Format(LocalizationHelper.GetString("ErrorLoginFailed/Text"), ex.Message));
                 await AnimateLoginFailure();
             }
             finally
@@ -278,7 +277,7 @@ namespace PhoneStoreAdmin
             // Title text
             var titleText = new TextBlock
             {
-                Text = _resourceLoader.GetString("SuccessTitle/Text"),
+                Text = LocalizationHelper.GetString("SuccessTitle/Text"),
                 FontSize = 20,
                 FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
                 TextAlignment = TextAlignment.Center,
@@ -290,7 +289,7 @@ namespace PhoneStoreAdmin
             // Description text
             var descText = new TextBlock
             {
-                Text = _resourceLoader.GetString("SuccessDescription/Text"),
+                Text = LocalizationHelper.GetString("SuccessDescription/Text"),
                 FontSize = 14,
                 TextWrapping = TextWrapping.Wrap,
                 TextAlignment = TextAlignment.Center,
@@ -308,7 +307,7 @@ namespace PhoneStoreAdmin
             var dialog = new ContentDialog()
             {
                 Content = contentGrid,
-                PrimaryButtonText = _resourceLoader.GetString("ContinueButton/Content"),
+                PrimaryButtonText = LocalizationHelper.GetString("ContinueButton/Content"),
                 XamlRoot = this.Content.XamlRoot,
                 DefaultButton = ContentDialogButton.Primary
             };
@@ -410,13 +409,13 @@ namespace PhoneStoreAdmin
             {
                 LoginProgressRing.IsActive = true;
                 LoginProgressRing.Visibility = Visibility.Visible;
-                LoginButtonText.Text = _resourceLoader.GetString("SigningIn/Text");
+                LoginButtonText.Text = LocalizationHelper.GetString("SigningIn/Text");
             }
             else
             {
                 LoginProgressRing.IsActive = false;
                 LoginProgressRing.Visibility = Visibility.Collapsed;
-                LoginButtonText.Text = _resourceLoader.GetString("SignIn/Content");
+                LoginButtonText.Text = LocalizationHelper.GetString("SignIn/Content");
             }
 
         }
@@ -466,7 +465,7 @@ namespace PhoneStoreAdmin
                 // Show error dialog
                 var dialog = new ContentDialog()
                 {
-                    Title = _resourceLoader.GetString("ErrorInputTitle/Text"),
+                    Title = LocalizationHelper.GetString("ErrorInputTitle/Text"),
                     Content = new StackPanel
                     {
                         Spacing = 12,
@@ -507,7 +506,7 @@ namespace PhoneStoreAdmin
             {
                 var dialog = new ContentDialog()
                 {
-                    Title = _resourceLoader.GetString("ResetPasswordTitle/Text"),
+                    Title = LocalizationHelper.GetString("ResetPasswordTitle/Text"),
                     Content = new StackPanel
                     {
                         Spacing = 12,
@@ -515,18 +514,18 @@ namespace PhoneStoreAdmin
                         {
                             new TextBlock
                             {
-                                Text = _resourceLoader.GetString("ResetPasswordInstruction/Text"),
+                                Text = LocalizationHelper.GetString("ResetPasswordInstruction/Text"),
                                 TextWrapping = TextWrapping.Wrap
                             },
                             new TextBox
                             {
-                                PlaceholderText = _resourceLoader.GetString("EmailPlaceholder/PlaceholderText"),
-                                Header = _resourceLoader.GetString("EmailHeader/Text")
+                                PlaceholderText = LocalizationHelper.GetString("EmailPlaceholder/PlaceholderText"),
+                                Header = LocalizationHelper.GetString("EmailHeader/Text")
                             }
                         }
                     },
-                    PrimaryButtonText = _resourceLoader.GetString("ResetLinkButton/Content"),
-                    CloseButtonText = _resourceLoader.GetString("CancelButton/Content"),
+                    PrimaryButtonText = LocalizationHelper.GetString("ResetLinkButton/Content"),
+                    CloseButtonText = LocalizationHelper.GetString("CancelButton/Content"),
                     XamlRoot = this.Content.XamlRoot
                 };
 
@@ -537,7 +536,7 @@ namespace PhoneStoreAdmin
                     var infoDialog = new ContentDialog()
                     {
                         Title = "Feature Coming Soon",
-                        Content = _resourceLoader.GetString("FeatureComingSoon/Text"),
+                        Content = LocalizationHelper.GetString("FeatureComingSoon/Text"),
                         CloseButtonText = "OK",
                         XamlRoot = this.Content.XamlRoot
                     };
@@ -554,7 +553,7 @@ namespace PhoneStoreAdmin
         {
             var dialog = new ContentDialog()
             {
-                Title = _resourceLoader.GetString("SignUpTitle/Text"),
+                Title = LocalizationHelper.GetString("SignUpTitle/Text"),
                 Content = new StackPanel
                 {
                     Spacing = 16,
@@ -562,18 +561,18 @@ namespace PhoneStoreAdmin
                     {
                         new TextBlock
                         {
-                            Text = _resourceLoader.GetString("SignUpMessage1/Text"),
+                            Text = LocalizationHelper.GetString("SignUpMessage1/Text"),
                             TextWrapping = TextWrapping.Wrap
                         },
                         new TextBlock
                         {
-                            Text = _resourceLoader.GetString("SignUpMessage2/Text"),
+                            Text = LocalizationHelper.GetString("SignUpMessage2/Text"),
                             TextWrapping = TextWrapping.Wrap,
                             FontWeight = Microsoft.UI.Text.FontWeights.Medium
                         },
                         new TextBlock
                         {
-                            Text = _resourceLoader.GetString("SignUpMessage3/Text"),
+                            Text = LocalizationHelper.GetString("SignUpMessage3/Text"),
                             TextWrapping = TextWrapping.Wrap,
                             FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas")
                         }
