@@ -1353,6 +1353,7 @@ How many devices do you want to add?</value>
   </data>
   <data name="Common_OpenFile" xml:space="preserve">
     <value>Open File</value>
+  </data>
   <data name="Accounts_PageTitle.Text" xml:space="preserve">
     <value>Account Management</value>
   </data>

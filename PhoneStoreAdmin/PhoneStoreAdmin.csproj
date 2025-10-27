@@ -79,6 +79,7 @@
 	  </Page>
 	  <Page Update="View\Controls\SerialNumberInputDialog.xaml">
 	    <Generator>MSBuild:Compile</Generator>
+      </Page>
 	  <Page Update="View\Account\AccountEditPage.xaml">
 	    <SubType>Designer</SubType>
 	  </Page>
