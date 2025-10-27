@@ -14,6 +14,7 @@ namespace PhoneStoreAdmin.View.Controls
         private readonly IBrandService _brandService;
         private readonly ResourceLoader _resourceLoader;
         private bool _isNameValid = false;
+        private int _currentBrandId = 0;
 
         public event EventHandler<BrandViewModel>? BrandSaved;
         public event EventHandler? DialogClosed;
@@ -117,12 +118,12 @@ namespace PhoneStoreAdmin.View.Controls
         {
             if (brand == null || _currentMode == DialogMode.Add)
             {
-                BrandIdTextBox.Text = "";
+                _currentBrandId = 0;
                 BrandNameTextBox.Text = "";
                 return;
             }
 
-            BrandIdTextBox.Text = brand.Id.ToString();
+            _currentBrandId = brand.Id;
             BrandNameTextBox.Text = brand.Name;
 
             ValidateName(brand.Name);
@@ -132,7 +133,6 @@ namespace PhoneStoreAdmin.View.Controls
         {
             bool isEditable = _currentMode != DialogMode.View;
 
-            BrandIdTextBox.IsReadOnly = true;
             BrandNameTextBox.IsReadOnly = !isEditable;
         }
 
@@ -158,7 +158,7 @@ namespace PhoneStoreAdmin.View.Controls
 
                 var brand = new Brand
                 {
-                    Id = int.TryParse(BrandIdTextBox.Text, out int id) ? id : 0,
+                    Id = _currentBrandId,
                     Name = BrandNameTextBox.Text ?? string.Empty
                 };
 

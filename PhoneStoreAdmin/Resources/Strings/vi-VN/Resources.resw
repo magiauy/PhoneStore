@@ -1907,6 +1907,9 @@ Bạn muốn thêm bao nhiêu máy?</value>
   </data>
   
   <!-- Dialog -->
+  <data name="ViewPromotionTitle" xml:space="preserve">
+    <value>Chi tiết khuyến mãi</value>
+  </data>
   <data name="PromotionIdLabel.Text" xml:space="preserve">
     <value>ID</value>
   </data>

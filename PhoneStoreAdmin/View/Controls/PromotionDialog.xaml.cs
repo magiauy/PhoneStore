@@ -13,8 +13,9 @@ namespace PhoneStoreAdmin.View.Controls
         private readonly IPromotionService _promotionService;
         private readonly ResourceLoader _resourceLoader;
         private bool _isNameValid = false;
-        private bool _isDescriptionValid = true; // Optional field
+        private bool _isDescriptionValid = true;
         private bool _isDatesValid = false;
+        private int _currentPromotionId = 0;
 
         public event EventHandler<PromotionViewModel>? PromotionSaved;
         public event EventHandler? DialogClosed;
@@ -218,7 +219,7 @@ namespace PhoneStoreAdmin.View.Controls
         {
             if (promotion == null || _currentMode == DialogMode.Add)
             {
-                if (PromotionIdTextBox != null) PromotionIdTextBox.Text = "";
+                _currentPromotionId = 0;
                 if (PromotionNameTextBox != null) PromotionNameTextBox.Text = "";
                 if (PromotionDescriptionTextBox != null) PromotionDescriptionTextBox.Text = "";
                 if (PromotionStartDatePicker != null) PromotionStartDatePicker.SelectedDate = new DateTimeOffset(DateTime.Now);
@@ -226,8 +227,7 @@ namespace PhoneStoreAdmin.View.Controls
                 if (PromotionIsActiveToggle != null) PromotionIsActiveToggle.IsOn = true;
                 return;
             }
-
-            if (PromotionIdTextBox != null) PromotionIdTextBox.Text = promotion.Id.ToString();
+            _currentPromotionId = promotion.Id;
             if (PromotionNameTextBox != null) PromotionNameTextBox.Text = promotion.Name;
             if (PromotionDescriptionTextBox != null) PromotionDescriptionTextBox.Text = promotion.Description ?? "";
             if (PromotionStartDatePicker != null) PromotionStartDatePicker.SelectedDate = new DateTimeOffset(promotion.StartDate);
@@ -244,7 +244,6 @@ namespace PhoneStoreAdmin.View.Controls
         {
             bool isEditable = _currentMode != DialogMode.View;
 
-            if (PromotionIdTextBox != null) PromotionIdTextBox.IsReadOnly = true;
             if (PromotionNameTextBox != null) PromotionNameTextBox.IsReadOnly = !isEditable;
             if (PromotionDescriptionTextBox != null) PromotionDescriptionTextBox.IsReadOnly = !isEditable;
             if (PromotionStartDatePicker != null) PromotionStartDatePicker.IsEnabled = isEditable;
@@ -283,7 +282,7 @@ namespace PhoneStoreAdmin.View.Controls
 
                 var promotion = new Promotion
                 {
-                    Id = int.TryParse(PromotionIdTextBox?.Text, out int id) ? id : 0,
+                    Id = _currentPromotionId,
                     Name = PromotionNameTextBox?.Text ?? string.Empty,
                     Description = string.IsNullOrWhiteSpace(PromotionDescriptionTextBox?.Text)
                         ? null : PromotionDescriptionTextBox?.Text,
