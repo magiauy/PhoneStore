@@ -1655,6 +1655,12 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="SubHeaderTitlePromotion.Text" xml:space="preserve">
     <value>Thêm, chỉnh sửa, xóa và quản lý khuyến mãi</value>
   </data>
+  <data name="SubHeaderUpdateTitlePromotion.Text" xml:space="preserve">
+    <value>Cập nhật thông tin khuyến mãi và quản lý mã khuyến mãi</value>
+  </data>
+  <data name="PromotionInfo.Text" xml:space="preserve">
+    <value>Thông tin khuyến mãi</value>
+  </data>
   
   <!-- Buttons -->
   <data name="BtnNewPromotion.Text" xml:space="preserve">
@@ -1759,7 +1765,7 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="AddPromotionTitle" xml:space="preserve">
     <value>Thêm khuyến mãi</value>
   </data>
-  <data name="EditPromotionTitle" xml:space="preserve">
+  <data name="EditPromotionTitle.Text" xml:space="preserve">
     <value>Chỉnh sửa khuyến mãi</value>
   </data>
   
@@ -1846,7 +1852,7 @@ Bạn muốn thêm bao nhiêu máy?</value>
     <value>Hiển thị</value>
   </data>
   <data name="PromotionCodes.Text" xml:space="preserve">
-    <value>mã khuyến mãi</value>
+    <value>Mã khuyến mãi</value>
   </data>
   <data name="PagePromotionCode.Text" xml:space="preserve">
     <value>Trang</value>
@@ -1908,17 +1914,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="EditPromotionCodeTitle" xml:space="preserve">
     <value>Chỉnh sửa mã khuyến mãi</value>
   </data>
-  
-  <data name="PromotionCodeUpdateFailedMessage.Message" xml:space="preserve">
-    <value>Cập nhật mã khuyến mãi thất bại. Vui lòng thử lại.</value>
-  </data>
-  <data name="PromotionCodeUpdateSuccessMessage.Message" xml:space="preserve">
-    <value>Cập nhật mã khuyến mãi thành công!</value>
-  </data>
-  <data name="ProcessingPromotionCodeText.Text" xml:space="preserve">
-    <value>Đang xử lý...</value>
-  </data>
-  
   <!-- PromotionCode Dialog Validation Messages -->
   <data name="PromotionCodeRequiredError" xml:space="preserve">
     <value>Mã khuyến mãi không được để trống</value>
@@ -1947,31 +1942,19 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="BtnFilterPromotion.Text" xml:space="preserve">
     <value>Lọc</value>
   </data>
-  <data name="BtnFilterPromotionCode.Text" xml:space="preserve">
-    <value>Lọc</value>
-  </data>
-  <data name="FilterPromotionNameBoxPromotionCode.Text" xml:space="preserve">
-    <value>Tên Khuyến Mãi</value>
-  </data>
-  <data name="FilterPromotionNamePlaceholderPromotionCode.PlaceholderText" xml:space="preserve">
-    <value>Tìm kiếm tên khuyến mãi...</value>
-  </data>
-  <data name="FilterDiscountAmountBoxPromotionCode.Text" xml:space="preserve">
-    <value>Số Tiền Giảm</value>
-  </data>
-  <data name="FilterMinimumAmountBoxPromotionCode.Text" xml:space="preserve">
-    <value>Số Tiền Tối Thiểu</value>
-  </data>
-  <data name="FilterUsageLimitBoxPromotionCode.Text" xml:space="preserve">
-    <value>Giới Hạn Sử Dụng</value>
-  </data>
-  <data name="FilterMinPlaceholderPromotionCode.PlaceholderText" xml:space="preserve">
-    <value>Tối thiểu</value>
-  </data>
-  <data name="FilterMaxPlaceholderPromotionCode.PlaceholderText" xml:space="preserve">
-    <value>Tối đa</value>
-  </data>
-  <data name="UnlimitedPromotionCode" xml:space="preserve">
+ <data name="UnlimitedPromotionCode" xml:space="preserve">
     <value>Không giới hạn</value>
+  </data>
+  <data name="ConfirmActivateCodeTitle" xml:space="preserve">
+    <value>Kích hoạt mã</value>
+  </data>
+  <data name="ConfirmActivateCodeContent" xml:space="preserve">
+    <value>Bạn có chắc muốn kích hoạt mã này?</value>
+  </data>
+  <data name="ConfirmDeactivateCodeTitle" xml:space="preserve">
+    <value>Vô hiệu hóa mã</value>
+  </data>
+  <data name="ConfirmDeactivateCodeContent" xml:space="preserve">
+    <value>Bạn có chắc muốn vô hiệu hóa mã này?</value>
   </data>
 </root>

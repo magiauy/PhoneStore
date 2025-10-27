@@ -111,9 +111,10 @@ namespace PhoneStoreAdmin.View.Controls
             {
                 Logger.Info("Getting promotion service and fetching promotions...");
                 
-                // In Edit mode, load all promotions (including inactive ones)
-                // In Add mode, only load active promotions
-                var promotions = _currentMode == DialogMode.Edit 
+                // In Edit mode or when a preset PromotionId is provided (e.g., from PromotionEditPage), load all promotions
+                // Otherwise in Add mode, only load active promotions
+                bool hasPresetPromotion = (_pendingPromotionCodeData?.PromotionId ?? 0) > 0;
+                var promotions = (_currentMode == DialogMode.Edit || hasPresetPromotion)
                     ? _promotionService.GetAll().ToList()
                     : _promotionService.GetAll().Where(p => p.IsActive).ToList();
                     
@@ -416,6 +417,16 @@ namespace PhoneStoreAdmin.View.Controls
                     if (UsageLimitNumberBox != null) UsageLimitNumberBox.Value = double.NaN;
                     if (UsedCountTextBox != null) UsedCountTextBox.Text = "0";
                     if (IsActiveToggleSwitch != null) IsActiveToggleSwitch.IsOn = true;
+
+                    // If Add mode launched from PromotionEditPage with preselected PromotionId
+                    if (promotionCode != null && promotionCode.PromotionId > 0 && PromotionComboBox != null)
+                    {
+                        var promotion = (PromotionComboBox.ItemsSource as System.Collections.Generic.IEnumerable<PromotionViewModel>)?.FirstOrDefault(p => p.Id == promotionCode.PromotionId);
+                        if (promotion != null)
+                        {
+                            PromotionComboBox.SelectedItem = promotion;
+                        }
+                    }
                     Logger.Info("Default data loaded successfully");
                     return;
                 }
@@ -467,7 +478,12 @@ namespace PhoneStoreAdmin.View.Controls
 
             if (PromotionCodeIdTextBox != null) PromotionCodeIdTextBox.IsReadOnly = true;
             if (PromotionCodeTextBox != null) PromotionCodeTextBox.IsReadOnly = !isEditable;
-            if (PromotionComboBox != null) PromotionComboBox.IsEnabled = isEditable && _currentMode == DialogMode.Add; // Only changeable in Add mode
+            // Only changeable in Add mode from standalone page; if PromotionId is preset (>0), keep disabled
+            if (PromotionComboBox != null)
+            {
+                var preset = (_pendingPromotionCodeData?.PromotionId ?? 0) > 0;
+                PromotionComboBox.IsEnabled = isEditable && _currentMode == DialogMode.Add && !preset;
+            }
             if (DiscountAmountNumberBox != null) DiscountAmountNumberBox.IsEnabled = isEditable;
             if (MinimumAmountNumberBox != null) MinimumAmountNumberBox.IsEnabled = isEditable;
             if (UsageLimitNumberBox != null) UsageLimitNumberBox.IsEnabled = isEditable;

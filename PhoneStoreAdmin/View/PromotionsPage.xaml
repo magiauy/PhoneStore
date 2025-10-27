@@ -583,9 +583,9 @@
 											</ToolTipService.ToolTip>
 											<FlyoutBase.AttachedFlyout>
 												<MenuFlyout>
-													<MenuFlyoutItem
+                                                <MenuFlyoutItem
                                                         x:Uid="BtnEditPromotion"
-                                                        Click="BtnEdit_Click"
+                                                        Click="NavigateToEditPromotion_Click"
                                                         Tag="{Binding Id}">
 														<MenuFlyoutItem.Icon>
 															<FontIcon Glyph="&#xE104;" />
