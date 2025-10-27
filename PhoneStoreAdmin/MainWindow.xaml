@@ -56,11 +56,6 @@
                     Icon="Calendar"
                     Tag="Promotions" />
                 <NavigationViewItem
-                    x:Name="PromotionCodesNavItem"
-                    x:Uid="MenuItemPromotionCodes"
-                    Icon="Scan"
-                    Tag="PromotionCodes" />
-                <NavigationViewItem
                     x:Name="PurchaseOrdersNavItem"
                     x:Uid="MenuItemPurchaseOrders"
                     Icon="Paste"

@@ -1656,6 +1656,12 @@ How many devices do you want to add?</value>
   <data name="SubHeaderTitlePromotion.Text" xml:space="preserve">
     <value>Add, edit, delete and manage promotions</value>
   </data>
+    <data name="SubHeaderUpdateTitlePromotion.Text" xml:space="preserve">
+    <value>Update promotion information and manage promotion codes</value>
+  </data>
+  <data name="PromotionInfo.Text" xml:space="preserve">
+    <value>Promotion Information</value>
+  </data>
   
   <!-- Buttons -->
   <data name="BtnNewPromotion.Text" xml:space="preserve">
@@ -1760,7 +1766,7 @@ How many devices do you want to add?</value>
   <data name="AddPromotionTitle" xml:space="preserve">
     <value>Add Promotion</value>
   </data>
-  <data name="EditPromotionTitle" xml:space="preserve">
+  <data name="EditPromotionTitle.Text" xml:space="preserve">
     <value>Edit Promotion</value>
   </data>
   
@@ -1847,7 +1853,7 @@ How many devices do you want to add?</value>
     <value>Showing</value>
   </data>
   <data name="PromotionCodes.Text" xml:space="preserve">
-    <value>promotion codes</value>
+    <value>Promotion codes</value>
   </data>
   <data name="PagePromotionCode.Text" xml:space="preserve">
     <value>Page</value>
@@ -1909,17 +1915,6 @@ How many devices do you want to add?</value>
   <data name="EditPromotionCodeTitle" xml:space="preserve">
     <value>Edit Promotion Code</value>
   </data>
-  
-  <data name="PromotionCodeUpdateFailedMessage.Message" xml:space="preserve">
-    <value>Failed to update promotion code. Please try again.</value>
-  </data>
-  <data name="PromotionCodeUpdateSuccessMessage.Message" xml:space="preserve">
-    <value>Promotion code updated successfully!</value>
-  </data>
-  <data name="ProcessingPromotionCodeText.Text" xml:space="preserve">
-    <value>Processing...</value>
-  </data>
-  
   <!-- PromotionCode Dialog Validation Messages -->
   <data name="PromotionCodeRequiredError" xml:space="preserve">
     <value>Promotion code is required</value>
@@ -1948,31 +1943,19 @@ How many devices do you want to add?</value>
   <data name="BtnFilterPromotion.Text" xml:space="preserve">
     <value>Filter</value>
   </data>
-  <data name="BtnFilterPromotionCode.Text" xml:space="preserve">
-    <value>Filter</value>
-  </data>
-  <data name="FilterPromotionNameBoxPromotionCode.Text" xml:space="preserve">
-    <value>Promotion Name</value>
-  </data>
-  <data name="FilterPromotionNamePlaceholderPromotionCode.PlaceholderText" xml:space="preserve">
-    <value>Search promotion name...</value>
-  </data>
-  <data name="FilterDiscountAmountBoxPromotionCode.Text" xml:space="preserve">
-    <value>Discount Amount</value>
-  </data>
-  <data name="FilterMinimumAmountBoxPromotionCode.Text" xml:space="preserve">
-    <value>Minimum Amount</value>
-  </data>
-  <data name="FilterUsageLimitBoxPromotionCode.Text" xml:space="preserve">
-    <value>Usage Limit</value>
-  </data>
-  <data name="FilterMinPlaceholderPromotionCode.PlaceholderText" xml:space="preserve">
-    <value>Min</value>
-  </data>
-  <data name="FilterMaxPlaceholderPromotionCode.PlaceholderText" xml:space="preserve">
-    <value>Max</value>
-  </data>
   <data name="UnlimitedPromotionCode" xml:space="preserve">
     <value>Unlimited</value>
+  </data>
+  <data name="ConfirmActivateCodeTitle" xml:space="preserve">
+    <value>Activate Promotion Code</value>
+  </data>
+  <data name="ConfirmActivateCodeContent" xml:space="preserve">
+    <value>Are you sure you want to activate this code?</value>
+  </data>
+  <data name="ConfirmDeactivateCodeTitle" xml:space="preserve">
+    <value>Deactivate Promotion Code</value>
+  </data>
+  <data name="ConfirmDeactivateCodeContent" xml:space="preserve">
+    <value>Are you sure you want to deactivate this code?</value>
   </data>
 </root>

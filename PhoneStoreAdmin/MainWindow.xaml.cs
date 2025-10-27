@@ -60,7 +60,6 @@ namespace PhoneStoreAdmin
                 "Suppliers" => typeof(SuppliersPage),
                 "Brands" => typeof(BrandPage),
                 "Promotions" => typeof(PromotionsPage),
-                "PromotionCodes" => typeof(PromotionCodesPage),
                 "PurchaseOrders" => typeof(PurchaseOrdersPage),
                 "Batches" => typeof(BatchesPage),
                 "Orders" => typeof(SalesPage),
