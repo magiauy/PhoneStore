@@ -1,0 +1,39 @@
+<ContentDialog
+    x:Class="PhoneStoreAdmin.View.Controls.RoleSelectorDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Chọn vai trò"
+    PrimaryButtonText="Xác nhận"
+    CloseButtonText="Hủy"
+    DefaultButton="Primary"
+    PrimaryButtonClick="ContentDialog_PrimaryButtonClick">
+
+    <ContentDialog.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Theme/Colors.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </ContentDialog.Resources>
+
+    <Grid MinWidth="400" MinHeight="300">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                  Text="Chọn một hoặc nhiều vai trò cho tài khoản:"
+                  Margin="0,0,0,12"
+                  Foreground="{StaticResource BrushText}"/>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="RolesPanel" Spacing="8">
+                <!-- Roles will be added here dynamically -->
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</ContentDialog>

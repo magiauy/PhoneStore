@@ -3,8 +3,6 @@ using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Models.Enums;
 using PhoneStoreAdmin.Repositories.Interfaces;
 using System;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using MySqlConnector;
 using System.Data;
@@ -195,18 +193,12 @@ namespace PhoneStoreAdmin.Repositories.Implementations
 
         private string HashPassword(string password)
         {
-            using var sha256 = SHA256.Create();
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(hashedBytes);
+            return PasswordHasher.HashPassword(password);
         }
 
         private bool VerifyPassword(string password, string hash)
         {
-            if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hash))
-                return false;
-
-            var computedHash = HashPassword(password);
-            return computedHash.Equals(hash, StringComparison.Ordinal);
+            return PasswordHasher.VerifyPassword(password, hash);
         }
 
         public Task<Account?> GetAccountWithRolesAsync(int accountId)
