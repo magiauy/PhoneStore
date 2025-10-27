@@ -219,7 +219,158 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             }
         }
 
+        public override void Insert(Person entity)
+        {
+            if (entity is not Employee employee)
+                throw new ArgumentException("Entity must be an Employee", nameof(entity));
+
+            employee.PersonType = PersonType.EMPLOYEE;
+
+            using var conn = _dataSource.GetConnection();
+            using var transaction = conn.BeginTransaction();
+
+            try
+            {
+                var personId = InsertPerson(conn, transaction, employee);
+                employee.Id = personId;
+
+                using var employeeCmd = conn.CreateCommand();
+                employeeCmd.Transaction = transaction;
+                employeeCmd.CommandText = @"INSERT INTO employees (person_id, hire_date)
+                                            VALUES (@personId, @hireDate);";
+                employeeCmd.Parameters.AddWithValue("@personId", personId);
+                employeeCmd.Parameters.AddWithValue("@hireDate", employee.HireDate.HasValue
+                    ? employee.HireDate.Value.Date
+                    : (object)DBNull.Value);
+                employeeCmd.ExecuteNonQuery();
+
+                transaction.Commit();
+                Logger.Info($"Inserted employee ID: {personId}");
+            }
+            catch (Exception ex)
+            {
+                try { transaction.Rollback(); } catch { /* ignore rollback errors */ }
+                Logger.Error("Error inserting employee", ex);
+                throw;
+            }
+        }
+
+        public override void Update(Person entity)
+        {
+            if (entity is not Employee employee)
+                throw new ArgumentException("Entity must be an Employee", nameof(entity));
+
+            employee.PersonType = PersonType.EMPLOYEE;
+
+            using var conn = _dataSource.GetConnection();
+            using var transaction = conn.BeginTransaction();
+
+            try
+            {
+                UpdatePerson(conn, transaction, employee);
+
+                using var employeeCmd = conn.CreateCommand();
+                employeeCmd.Transaction = transaction;
+                employeeCmd.CommandText = @"INSERT INTO employees (person_id, hire_date)
+                                            VALUES (@personId, @hireDate)
+                                            ON DUPLICATE KEY UPDATE hire_date = VALUES(hire_date);";
+                employeeCmd.Parameters.AddWithValue("@personId", employee.Id);
+                employeeCmd.Parameters.AddWithValue("@hireDate", employee.HireDate.HasValue
+                    ? employee.HireDate.Value.Date
+                    : (object)DBNull.Value);
+                employeeCmd.ExecuteNonQuery();
+
+                transaction.Commit();
+                Logger.Info($"Updated employee ID: {employee.Id}");
+            }
+            catch (Exception ex)
+            {
+                try { transaction.Rollback(); } catch { /* ignore rollback errors */ }
+                Logger.Error($"Error updating employee ID: {employee.Id}", ex);
+                throw;
+            }
+        }
+
+        public override void Delete(int id)
+        {
+            using var conn = _dataSource.GetConnection();
+            using var transaction = conn.BeginTransaction();
+
+            try
+            {
+                using var employeeCmd = conn.CreateCommand();
+                employeeCmd.Transaction = transaction;
+                employeeCmd.CommandText = "DELETE FROM employees WHERE person_id = @id;";
+                employeeCmd.Parameters.AddWithValue("@id", id);
+                employeeCmd.ExecuteNonQuery();
+
+                using var personCmd = conn.CreateCommand();
+                personCmd.Transaction = transaction;
+                personCmd.CommandText = "DELETE FROM persons WHERE id = @id;";
+                personCmd.Parameters.AddWithValue("@id", id);
+                personCmd.ExecuteNonQuery();
+
+                transaction.Commit();
+                Logger.Info($"Deleted employee ID: {id}");
+            }
+            catch (Exception ex)
+            {
+                try { transaction.Rollback(); } catch { /* ignore rollback errors */ }
+                Logger.Error($"Error deleting employee ID: {id}", ex);
+                throw;
+            }
+        }
+
         #region Helpers
+
+        private int InsertPerson(MySqlConnection conn, MySqlTransaction transaction, Employee employee)
+        {
+            using var personCmd = conn.CreateCommand();
+            personCmd.Transaction = transaction;
+            personCmd.CommandText = @"
+                INSERT INTO persons (code, full_name, phone, email, person_type, created_at, is_active)
+                VALUES (@code, @fullName, @phone, @email, @personType, @createdAt, @isActive);
+                SELECT LAST_INSERT_ID();";
+            personCmd.Parameters.AddWithValue("@code", (object?)employee.Code ?? DBNull.Value);
+            personCmd.Parameters.AddWithValue("@fullName", employee.FullName);
+            personCmd.Parameters.AddWithValue("@phone", (object?)employee.Phone ?? DBNull.Value);
+            personCmd.Parameters.AddWithValue("@email", (object?)employee.Email ?? DBNull.Value);
+            personCmd.Parameters.AddWithValue("@personType", PersonType.EMPLOYEE.ToString());
+            personCmd.Parameters.AddWithValue("@createdAt", employee.CreatedAt);
+            personCmd.Parameters.AddWithValue("@isActive", employee.IsActive);
+
+            var result = personCmd.ExecuteScalar();
+            if (result == null || result == DBNull.Value)
+                throw new InvalidOperationException("Failed to insert employee person record.");
+
+            return Convert.ToInt32(result);
+        }
+
+        private void UpdatePerson(MySqlConnection conn, MySqlTransaction transaction, Employee employee)
+        {
+            using var personCmd = conn.CreateCommand();
+            personCmd.Transaction = transaction;
+            personCmd.CommandText = @"
+                UPDATE persons
+                SET code = @code,
+                    full_name = @fullName,
+                    phone = @phone,
+                    email = @email,
+                    person_type = @personType,
+                    created_at = @createdAt,
+                    is_active = @isActive
+                WHERE id = @id;";
+            personCmd.Parameters.AddWithValue("@code", (object?)employee.Code ?? DBNull.Value);
+            personCmd.Parameters.AddWithValue("@fullName", employee.FullName);
+            personCmd.Parameters.AddWithValue("@phone", (object?)employee.Phone ?? DBNull.Value);
+            personCmd.Parameters.AddWithValue("@email", (object?)employee.Email ?? DBNull.Value);
+            personCmd.Parameters.AddWithValue("@personType", PersonType.EMPLOYEE.ToString());
+            personCmd.Parameters.AddWithValue("@createdAt", employee.CreatedAt);
+            personCmd.Parameters.AddWithValue("@isActive", employee.IsActive);
+            personCmd.Parameters.AddWithValue("@id", employee.Id);
+
+            personCmd.ExecuteNonQuery();
+        }
 
         private Employee MapEmployee(MySqlDataReader reader)
         {

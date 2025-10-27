@@ -2,9 +2,12 @@ using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Repositories.Interfaces;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Utils;
+using PhoneStoreAdmin.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using PhoneStoreAdmin.Models.Enums;
 
 namespace PhoneStoreAdmin.Services.Implementations
 {
@@ -28,6 +31,20 @@ namespace PhoneStoreAdmin.Services.Implementations
             catch (Exception ex)
             {
                 Logger.Error($"Failed to get employee by ID: {employeeId}", ex);
+                return null;
+            }
+        }
+        
+        public Employee? GetEmployeeById(int employeeId)
+        {
+            try
+            {
+                Logger.Info($"Getting employee by ID (sync): {employeeId}");
+                return GetEmployeeByIdAsync(employeeId).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to get employee by ID (sync): {employeeId}", ex);
                 return null;
             }
         }
@@ -95,6 +112,61 @@ namespace PhoneStoreAdmin.Services.Implementations
                 return null;
             }
         }
+        
+        public IEnumerable<Employee> GetAll()
+        {
+            try
+            {
+                Logger.Info("Getting all employees (sync)");
+                var result = GetAllEmployeesAsync().GetAwaiter().GetResult();
+                return result ?? new List<Employee>();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to get all employees (sync)", ex);
+                return new List<Employee>();
+            }
+        }
+        
+        public EmployeeResult GetEmployeesFiltered(string? searchTerm, int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                Logger.Info($"Getting employees filtered: search='{searchTerm}', page={page}, pageSize={pageSize}");
+                
+                var allEmployees = GetAll().Where(e => e.IsActive).ToList();
+                
+                // Apply search filter
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    var searchLower = searchTerm.ToLower();
+                    allEmployees = allEmployees.Where(e =>
+                        (e.FullName?.ToLower().Contains(searchLower) ?? false) ||
+                        (e.Email?.ToLower().Contains(searchLower) ?? false) ||
+                        (e.Phone?.ToLower().Contains(searchLower) ?? false) ||
+                        (e.Code?.ToLower().Contains(searchLower) ?? false)
+                    ).ToList();
+                }
+                
+                var totalRecords = allEmployees.Count;
+                var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
+                
+                // Apply pagination
+                var employees = allEmployees
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+                
+                var info = new InfoTable(totalRecords, totalPages);
+                
+                return new EmployeeResult(employees, info);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to get employees filtered", ex);
+                return new EmployeeResult(new List<Employee>(), new InfoTable(0, 0));
+            }
+        }
 
         public async Task<List<Employee>?> GetEmployeesWithoutAccountAsync()
         {
@@ -120,6 +192,8 @@ namespace PhoneStoreAdmin.Services.Implementations
                     return null;
                 }
 
+                employee.PersonType = PersonType.EMPLOYEE;
+
                 Logger.Info($"Adding new employee: {employee.FullName}");
                 var addedPerson = await _employeeRepository.AddAsync(employee);
                 return addedPerson as Employee;
@@ -128,6 +202,29 @@ namespace PhoneStoreAdmin.Services.Implementations
             {
                 Logger.Error($"Failed to add employee: {employee?.FullName}", ex);
                 return null;
+            }
+        }
+        
+        public bool Insert(Employee employee)
+        {
+            try
+            {
+                if (employee == null)
+                {
+                    Logger.Warning("Attempted to insert null employee");
+                    return false;
+                }
+
+                employee.PersonType = PersonType.EMPLOYEE;
+
+                Logger.Info($"Inserting new employee (sync): {employee.FullName}");
+                var result = AddEmployeeAsync(employee).GetAwaiter().GetResult();
+                return result != null;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to insert employee: {employee?.FullName}", ex);
+                return false;
             }
         }
 
@@ -141,6 +238,8 @@ namespace PhoneStoreAdmin.Services.Implementations
                     return false;
                 }
 
+                employee.PersonType = PersonType.EMPLOYEE;
+
                 Logger.Info($"Updating employee: {employee.Id} - {employee.FullName}");
                 await _employeeRepository.UpdateAsync(employee);
                 return true;
@@ -148,6 +247,28 @@ namespace PhoneStoreAdmin.Services.Implementations
             catch (Exception ex)
             {
                 Logger.Error($"Failed to update employee: {employee?.Id}", ex);
+                return false;
+            }
+        }
+        
+        public bool Update(Employee employee)
+        {
+            try
+            {
+                if (employee == null)
+                {
+                    Logger.Warning("Attempted to update null employee (sync)");
+                    return false;
+                }
+
+                employee.PersonType = PersonType.EMPLOYEE;
+
+                Logger.Info($"Updating employee (sync): {employee.Id} - {employee.FullName}");
+                return UpdateEmployeeAsync(employee).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to update employee (sync): {employee?.Id}", ex);
                 return false;
             }
         }

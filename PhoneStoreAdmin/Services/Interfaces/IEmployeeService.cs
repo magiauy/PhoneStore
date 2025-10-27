@@ -1,4 +1,5 @@
 using PhoneStoreAdmin.Models;
+using PhoneStoreAdmin.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,6 +14,11 @@ namespace PhoneStoreAdmin.Services.Interfaces
         /// <param name="employeeId">Employee ID</param>
         /// <returns>Employee if found, null otherwise</returns>
         Task<Employee?> GetEmployeeByIdAsync(int employeeId);
+        
+        /// <summary>
+        /// Get employee by ID (sync)
+        /// </summary>
+        Employee? GetEmployeeById(int employeeId);
 
         /// <summary>
         /// Get employee by hire date
@@ -40,6 +46,16 @@ namespace PhoneStoreAdmin.Services.Interfaces
         /// </summary>
         /// <returns>List of all employees</returns>
         Task<List<Employee>?> GetAllEmployeesAsync();
+        
+        /// <summary>
+        /// Get all employees (sync)
+        /// </summary>
+        IEnumerable<Employee> GetAll();
+        
+        /// <summary>
+        /// Get employees filtered with pagination
+        /// </summary>
+        EmployeeResult GetEmployeesFiltered(string? searchTerm, int page = 1, int pageSize = 10);
 
         /// <summary>
         /// Get employees who don't have any account
@@ -53,6 +69,11 @@ namespace PhoneStoreAdmin.Services.Interfaces
         /// <param name="employee">Employee to add</param>
         /// <returns>Added employee if successful, null otherwise</returns>
         Task<Employee?> AddEmployeeAsync(Employee employee);
+        
+        /// <summary>
+        /// Insert new employee (sync)
+        /// </summary>
+        bool Insert(Employee employee);
 
         /// <summary>
         /// Update employee
@@ -60,6 +81,11 @@ namespace PhoneStoreAdmin.Services.Interfaces
         /// <param name="employee">Employee to update</param>
         /// <returns>True if successful, false otherwise</returns>
         Task<bool> UpdateEmployeeAsync(Employee employee);
+        
+        /// <summary>
+        /// Update employee (sync)
+        /// </summary>
+        bool Update(Employee employee);
 
         /// <summary>
         /// Delete employee
