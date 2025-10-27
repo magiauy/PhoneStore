@@ -1353,6 +1353,7 @@ Bạn muốn thêm bao nhiêu máy?</value>
   </data>
   <data name="Common_OpenFile" xml:space="preserve">
     <value>Mở File</value>
+  </data>
   <data name="Accounts_PageTitle.Text" xml:space="preserve">
     <value>Quản lý tài khoản</value>
   </data>
