@@ -24,7 +24,7 @@ namespace PhoneStoreAdmin.View
         
         // ObservableCollection để bind với ListView
         public ObservableCollection<AccountViewModel> Accounts { get; set; }
-        public ObservableCollection<EmployeeViewModel> EmployeesWithoutAccount { get; set; }
+        public ObservableCollection<AccountEmployeeViewModel> EmployeesWithoutAccount { get; set; }
         
         // Phân trang
         private int _currentPage = 1;
@@ -53,7 +53,7 @@ namespace PhoneStoreAdmin.View
         private List<int> _selectedRoleIds = new();
         
         // All employees for filtering
-        private List<EmployeeViewModel> _allEmployees = new();
+        private List<AccountEmployeeViewModel> _allEmployees = new();
         
         // Filter criteria
         private AccountFilterCriteria? _currentFilterCriteria;
@@ -65,7 +65,7 @@ namespace PhoneStoreAdmin.View
         {
             this.InitializeComponent();
             Accounts = new ObservableCollection<AccountViewModel>();
-            EmployeesWithoutAccount = new ObservableCollection<EmployeeViewModel>();
+            EmployeesWithoutAccount = new ObservableCollection<AccountEmployeeViewModel>();
             FilterTags = new ObservableCollection<FilterTag>();
             
             // Bind FilterTags to ItemsControl
@@ -779,9 +779,9 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private EmployeeViewModel MapToEmployeeViewModel(Employee employee)
+        private AccountEmployeeViewModel MapToEmployeeViewModel(Employee employee)
         {
-            return new EmployeeViewModel
+            return new AccountEmployeeViewModel
             {
                 Id = employee.Id,
                 FullName = employee.FullName ?? _resourceLoader.GetString("Common/NotAvailable"),
@@ -793,7 +793,7 @@ namespace PhoneStoreAdmin.View
 
         private void EmployeesListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (EmployeesListView.SelectedItem is EmployeeViewModel selectedEmployee)
+            if (EmployeesListView.SelectedItem is AccountEmployeeViewModel selectedEmployee)
             {
                 // Store selected employee ID
                 var employeeId = selectedEmployee.Id;
@@ -998,7 +998,7 @@ namespace PhoneStoreAdmin.View
             : "#17a2b8";
     }
 
-    public class EmployeeViewModel
+    public class AccountEmployeeViewModel
     {
         public int Id { get; set; }
         public string FullName { get; set; } = string.Empty;

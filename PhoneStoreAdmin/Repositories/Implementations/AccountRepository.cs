@@ -74,8 +74,8 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                         PasswordHash = reader.GetString(reader.GetOrdinal("password_hash")),
                         PersonId = reader.GetInt32(reader.GetOrdinal("person_id")),
                         IsActive = reader.GetBoolean(reader.GetOrdinal("is_active")),
-                        CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at")),
-                        LastLogin = reader.IsDBNull(reader.GetOrdinal("last_login")) ? null : reader.GetDateTime(reader.GetOrdinal("last_login"))
+                        CreatedAt = TryGetDateTime(reader, "created_at") ?? DateTime.UtcNow,
+                        LastLogin = TryGetDateTime(reader, "last_login")
                     };
                 }
 
@@ -114,8 +114,8 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                         PasswordHash = reader.GetString(reader.GetOrdinal("password_hash")),
                         PersonId = reader.GetInt32(reader.GetOrdinal("person_id")),
                         IsActive = reader.GetBoolean(reader.GetOrdinal("is_active")),
-                        CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at")),
-                        LastLogin = reader.IsDBNull(reader.GetOrdinal("last_login")) ? null : reader.GetDateTime(reader.GetOrdinal("last_login"))
+                        CreatedAt = TryGetDateTime(reader, "created_at") ?? DateTime.UtcNow,
+                        LastLogin = TryGetDateTime(reader, "last_login")
                     };
                 }
 
@@ -448,23 +448,6 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                 await using var reader = await cmd.ExecuteReaderAsync();
                 var accounts = new List<Account>();
 
-                // Helper to safely get DateTime, handling zero dates
-                DateTime? GetSafeDateTime(int ordinal)
-                {
-                    if (reader.IsDBNull(ordinal))
-                        return null;
-                    
-                    try
-                    {
-                        return reader.GetDateTime(ordinal);
-                    }
-                    catch
-                    {
-                        // Handle invalid datetime (0000-00-00 00:00:00)
-                        return null;
-                    }
-                }
-
                 while (await reader.ReadAsync())
                 {
                     var account = new Account
@@ -474,8 +457,8 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                         PasswordHash = reader.GetString(reader.GetOrdinal("password_hash")),
                         PersonId = reader.GetInt32(reader.GetOrdinal("person_id")),
                         IsActive = reader.GetBoolean(reader.GetOrdinal("is_active")),
-                        CreatedAt = GetSafeDateTime(reader.GetOrdinal("created_at")) ?? DateTime.Now,
-                        LastLogin = GetSafeDateTime(reader.GetOrdinal("last_login")),
+                        CreatedAt = TryGetDateTime(reader, "created_at") ?? DateTime.UtcNow,
+                        LastLogin = TryGetDateTime(reader, "last_login"),
                         Person = new Person
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("person_id")),
@@ -624,23 +607,6 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                     await using var reader = await cmd.ExecuteReaderAsync();
                     var accounts = new List<Account>();
 
-                    // Helper to safely get DateTime, handling zero dates
-                    DateTime? GetSafeDateTime(int ordinal)
-                    {
-                        if (reader.IsDBNull(ordinal))
-                            return null;
-                        
-                        try
-                        {
-                            return reader.GetDateTime(ordinal);
-                        }
-                        catch
-                        {
-                            // Handle invalid datetime (0000-00-00 00:00:00)
-                            return null;
-                        }
-                    }
-
                     while (await reader.ReadAsync())
                     {
                         var account = new Account
@@ -650,8 +616,8 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                             PasswordHash = reader.GetString(reader.GetOrdinal("password_hash")),
                             PersonId = reader.GetInt32(reader.GetOrdinal("person_id")),
                             IsActive = reader.GetBoolean(reader.GetOrdinal("is_active")),
-                            CreatedAt = GetSafeDateTime(reader.GetOrdinal("created_at")) ?? DateTime.Now,
-                            LastLogin = GetSafeDateTime(reader.GetOrdinal("last_login")),
+                            CreatedAt = TryGetDateTime(reader, "created_at") ?? DateTime.UtcNow,
+                            LastLogin = TryGetDateTime(reader, "last_login"),
                             Person = new Person
                             {
                                 Id = reader.GetInt32(reader.GetOrdinal("person_id")),
@@ -711,6 +677,23 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                 await transaction.RollbackAsync();
                 Logger.Error($"Failed to update roles for account ID: {accountId}", ex);
                 throw;
+            }
+        }
+
+        private static DateTime? TryGetDateTime(MySqlDataReader reader, string columnName)
+        {
+            var ordinal = reader.GetOrdinal(columnName);
+            if (reader.IsDBNull(ordinal))
+                return null;
+
+            try
+            {
+                return reader.GetDateTime(ordinal);
+            }
+            catch
+            {
+                // Includes zero date/time values or malformed data
+                return null;
             }
         }
 
