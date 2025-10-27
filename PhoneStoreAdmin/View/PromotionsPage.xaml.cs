@@ -232,52 +232,12 @@ namespace PhoneStoreAdmin.View
             await dialog.ShowAsync();
         }
 
-        private async void BtnEdit_Click(object sender, RoutedEventArgs e)
+        private void NavigateToEditPromotion_Click(object sender, RoutedEventArgs e)
         {
             var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
             if (!int.TryParse(idStr, out int promotionId)) return;
 
-            var promotion = PromotionService.GetPromotionById(promotionId);
-            if (promotion == null)
-            {
-                ShowErrorDialog("Error", "Promotion not found.");
-                return;
-            }
-
-            var viewModel = new PromotionViewModel(promotion);
-            var promotionDialog = new PromotionDialog();
-            promotionDialog.SetMode(PromotionDialog.DialogMode.Edit, viewModel);
-
-            var dialog = CreateContentDialog(promotionDialog, _resourceLoader.GetString("EditPromotionTitle"));
-            dialog.PrimaryButtonText = _resourceLoader.GetString("DialogUpdate");
-            dialog.CloseButtonText = _resourceLoader.GetString("DialogCancel");
-
-            promotionDialog.PromotionSaved += (s, model) =>
-            {
-                if (model != null) LoadPromotions();
-            };
-
-            dialog.PrimaryButtonClick += (s, args) =>
-            {
-                var ctrl = (PromotionDialog)dialog.Content;
-                if (!ctrl.IsValid())
-                {
-                    args.Cancel = true;
-                    return;
-                }
-                try
-                {
-                    ctrl.Save();
-                }
-                catch (Exception ex)
-                {
-                    args.Cancel = true;
-                    ShowErrorDialog("Error", ex.Message);
-                }
-            };
-
-            _currentDialog = dialog;
-            await dialog.ShowAsync();
+            Frame?.Navigate(typeof(PromotionEditPage), promotionId);
         }
 
         private async void BtnActivate_Click(object sender, RoutedEventArgs e)
