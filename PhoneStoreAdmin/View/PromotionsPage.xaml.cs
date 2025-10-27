@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Input;
 using PhoneStoreAdmin.Services.Interfaces;
 using System;
 using System.Collections.ObjectModel;
@@ -335,6 +336,32 @@ namespace PhoneStoreAdmin.View
                 CurrentPage--;
                 LoadPromotions();
             }
+        }
+
+        private async void Grid_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+        {
+            var grid = sender as Grid;
+            if (grid?.DataContext == null) return;
+
+            var promotionViewModel = grid.DataContext as PromotionViewModel;
+            if (promotionViewModel == null) return;
+
+            var promotionDialog = new PromotionDialog();
+            promotionDialog.SetMode(PromotionDialog.DialogMode.View, promotionViewModel);
+
+            var dialog = CreateContentDialog(promotionDialog, _resourceLoader.GetString("ViewPromotionTitle") ?? "View Promotion");
+
+            dialog.PrimaryButtonText = _resourceLoader.GetString("DialogUpdate") ?? "Update";
+
+            dialog.CloseButtonText = _resourceLoader.GetString("CloseButton/Text") ?? "Close";
+            
+            dialog.PrimaryButtonClick += (s, args) =>
+            {
+                Frame?.Navigate(typeof(PromotionEditPage), promotionViewModel.Id);
+            };
+
+            _currentDialog = dialog;
+            await dialog.ShowAsync();
         }
     }
 }
