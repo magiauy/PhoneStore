@@ -46,6 +46,16 @@
                     Icon="Contact"
                     Tag="Suppliers" />
                 <NavigationViewItem
+                    x:Name="BrandsNavItem"
+                    x:Uid="MenuItemBrands"
+                    Icon="Tag"
+                    Tag="Brands" />
+                <NavigationViewItem
+                    x:Name="PromotionsNavItem"
+                    x:Uid="MenuItemPromotions"
+                    Icon="Calendar"
+                    Tag="Promotions" />
+                <NavigationViewItem
                     x:Name="PurchaseOrdersNavItem"
                     x:Uid="MenuItemPurchaseOrders"
                     Icon="Paste"
@@ -56,15 +66,15 @@
                     Icon="PreviewLink"
                     Tag="Batches" />
                 <NavigationViewItem
+                    x:Uid="MenuAccount"
                     x:Name="AccountsNavItem"
-                    Content="Tài khoản"
                     Icon="People"
                     Tag="Accounts" />
                 <NavigationViewItem
-                    x:Name="SettingsNavItem"
-                    Content="Settings"
-                    Icon="Setting"
-                    Tag="Settings" />
+                    x:Uid="MenuRoles"
+                    x:Name="RolesNavItem"
+                    Icon="Permissions"
+                    Tag="Roles" />
             </NavigationView.MenuItems>
 
             <Frame

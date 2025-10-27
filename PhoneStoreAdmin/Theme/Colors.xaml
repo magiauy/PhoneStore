@@ -6,13 +6,17 @@
     <Color x:Key="ColorPrimaryLight">#FFA5AEFF</Color>
     <Color x:Key="ColorOnPrimary">#FFFFFFFF</Color>
     <Color x:Key="ColorPrimaryPressed">#CC4053F7</Color>
+    <!-- Fluent Design Container Colors -->
+    <Color x:Key="ColorPrimaryContainer">#FFF0F2FF</Color>
+    <Color x:Key="ColorOnPrimaryContainer">#FF4053F7</Color>
 
-    <!--  80% opacity  -->
     <SolidColorBrush x:Key="BrushPrimary" Color="{StaticResource ColorPrimary}" />
     <SolidColorBrush x:Key="BrushPrimaryHover" Color="{StaticResource ColorPrimaryHover}" />
     <SolidColorBrush x:Key="BrushPrimaryLight" Color="{StaticResource ColorPrimaryLight}" />
     <SolidColorBrush x:Key="BrushOnPrimary" Color="{StaticResource ColorOnPrimary}" />
     <SolidColorBrush x:Key="BrushPrimaryPressed" Color="{StaticResource ColorPrimaryPressed}" />
+    <SolidColorBrush x:Key="BrushPrimaryContainer" Color="{StaticResource ColorPrimaryContainer}" />
+    <SolidColorBrush x:Key="BrushOnPrimaryContainer" Color="{StaticResource ColorOnPrimaryContainer}" />
 
     <!--  Secondary  -->
     <Color x:Key="ColorSecondary">#FFA5AEFF</Color>
@@ -36,10 +40,14 @@
     <Color x:Key="ColorTextTertiary">#FF9E9EAD</Color>
 
     <SolidColorBrush x:Key="BrushBackground" Color="{StaticResource ColorBackground}" />
+    <!-- Secondary background for sections/banners -->
+    <Color x:Key="ColorBackgroundSecondary">#FFF0F2FF</Color>
+    <SolidColorBrush x:Key="BrushBackgroundSecondary" Color="{StaticResource ColorBackgroundSecondary}" />
     <SolidColorBrush x:Key="BrushSurface" Color="{StaticResource ColorSurface}" />
     <SolidColorBrush x:Key="BrushSurfaceVariant" Color="{StaticResource ColorSurfaceVariant}" />
     <SolidColorBrush x:Key="BrushBorder" Color="{StaticResource ColorBorder}" />
     <SolidColorBrush x:Key="BrushText" Color="{StaticResource ColorText}" />
+    <SolidColorBrush x:Key="BrushTextPrimary" Color="{StaticResource ColorText}" />
     <SolidColorBrush x:Key="BrushTextSecondary" Color="{StaticResource ColorTextSecondary}" />
     <SolidColorBrush x:Key="BrushTextTertiary" Color="{StaticResource ColorTextTertiary}" />
 
