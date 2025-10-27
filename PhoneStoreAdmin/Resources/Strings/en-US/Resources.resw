@@ -1908,6 +1908,9 @@ How many devices do you want to add?</value>
   </data>
   
   <!-- Dialog -->
+  <data name="ViewPromotionTitle" xml:space="preserve">
+    <value>Promotion detail</value>
+  </data>
   <data name="PromotionIdLabel.Text" xml:space="preserve">
     <value>ID</value>
   </data>

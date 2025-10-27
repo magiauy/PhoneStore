@@ -477,7 +477,7 @@
 							</ListView.ItemContainerStyle>
 							<ListView.ItemTemplate>
 								<DataTemplate>
-									<Grid>
+									<Grid DoubleTapped="Grid_DoubleTapped" Background="Transparent">
 										<Grid.ColumnDefinitions>
 											<ColumnDefinition Width="80" />
 											<ColumnDefinition Width="2*" MinWidth="180" />
