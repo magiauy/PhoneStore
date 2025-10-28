@@ -216,7 +216,7 @@
                     Orientation="Vertical"
                     Spacing="8">
                     <TextBlock
-                        x:Uid="HeaderTitlePurchaseOrder"
+                        x:Uid="HeaderTitleInvoice"
                         FontSize="36"
                         FontWeight="Bold">
                         <TextBlock.Foreground>
@@ -227,12 +227,12 @@
                         </TextBlock.Foreground>
                     </TextBlock>
                     <TextBlock
-                        x:Uid="SubHeaderTitlePurchaseOrder"
+                        x:Uid="SubHeaderTitleInvoice"
                         FontSize="16"
                         Foreground="{StaticResource BrushTextSecondary}" />
                 </StackPanel>
                 <Button
-                    x:Name="AddPurchaseOrderButton"
+                    x:Name="AddInvoiceButton"
                     Grid.Column="1"
                     Padding="20,14"
                     VerticalAlignment="Center"
@@ -241,7 +241,7 @@
                     Style="{StaticResource PrimaryButtonStyle}">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon FontSize="18" Glyph="&#xE710;" />
-                        <TextBlock x:Uid="BtnNewPurchaseOrder" FontSize="15" />
+                        <TextBlock x:Uid="BtnNewInvoice" FontSize="15" />
                     </StackPanel>
                 </Button>
             </Grid>
@@ -295,7 +295,7 @@
                                     Foreground="{StaticResource BrushPrimary}"
                                     Glyph="&#xE71C;" />
                                 <TextBlock
-                                    x:Uid="BtnFilterPurchaseOrder"
+                                    x:Uid="BtnFilterInvoice"
                                     FontWeight="Medium"
                                     Foreground="{StaticResource BrushText}" />
                             </StackPanel>
@@ -343,63 +343,30 @@
                             Margin="0,0,0,4"
                             FontWeight="SemiBold" />
                         <ComboBox
-                            x:Name="FilterStatusBoxPurchaseOrder"
+                            x:Name="FilterStatusBoxInvoice"
                             MinWidth="160"
                             SelectedIndex="0"
                             SelectionChanged="FilterChange"
                             Style="{StaticResource ComboBoxInputStyle}">
                             <ComboBoxItem x:Uid="SelectBoxAllValue" Tag="" />
-                            <ComboBoxItem x:Uid="POStatus_DRAFT" Tag="DRAFT" />
-                            <ComboBoxItem x:Uid="POStatus_RECEIVED" Tag="RECEIVED" />
+                            <ComboBoxItem x:Uid="POStatus_PAID" Tag="PAID" />
+                            <ComboBoxItem x:Uid="POStatus_UNPAID" Tag="UNPAID" />
+                            <ComboBoxItem x:Uid="POStatus_REFUNDED" Tag="REFUNDED" />
                             <ComboBoxItem x:Uid="POStatus_CANCELLED" Tag="CANCELLED" />
                         </ComboBox>
                     </StackPanel>
-                    <!--  Filter Supplier  -->
+               
+                    <!--  Filter Order Date From  -->
                     <StackPanel
                         Grid.Row="0"
                         Grid.Column="1"
                         Margin="4">
                         <TextBlock
-                            x:Uid="FilterSupplierBoxPurchaseOrder"
-                            Margin="0,0,0,4"
-                            FontWeight="SemiBold" />
-                        <Button
-                            x:Name="SelectSupplierButton"
-                            Height="44"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Left"
-                            Background="Transparent"
-                            BorderBrush="{StaticResource BrushBorder}"
-                            BorderThickness="1"
-                            CornerRadius="8"
-                            Click="SelectSupplierButton_Click"
-                            Padding="16,10">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon
-                                    FontSize="16"
-                                    Foreground="{StaticResource BrushPrimary}"
-                                    Glyph="&#xE716;" />
-                                <TextBlock
-                                    x:Name="SelectedSupplierText"
-                                    FontSize="15"
-                                    FontWeight="Medium"
-                                    Foreground="{StaticResource BrushText}"
-                                    Text="All Suppliers"
-                                    TextTrimming="CharacterEllipsis" />
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                    <!--  Filter Order Date From  -->
-                    <StackPanel
-                        Grid.Row="0"
-                        Grid.Column="2"
-                        Margin="4">
-                        <TextBlock
-                            x:Uid="FilterOrderDateFromBoxPurchaseOrder"
+                            x:Uid="FilterCreatedDateFrom"
                             Margin="0,0,0,4"
                             FontWeight="SemiBold" />
                         <CalendarDatePicker
-                            x:Name="FilterOrderDateFromBoxPurchaseOrder"
+                            x:Name="FilterOrderDateFromBoxInvoice"
                             CalendarViewStyle="{StaticResource CustomCalendarViewStyle}"
                             DateChanged="FilterChangeDate"
                             Style="{StaticResource CalendarDatePickerInputStyle}" />
@@ -407,15 +374,15 @@
 
                     <!--  Filter Order Date To  -->
                     <StackPanel
-                        Grid.Row="1"
-                        Grid.Column="0"
+                        Grid.Row="0"
+                        Grid.Column="2"
                         Margin="4">
                         <TextBlock
-                            x:Uid="FilterOrderDateToBoxPurchaseOrder"
+                            x:Uid="FilterCreatedDateTo"
                             Margin="0,0,0,4"
                             FontWeight="SemiBold" />
                         <CalendarDatePicker
-                            x:Name="FilterOrderDateToBoxPurchaseOrder"
+                            x:Name="FilterOrderDateToBoxInvoice"
                             CalendarViewStyle="{StaticResource CustomCalendarViewStyle}"
                             DateChanged="FilterChangeDate"
                             Style="{StaticResource CalendarDatePickerInputStyle}" />
@@ -423,14 +390,14 @@
                     <!--  Filter Total Amount Min  -->
                     <StackPanel
                         Grid.Row="1"
-                        Grid.Column="1"
+                        Grid.Column="0"
                         Margin="4">
                         <TextBlock
                             x:Uid="FilterTotalAmountMinBoxPurchaseOrder"
                             Margin="0,0,0,4"
                             FontWeight="SemiBold" />
                         <TextBox
-                            x:Name="FilterTotalAmountMinBoxPurchaseOrder"
+                            x:Name="FilterTotalAmountMinBoxInvoice"
                             MinWidth="160"
                             Style="{StaticResource InputStyle}"
                             TextChanged="FilterChange" />
@@ -438,14 +405,14 @@
                     <!--  Filter Total Amount Max  -->
                     <StackPanel
                         Grid.Row="1"
-                        Grid.Column="2"
+                        Grid.Column="1"
                         Margin="4">
                         <TextBlock
                             x:Uid="FilterTotalAmountMaxBoxPurchaseOrder"
                             Margin="0,0,0,4"
                             FontWeight="SemiBold" />
                         <TextBox
-                            x:Name="FilterTotalAmountMaxBoxPurchaseOrder"
+                            x:Name="FilterTotalAmountMaxBoxInvoice"
                             MinWidth="160"
                             Style="{StaticResource InputStyle}"
                             TextChanged="FilterChange" />
@@ -479,16 +446,18 @@
                         </Border.Background>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="80" />
-                                <ColumnDefinition Width="*" MinWidth="150" />
-                                <ColumnDefinition Width="*" MinWidth="150" />
-                                <ColumnDefinition Width="*" MinWidth="120" />
+                                <ColumnDefinition Width="30" />
+                                <ColumnDefinition Width="*" MinWidth="60" />
+                                <ColumnDefinition Width="*" MinWidth="100" />
+                                <ColumnDefinition Width="*" MinWidth="100" />
                                 <ColumnDefinition Width="*" MinWidth="60" />
                                 <ColumnDefinition Width="*" MinWidth="60" />
-                                <ColumnDefinition Width="60" />
+                                <ColumnDefinition Width="*" MinWidth="60" />
+                                <ColumnDefinition Width="*" MinWidth="60" />
+                                <ColumnDefinition Width="40"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock
-                                x:Uid="ColIDPurchaseOrder"
+                                x:Uid="ColIDInvoice"
                                 Grid.Column="0"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
@@ -496,7 +465,7 @@
                                 FontWeight="SemiBold"
                                 Foreground="{StaticResource BrushTextSecondary}" />
                             <TextBlock
-                                x:Uid="ColOrderDatePurchaseOrder"
+                                x:Uid="ColInvoiceDate"
                                 Grid.Column="1"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
@@ -504,7 +473,7 @@
                                 FontWeight="SemiBold"
                                 Foreground="{StaticResource BrushTextSecondary}" />
                             <TextBlock
-                                x:Uid="ColSupplierPurchaseOrder"
+                                x:Uid="ColCustomerName"
                                 Grid.Column="2"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
@@ -512,7 +481,7 @@
                                 FontWeight="SemiBold"
                                 Foreground="{StaticResource BrushTextSecondary}" />
                             <TextBlock
-                                x:Uid="ColNotePurchaseOrder"
+                                x:Uid="ColCreateBy"
                                 Grid.Column="3"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
@@ -520,7 +489,7 @@
                                 FontWeight="SemiBold"
                                 Foreground="{StaticResource BrushTextSecondary}" />
                             <TextBlock
-                                x:Uid="ColTotalAmountPurchaseOrder"
+                                x:Uid="ColTotalAmountInvoice"
                                 Grid.Column="4"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
@@ -528,7 +497,7 @@
                                 FontWeight="SemiBold"
                                 Foreground="{StaticResource BrushTextSecondary}" />
                             <TextBlock
-                                x:Uid="ColStatusPurchaseOrder"
+                                x:Uid="ColFinalAmountInvoice"
                                 Grid.Column="5"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
@@ -536,13 +505,21 @@
                                 FontWeight="SemiBold"
                                 Foreground="{StaticResource BrushTextSecondary}" />
                             <TextBlock
-                                x:Uid="ColActionsPurchaseOrder"
+                                x:Uid="ColDiscountAmount"
                                 Grid.Column="6"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 FontSize="13"
                                 FontWeight="SemiBold"
                                 Foreground="{StaticResource BrushTextSecondary}" />
+                            <TextBlock
+                                x:Uid="ColStatusInvoice"
+                                Grid.Column="7"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTextSecondary}" />     
                         </Grid>
                     </Border>
                     <!--  Table Content  -->
@@ -553,7 +530,7 @@
                         <ListView
                             x:Name="InvoiceListView"
                             Background="Transparent"
-                            
+                            ItemsSource="{x:Bind Invoices, Mode=OneWay}"
                             SelectionMode="None">
                             <ListView.ItemContainerStyle>
                                 <Style TargetType="ListViewItem">
@@ -612,15 +589,17 @@
                                 <DataTemplate>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="80" />
-                                            <ColumnDefinition Width="*" MinWidth="150" />
-                                            <ColumnDefinition Width="*" MinWidth="150" />
-                                            <ColumnDefinition Width="*" MinWidth="120" />
+                                            <ColumnDefinition Width="30" />
+                                            <ColumnDefinition Width="*" MinWidth="60" />
+                                            <ColumnDefinition Width="*" MinWidth="100" />
+                                            <ColumnDefinition Width="*" MinWidth="100" />
                                             <ColumnDefinition Width="*" MinWidth="60" />
                                             <ColumnDefinition Width="*" MinWidth="60" />
-                                            <ColumnDefinition Width="60" />
+                                            <ColumnDefinition Width="*" MinWidth="60" />
+                                            <ColumnDefinition Width="*" MinWidth="60" />
+                                            <ColumnDefinition Width="40"/>
                                         </Grid.ColumnDefinitions>
-                                        <!--  ID with accent color  -->
+                                        <!-- ID -->
                                         <Border
                                             Grid.Column="0"
                                             Width="32"
@@ -636,15 +615,17 @@
                                                 Foreground="{StaticResource BrushPrimary}"
                                                 Text="{Binding Id}" />
                                         </Border>
-                                        <!--  Order Date  -->
+
+                                        <!-- Invoice Date -->
                                         <TextBlock
                                             Grid.Column="1"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
                                             FontSize="14"
                                             Foreground="{StaticResource BrushText}"
-                                            Text="{Binding OrderDate, Converter={StaticResource DateConverter}}" />
-                                        <!--  Supplier (assuming SupplierName is added to VM)  -->
+                                            Text="{Binding InvoiceDate, Converter={StaticResource DateConverter}}" />
+
+                                        <!-- Customer Name -->
                                         <TextBlock
                                             Grid.Column="2"
                                             MaxWidth="200"
@@ -653,29 +634,29 @@
                                             FontSize="14"
                                             FontWeight="SemiBold"
                                             Foreground="{StaticResource BrushText}"
-                                            Text="{Binding SupplierName}"
-                                            TextTrimming="CharacterEllipsis"
-                                            TextWrapping="NoWrap">
+                                            Text="{Binding CustomerName}"
+                                            TextTrimming="CharacterEllipsis">
                                             <ToolTipService.ToolTip>
-                                                <ToolTip Content="{Binding SupplierName}" />
+                                                <ToolTip Content="{Binding CustomerName}" />
                                             </ToolTipService.ToolTip>
                                         </TextBlock>
-                                        <!--  Note  -->
+
+                                        <!-- Create By -->
                                         <TextBlock
                                             Grid.Column="3"
-                                            MaxWidth="200"
+                                            MaxWidth="150"
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Center"
                                             FontSize="14"
-                                            Foreground="{StaticResource BrushText}"
-                                            Text="{Binding Note}"
-                                            TextTrimming="CharacterEllipsis"
-                                            TextWrapping="NoWrap">
+                                            Foreground="{StaticResource BrushTextSecondary}"
+                                            Text="{Binding CreatedBy}"
+                                            TextTrimming="CharacterEllipsis">
                                             <ToolTipService.ToolTip>
-                                                <ToolTip Content="{Binding Note}" />
+                                                <ToolTip Content="{Binding CreatedBy}" />
                                             </ToolTipService.ToolTip>
                                         </TextBlock>
-                                        <!--  Total Amount  -->
+
+                                        <!-- Total Amount -->
                                         <TextBlock
                                             Grid.Column="4"
                                             HorizontalAlignment="Center"
@@ -683,48 +664,65 @@
                                             FontSize="14"
                                             Foreground="{StaticResource BrushText}"
                                             Text="{Binding TotalAmount, Converter={StaticResource CurrencyConverter}}" />
-                                        <!--  Status Badge  -->
-                                        <Border
+
+                                        <!-- Final Amount -->
+                                        <TextBlock
                                             Grid.Column="5"
-                                            MinWidth="60"
-                                            Padding="14,8"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="14"
+                                            FontWeight="SemiBold"
+                                            Foreground="{StaticResource BrushPrimary}"
+                                            Text="{Binding FinalAmount, Converter={StaticResource CurrencyConverter}}" />
+
+                                        <!-- Discount ID -->
+                                        <TextBlock
+                                            Grid.Column="6"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="14"
+                                            Foreground="{StaticResource BrushTextSecondary}"
+                                            Text="{Binding DiscountAmount}" />
+
+                                        <!-- Status Badge -->
+                                        <Border
+                                            Grid.Column="7"
+                                            Padding="10,6"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
                                             Background="{Binding StatusColor}"
-                                            CornerRadius="16">
-                                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <TextBlock
-                                                    MinWidth="60"
-                                                    FontSize="12"
-                                                    FontWeight="SemiBold"
-                                                    Foreground="White"
-                                                    HorizontalTextAlignment="Center"
-                                                    Text="{Binding LocalizedStatusText}" />
-                                            </StackPanel>
+                                            CornerRadius="12">
+                                            <TextBlock
+                                                FontSize="12"
+                                                FontWeight="SemiBold"
+                                                Foreground="White"
+                                                HorizontalAlignment="Center"
+                                                Text="{Binding LocalizedStatusText}" />
                                         </Border>
-                                        <!--  Actions Button  -->
+
+                                        <!-- Actions -->
                                         <Button
-                                            Grid.Column="6"
+                                            Grid.Column="8"
                                             Width="36"
                                             Height="36"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
                                             Background="Transparent"
                                             BorderThickness="0"
-                                            Click="BtnActions_Click"
                                             CornerRadius="8"
+                                            Click="BtnActions_Click"
                                             Tag="{Binding}">
                                             <FontIcon
                                                 FontSize="16"
                                                 Foreground="{StaticResource BrushTextSecondary}"
                                                 Glyph="&#xE712;" />
                                             <ToolTipService.ToolTip>
-                                                <ToolTip x:Uid="BtnActionPurchaseOrder" Placement="Left" />
+                                                <ToolTip x:Uid="BtnActionInvoice" Placement="Left" />
                                             </ToolTipService.ToolTip>
                                             <FlyoutBase.AttachedFlyout>
                                                 <MenuFlyout>
                                                     <MenuFlyoutItem
-                                                        x:Uid="BtnDetailPurchaseOrder"
+                                                        x:Uid="BtnDetailInvoice"
                                                         Click="BtnDetail_Click"
                                                         Tag="{Binding}">
                                                         <MenuFlyoutItem.Icon>
@@ -732,7 +730,7 @@
                                                         </MenuFlyoutItem.Icon>
                                                     </MenuFlyoutItem>
                                                     <MenuFlyoutItem
-                                                        x:Uid="BtnEditPurchaseOrder"
+                                                        x:Uid="BtnEditInvoice"
                                                         Click="BtnEdit_Click"
                                                         Tag="{Binding}">
                                                         <MenuFlyoutItem.Icon>
@@ -740,7 +738,7 @@
                                                         </MenuFlyoutItem.Icon>
                                                     </MenuFlyoutItem>
                                                     <MenuFlyoutItem
-                                                        x:Uid="BtnCancelPurchaseOrder"
+                                                        x:Uid="BtnCancelInvoice"
                                                         Click="BtnCancel_Click"
                                                         Tag="{Binding}">
                                                         <MenuFlyoutItem.Icon>
@@ -824,7 +822,7 @@
                                         FontSize="14"
                                         FontWeight="SemiBold"
                                         Foreground="{StaticResource BrushPrimary}">
-                                        <Run x:Uid="ShowIngPurchaseOrder" />
+                                        <Run x:Uid="ShowIngInvoice" />
                                         <Run x:Name="RecordCountText" Text="0" />
                                         <Run x:Uid="Invoice" />
                                     </TextBlock>
@@ -853,7 +851,7 @@
                                         FontSize="14"
                                         FontWeight="Bold"
                                         Foreground="{StaticResource BrushPrimary}">
-                                        <Run x:Uid="PagePurchaseOrder" />
+                                        <Run x:Uid="PageInvoice" />
                                         <Run x:Name="PageInfoText" Text="1 / 1" />
                                     </TextBlock>
                                 </Border>
@@ -874,4 +872,4 @@
             </Border>
         </Grid>
     </Grid>
-</Page><?xml version="1.0" encoding="utf-8" ?> 
+</Page>
