@@ -1183,4 +1183,64 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="ValidationErrorInfoBar.Message" xml:space="preserve">
     <value>Vui lòng nhập đầy đủ Số Serial và IMEI 1 cho tất cả các máy</value>
   </data>
+  <data name="HeaderTitleInvoice.Text" xml:space="preserve">
+    <value>Hóa đơn bán hàng</value>
+  </data>
+  <data name="SubHeaderTitleInvoice.Text" xml:space="preserve">
+    <value>Thêm, sửa, xóa và quản lý hóa đơn bán hàng</value>
+  </data>
+  <data name="MenuItemInvoice.Content" xml:space="preserve">
+    <value>Hóa đơn bán hàng</value>
+  </data>
+  <data name="BtnNewInvoice.Text" xml:space="preserve">
+    <value>Tạo hóa đơn mới</value>
+  </data>
+  <data name="ColIDInvoice.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="ColInvoiceDate.Text" xml:space="preserve">
+    <value>Ngày tạo hóa đơn</value>
+  </data>
+  <data name="ColCustomerName.Text" xml:space="preserve">
+    <value>Tên khách hàng</value>
+  </data>
+  <data name="ColCreateBy.Text" xml:space="preserve">
+    <value>Được tạo bởi</value>
+  </data>
+  <data name="ColTotalAmountInvoice.Text" xml:space="preserve">
+    <value>Tạm tính</value>
+  </data>
+  <data name="ColFinalAmountInvoice.Text" xml:space="preserve">
+    <value>Tổng số tiền </value>
+  </data>
+  <data name="ColDiscountAmount.Text" xml:space="preserve">
+    <value>Khuyến mãi</value>
+  </data>
+  <data name="ColStatusInvoice.Text" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="InvoiceStatus_UNPAID" xml:space="preserve">
+    <value>Chưa thanh toán</value>
+  </data>
+  <data name="InvoiceStatus_PAID" xml:space="preserve">
+    <value>Đã thanh toán</value>
+  </data>
+  <data name="InvoiceStatus_REFUNDED" xml:space="preserve">
+    <value>Đã hoàn tiền</value>
+  </data>
+  <data name="InvoiceStatus_CANCELLED" xml:space="preserve">
+    <value>Đã hủy</value>
+  </data>
+  <data name="BtnFilterInvoice.Text" xml:space="preserve">
+    <value>Lọc</value>
+  </data>
+  <data name="POStatus_PAID.Content" xml:space="preserve">
+    <value>Đã thanh toán</value>
+  </data>
+  <data name="POStatus_UNPAID.Content" xml:space="preserve">
+    <value>Chưa thanh toán</value>
+  </data>
+  <data name="POStatus_REFUNDED.Content" xml:space="preserve">
+    <value>Đã hoàn tiền</value>
+  </data>
 </root>

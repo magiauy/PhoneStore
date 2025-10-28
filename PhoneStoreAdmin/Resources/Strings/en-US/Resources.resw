@@ -1183,4 +1183,64 @@ How many devices do you want to add?</value>
   <data name="ValidationErrorInfoBar.Message" xml:space="preserve">
     <value>Please enter Serial Number and IMEI 1 for all devices</value>
   </data>
+  <data name="HeaderTitleInvoice.Text" xml:space="preserve">
+    <value>Invoice</value>
+  </data>
+  <data name="SubHeaderTitleInvoice.Text" xml:space="preserve">
+    <value>Add, edit, delete and manage Invoice</value>
+  </data>
+  <data name="MenuItemInvoice.Content" xml:space="preserve">
+    <value>Invoice</value>
+  </data>
+  <data name="BtnNewInvoice.Text" xml:space="preserve">
+    <value>New Invoice</value>
+  </data>
+  <data name="ColIDInvoice.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="ColInvoiceDate.Text" xml:space="preserve">
+    <value>Invoice Date</value>
+  </data>
+  <data name="ColCustomerName.Text" xml:space="preserve">
+    <value>Customer Name</value>
+  </data>
+  <data name="ColCreateBy.Text" xml:space="preserve">
+    <value>Create By</value>
+  </data>
+  <data name="ColTotalAmountInvoice.Text" xml:space="preserve">
+    <value>Total Amount</value>
+  </data>
+  <data name="ColFinalAmountInvoice.Text" xml:space="preserve">
+    <value>Final Amount</value>
+  </data>
+  <data name="ColDiscountAmount.Text" xml:space="preserve">
+    <value>Discount Amount</value>
+  </data>
+  <data name="ColStatusInvoice.Text" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="InvoiceStatus_UNPAID" xml:space="preserve">
+    <value>Unpaid</value>
+  </data>
+  <data name="InvoiceStatus_PAID" xml:space="preserve">
+    <value>Paid</value>
+  </data>
+  <data name="InvoiceStatus_REFUNDED" xml:space="preserve">
+    <value>Refunded</value>
+  </data>
+  <data name="InvoiceStatus_CANCELLED" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="BtnFilterInvoice.Text" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="POStatus_PAID.Content" xml:space="preserve">
+    <value>Paid</value>
+  </data>
+  <data name="POStatus_UNPAID.Content" xml:space="preserve">
+    <value>Unpaid</value>
+  </data>
+  <data name="POStatus_REFUNDED.Content" xml:space="preserve">
+    <value>Refunded</value>
+  </data>
 </root>

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using MySqlConnector;
+using System;
 
 namespace PhoneStoreAdmin.Data
 {
@@ -17,6 +18,7 @@ namespace PhoneStoreAdmin.Data
             var password = dbConfig["Password"];
 
             _connectionString = $"Server={host};Port={port};Database={database};User ID={user};Password={password};SslMode=Preferred;";
+            Console.WriteLine(_connectionString);
         }
 
         public MySqlConnection GetConnection()

@@ -50,6 +50,7 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<IBrandRepository>(() => new BrandRepository(GetService<DataSource>()));
             RegisterSingleton<IProductRepository>(() => new ProductRepository(GetService<DataSource>()));
             RegisterSingleton<IProductSerialRepository>(() => new ProductSerialRepository(GetService<DataSource>()));
+            RegisterSingleton<IInvoiceRepository>(() => new InvoiceRepository(GetService<DataSource>()));
 
             // Register services
             RegisterSingleton<IAuthService>(() => new AuthService(GetService<IAuthRepository>()));
@@ -69,6 +70,12 @@ namespace PhoneStoreAdmin.Services
                 GetService<IPurchaseOrderRepository>(), 
                 GetService<ISupplierRepository>()));
             RegisterSingleton<ILocalStorageService>(() => new LocalStorageService());
+            RegisterSingleton<IInvoiceService>(() => new InvoiceService(
+                GetService<IInvoiceRepository>(),
+                GetService<IPersonRepository>(),
+                GetService<IEmployeeRepository>(),
+                GetService<ISupplierRepository>()
+            ));
 
             // Register UserSession singleton
             RegisterSingleton<UserSession>(UserSession.Instance);

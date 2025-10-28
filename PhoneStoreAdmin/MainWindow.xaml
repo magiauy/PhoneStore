@@ -52,7 +52,7 @@
                     Tag="PurchaseOrders" />
                 <NavigationViewItem
                     x:Name="InvoiceNavItem"
-                    x:Uid="MenuInvoice"
+                    x:Uid="MenuItemInvoice"
                     Icon="Paste"
                     Tag="Invoice" />
                 <NavigationViewItem
