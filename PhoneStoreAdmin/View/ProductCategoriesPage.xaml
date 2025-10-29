@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="PhoneStoreAdmin.View.ProductCategoriesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PhoneStoreAdmin.View"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{StaticResource BrushBackground}">
+        <StackPanel Spacing="12" Margin="24">
+            <TextBlock Text="Product Categories" FontSize="24" FontWeight="Bold" Margin="0,0,0,12"/>
+            <Button Content="Add Category" x:Name="AddCategoryButton" Width="160" Margin="0,0,0,8"/>
+            <ListView x:Name="CategoriesListView" Height="400"/>
+        </StackPanel>
+    </Grid>
+</Page>
