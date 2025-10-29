@@ -6,6 +6,7 @@ using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Models.Enums;
 using PhoneStoreAdmin.Repositories.Interfaces;
 using PhoneStoreAdmin.Services.Interfaces;
+using PhoneStoreAdmin.Utils;
 using PhoneStoreAdmin.View.Controls;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,8 @@ namespace PhoneStoreAdmin.View
         private IBatchesRepository BatchesRepository => App.GetService<IBatchesRepository>();
 
         // Fields
+        private int? _editingPurchaseOrderId = null; // For edit mode
+        private PurchaseOrder? _originalPurchaseOrder = null; // For edit mode
         private Supplier? _selectedSupplier;
         private string _searchText = string.Empty;
         private string _note = string.Empty;
@@ -78,6 +81,12 @@ namespace PhoneStoreAdmin.View
 
         public bool HasPurchaseOrderItems => PurchaseOrderItems?.Count > 0 && SelectedSupplier != null;
 
+        public bool IsEditMode => _editingPurchaseOrderId.HasValue;
+
+        public string SaveButtonText => IsEditMode 
+            ? _resourceLoader.GetString("UpdatePurchaseOrderButton")
+            : _resourceLoader.GetString("CreatePurchaseOrderButton");
+
         // Constructor
         public AddPurchaseOrderPage()
         {
@@ -102,7 +111,132 @@ namespace PhoneStoreAdmin.View
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            
+            // Check if navigated with a purchase order ID for editing
+            if (e.Parameter is int purchaseOrderId)
+            {
+                _editingPurchaseOrderId = purchaseOrderId;
+                LoadPurchaseOrderForEdit();
+            }
+            
             LoadData();
+        }
+
+        private void LoadPurchaseOrderForEdit()
+        {
+            if (!_editingPurchaseOrderId.HasValue) return;
+
+            try
+            {
+                _originalPurchaseOrder = PurchaseOrderService.GetById(_editingPurchaseOrderId.Value);
+
+                if (_originalPurchaseOrder == null)
+                {
+                    // Don't show dialog here - will show after page is loaded
+                    Logger.Error("Purchase order not found for editing");
+                    Frame.GoBack();
+                    return;
+                }
+
+                // Check if purchase order can be edited (only DRAFT status)
+                if (_originalPurchaseOrder.Status != PoStatus.DRAFT)
+                {
+                    // Don't show dialog here - will show after page is loaded
+                    Logger.Warning($"Cannot edit purchase order {_originalPurchaseOrder.Id} - status is {_originalPurchaseOrder.Status}");
+                    Frame.GoBack();
+                    return;
+                }
+
+                // Update UI title
+                PurchaseOrderIdLabel.Text = $"Edit {_resourceLoader.GetString("PurchaseOrderIdLabel")} #{_originalPurchaseOrder.Id}";
+                
+                // Load supplier
+                _selectedSupplier = SupplierService.GetSupplierById(_originalPurchaseOrder.SupplierId);
+                if (_selectedSupplier != null)
+                {
+                    SelectedSupplier = _selectedSupplier;
+                }
+
+                // Load other fields
+                OrderDate = _originalPurchaseOrder.OrderDate;
+                Note = _originalPurchaseOrder.Note ?? string.Empty;
+
+                // Notify UI properties changed
+                OnPropertyChanged(nameof(IsEditMode));
+                OnPropertyChanged(nameof(SaveButtonText));
+
+                // Load purchase order lines
+                PurchaseOrderItems.Clear();
+                
+                // Get the batch for this purchase order to load serials
+                var batches = BatchesRepository.GetByPurchaseOrderId(_originalPurchaseOrder.Id);
+                var batch = batches.FirstOrDefault();
+                
+                foreach (var line in _originalPurchaseOrder.PurchaseOrderLines)
+                {
+                    var product = ProductRepository.GetById(line.ProductId);
+                    if (product != null)
+                    {
+                        var item = new PurchaseOrderLineItem
+                        {
+                            ProductId = line.ProductId,
+                            ProductName = product.Name,
+                            UnitCost = line.UnitCost,
+                            Quantity = line.Quantity,
+                            IsSerialTracked = product.IsSerialTracked,
+                            ParentPage = this
+                        };
+
+                        // Load serial entries if product is serial tracked and batch exists
+                        if (product.IsSerialTracked && batch != null)
+                        {
+                            // Get all serials for this product in this batch
+                            var allProductSerials = ProductSerialRepository.GetByProductId(line.ProductId);
+                            // Filter by batch ID
+                            var serials = allProductSerials.Where(s => s.BatchId == batch.id).ToList();
+                            
+                            int index = 1;
+                            foreach (var serial in serials)
+                            {
+                                var serialEntry = new Controls.SerialEntry
+                                {
+                                    Index = index++,
+                                    SerialNumber = serial.SerialNumber,
+                                    Imei1 = serial.Imei1,
+                                    Imei2 = serial.Imei2 ?? string.Empty
+                                };
+                                item.SerialEntries.Add(serialEntry);
+                            }
+                        }
+
+                        PurchaseOrderItems.Add(item);
+                    }
+                }
+
+                CalculatePurchaseOrderTotal();
+                
+                // Show info message after page is fully loaded and has XamlRoot
+                // Schedule it to run after the page is loaded
+                this.Loaded += async (s, e) =>
+                {
+                    // Show info message if this is a DRAFT PO with serial-tracked products
+                    if (_originalPurchaseOrder != null && _originalPurchaseOrder.Status == PoStatus.DRAFT)
+                    {
+                        var hasSerialTrackedProducts = PurchaseOrderItems.Any(i => i.IsSerialTracked);
+                        if (hasSerialTrackedProducts && batch == null)
+                        {
+                            await ShowMessageDialog(
+                                _resourceLoader.GetString("AddPO_InfoTitle"),
+                                _resourceLoader.GetString("AddPO_DraftSerialMessage"));
+                        }
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to load purchase order for edit: {ex.Message}", ex);
+                Frame.GoBack();
+            }
         }
 
         // Event Handlers
@@ -172,16 +306,41 @@ namespace PhoneStoreAdmin.View
 
             try
             {
-                // Create PurchaseOrder object
+                // Show notes input dialog (for both creating and editing)
+                string notes = Note;
+                var notesDialog = new Controls.NotesInputDialog(Note)
+                {
+                    Title = _resourceLoader.GetString("NoteTextBoxTitle"),
+                    XamlRoot = this.XamlRoot
+                };
+
+                var dialogResult = await notesDialog.ShowAsync();
+
+                // If user cancelled, return
+                if (dialogResult != ContentDialogResult.Primary)
+                {
+                    return;
+                }
+
+                // Get notes from dialog
+                notes = notesDialog.Notes;
+
+                // Create or Update PurchaseOrder object
                 var purchaseOrder = new PurchaseOrder
                 {
                     SupplierId = SelectedSupplier.Id,
-                    CreatedBy = 1, // TODO: Get from current user session
+                    CreatedBy = _editingPurchaseOrderId.HasValue ? _originalPurchaseOrder!.CreatedBy : 1, // TODO: Get from current user session
                     OrderDate = OrderDate,
                     Status = PoStatus.DRAFT,
                     TotalAmount = TotalAmount,
-                    Note = string.IsNullOrWhiteSpace(Note) ? null : Note
+                    Note = string.IsNullOrWhiteSpace(notes) ? null : notes
                 };
+
+                // If editing, set the ID
+                if (_editingPurchaseOrderId.HasValue)
+                {
+                    purchaseOrder.Id = _editingPurchaseOrderId.Value;
+                }
 
                 // Add purchase order lines
                 foreach (var item in PurchaseOrderItems)
@@ -196,10 +355,18 @@ namespace PhoneStoreAdmin.View
                     purchaseOrder.PurchaseOrderLines.Add(line);
                 }
 
-                // Save to database (this will automatically create batches via PurchaseOrderService)
-                PurchaseOrderService.Insert(purchaseOrder);
+                // Save or Update to database
+                if (_editingPurchaseOrderId.HasValue)
+                {
+                    PurchaseOrderService.Update(purchaseOrder);
+                }
+                else
+                {
+                    PurchaseOrderService.Insert(purchaseOrder);
+                }
 
-                // Now get the created batch and add serial numbers for serial-tracked products
+                // Only save serial numbers if purchase order has batches (status = RECEIVED)
+                // For DRAFT purchase orders, serials will be saved when marking as RECEIVED
                 var batches = BatchesRepository.GetByPurchaseOrderId(purchaseOrder.Id);
                 var batch = batches.FirstOrDefault();
 
@@ -207,7 +374,15 @@ namespace PhoneStoreAdmin.View
                 {
                     foreach (var item in PurchaseOrderItems.Where(i => i.IsSerialTracked))
                     {
-                        // Save serial numbers
+                        // Delete existing serials for this batch and product (in case of update)
+                        var existingSerials = ProductSerialRepository.GetByProductId(item.ProductId)
+                            .Where(s => s.BatchId == batch.id).ToList();
+                        foreach (var existingSerial in existingSerials)
+                        {
+                            ProductSerialRepository.Delete(existingSerial.Id);
+                        }
+                        
+                        // Save new serial numbers
                         foreach (var serialEntry in item.SerialEntries)
                         {
                             var productSerial = new ProductSerial
@@ -227,19 +402,39 @@ namespace PhoneStoreAdmin.View
                         }
                     }
                 }
+                else
+                {
+                    // Log that serials will be saved later when marked as RECEIVED
+                    Logger.Info($"Purchase order {purchaseOrder.Id} is in DRAFT status. Serial numbers will be saved when marked as RECEIVED.");
+                }
+
+                var successMessage = _editingPurchaseOrderId.HasValue
+                    ? _resourceLoader.GetString("AddPO_UpdateSuccessMessage")
+                    : _resourceLoader.GetString("PurchaseOrderCreatedSuccessfully");
 
                 await ShowMessageDialog(
                     _resourceLoader.GetString("PurchaseOrderSuccessTitle"), 
-                    $"{_resourceLoader.GetString("PurchaseOrderCreatedSuccessfully")}. {_resourceLoader.GetString("TotalAmountLabel")}: {FormatPrice(TotalAmount)}");
+                    $"{successMessage}. {_resourceLoader.GetString("TotalAmountLabel")}: {FormatPrice(TotalAmount)}");
                 
                 // Navigate back or clear form
-                OnClearPurchaseOrder(sender, e);
+                if (_editingPurchaseOrderId.HasValue)
+                {
+                    Frame.GoBack();
+                }
+                else
+                {
+                    OnClearPurchaseOrder(sender, e);
+                }
             }
             catch (Exception ex)
             {
+                var errorMessage = _editingPurchaseOrderId.HasValue
+                    ? _resourceLoader.GetString("AddPO_CannotUpdateMessage")
+                    : _resourceLoader.GetString("CannotCreatePurchaseOrder");
+
                 await ShowMessageDialog(
                     _resourceLoader.GetString("PurchaseOrderErrorTitle"), 
-                    $"{_resourceLoader.GetString("CannotCreatePurchaseOrder")}: {ex.Message}");
+                    $"{errorMessage}: {ex.Message}");
             }
         }
 
@@ -258,6 +453,93 @@ namespace PhoneStoreAdmin.View
             if (Frame.CanGoBack)
             {
                 Frame.GoBack();
+            }
+        }
+
+        public async void OnPrintPurchaseOrder(object sender, RoutedEventArgs e)
+        {
+            if (!HasPurchaseOrderItems || SelectedSupplier == null)
+            {
+                await ShowMessageDialog(
+                    _resourceLoader.GetString("NotificationTitle"),
+                    _resourceLoader.GetString("PleaseSelectSupplierAndProducts"));
+                return;
+            }
+
+            try
+            {
+                // Create temporary purchase order object for printing
+                var tempPurchaseOrder = new PurchaseOrder
+                {
+                    Id = _editingPurchaseOrderId ?? 0,
+                    SupplierId = SelectedSupplier.Id,
+                    CreatedBy = _editingPurchaseOrderId.HasValue ? _originalPurchaseOrder!.CreatedBy : 1,
+                    OrderDate = OrderDate,
+                    Status = PoStatus.DRAFT,
+                    TotalAmount = TotalAmount,
+                    Note = Note
+                };
+
+                // Add purchase order lines
+                foreach (var item in PurchaseOrderItems)
+                {
+                    var line = new PurchaseOrderLine
+                    {
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity,
+                        UnitCost = item.UnitCost,
+                        TotalCost = item.TotalCost
+                    };
+                    tempPurchaseOrder.PurchaseOrderLines.Add(line);
+                }
+
+                // Open file save dialog
+                var savePicker = new Windows.Storage.Pickers.FileSavePicker();
+                
+                // Get window handle - use a simpler approach
+                var window = GetWindowForElement(this);
+                if (window == null)
+                {
+                    throw new InvalidOperationException("Could not find window");
+                }
+                
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
+
+                savePicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+                savePicker.FileTypeChoices.Add("PDF Document", new List<string>() { ".pdf" });
+                savePicker.SuggestedFileName = $"PurchaseOrder_{tempPurchaseOrder.Id}_{DateTime.Now:yyyyMMdd}";
+
+                var file = await savePicker.PickSaveFileAsync();
+                if (file != null)
+                {
+                    // Generate PDF
+                    Utils.PurchaseOrderPdfGenerator.GeneratePdf(tempPurchaseOrder, SelectedSupplier, file.Path);
+
+                    // Show success message
+                    var dialog = new ContentDialog
+                    {
+                        Title = _resourceLoader.GetString("PurchaseOrderSuccessTitle"),
+                        Content = $"PDF saved successfully to:\n{file.Path}",
+                        PrimaryButtonText = _resourceLoader.GetString("Common_OpenFile"),
+                        CloseButtonText = _resourceLoader.GetString("CloseButton/Text"),
+                        XamlRoot = this.XamlRoot
+                    };
+
+                    var result = await dialog.ShowAsync();
+
+                    // Open the file if user clicks Open
+                    if (result == ContentDialogResult.Primary)
+                    {
+                        await Windows.System.Launcher.LaunchFileAsync(file);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await ShowMessageDialog(
+                    _resourceLoader.GetString("PurchaseOrderErrorTitle"),
+                    $"Failed to generate PDF: {ex.Message}");
             }
         }
 
@@ -367,6 +649,38 @@ namespace PhoneStoreAdmin.View
             PurchaseOrderItems.Remove(item);
         }
 
+        public async System.Threading.Tasks.Task EditSerialNumbersForProduct(PurchaseOrderLineItem item)
+        {
+            try
+            {
+                // Create dialog with existing serial entries
+                var serialDialog = new SerialNumberInputDialog(item.ProductName, item.Quantity, item.SerialEntries.ToList())
+                {
+                    XamlRoot = this.XamlRoot
+                };
+
+                var result = await serialDialog.ShowAsync();
+
+                if (result == ContentDialogResult.Primary)
+                {
+                    // Clear existing entries
+                    item.SerialEntries.Clear();
+
+                    // Add updated entries
+                    foreach (var entry in serialDialog.SerialEntries)
+                    {
+                        item.SerialEntries.Add(entry);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await ShowMessageDialog(
+                    _resourceLoader.GetString("PurchaseOrderErrorTitle"),
+                    $"{_resourceLoader.GetString("AddPO_CannotEditSerialMessage")}: {ex.Message}");
+            }
+        }
+
         public async void AddProductToPurchaseOrder(PurchaseOrderProductItem product)
         {
             try
@@ -441,10 +755,13 @@ namespace PhoneStoreAdmin.View
                         {
                             // Add to existing item
                             existingItem.Quantity += quantityToAdd;
-                            
+
                             // Store serial entries for later
-                            foreach (var entry in serialDialog.SerialEntries)
+                            int startIndex = existingItem.SerialEntries.Count + 1;
+                            for (int i = 0; i < serialDialog.SerialEntries.Count; i++)
                             {
+                                var entry = serialDialog.SerialEntries[i];
+                                entry.Index = startIndex + i;
                                 existingItem.SerialEntries.Add(entry);
                             }
                         }
@@ -514,6 +831,24 @@ namespace PhoneStoreAdmin.View
             await dialog.ShowAsync();
         }
 
+        // Helper method to get Window from UIElement
+        private Window? GetWindowForElement(UIElement element)
+        {
+            // Simple approach: get MainWindow from App
+            var app = Application.Current as App;
+            var currentWindow = app?.CurrentWindow;
+            
+            // If current window is LoginWindow, it might have been replaced by MainWindow
+            // Try to find the window that contains this element
+            if (currentWindow != null && currentWindow is MainWindow)
+            {
+                return currentWindow;
+            }
+            
+            // Fallback: return current window anyway
+            return currentWindow;
+        }
+
         // INotifyPropertyChanged implementation
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -569,7 +904,13 @@ namespace PhoneStoreAdmin.View
         public int ProductId { get; set; }
         public string ProductName { get; set; } = string.Empty;
         public AddPurchaseOrderPage? ParentPage { get; set; }
-        public ObservableCollection<Controls.SerialEntry> SerialEntries { get; set; } = new ObservableCollection<Controls.SerialEntry>();
+        public ObservableCollection<Controls.SerialEntry> SerialEntries { get; set; }
+
+        public PurchaseOrderLineItem()
+        {
+            SerialEntries = new ObservableCollection<Controls.SerialEntry>();
+            SerialEntries.CollectionChanged += (s, e) => OnPropertyChanged(nameof(SerialExpanderVisibility));
+        }
 
         public int Quantity
         {
@@ -606,8 +947,17 @@ namespace PhoneStoreAdmin.View
         public bool IsSerialTracked
         {
             get => _isSerialTracked;
-            set => SetProperty(ref _isSerialTracked, value);
+            set
+            {
+                SetProperty(ref _isSerialTracked, value);
+                OnPropertyChanged(nameof(SerialExpanderVisibility));
+                OnPropertyChanged(nameof(EditSerialsButtonVisibility));
+            }
         }
+
+        public Visibility SerialExpanderVisibility => IsSerialTracked && SerialEntries.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        
+        public Visibility EditSerialsButtonVisibility => IsSerialTracked ? Visibility.Visible : Visibility.Collapsed;
 
         public decimal TotalCost => UnitCost * Quantity;
 
@@ -635,6 +985,11 @@ namespace PhoneStoreAdmin.View
         public void RemoveFromPurchaseOrder(object sender, RoutedEventArgs e)
         {
             ParentPage?.RemoveProductFromPurchaseOrder(this);
+        }
+
+        public async void EditSerialNumbers(object sender, RoutedEventArgs e)
+        {
+            await ParentPage?.EditSerialNumbersForProduct(this);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

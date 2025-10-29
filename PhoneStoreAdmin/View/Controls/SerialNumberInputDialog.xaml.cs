@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
@@ -15,6 +15,7 @@ namespace PhoneStoreAdmin.View.Controls
         private string _productName = string.Empty;
         private int _quantity = 0;
         private bool _showValidationError = false;
+        private string _validationMessage = string.Empty;
         private readonly ResourceLoader _resourceLoader;
 
         public string ProductName
@@ -35,25 +36,95 @@ namespace PhoneStoreAdmin.View.Controls
             set => SetProperty(ref _showValidationError, value);
         }
 
+        public string ValidationMessage
+        {
+            get => _validationMessage;
+            set => SetProperty(ref _validationMessage, value);
+        }
+
         public ObservableCollection<SerialEntry> SerialEntries { get; set; }
 
+        // Constructor for creating new serial entries
         public SerialNumberInputDialog(string productName, int quantity)
         {
             _resourceLoader = new ResourceLoader();
-            
+
             ProductName = productName;
             Quantity = quantity;
-            
+
             SerialEntries = new ObservableCollection<SerialEntry>();
-            
-            // Create entries for each quantity
             for (int i = 0; i < quantity; i++)
             {
-                SerialEntries.Add(new SerialEntry { Index = i + 1, ResourceLoader = _resourceLoader });
+                var entry = new SerialEntry { Index = i + 1, ResourceLoader = _resourceLoader };
+                entry.PropertyChanged += Entry_PropertyChanged; // lắng nghe thay đổi
+                SerialEntries.Add(entry);
             }
 
             this.InitializeComponent();
             this.Title = _resourceLoader.GetString("SerialNumberDialogTitle");
+        }
+
+        // Constructor for editing existing serial entries
+        public SerialNumberInputDialog(string productName, int quantity, List<SerialEntry> existingEntries)
+        {
+            _resourceLoader = new ResourceLoader();
+
+            ProductName = productName;
+            Quantity = quantity;
+
+            SerialEntries = new ObservableCollection<SerialEntry>();
+            
+            // Load existing entries
+            for (int i = 0; i < Math.Min(quantity, existingEntries.Count); i++)
+            {
+                var entry = new SerialEntry 
+                { 
+                    Index = i + 1,
+                    SerialNumber = existingEntries[i].SerialNumber,
+                    Imei1 = existingEntries[i].Imei1,
+                    Imei2 = existingEntries[i].Imei2,
+                    ResourceLoader = _resourceLoader
+                };
+                entry.PropertyChanged += Entry_PropertyChanged;
+                SerialEntries.Add(entry);
+            }
+
+            // If quantity increased, add new empty entries
+            for (int i = existingEntries.Count; i < quantity; i++)
+            {
+                var entry = new SerialEntry { Index = i + 1, ResourceLoader = _resourceLoader };
+                entry.PropertyChanged += Entry_PropertyChanged;
+                SerialEntries.Add(entry);
+            }
+
+            this.InitializeComponent();
+            this.Title = _resourceLoader.GetString("SerialNumberDialogTitle");
+        }
+
+        private void Entry_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SerialEntry.SerialNumber))
+                ValidateDuplicates();
+        }
+
+        private void ValidateDuplicates()
+        {
+            var duplicates = SerialEntries
+                .GroupBy(s => s.SerialNumber?.Trim())
+                .Where(g => !string.IsNullOrWhiteSpace(g.Key) && g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
+
+            if (duplicates.Any())
+            {
+                ValidationMessage = $"Serial bị trùng: {string.Join(", ", duplicates)}";
+                ShowValidationError = true;
+            }
+            else
+            {
+                ShowValidationError = false;
+                ValidationMessage = string.Empty;
+            }
         }
 
         public string GetQuantityText()
@@ -63,13 +134,25 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void OnPrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
-            // Validate all entries have serial numbers
-            var invalidEntries = SerialEntries.Where(e => string.IsNullOrWhiteSpace(e.SerialNumber) || string.IsNullOrWhiteSpace(e.Imei1)).ToList();
-            
-            if (invalidEntries.Any())
+            // kiểm tra còn trống
+            var empty = SerialEntries.Where(e =>
+                string.IsNullOrWhiteSpace(e.SerialNumber) ||
+                string.IsNullOrWhiteSpace(e.Imei1)).ToList();
+
+            if (empty.Any())
             {
                 args.Cancel = true;
+                ValidationMessage = _resourceLoader.GetString("SerialOrImeiEmptyError");
                 ShowValidationError = true;
+                return;
+            }
+
+            // kiểm tra trùng
+            ValidateDuplicates();
+            if (ShowValidationError)
+            {
+                args.Cancel = true;
+                return;
             }
         }
 
