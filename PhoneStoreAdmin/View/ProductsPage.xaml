@@ -6,20 +6,502 @@
     xmlns:local="using:PhoneStoreAdmin.View"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Background="{StaticResource BrushBackground}"
     mc:Ignorable="d">
-
-    <Grid Background="{StaticResource BrushBackground}">
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
-            <FontIcon Glyph="&#xE8F1;" FontSize="64" Foreground="{StaticResource BrushPrimary}"/>
-            <TextBlock Text="Products Page" 
-                       FontSize="24" 
-                       FontWeight="Bold" 
-                       Foreground="{StaticResource BrushText}" 
-                       HorizontalAlignment="Center"/>
-            <TextBlock Text="This page is under construction." 
-                       FontSize="14" 
-                       Foreground="{StaticResource BrushTextSecondary}" 
-                       HorizontalAlignment="Center"/>
-        </StackPanel>
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Theme/Colors.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <!-- Card Style -->
+            <Style x:Key="CardStyle" TargetType="Border">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <SolidColorBrush Opacity="0.95" Color="{StaticResource ColorSurface}" />
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="12" />
+            </Style>
+            <!-- Primary Button Style -->
+            <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="{StaticResource BrushPrimary}" />
+                <Setter Property="Foreground" Value="{StaticResource BrushOnPrimary}" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Padding" Value="20,14" />
+            </Style>
+            <!-- Secondary Button Style -->
+            <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <SolidColorBrush Color="{StaticResource ColorSurface}" />
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="FontWeight" Value="Medium" />
+            </Style>
+            <!-- Input Style for TextBox -->
+            <Style x:Key="InputStyle" TargetType="TextBox">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Padding" Value="16,10" />
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="Height" Value="44" />
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+            </Style>
+        </ResourceDictionary>
+    </Page.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <!-- Header Card Section -->
+        <Border
+            Grid.Row="0"
+            Margin="32,32,32,24"
+            Style="{StaticResource CardStyle}">
+            <Grid Padding="32,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Vertical" Spacing="8">
+                    <TextBlock FontSize="36" FontWeight="Bold">
+                        <TextBlock.Foreground>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Offset="0" Color="#3A5EFF" />
+                                <GradientStop Offset="1" Color="#36D1E7" />
+                            </LinearGradientBrush>
+                        </TextBlock.Foreground>
+                        Products Management
+                    </TextBlock>
+                    <TextBlock FontSize="16" Foreground="#6B7280">
+                        Add, edit, delete and manage product statuses
+                    </TextBlock>
+                </StackPanel>
+                <Button x:Name="AddButton" Click="AddButton_Click" Grid.Column="1" Padding="20,14" VerticalAlignment="Center" Style="{StaticResource PrimaryButtonStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon FontSize="18" Glyph="&#xE710;" />
+                        <TextBlock FontSize="15">Add product</TextBlock>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+        <!-- Main Content Area-->
+        <Grid Grid.Row="1" Margin="32,0,32,32">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="6*" />
+                <ColumnDefinition Width="24" />
+                <ColumnDefinition Width="4*" />
+            </Grid.ColumnDefinitions>
+            <!-- Left Panel: Product List -->
+            <Border Grid.Column="0"
+                Style="{StaticResource CardStyle}"
+                Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <!-- Toolbar Header -->
+                    <Border Grid.Row="0"
+                        BorderBrush="{StaticResource BrushBorder}"
+                        BorderThickness="0,0,0,1"
+                        Padding="24,20"
+                        CornerRadius="12,0,0,0">
+                        <TextBlock FontSize="20" FontWeight="Bold" VerticalAlignment="Center">Product List</TextBlock>
+                    </Border>
+                    <!-- Product ListView or Empty State -->
+                    <Grid Grid.Row="1">
+                        <!-- Fake product list for visualization -->
+                        <ListView x:Name="ProductListView" Margin="32" IsItemClickEnabled="False" SelectionMode="None" ScrollViewer.VerticalScrollBarVisibility="Hidden">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="BorderThickness" Value="0" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="VerticalContentAlignment" Value="Center" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListViewItem">
+                                                <Border x:Name="OuterBorder" Background="Transparent">
+                                                    <ContentPresenter />
+                                                </Border>
+                                                <VisualStateManager.VisualStateGroups>
+                                                    <VisualStateGroup x:Name="CommonStates">
+                                                        <VisualState x:Name="Normal" />
+                                                        <VisualState x:Name="PointerOver">
+                                                            <Storyboard>
+                                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="OuterBorder" Storyboard.TargetProperty="Background">
+                                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="#F0F4FF" />
+                                                                </ObjectAnimationUsingKeyFrames>
+                                                            </Storyboard>
+                                                        </VisualState>
+                                                        <VisualState x:Name="Selected">
+                                                            <Storyboard>
+                                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="OuterBorder" Storyboard.TargetProperty="Background">
+                                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="#E3F2FD" />
+                                                                </ObjectAnimationUsingKeyFrames>
+                                                            </Storyboard>
+                                                        </VisualState>
+                                                    </VisualStateGroup>
+                                                </VisualStateManager.VisualStateGroups>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.Items>
+                                <ListViewItem>
+                                    <Border Margin="0,0,0,6" Padding="8" Style="{StaticResource CardStyle}" Height="80">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="18" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Width="36" Height="36" Background="#F4F6F8" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <FontIcon Glyph="&#xE8EA;" FontSize="20" Foreground="#6B7280" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <Grid Grid.Column="1" />
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                <TextBlock FontSize="15" FontWeight="Bold">iPhone 15 Pro</TextBlock>
+                                                <TextBlock FontSize="12" Foreground="#6B7280">Apple</TextBlock>
+                                                   <TextBlock FontSize="12" Foreground="#009688">Available: 12</TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                                                <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="#009688" VerticalAlignment="Center">$999</TextBlock>
+                                                <Button Background="#E0E8FF" BorderThickness="0" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="8,0,12,0" MinWidth="70" Height="32" Click="EditProductButton_Click">
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                                                        <FontIcon Glyph="&#xE70F;" FontSize="16" Foreground="#3A5EFF" />
+                                                        <TextBlock FontSize="14" Foreground="#3A5EFF" VerticalAlignment="Center">Edit</TextBlock>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </ListViewItem>
+                                <ListViewItem>
+                                    <Border Margin="0,0,0,6" Padding="8" Background="White" CornerRadius="10" BorderBrush="#E0E3EB" BorderThickness="1" Height="80">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="18" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Width="36" Height="36" Background="#F4F6F8" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <FontIcon Glyph="&#xE8EA;" FontSize="20" Foreground="#6B7280" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <Grid Grid.Column="1" />
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                <TextBlock FontSize="15" FontWeight="Bold">Galaxy S24 Ultra</TextBlock>
+                                                <TextBlock FontSize="12" Foreground="#6B7280">Samsung</TextBlock>
+                                                   <TextBlock FontSize="12" Foreground="#009688">Available: 7</TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                                                <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="#009688" VerticalAlignment="Center">$1199</TextBlock>
+                                                <Button Background="#E0E8FF" BorderThickness="0" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="8,0,12,0" MinWidth="70" Height="32" Click="EditProductButton_Click">
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                                                        <FontIcon Glyph="&#xE70F;" FontSize="16" Foreground="#3A5EFF" />
+                                                        <TextBlock FontSize="14" Foreground="#3A5EFF" VerticalAlignment="Center">Edit</TextBlock>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </ListViewItem>
+                                <ListViewItem>
+                                    <Border Margin="0,0,0,6" Padding="8" Background="White" CornerRadius="10" BorderBrush="#E0E3EB" BorderThickness="1" Height="80">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="18" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Width="36" Height="36" Background="#F4F6F8" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <FontIcon Glyph="&#xE8EA;" FontSize="20" Foreground="#6B7280" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <Grid Grid.Column="1" />
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                <TextBlock FontSize="15" FontWeight="Bold">Pixel 8 Pro</TextBlock>
+                                                <TextBlock FontSize="12" Foreground="#6B7280">Google</TextBlock>
+                                                   <TextBlock FontSize="12" Foreground="#009688">Available: 5</TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                                                <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="#009688" VerticalAlignment="Center">$899</TextBlock>
+                                                <Button Background="#E0E8FF" BorderThickness="0" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="8,0,12,0" MinWidth="70" Height="32" Click="EditProductButton_Click">
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                                                        <FontIcon Glyph="&#xE70F;" FontSize="16" Foreground="#3A5EFF" />
+                                                        <TextBlock FontSize="14" Foreground="#3A5EFF" VerticalAlignment="Center">Edit</TextBlock>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </ListViewItem>
+                                <ListViewItem>
+                                    <Border Margin="0,0,0,6" Padding="8" Background="White" CornerRadius="10" BorderBrush="#E0E3EB" BorderThickness="1" Height="80">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="18" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Width="36" Height="36" Background="#F4F6F8" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <FontIcon Glyph="&#xE8EA;" FontSize="20" Foreground="#6B7280" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <Grid Grid.Column="1" />
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                <TextBlock FontSize="15" FontWeight="Bold">Xperia 1 V</TextBlock>
+                                                <TextBlock FontSize="12" Foreground="#6B7280">Sony</TextBlock>
+                                                   <TextBlock FontSize="12" Foreground="#009688">Available: 3</TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                                                <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="#009688" VerticalAlignment="Center">$1099</TextBlock>
+                                                <Button Background="#E0E8FF" BorderThickness="0" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="8,0,12,0" MinWidth="70" Height="32" Click="EditProductButton_Click">
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                                                        <FontIcon Glyph="&#xE70F;" FontSize="16" Foreground="#3A5EFF" />
+                                                        <TextBlock FontSize="14" Foreground="#3A5EFF" VerticalAlignment="Center">Edit</TextBlock>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </ListViewItem>
+                                <ListViewItem>
+                                    <Border Margin="0,0,0,6" Padding="8" Background="White" CornerRadius="10" BorderBrush="#E0E3EB" BorderThickness="1" Height="80">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="18" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Width="36" Height="36" Background="#F4F6F8" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <FontIcon Glyph="&#xE8EA;" FontSize="20" Foreground="#6B7280" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <Grid Grid.Column="1" />
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                <TextBlock FontSize="15" FontWeight="Bold">Find X7</TextBlock>
+                                                <TextBlock FontSize="12" Foreground="#6B7280">Oppo</TextBlock>
+                                                   <TextBlock FontSize="12" Foreground="#009688">Available: 8</TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                                                <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="#009688" VerticalAlignment="Center">$799</TextBlock>
+                                                <Button Background="#E0E8FF" BorderThickness="0" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="8,0,12,0" MinWidth="70" Height="32" Click="EditProductButton_Click">
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                                                        <FontIcon Glyph="&#xE70F;" FontSize="16" Foreground="#3A5EFF" />
+                                                        <TextBlock FontSize="14" Foreground="#3A5EFF" VerticalAlignment="Center">Edit</TextBlock>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </ListViewItem>
+                                <ListViewItem>
+                                    <Border Margin="0,0,0,6" Padding="8" Background="White" CornerRadius="10" BorderBrush="#E0E3EB" BorderThickness="1" Height="80">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="18" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Width="36" Height="36" Background="#F4F6F8" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <FontIcon Glyph="&#xE8EA;" FontSize="20" Foreground="#6B7280" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <Grid Grid.Column="1" />
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                <TextBlock FontSize="15" FontWeight="Bold">Xiaomi 14 Ultra</TextBlock>
+                                                <TextBlock FontSize="12" Foreground="#6B7280">Xiaomi</TextBlock>
+                                                   <TextBlock FontSize="12" Foreground="#009688">Available: 10</TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                                                <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="#009688" VerticalAlignment="Center">$799</TextBlock>
+                                                <Button Background="#E0E8FF" BorderThickness="0" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="8,0,12,0" MinWidth="70" Height="32" Click="EditProductButton_Click">
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                                                        <FontIcon Glyph="&#xE70F;" FontSize="16" Foreground="#3A5EFF" />
+                                                        <TextBlock FontSize="14" Foreground="#3A5EFF" VerticalAlignment="Center">Edit</TextBlock>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </ListViewItem>
+                                <ListViewItem>
+                                    <Border Margin="0,0,0,6" Padding="8" Background="White" CornerRadius="10" BorderBrush="#E0E3EB" BorderThickness="1" Height="80">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="18" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Width="36" Height="36" Background="#F4F6F8" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <FontIcon Glyph="&#xE8EA;" FontSize="20" Foreground="#6B7280" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <Grid Grid.Column="1" />
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                <TextBlock FontSize="15" FontWeight="Bold">iPad Pro 12.9 inch M2</TextBlock>
+                                                <TextBlock FontSize="12" Foreground="#6B7280">Apple</TextBlock>
+                                                   <TextBlock FontSize="12" Foreground="#009688">Available: 4</TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                                                <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="#009688" VerticalAlignment="Center">$1099</TextBlock>
+                                                <Button Background="#E0E8FF" BorderThickness="0" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="8,0,12,0" MinWidth="70" Height="32" Click="EditProductButton_Click">
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                                                        <FontIcon Glyph="&#xE70F;" FontSize="16" Foreground="#3A5EFF" />
+                                                        <TextBlock FontSize="14" Foreground="#3A5EFF" VerticalAlignment="Center">Edit</TextBlock>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </ListViewItem>
+                                <ListViewItem>
+                                    <Border Margin="0,0,0,6" Padding="8" Background="White" CornerRadius="10" BorderBrush="#E0E3EB" BorderThickness="1" Height="80">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="18" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Width="36" Height="36" Background="#F4F6F8" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <FontIcon Glyph="&#xE8EA;" FontSize="20" Foreground="#6B7280" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <Grid Grid.Column="1" />
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                <TextBlock FontSize="15" FontWeight="Bold">Samsung Galaxy Tab S9</TextBlock>
+                                                <TextBlock FontSize="12" Foreground="#6B7280">Samsung</TextBlock>
+                                                   <TextBlock FontSize="12" Foreground="#009688">Available: 6</TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                                                <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="#009688" VerticalAlignment="Center">$699</TextBlock>
+                                                <Button Background="#E0E8FF" BorderThickness="0" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="8,0,12,0" MinWidth="70" Height="32">
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                                                        <FontIcon Glyph="&#xE70F;" FontSize="16" Foreground="#3A5EFF" />
+                                                        <TextBlock FontSize="14" Foreground="#3A5EFF" VerticalAlignment="Center">Edit</TextBlock>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </ListViewItem>
+                                <ListViewItem>
+                                    <Border Margin="0,0,0,6" Padding="8" Background="White" CornerRadius="10" BorderBrush="#E0E3EB" BorderThickness="1" Height="80">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="18" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Width="36" Height="36" Background="#F4F6F8" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <FontIcon Glyph="&#xE8EA;" FontSize="20" Foreground="#6B7280" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <Grid Grid.Column="1" />
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                <TextBlock FontSize="15" FontWeight="Bold">Vivo X100 Pro</TextBlock>
+                                                <TextBlock FontSize="12" Foreground="#6B7280">Vivo</TextBlock>
+                                                   <TextBlock FontSize="12" Foreground="#009688">Available: 2</TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                                                <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="#009688" VerticalAlignment="Center">$899</TextBlock>
+                                                <Button Background="#E0E8FF" BorderThickness="0" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="8,0,12,0" MinWidth="70" Height="32">
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                                                        <FontIcon Glyph="&#xE70F;" FontSize="16" Foreground="#3A5EFF" />
+                                                        <TextBlock FontSize="14" Foreground="#3A5EFF" VerticalAlignment="Center">Edit</TextBlock>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </ListViewItem>
+                            </ListView.Items>
+                        </ListView>
+                        <StackPanel x:Name="ProductListEmptyState" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16" Visibility="Collapsed">
+                            <FontIcon Glyph="&#xE7B3;" FontSize="64" Foreground="#A0AEC0" Opacity="0.5" />
+                            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="#A0AEC0" TextAlignment="Center">There is nothing on this list</TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+            <!-- Right Panel: Product Details / Empty State -->
+        <Border Grid.Column="2"
+            Style="{StaticResource CardStyle}"
+            Padding="0">
+            <Grid>
+                <!-- Placeholder panel, will be hidden when a product is selected -->
+                <StackPanel x:Name="ProductDetailPlaceholder" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20" Padding="40">
+                    <Border Width="100" Height="100" Background="#E0E8FF" CornerRadius="50">
+                        <FontIcon FontSize="40" Glyph="&#xE73E;" Foreground="#3A5EFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Border>
+                    <StackPanel HorizontalAlignment="Center" Spacing="8">
+                        <TextBlock FontSize="20" FontWeight="Bold" Foreground="#3A5EFF" TextAlignment="Center">Select a product to view details</TextBlock>
+                        <TextBlock FontSize="15" Foreground="#6B7280" TextAlignment="Center">Please select a product from the list on the left to view and edit details</TextBlock>
+                    </StackPanel>
+                </StackPanel>
+                <!-- Product detail panel, shown when a product is selected -->
+                <StackPanel x:Name="ProductDetailPanel" Visibility="Collapsed" Padding="40" VerticalAlignment="Top" Spacing="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <!-- Avatar Centered Vertically -->
+                        <Border Grid.Row="0" Grid.Column="0" Width="100" Height="100" Background="#E0E8FF" CornerRadius="50" VerticalAlignment="Center" HorizontalAlignment="Left">
+                            <FontIcon x:Name="ProductDetailIcon" FontSize="40" Glyph="&#xE8EA;" Foreground="#3A5EFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                        </Border>
+                        <!-- Name & Brand Centered Vertically to Avatar -->
+                        <StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+                            <TextBlock x:Name="ProductDetailName" FontSize="20" FontWeight="Bold" Foreground="#3A5EFF" TextAlignment="Center">Product Name</TextBlock>
+                            <TextBlock x:Name="ProductDetailBrand" FontSize="15" Foreground="#6B7280" TextAlignment="Center">Brand</TextBlock>
+                            <TextBlock x:Name="ProductDetailAvailable" FontSize="15" Foreground="#009688" TextAlignment="Center">Available: </TextBlock>
+                        </StackPanel>
+                        <!-- Price Centered Vertically to Avatar -->
+                        <TextBlock Grid.Row="0" Grid.Column="2" x:Name="ProductDetailPrice" FontSize="20" FontWeight="SemiBold" Foreground="#009688" TextAlignment="Right" VerticalAlignment="Center" HorizontalAlignment="Right">$0</TextBlock>
+                    </Grid>
+                    <!-- User Inputs as Form -->
+                    <StackPanel Orientation="Vertical" Margin="0,16,0,0">
+                        <TextBlock Text="Product Name" FontWeight="SemiBold" FontSize="15" Margin="0,0,0,4" />
+                        <TextBox x:Name="ProductNameInput" Style="{StaticResource InputStyle}" FontSize="16" PlaceholderText="Edit name..." Margin="0,0,0,0" />
+                        <TextBlock Text="Brand" FontWeight="SemiBold" FontSize="15" Margin="0,12,0,4" />
+                        <TextBox x:Name="ProductBrandInput" Style="{StaticResource InputStyle}" FontSize="16" PlaceholderText="Edit brand..." Margin="0,0,0,0" />
+                        <TextBlock Text="Price" FontWeight="SemiBold" FontSize="15" Margin="0,12,0,4" />
+                        <TextBox x:Name="ProductPriceInput" Style="{StaticResource InputStyle}" FontSize="16" PlaceholderText="Edit price..." Margin="0,0,0,0" />
+                        <TextBlock Text="Available" FontWeight="SemiBold" FontSize="15" Margin="0,12,0,4" />
+                        <TextBox x:Name="ProductAvailableInput" Style="{StaticResource InputStyle}" FontSize="16" PlaceholderText="Edit available quantity..." Margin="0,0,0,0" />
+                    </StackPanel>
+                    <!-- Confirm Button -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0" Spacing="12">
+                        <Button x:Name="ProductDetailConfirmButton" Content="Confirm" Height="44" Width="160" Style="{StaticResource PrimaryButtonStyle}" FontSize="16" VerticalAlignment="Top" />
+                        <Button x:Name="ProductDetailDeleteButton" Click="ProductDetailDeleteButton_Click" Height="44" Width="44" Style="{StaticResource SecondaryButtonStyle}" VerticalAlignment="Top" ToolTipService.ToolTip="Delete product">
+                            <FontIcon Glyph="&#xE74D;" FontSize="20" Foreground="#E53935" />
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+        </Grid>
     </Grid>
 </Page>
