@@ -1183,6 +1183,177 @@ How many devices do you want to add?</value>
   <data name="ValidationErrorInfoBar.Message" xml:space="preserve">
     <value>Please enter Serial Number and IMEI 1 for all devices</value>
   </data>
+  <data name="NotesInputDialog.Title" xml:space="preserve">
+    <value>Purchase Order Notes</value>
+  </data>
+  <data name="NotesInputDialog.PrimaryButtonText" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="NotesInputDialog.CloseButtonText" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="NotesInputLabel.Text" xml:space="preserve">
+    <value>Notes (Optional)</value>
+  </data>
+  <data name="NotesInputTextBox.PlaceholderText" xml:space="preserve">
+    <value>Enter notes for this purchase order...</value>
+  </data>
+  <data name="NoteTextBoxTitle" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="CreatePurchaseOrderButton" xml:space="preserve">
+    <value>Create purchase order</value>
+  </data>
+  <data name="UpdatePurchaseOrderButton" xml:space="preserve">
+    <value>Update purchase order</value>
+  </data>
+  <data name="SerialOrImeiEmptyError" xml:space="preserve">
+    <value>Please enter Serial Number and IMEI 1 for all devices</value>
+  </data>
+  <data name="BtnReceivePurchaseOrder.Text" xml:space="preserve">
+    <value>Receive</value>
+  </data>
+  <data name="ConfirmReceivePurchaseOrderTitle" xml:space="preserve">
+    <value>Receive Purchase Order</value>
+  </data>
+  <data name="ConfirmReceivePurchaseOrderContent" xml:space="preserve">
+    <value>Are you sure you want to mark this purchase order as received? This will create inventory batches.</value>
+  </data>
+  <data name="ConfirmCancelPurchaseOrderTitle" xml:space="preserve">
+    <value>Cancel Purchase Order</value>
+  </data>
+  <data name="ConfirmCancelPurchaseOrderContent" xml:space="preserve">
+    <value>Are you sure you want to cancel this purchase order? This will remove all associated batches.</value>
+  </data>
+  <data name="PurchaseOrderReceivedSuccessfully" xml:space="preserve">
+    <value>Purchase order received successfully!</value>
+  </data>
+  <data name="PurchaseOrderCancelledSuccessfully" xml:space="preserve">
+    <value>Purchase order cancelled successfully!</value>
+  </data>
+  <data name="Dlg_BatchDetails_Title" xml:space="preserve">
+    <value>Batch Details</value>
+  </data>
+  <data name="Dlg_BatchDetails_BatchLabel" xml:space="preserve">
+    <value>Batch:</value>
+  </data>
+  <data name="Dlg_BatchDetails_SupplierLabel" xml:space="preserve">
+    <value>Supplier:</value>
+  </data>
+  <data name="Dlg_BatchDetails_BatchIdLabel" xml:space="preserve">
+    <value>Batch ID:</value>
+  </data>
+  <data name="Dlg_BatchDetails_PurchaseOrderLabel" xml:space="preserve">
+    <value>Purchase Order:</value>
+  </data>
+  <data name="Dlg_BatchDetails_CreatedAtLabel" xml:space="preserve">
+    <value>Created At:</value>
+  </data>
+  <data name="Dlg_BatchDetails_PODateLabel" xml:space="preserve">
+    <value>PO Date:</value>
+  </data>
+  <data name="Dlg_BatchDetails_NoteLabel" xml:space="preserve">
+    <value>Note:</value>
+  </data>
+  <data name="Dlg_BatchDetails_BatchProductsHeader" xml:space="preserve">
+    <value>Batch Products ({0})</value>
+  </data>
+  <data name="Dlg_BatchDetails_ProductIdLabel" xml:space="preserve">
+    <value>Product ID:</value>
+  </data>
+  <data name="Dlg_BatchDetails_QuantityLabel" xml:space="preserve">
+    <value>Quantity:</value>
+  </data>
+  <data name="Dlg_BatchDetails_CostPriceLabel" xml:space="preserve">
+    <value>Cost Price:</value>
+  </data>
+  <data name="Dlg_BatchDetails_SellingPriceLabel" xml:space="preserve">
+    <value>Selling Price:</value>
+  </data>
+  <data name="Dlg_BatchDetails_CloseButton" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Dlg_PODetails_Title" xml:space="preserve">
+    <value>Purchase Order Details</value>
+  </data>
+  <data name="Dlg_PODetails_SupplierInfoTitle" xml:space="preserve">
+    <value>Supplier Information</value>
+  </data>
+  <data name="Dlg_PODetails_SupplierNameLabel" xml:space="preserve">
+    <value>Name:</value>
+  </data>
+  <data name="Dlg_PODetails_SupplierPhoneLabel" xml:space="preserve">
+    <value>Phone:</value>
+  </data>
+  <data name="Dlg_PODetails_SupplierEmailLabel" xml:space="preserve">
+    <value>Email:</value>
+  </data>
+  <data name="Dlg_PODetails_SupplierAddressLabel" xml:space="preserve">
+    <value>Address:</value>
+  </data>
+  <data name="Dlg_PODetails_OrderDetailsTitle" xml:space="preserve">
+    <value>Order Details</value>
+  </data>
+  <data name="Dlg_PODetails_CreatedByLabel" xml:space="preserve">
+    <value>Created By:</value>
+  </data>
+  <data name="Dlg_PODetails_TotalAmountLabel" xml:space="preserve">
+    <value>Total Amount:</value>
+  </data>
+  <data name="Dlg_PODetails_NoteLabel" xml:space="preserve">
+    <value>Note:</value>
+  </data>
+  <data name="Dlg_PODetails_OrderLinesTitle" xml:space="preserve">
+    <value>Order Lines ({0})</value>
+  </data>
+  <data name="Dlg_PODetails_ProductIdLabel" xml:space="preserve">
+    <value>Product ID:</value>
+  </data>
+  <data name="Dlg_PODetails_QtyLabel" xml:space="preserve">
+    <value>Qty:</value>
+  </data>
+  <data name="Dlg_PODetails_UnitLabel" xml:space="preserve">
+    <value>Unit:</value>
+  </data>
+  <data name="Dlg_PODetails_CloseButton" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Common_NA" xml:space="preserve">
+    <value>N/A</value>
+  </data>
+  <data name="Common_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Common_NoNotes" xml:space="preserve">
+    <value>No notes</value>
+  </data>
+  <data name="Common_UserIdFormat" xml:space="preserve">
+    <value>User ID: {0}</value>
+  </data>
+  <data name="Common_POFormat" xml:space="preserve">
+    <value>PO #{0}</value>
+  </data>
+  <data name="Common_BatchIdFormat" xml:space="preserve">
+    <value>#{0}</value>
+  </data>
+  <data name="AddPO_InfoTitle" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="AddPO_DraftSerialMessage" xml:space="preserve">
+    <value>This purchase order is in DRAFT status. Serial numbers are not yet saved to the database. You can re-enter serial information for serial-tracked products when editing.</value>
+  </data>
+  <data name="AddPO_UpdateSuccessMessage" xml:space="preserve">
+    <value>Purchase order updated successfully</value>
+  </data>
+  <data name="AddPO_CannotUpdateMessage" xml:space="preserve">
+    <value>Cannot update purchase order</value>
+  </data>
+  <data name="AddPO_CannotEditSerialMessage" xml:space="preserve">
+    <value>Cannot edit serial numbers</value>
+  </data>
+  <data name="Common_OpenFile" xml:space="preserve">
+    <value>Open File</value>
+  </data>
   <data name="Accounts_PageTitle.Text" xml:space="preserve">
     <value>Account Management</value>
   </data>
@@ -1568,5 +1739,394 @@ How many devices do you want to add?</value>
   </data>
   <data name="Common/Close" xml:space="preserve">
     <value>Close</value>
+  </data>
+    <data name="MenuItemBrands.Content" xml:space="preserve">
+    <value>Brands</value>
+  </data>
+  <data name="HeaderTitleBrand.Text" xml:space="preserve">
+    <value>Brand Management</value>
+  </data>
+  <data name="SubHeaderTitleBrand.Text" xml:space="preserve">
+    <value>Add, edit, delete and manage brands</value>
+  </data>
+  <data name="BtnNewBrand.Text" xml:space="preserve">
+    <value>Add a brand</value>
+  </data>
+  <data name="SearchBrand.PlaceholderText" xml:space="preserve">
+    <value>Search by brand name...</value>
+  </data>
+  <data name="ColIDBrand.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="ColNameBrand.Text" xml:space="preserve">
+    <value>BRAND NAME</value>
+  </data>
+  <data name="ColActionsBrand.Text" xml:space="preserve">
+    <value>ACTIONS</value>
+  </data>
+  <data name="BtnActionBrand.Content" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="BtnEditBrand.Text" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="ShowIngBrand.Text" xml:space="preserve">
+    <value>Showing</value>
+  </data>
+  <data name="Brands.Text" xml:space="preserve">
+    <value>brands</value>
+  </data>
+  <data name="PageBrand.Text" xml:space="preserve">
+    <value>Page</value>
+  </data>
+  <data name="EmptyStateTitleBrand.Text" xml:space="preserve">
+    <value>No brands found</value>
+  </data>
+  <data name="EmptyStateDescriptionBrand.Text" xml:space="preserve">
+    <value>There are no brands to display. Add a new brand or check your filters.</value>
+  </data>
+  <data name="BrandNameLabel.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="BrandNamePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter brand name</value>
+  </data>
+  <data name="BrandUpdateFailedMessage.Message" xml:space="preserve">
+    <value>Failed to update brand. Please try again.</value>
+  </data>
+  <data name="BrandUpdateSuccessMessage.Message" xml:space="preserve">
+    <value>Brand updated successfully!</value>
+  </data>
+  <data name="ProcessingBrandText.Text" xml:space="preserve">
+    <value>Processing...</value>
+  </data>
+    <data name="AddBrandTitle" xml:space="preserve">
+    <value>Add Brand</value>
+  </data>
+  <data name="EditBrandTitle" xml:space="preserve">
+    <value>Edit Brand</value>
+  </data>
+  <data name="DialogAdd" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="DialogUpdate" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="DialogCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  
+  <!-- Promotions Module -->
+  <!-- Navigation & Headers -->
+  <data name="MenuItemPromotions.Content" xml:space="preserve">
+    <value>Promotions</value>
+  </data>
+  <data name="HeaderTitlePromotion.Text" xml:space="preserve">
+    <value>Promotion Management</value>
+  </data>
+  <data name="SubHeaderTitlePromotion.Text" xml:space="preserve">
+    <value>Add, edit, delete and manage promotions</value>
+  </data>
+    <data name="SubHeaderUpdateTitlePromotion.Text" xml:space="preserve">
+    <value>Update promotion information and manage promotion codes</value>
+  </data>
+  <data name="PromotionInfo.Text" xml:space="preserve">
+    <value>Promotion Information</value>
+  </data>
+  
+  <!-- Buttons -->
+  <data name="BtnNewPromotion.Text" xml:space="preserve">
+    <value>Add a promotion</value>
+  </data>
+  <data name="BtnActionPromotion.Content" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="BtnEditPromotion.Text" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="BtnActivatePromotion.Text" xml:space="preserve">
+    <value>Activate</value>
+  </data>
+  <data name="BtnDeactivatePromotion.Text" xml:space="preserve">
+    <value>Deactivate</value>
+  </data>
+  
+  <!-- Search & Filter -->
+  <data name="SearchPromotion.PlaceholderText" xml:space="preserve">
+    <value>Search by promotion name...</value>
+  </data>
+  <data name="FilterStatusBoxPromotion.Text" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="FilterStartDateBoxPromotion.Text" xml:space="preserve">
+    <value>Start Date</value>
+  </data>
+  <data name="FilterEndDateBoxPromotion.Text" xml:space="preserve">
+    <value>End Date</value>
+  </data>
+  
+  <!-- Table Columns -->
+  <data name="ColIDPromotion.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="ColNamePromotion.Text" xml:space="preserve">
+    <value>PROMOTION NAME</value>
+  </data>
+  <data name="ColDescriptionPromotion.Text" xml:space="preserve">
+    <value>DESCRIPTION</value>
+  </data>
+  <data name="ColStartDatePromotion.Text" xml:space="preserve">
+    <value>START DATE</value>
+  </data>
+  <data name="ColEndDatePromotion.Text" xml:space="preserve">
+    <value>END DATE</value>
+  </data>
+  <data name="ColStatusPromotion.Text" xml:space="preserve">
+    <value>STATUS</value>
+  </data>
+  <data name="ColActionsPromotion.Text" xml:space="preserve">
+    <value>ACTIONS</value>
+  </data>
+  
+  <!-- Pagination -->
+  <data name="ShowIngPromotion.Text" xml:space="preserve">
+    <value>Showing</value>
+  </data>
+  <data name="Promotions.Text" xml:space="preserve">
+    <value>promotions</value>
+  </data>
+  <data name="PagePromotion.Text" xml:space="preserve">
+    <value>Page</value>
+  </data>
+  
+  <!-- Empty State -->
+  <data name="EmptyStateTitlePromotion.Text" xml:space="preserve">
+    <value>No promotions found</value>
+  </data>
+  <data name="EmptyStateDescriptionPromotion.Text" xml:space="preserve">
+    <value>There are no promotions to display. Add a new promotion or check your filters.</value>
+  </data>
+  
+  <!-- Dialog -->
+  <data name="PromotionIdLabel.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="PromotionNameLabel.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="PromotionDescriptionLabel.Text" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="PromotionStartDateLabel.Text" xml:space="preserve">
+    <value>Start Date</value>
+  </data>
+  <data name="PromotionEndDateLabel.Text" xml:space="preserve">
+    <value>End Date</value>
+  </data>
+  <data name="PromotionIsActiveLabel.Text" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  
+  <data name="PromotionNamePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter promotion name</value>
+  </data>
+  <data name="PromotionDescriptionPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter description (optional)</value>
+  </data>
+  
+  <data name="AddPromotionTitle" xml:space="preserve">
+    <value>Add Promotion</value>
+  </data>
+  <data name="EditPromotionTitle.Text" xml:space="preserve">
+    <value>Edit Promotion</value>
+  </data>
+  
+  <data name="PromotionUpdateFailedMessage.Message" xml:space="preserve">
+    <value>Failed to update promotion. Please try again.</value>
+  </data>
+  <data name="PromotionUpdateSuccessMessage.Message" xml:space="preserve">
+    <value>Promotion updated successfully!</value>
+  </data>
+  <data name="ProcessingPromotionText.Text" xml:space="preserve">
+    <value>Processing...</value>
+  </data>
+   <!-- Promotion Codes Module -->
+  <!-- Navigation & Headers -->
+  <data name="MenuItemPromotionCodes.Content" xml:space="preserve">
+    <value>Promotion Codes</value>
+  </data>
+  <data name="HeaderTitlePromotionCode.Text" xml:space="preserve">
+    <value>Promotion Code Management</value>
+  </data>
+  <data name="SubHeaderTitlePromotionCode.Text" xml:space="preserve">
+    <value>Add, edit, delete and manage promotion codes</value>
+  </data>
+  
+  <!-- Buttons -->
+  <data name="BtnNewPromotionCode.Text" xml:space="preserve">
+    <value>Add a promotion code</value>
+  </data>
+  <data name="BtnActionPromotionCode.Content" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="BtnEditPromotionCode.Text" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="BtnActivatePromotionCode.Text" xml:space="preserve">
+    <value>Activate</value>
+  </data>
+  <data name="BtnDeactivatePromotionCode.Text" xml:space="preserve">
+    <value>Deactivate</value>
+  </data>
+  
+  <!-- Search & Filter -->
+  <data name="SearchPromotionCode.PlaceholderText" xml:space="preserve">
+    <value>Search by code...</value>
+  </data>
+  <data name="FilterPromotionBoxPromotionCode.Text" xml:space="preserve">
+    <value>Promotion</value>
+  </data>
+  <data name="FilterStatusBoxPromotionCode.Text" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  
+  <!-- Table Columns -->
+  <data name="ColIDPromotionCode.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="ColCodePromotionCode.Text" xml:space="preserve">
+    <value>CODE</value>
+  </data>
+  <data name="ColPromotionNamePromotionCode.Text" xml:space="preserve">
+    <value>PROMOTION</value>
+  </data>
+  <data name="ColDiscountAmountPromotionCode.Text" xml:space="preserve">
+    <value>DISCOUNT</value>
+  </data>
+  <data name="ColMinimumAmountPromotionCode.Text" xml:space="preserve">
+    <value>MIN AMOUNT</value>
+  </data>
+  <data name="ColUsageLimitPromotionCode.Text" xml:space="preserve">
+    <value>USAGE LIMIT</value>
+  </data>
+  <data name="ColUsedCountPromotionCode.Text" xml:space="preserve">
+    <value>USED</value>
+  </data>
+  <data name="ColStatusPromotionCode.Text" xml:space="preserve">
+    <value>STATUS</value>
+  </data>
+  <data name="ColActionsPromotionCode.Text" xml:space="preserve">
+    <value>ACTIONS</value>
+  </data>
+  
+  <!-- Pagination -->
+  <data name="ShowIngPromotionCode.Text" xml:space="preserve">
+    <value>Showing</value>
+  </data>
+  <data name="PromotionCodes.Text" xml:space="preserve">
+    <value>Promotion codes</value>
+  </data>
+  <data name="PagePromotionCode.Text" xml:space="preserve">
+    <value>Page</value>
+  </data>
+  
+  <!-- Empty State -->
+  <data name="EmptyStateTitlePromotionCode.Text" xml:space="preserve">
+    <value>No promotion codes found</value>
+  </data>
+  <data name="EmptyStateDescriptionPromotionCode.Text" xml:space="preserve">
+    <value>There are no promotion codes to display. Add a new promotion code or check your filters.</value>
+  </data>
+  
+  <!-- Dialog -->
+  <data name="PromotionCodeIdLabel.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="PromotionCodeLabel.Text" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="PromotionCodePromotionLabel.Text" xml:space="preserve">
+    <value>Promotion</value>
+  </data>
+  <data name="PromotionCodeDiscountAmountLabel.Text" xml:space="preserve">
+    <value>Discount Amount</value>
+  </data>
+  <data name="PromotionCodeMinimumAmountLabel.Text" xml:space="preserve">
+    <value>Minimum Amount</value>
+  </data>
+  <data name="PromotionCodeUsageLimitLabel.Text" xml:space="preserve">
+    <value>Usage Limit</value>
+  </data>
+  <data name="PromotionCodeUsedCountLabel.Text" xml:space="preserve">
+    <value>Used Count</value>
+  </data>
+  <data name="PromotionCodeIsActiveLabel.Text" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  
+  <data name="PromotionCodePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter promotion code</value>
+  </data>
+  <data name="PromotionCodeDiscountAmountPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter discount amount</value>
+  </data>
+  <data name="PromotionCodeMinimumAmountPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter minimum amount</value>
+  </data>
+  <data name="PromotionCodeUsageLimitPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter usage limit (optional)</value>
+  </data>
+  <data name="PromotionCodeUsageLimitHint.Text" xml:space="preserve">
+    <value>Leave empty for unlimited usage</value>
+  </data>
+  
+  <data name="AddPromotionCodeTitle" xml:space="preserve">
+    <value>Add Promotion Code</value>
+  </data>
+  <data name="EditPromotionCodeTitle" xml:space="preserve">
+    <value>Edit Promotion Code</value>
+  </data>
+  <!-- PromotionCode Dialog Validation Messages -->
+  <data name="PromotionCodeRequiredError" xml:space="preserve">
+    <value>Promotion code is required</value>
+  </data>
+  <data name="PromotionCodeMinLengthError" xml:space="preserve">
+    <value>Promotion code must be at least 3 characters</value>
+  </data>
+  <data name="PromotionSelectionRequiredError" xml:space="preserve">
+    <value>Please select a promotion</value>
+  </data>
+  <data name="DiscountAmountGreaterThanZeroError" xml:space="preserve">
+    <value>Discount amount must be greater than 0</value>
+  </data>
+  <data name="MinimumAmountNonNegativeError" xml:space="preserve">
+    <value>Minimum amount cannot be negative</value>
+  </data>
+  <data name="LoadPromotionsError" xml:space="preserve">
+    <value>Unable to load promotions list</value>
+  </data>
+  <data name="LoadPromotionCodeError" xml:space="preserve">
+    <value>Unable to load promotion code information</value>
+  </data>
+  <data name="PromotionSelectionError" xml:space="preserve">
+    <value>Error occurred while selecting promotion</value>
+  </data>
+  <data name="BtnFilterPromotion.Text" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="UnlimitedPromotionCode" xml:space="preserve">
+    <value>Unlimited</value>
+  </data>
+  <data name="ConfirmActivateCodeTitle" xml:space="preserve">
+    <value>Activate Promotion Code</value>
+  </data>
+  <data name="ConfirmActivateCodeContent" xml:space="preserve">
+    <value>Are you sure you want to activate this code?</value>
+  </data>
+  <data name="ConfirmDeactivateCodeTitle" xml:space="preserve">
+    <value>Deactivate Promotion Code</value>
+  </data>
+  <data name="ConfirmDeactivateCodeContent" xml:space="preserve">
+    <value>Are you sure you want to deactivate this code?</value>
   </data>
 </root>
