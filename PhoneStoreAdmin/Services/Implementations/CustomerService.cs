@@ -137,37 +137,42 @@ namespace PhoneStoreAdmin.Services.Implementations
             {
                 Logger.Info($"Getting customers filtered: search='{searchTerm}', page={page}, pageSize={pageSize}");
                 
-                var allCustomers = GetAll().Where(c => c.IsActive).ToList();
+                // Use async method and wait for result - this is now optimized at DB level
+                var (customers, totalCount) = _customerRepository
+                    .GetCustomersFilteredAsync(searchTerm, null, page, pageSize)
+                    .GetAwaiter()
+                    .GetResult();
                 
-                // Apply search filter
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    var searchLower = searchTerm.ToLower();
-                    allCustomers = allCustomers.Where(c =>
-                        (c.FullName?.ToLower().Contains(searchLower) ?? false) ||
-                        (c.Email?.ToLower().Contains(searchLower) ?? false) ||
-                        (c.Phone?.ToLower().Contains(searchLower) ?? false) ||
-                        (c.Code?.ToLower().Contains(searchLower) ?? false) ||
-                        (c.Address?.ToLower().Contains(searchLower) ?? false)
-                    ).ToList();
-                }
+                var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+                var info = new InfoTable(totalCount, totalPages);
                 
-                var totalRecords = allCustomers.Count;
-                var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
-                
-                // Apply pagination
-                var customers = allCustomers
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
-                
-                var info = new InfoTable(totalRecords, totalPages);
-                
+                Logger.Info($"Retrieved {customers.Count} customers out of {totalCount} total");
                 return new CustomerResult(customers, info);
             }
             catch (Exception ex)
             {
                 Logger.Error("Failed to get customers filtered", ex);
+                return new CustomerResult(new List<Customer>(), new InfoTable(0, 0));
+            }
+        }
+
+        public async Task<CustomerResult> GetCustomersFilteredAsync(string? searchTerm, int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                Logger.Info($"Getting customers filtered async: search='{searchTerm}', page={page}, pageSize={pageSize}");
+                
+                var (customers, totalCount) = await _customerRepository.GetCustomersFilteredAsync(searchTerm, null, page, pageSize);
+                
+                var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+                var info = new InfoTable(totalCount, totalPages);
+                
+                Logger.Info($"Retrieved {customers.Count} customers out of {totalCount} total");
+                return new CustomerResult(customers, info);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to get customers filtered async", ex);
                 return new CustomerResult(new List<Customer>(), new InfoTable(0, 0));
             }
         }

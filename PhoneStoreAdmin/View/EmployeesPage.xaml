@@ -1,0 +1,662 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="PhoneStoreAdmin.View.EmployeesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{StaticResource BrushBackground}">
+
+    <Page.Resources>
+        <!-- Shadow -->
+        <ThemeShadow x:Name="SharedShadow" />
+
+        <!-- Card Style -->
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <SolidColorBrush Color="{StaticResource ColorSurface}" Opacity="0.95"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+        </Style>
+
+        <!-- Primary Button Style -->
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource BrushPrimary}"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushOnPrimary}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="20,14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="RootBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="{TemplateBinding CornerRadius}"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"/>
+                            </Border>
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal"/>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Target="RootBorder.Background">
+                                                <Setter.Value>
+                                                    <SolidColorBrush Color="{StaticResource ColorPrimaryDark}"/>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Target="RootBorder.Background">
+                                                <Setter.Value>
+                                                    <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.8"/>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Secondary Button Style -->
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <SolidColorBrush Color="{StaticResource ColorSurface}"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+        </Style>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>  <!-- Header -->
+            <RowDefinition Height="*"/>     <!-- Table -->
+        </Grid.RowDefinitions>
+
+        <!-- Background Gradient -->
+        <Grid Grid.RowSpan="2">
+            <Rectangle>
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="{StaticResource ColorBackground}" Offset="0"/>
+                        <GradientStop Color="#FFF0F2FF" Offset="0.5"/>
+                        <GradientStop Color="#FFE8ECFF" Offset="1"/>
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <!-- Decorative Elements -->
+            <Grid>
+                <Ellipse Width="400" Height="400" 
+                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Margin="-200,-100,0,0"
+                        Opacity="0.1">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="{StaticResource ColorPrimary}" Offset="0"/>
+                            <GradientStop Color="{StaticResource ColorPrimaryLight}" Offset="1"/>
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+
+                <Ellipse Width="300" Height="300" 
+                        HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                        Margin="0,0,-150,-150"
+                        Opacity="0.1">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="{StaticResource ColorAccent}" Offset="0"/>
+                            <GradientStop Color="Transparent" Offset="1"/>
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+            </Grid>
+        </Grid>
+
+        <!-- Header Section -->
+        <Border Grid.Row="0" 
+                Margin="32,32,32,24"
+                Style="{StaticResource CardStyle}"
+                Shadow="{StaticResource SharedShadow}">
+            <Grid Padding="32,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Title & Description -->
+                <StackPanel Grid.Column="0"
+                           Orientation="Vertical"
+                           Spacing="8">
+                    <TextBlock x:Uid="EmployeesPage_Title"
+                              Text="Quản lý nhân viên"
+                              FontSize="36"
+                              FontWeight="Bold">
+                        <TextBlock.Foreground>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="{StaticResource ColorPrimary}" Offset="0"/>
+                                <GradientStop Color="{StaticResource ColorAccent}" Offset="1"/>
+                            </LinearGradientBrush>
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                    <TextBlock x:Uid="EmployeesPage_Description"
+                              Text="Quản lý thông tin nhân viên, theo dõi lịch sử làm việc và chấm công"
+                              FontSize="16"
+                              Foreground="{StaticResource BrushTextSecondary}"/>
+                </StackPanel>
+
+                <!-- Add Button -->
+                <Button x:Name="AddButton"
+                        Grid.Column="1"
+                        Padding="20,14"
+                        VerticalAlignment="Center"
+                        Click="AddButton_Click"
+                        Shadow="{StaticResource SharedShadow}"
+                        Style="{StaticResource PrimaryButtonStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon FontSize="18" Glyph="&#xE710;"/>
+                        <TextBlock x:Uid="EmployeesPage_AddButton"
+                                  Text="Thêm nhân viên"
+                                  FontSize="15"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Table Card -->
+        <Border Grid.Row="1" 
+                Margin="32,0,32,32"
+                Style="{StaticResource CardStyle}"
+                Shadow="{StaticResource SharedShadow}"
+                Padding="0">
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>  <!-- Toolbar -->
+                    <RowDefinition Height="Auto"/>  <!-- Table Header -->
+                    <RowDefinition Height="*"/>     <!-- Table Content -->
+                    <RowDefinition Height="Auto"/>  <!-- Pagination -->
+                </Grid.RowDefinitions>
+
+                <!-- Row 0: Toolbar -->
+                <Border Grid.Row="0" 
+                        BorderBrush="{StaticResource BrushBorder}"
+                        BorderThickness="0,0,0,1"
+                        Padding="24,16"
+                        CornerRadius="12,12,0,0">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#FFFAFBFF" Offset="0"/>
+                            <GradientStop Color="#FFF5F7FF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Search Box -->
+                        <AutoSuggestBox x:Name="SearchBox"
+                                       x:Uid="EmployeesPage_SearchBox"
+                                       PlaceholderText="Tìm kiếm theo tên, số điện thoại, email..."
+                                       Grid.Column="0"
+                                       QueryIcon="Find"
+                                       Background="{StaticResource BrushBackground}"
+                                       BorderBrush="{StaticResource BrushBorder}"
+                                       BorderThickness="1"
+                                       CornerRadius="8"
+                                       Padding="12,8"
+                                       FontSize="14"
+                                       Width="400"
+                                       VerticalContentAlignment="Center"
+                                       TextChanged="SearchBox_TextChanged"/>
+
+                        <!-- Filter & Refresh Buttons -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="FilterButton"
+                                    x:Uid="EmployeesPage_FilterButton"
+                                    ToolTipService.ToolTip="Lọc dữ liệu"
+                                    Click="FilterButton_Click"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Padding="12,8"
+                                    CornerRadius="8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon FontSize="16" Glyph="&#xE71C;"/>
+                                    <TextBlock Text="Lọc" FontSize="14"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="RefreshButton"
+                                    x:Uid="EmployeesPage_RefreshButton"
+                                    ToolTipService.ToolTip="Làm mới dữ liệu"
+                                    Click="RefreshButton_Click"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Padding="12,8"
+                                    CornerRadius="8">
+                                <FontIcon FontSize="16" Glyph="&#xE72C;"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Row 1: Table Header -->
+                <Border Grid.Row="1" 
+                        BorderBrush="{StaticResource BrushBorder}"
+                        BorderThickness="0,0,0,1"
+                        Padding="32,20">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#FFFAFBFF" Offset="0"/>
+                            <GradientStop Color="#FFF5F7FF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80"/>       <!-- ID -->
+                            <ColumnDefinition Width="120"/>      <!-- Code -->
+                            <ColumnDefinition Width="*" MinWidth="180"/>  <!-- Full Name -->
+                            <ColumnDefinition Width="*" MinWidth="140"/>  <!-- Phone -->
+                            <ColumnDefinition Width="*" MinWidth="180"/>  <!-- Email -->
+                            <ColumnDefinition Width="*" MinWidth="140"/>  <!-- Hire Date -->
+                            <ColumnDefinition Width="120"/>      <!-- Status -->
+                            <ColumnDefinition Width="80"/>       <!-- Actions -->
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock x:Uid="EmployeesPage_Header_ID" 
+                                  Text="ID"
+                                  Grid.Column="0" 
+                                  Foreground="{StaticResource BrushTextSecondary}" 
+                                  FontWeight="SemiBold"
+                                  FontSize="13"
+                                  Padding="28,0,0,0"
+                                  VerticalAlignment="Center"/>
+                        
+                        <TextBlock x:Uid="EmployeesPage_Header_Code" 
+                                  Text="Mã NV"
+                                  Grid.Column="1" 
+                                  Foreground="{StaticResource BrushTextSecondary}" 
+                                  FontWeight="SemiBold"
+                                  FontSize="13"
+                                  VerticalAlignment="Center"/>
+                        
+                        <TextBlock x:Uid="EmployeesPage_Header_FullName" 
+                                  Text="Họ và tên"
+                                  Grid.Column="2" 
+                                  Foreground="{StaticResource BrushTextSecondary}" 
+                                  FontWeight="SemiBold"
+                                  FontSize="13"
+                                  VerticalAlignment="Center"/>
+                        
+                        <TextBlock x:Uid="EmployeesPage_Header_Phone" 
+                                  Text="Số điện thoại"
+                                  Grid.Column="3" 
+                                  Foreground="{StaticResource BrushTextSecondary}" 
+                                  FontWeight="SemiBold"
+                                  FontSize="13"
+                                  VerticalAlignment="Center"/>
+                        
+                        <TextBlock x:Uid="EmployeesPage_Header_Email" 
+                                  Text="Email"
+                                  Grid.Column="4" 
+                                  Foreground="{StaticResource BrushTextSecondary}" 
+                                  FontWeight="SemiBold"
+                                  FontSize="13"
+                                  VerticalAlignment="Center"/>
+                        
+                        <TextBlock x:Uid="EmployeesPage_Header_HireDate" 
+                                  Text="Ngày vào làm"
+                                  Grid.Column="5" 
+                                  Foreground="{StaticResource BrushTextSecondary}" 
+                                  FontWeight="SemiBold"
+                                  FontSize="13"
+                                  VerticalAlignment="Center"/>
+                        
+                        <TextBlock x:Uid="EmployeesPage_Header_Status" 
+                                  Text="Trạng thái"
+                                  Grid.Column="6" 
+                                  Foreground="{StaticResource BrushTextSecondary}" 
+                                  FontWeight="SemiBold"
+                                  FontSize="13"
+                                  VerticalAlignment="Center"/>
+                        
+                        <TextBlock x:Uid="EmployeesPage_Header_Actions" 
+                                  Text="Thao tác"
+                                  Grid.Column="7" 
+                                  Foreground="{StaticResource BrushTextSecondary}" 
+                                  FontWeight="SemiBold"
+                                  FontSize="13"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- Row 2: Table Content -->
+                <ScrollViewer Grid.Row="2" 
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Hidden">
+                    <ListView x:Name="DataListView"
+                             Background="Transparent"
+                             SelectionMode="None"
+                             ItemsSource="{x:Bind Items, Mode=OneWay}">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListViewItem">
+                                            <Grid>
+                                                <Border x:Name="ItemBorder"
+                                                       Background="Transparent"
+                                                       BorderBrush="{StaticResource BrushBorder}"
+                                                       BorderThickness="0,0,0,1"
+                                                       Padding="32,16">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                                <VisualStateManager.VisualStateGroups>
+                                                    <VisualStateGroup x:Name="CommonStates">
+                                                        <VisualState x:Name="Normal"/>
+                                                        <VisualState x:Name="PointerOver">
+                                                            <VisualState.Setters>
+                                                                <Setter Target="ItemBorder.Background">
+                                                                    <Setter.Value>
+                                                                        <SolidColorBrush Color="{StaticResource ColorPrimaryLight}" Opacity="0.05"/>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </VisualState.Setters>
+                                                        </VisualState>
+                                                    </VisualStateGroup>
+                                                </VisualStateManager.VisualStateGroups>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="80"/>       <!-- ID -->
+                                        <ColumnDefinition Width="120"/>      <!-- Code -->
+                                        <ColumnDefinition Width="*" MinWidth="180"/>  <!-- Full Name -->
+                                        <ColumnDefinition Width="*" MinWidth="140"/>  <!-- Phone -->
+                                        <ColumnDefinition Width="*" MinWidth="180"/>  <!-- Email -->
+                                        <ColumnDefinition Width="*" MinWidth="140"/>  <!-- Hire Date -->
+                                        <ColumnDefinition Width="120"/>      <!-- Status -->
+                                        <ColumnDefinition Width="80"/>       <!-- Actions -->
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- ID -->
+                                    <TextBlock Grid.Column="0" 
+                                              Text="{Binding Id}"
+                                              FontSize="14"
+                                              Padding="28,0,0,0"
+                                              Foreground="{StaticResource BrushTextSecondary}"
+                                              VerticalAlignment="Center"/>
+
+                                    <!-- Code -->
+                                    <TextBlock Grid.Column="1" 
+                                              Text="{Binding Code}"
+                                              FontSize="14"
+                                              FontWeight="Medium"
+                                              Foreground="{StaticResource BrushText}"
+                                              VerticalAlignment="Center"/>
+
+                                    <!-- Full Name -->
+                                    <StackPanel Grid.Column="2" 
+                                               VerticalAlignment="Center"
+                                               Spacing="4">
+                                        <TextBlock Text="{Binding FullName}"
+                                                  FontSize="14"
+                                                  FontWeight="SemiBold"
+                                                  Foreground="{StaticResource BrushText}"/>
+                                    </StackPanel>
+
+                                    <!-- Phone -->
+                                    <StackPanel Grid.Column="3" 
+                                               VerticalAlignment="Center"
+                                               Spacing="2"
+                                               Orientation="Horizontal">
+                                        <FontIcon FontSize="12" 
+                                                 Glyph="&#xE717;" 
+                                                 Foreground="{StaticResource BrushTextSecondary}"/>
+                                        <TextBlock Text="{Binding Phone}"
+                                                  FontSize="14"
+                                                  Foreground="{StaticResource BrushText}"
+                                                  Margin="4,0,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Email -->
+                                    <StackPanel Grid.Column="4" 
+                                               VerticalAlignment="Center"
+                                               Spacing="2"
+                                               Orientation="Horizontal">
+                                        <FontIcon FontSize="12" 
+                                                 Glyph="&#xE715;" 
+                                                 Foreground="{StaticResource BrushTextSecondary}"/>
+                                        <TextBlock Text="{Binding Email}"
+                                                  FontSize="14"
+                                                  Foreground="{StaticResource BrushText}"
+                                                  TextTrimming="CharacterEllipsis"
+                                                  Margin="4,0,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Hire Date -->
+                                    <StackPanel Grid.Column="5" 
+                                               VerticalAlignment="Center"
+                                               Spacing="2"
+                                               Orientation="Horizontal">
+                                        <FontIcon FontSize="12" 
+                                                 Glyph="&#xE787;" 
+                                                 Foreground="{StaticResource BrushTextSecondary}"/>
+                                        <TextBlock Text="{Binding HireDate}"
+                                                  FontSize="14"
+                                                  Foreground="{StaticResource BrushText}"
+                                                  Margin="4,0,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Status Badge -->
+                                    <Border Grid.Column="6"
+                                           Background="{Binding StatusColor}"
+                                           CornerRadius="12"
+                                           Padding="12,6"
+                                           HorizontalAlignment="Left"
+                                           VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding LocalizedStatusText}"
+                                                  FontSize="12"
+                                                  FontWeight="SemiBold"
+                                                  Foreground="White"/>
+                                    </Border>
+
+                                    <!-- Actions Button -->
+                                    <Button Grid.Column="7"
+                                           x:Name="ActionsButton"
+                                           Background="Transparent"
+                                           BorderThickness="0"
+                                           Padding="8"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Click="ActionsButton_Click">
+                                        <FontIcon FontSize="16" Glyph="&#xE712;"/>
+                                        <Button.Flyout>
+                                            <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                                <MenuFlyoutItem x:Uid="EmployeesPage_ViewAction"
+                                                              Text="Xem chi tiết"
+                                                              Tag="{Binding}"
+                                                              Click="ViewMenuItem_Click">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE8A7;"/>
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                
+                                                <MenuFlyoutItem x:Uid="EmployeesPage_EditAction"
+                                                              Text="Chỉnh sửa"
+                                                              Tag="{Binding}"
+                                                              Click="EditMenuItem_Click">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE70F;"/>
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                
+                                                <MenuFlyoutSeparator/>
+                                                
+                                                <MenuFlyoutItem x:Uid="EmployeesPage_DeleteAction"
+                                                              Text="Xóa"
+                                                              Tag="{Binding}"
+                                                              Click="DeleteMenuItem_Click">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE74D;"/>
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                            </MenuFlyout>
+                                        </Button.Flyout>
+                                    </Button>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </ScrollViewer>
+
+                <!-- Empty State -->
+                <Grid x:Name="EmptyStatePanel"
+                      Grid.Row="2"
+                      Padding="60"
+                      Visibility="Collapsed">
+                    <StackPanel HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Spacing="24">
+                        <Border Width="80" Height="80"
+                               Background="{StaticResource BrushPrimaryLight}"
+                               CornerRadius="40">
+                            <FontIcon FontSize="32"
+                                     Foreground="{StaticResource BrushPrimary}"
+                                     Glyph="&#xE77B;"/>
+                        </Border>
+                        <StackPanel HorizontalAlignment="Center" Spacing="8">
+                            <TextBlock x:Uid="EmployeesPage_EmptyTitle"
+                                      Text="Không tìm thấy nhân viên"
+                                      FontSize="20"
+                                      FontWeight="SemiBold"
+                                      HorizontalAlignment="Center"
+                                      Foreground="{StaticResource BrushText}"/>
+                            <TextBlock x:Uid="EmployeesPage_EmptyMessage"
+                                      Text="Thử điều chỉnh bộ lọc hoặc thêm nhân viên mới"
+                                      FontSize="14"
+                                      HorizontalAlignment="Center"
+                                      Foreground="{StaticResource BrushTextSecondary}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Row 3: Pagination Footer -->
+                <Border Grid.Row="3" 
+                        BorderBrush="{StaticResource BrushBorder}"
+                        BorderThickness="0,1,0,0"
+                        Padding="32,20"
+                        CornerRadius="0,0,12,12">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#FFF5F7FF" Offset="0"/>
+                            <GradientStop Color="#FFFAFBFF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Record Count -->
+                        <StackPanel Grid.Column="0" 
+                                   Orientation="Horizontal"
+                                   Spacing="16"
+                                   VerticalAlignment="Center">
+                            <Border Background="{StaticResource BrushPrimaryLight}"
+                                   CornerRadius="16"
+                                   Padding="12,6">
+                                <TextBlock x:Name="RecordCountText"
+                                          Text="Hiển thị 0 nhân viên"
+                                          FontSize="13"
+                                          FontWeight="Medium"
+                                          Foreground="{StaticResource BrushPrimary}"/>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Pagination Controls -->
+                        <StackPanel Grid.Column="1" 
+                                   Orientation="Horizontal" 
+                                   Spacing="12">
+                            <Button x:Name="PreviousPageButton"
+                                   Click="PreviousPageButton_Click"
+                                   Style="{StaticResource SecondaryButtonStyle}"
+                                   Padding="12,8"
+                                   CornerRadius="8">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon FontSize="14" Glyph="&#xE76B;"/>
+                                    <TextBlock x:Uid="EmployeesPage_PreviousPage"
+                                              Text="Trước"
+                                              FontSize="13"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Border Background="{StaticResource BrushBackground}"
+                                   BorderBrush="{StaticResource BrushBorder}"
+                                   BorderThickness="1"
+                                   CornerRadius="8"
+                                   Padding="16,8"
+                                   VerticalAlignment="Center">
+                                <TextBlock x:Name="PageInfoText"
+                                          Text="Trang 1 / 1"
+                                          FontSize="13"
+                                          FontWeight="Medium"
+                                          Foreground="{StaticResource BrushText}"/>
+                            </Border>
+
+                            <Button x:Name="NextPageButton"
+                                   Click="NextPageButton_Click"
+                                   Style="{StaticResource SecondaryButtonStyle}"
+                                   Padding="12,8"
+                                   CornerRadius="8">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock x:Uid="EmployeesPage_NextPage"
+                                              Text="Sau"
+                                              FontSize="13"/>
+                                    <FontIcon FontSize="14" Glyph="&#xE76C;"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>

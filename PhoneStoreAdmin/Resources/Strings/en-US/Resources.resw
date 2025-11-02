@@ -1552,6 +1552,12 @@ How many devices do you want to add?</value>
   <data name="Accounts_VM_Status_Deactivated" xml:space="preserve">
     <value>Deactivated</value>
   </data>
+  <data name="MenuItemCustomers.Content" xml:space="preserve">
+    <value>Customers</value>
+  </data>
+  <data name="MenuItemEmployees.Content" xml:space="preserve">
+    <value>Employees</value>
+  </data>
   <data name="MenuAccount.Content" xml:space="preserve">
     <value>Account</value>
   </data>
