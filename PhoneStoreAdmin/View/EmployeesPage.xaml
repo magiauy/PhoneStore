@@ -604,6 +604,7 @@
                                    CornerRadius="16"
                                    Padding="12,6">
                                 <TextBlock x:Name="RecordCountText"
+                                          x:Uid="EmployeesPage_RecordCount"
                                           Text="Hiển thị 0 nhân viên"
                                           FontSize="13"
                                           FontWeight="Medium"
