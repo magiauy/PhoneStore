@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MySqlConnector;
 using PhoneStoreAdmin.Data;
@@ -203,11 +204,191 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                 return null;
             }
         }
+public async Task<(List<Customer> Customers, int TotalCount)> GetCustomersFilteredAsync(
+    string? searchTerm, CustomerFilterCriteria? filterCriteria, int page, int pageSize)
+{
+    var customers = new List<Customer>();
+    int totalCount = 0;
 
-        public override void Insert(Person entity)
+    try
+    {
+        using var conn = _dataSource.GetConnection();
+        
+        var trimmedSearch = searchTerm?.Trim();
+        var (whereClause, parameters) = BuildWhereClause(trimmedSearch, filterCriteria);
+
+        // =========================
+        // 1️⃣ Query lấy dữ liệu trang hiện tại
+        // =========================
+        using (var dataCmd = conn.CreateCommand())
         {
-            if (entity is not Customer customer)
-                throw new ArgumentException("Entity must be a Customer", nameof(entity));
+            dataCmd.CommandTimeout = 30;
+                    dataCmd.CommandText = $@"
+                SELECT 
+                    p.id, p.code, p.full_name, p.phone, p.email, p.person_type,
+                    p.created_at, p.is_active, c.address
+                FROM persons p
+                LEFT JOIN customers c ON p.id = c.person_id
+                WHERE {whereClause}
+                ORDER BY p.id ASC
+                LIMIT @limit OFFSET @offset;
+            ";
+            Logger.Info($"GetCustomersFilteredAsync SQL: {dataCmd.CommandText}");
+
+            // Add all parameters
+            foreach (var param in parameters)
+            {
+                dataCmd.Parameters.AddWithValue(param.Key, param.Value);
+            }
+
+            dataCmd.Parameters.AddWithValue("@limit", pageSize);
+            dataCmd.Parameters.AddWithValue("@offset", (page - 1) * pageSize);
+
+            using var reader = await dataCmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                customers.Add(MapCustomer(reader));
+            }
+        }
+
+        // =========================
+        // 2️⃣ Query đếm tổng số dòng (COUNT)
+        // =========================
+        using (var countCmd = conn.CreateCommand())
+        {
+            countCmd.CommandTimeout = 30;
+            countCmd.CommandText = $@"
+                SELECT COUNT(*)
+                FROM persons p
+                LEFT JOIN customers c ON p.id = c.person_id
+                WHERE {whereClause};
+            ";
+
+            // Add all parameters
+            foreach (var param in parameters)
+            {
+                countCmd.Parameters.AddWithValue(param.Key, param.Value);
+            }
+
+            totalCount = Convert.ToInt32(await countCmd.ExecuteScalarAsync());
+        }
+
+        return (customers, totalCount);
+    }
+    catch (Exception ex)
+    {
+        Logger.Error($"Error getting filtered customers async", ex);
+        return (new List<Customer>(), 0);
+    }
+}
+
+
+/// <summary>
+/// Tạo WHERE clause với filter criteria cho Customer
+/// - searchTerm CHỈ tìm theo full_name
+/// - filterCriteria cho phép filter theo status, date, phone, address, v.v.
+/// </summary>
+private (string whereClause, Dictionary<string, object> parameters) BuildWhereClause(
+    string? trimmedSearch, CustomerFilterCriteria? filterCriteria)
+{
+    var conditions = new List<string> { "p.person_type = 'CUSTOMER'" };
+    var parameters = new Dictionary<string, object>();
+
+    // ============================================
+    // 1️⃣ SEARCH BY NAME ONLY (full_name)
+    // ============================================
+    if (!string.IsNullOrWhiteSpace(trimmedSearch))
+    {
+        if (trimmedSearch.Length <= 3)
+        {
+            // Từ khóa ngắn → dùng LIKE prefix
+            conditions.Add("p.full_name LIKE @searchName");
+            parameters["@searchName"] = $"{trimmedSearch}%";
+        }
+        else
+        {
+            // Từ khóa dài → dùng FULLTEXT + LIKE
+            conditions.Add("MATCH(p.full_name) AGAINST (@searchNameFT IN NATURAL LANGUAGE MODE)");
+            parameters["@searchNameFT"] = trimmedSearch;
+        }
+    }
+
+    // ============================================
+    // 2️⃣ FILTER CRITERIA
+    // ============================================
+    if (filterCriteria != null)
+    {
+        // Status filter
+        if (filterCriteria.Status == "Active")
+        {
+            conditions.Add("p.is_active = TRUE");
+        }
+        else if (filterCriteria.Status == "Inactive")
+        {
+            conditions.Add("p.is_active = FALSE");
+        }
+
+        // Created date range
+        if (filterCriteria.CreatedFrom.HasValue)
+        {
+            conditions.Add("p.created_at >= @createdFrom");
+            parameters["@createdFrom"] = filterCriteria.CreatedFrom.Value;
+        }
+        if (filterCriteria.CreatedTo.HasValue)
+        {
+            conditions.Add("p.created_at <= @createdTo");
+            parameters["@createdTo"] = filterCriteria.CreatedTo.Value.AddDays(1).AddSeconds(-1);
+        }
+
+        // Phone prefix filter
+        if (!string.IsNullOrWhiteSpace(filterCriteria.PhonePrefix))
+        {
+            conditions.Add("p.phone LIKE @phonePrefix");
+            parameters["@phonePrefix"] = $"{filterCriteria.PhonePrefix}%";
+        }
+
+        // City filter (search in address)
+        if (!string.IsNullOrWhiteSpace(filterCriteria.City))
+        {
+            conditions.Add("c.address LIKE @city");
+            parameters["@city"] = $"%{filterCriteria.City}%";
+        }
+
+        // Has email filter
+        if (filterCriteria.HasEmail.HasValue)
+        {
+            if (filterCriteria.HasEmail.Value)
+            {
+                conditions.Add("p.email IS NOT NULL AND p.email != ''");
+            }
+            else
+            {
+                conditions.Add("(p.email IS NULL OR p.email = '')");
+            }
+        }
+
+        // Has address filter
+        if (filterCriteria.HasAddress.HasValue)
+        {
+            if (filterCriteria.HasAddress.Value)
+            {
+                conditions.Add("c.address IS NOT NULL AND c.address != ''");
+            }
+            else
+            {
+                conditions.Add("(c.address IS NULL OR c.address = '')");
+            }
+        }
+    }
+
+    var whereClause = string.Join(" AND ", conditions);
+    return (whereClause, parameters);
+}
+
+public override void Insert(Person entity)
+{
+    if (entity is not Customer customer)
+        throw new ArgumentException("Entity must be a Customer", nameof(entity));
 
             customer.PersonType = PersonType.CUSTOMER;
 

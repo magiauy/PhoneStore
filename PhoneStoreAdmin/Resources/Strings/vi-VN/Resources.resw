@@ -1552,6 +1552,12 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="Accounts_VM_Status_Deactivated" xml:space="preserve">
     <value>Deactivated</value>
   </data>
+  <data name="MenuItemCustomers.Content" xml:space="preserve">
+    <value>Khách hàng</value>
+  </data>
+  <data name="MenuItemEmployees.Content" xml:space="preserve">
+    <value>Nhân viên</value>
+  </data>
   <data name="MenuAccount.Content" xml:space="preserve">
     <value>Tài Khoản</value>
   </data>

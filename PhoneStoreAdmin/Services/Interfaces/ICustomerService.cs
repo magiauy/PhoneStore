@@ -57,6 +57,11 @@ namespace PhoneStoreAdmin.Services.Interfaces
         CustomerResult GetCustomersFiltered(string? searchTerm, int page = 1, int pageSize = 10);
 
         /// <summary>
+        /// Get customers filtered with pagination (async)
+        /// </summary>
+        Task<CustomerResult> GetCustomersFilteredAsync(string? searchTerm, int page = 1, int pageSize = 10);
+
+        /// <summary>
         /// Add new customer
         /// </summary>
         /// <param name="customer">Customer to add</param>
