@@ -131,15 +131,15 @@ namespace PhoneStoreAdmin.Services.Implementations
             }
         }
         
-        public CustomerResult GetCustomersFiltered(string? searchTerm, int page = 1, int pageSize = 10)
+        public CustomerResult GetCustomersFiltered(string? searchTerm, CustomerFilterCriteria? filterCriteria = null, int page = 1, int pageSize = 10)
         {
             try
             {
-                Logger.Info($"Getting customers filtered: search='{searchTerm}', page={page}, pageSize={pageSize}");
-                
+                Logger.Info($"Getting customers filtered: search='{searchTerm}', filter='{filterCriteria?.GetCacheKey()}', page={page}, pageSize={pageSize}");
+
                 // Use async method and wait for result - this is now optimized at DB level
                 var (customers, totalCount) = _customerRepository
-                    .GetCustomersFilteredAsync(searchTerm, null, page, pageSize)
+                    .GetCustomersFilteredAsync(searchTerm, filterCriteria, page, pageSize)
                     .GetAwaiter()
                     .GetResult();
                 
@@ -156,13 +156,13 @@ namespace PhoneStoreAdmin.Services.Implementations
             }
         }
 
-        public async Task<CustomerResult> GetCustomersFilteredAsync(string? searchTerm, int page = 1, int pageSize = 10)
+        public async Task<CustomerResult> GetCustomersFilteredAsync(string? searchTerm, CustomerFilterCriteria? filterCriteria = null, int page = 1, int pageSize = 10)
         {
             try
             {
-                Logger.Info($"Getting customers filtered async: search='{searchTerm}', page={page}, pageSize={pageSize}");
-                
-                var (customers, totalCount) = await _customerRepository.GetCustomersFilteredAsync(searchTerm, null, page, pageSize);
+                Logger.Info($"Getting customers filtered async: search='{searchTerm}', filter='{filterCriteria?.GetCacheKey()}', page={page}, pageSize={pageSize}");
+
+                var (customers, totalCount) = await _customerRepository.GetCustomersFilteredAsync(searchTerm, filterCriteria, page, pageSize);
                 
                 var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
                 var info = new InfoTable(totalCount, totalPages);
