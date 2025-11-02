@@ -1,0 +1,107 @@
+<ContentDialog
+    x:Class="PhoneStoreAdmin.View.Controls.EmployeeFilterDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Bộ lọc nhân viên"
+    PrimaryButtonText="Áp dụng"
+    SecondaryButtonText="Đặt lại"
+    CloseButtonText="Đóng"
+    DefaultButton="Primary"
+    PrimaryButtonClick="ApplyButton_Click"
+    SecondaryButtonClick="ResetButton_Click">
+
+    <ContentDialog.Resources>
+        <Style x:Key="FilterSectionStyle" TargetType="StackPanel">
+            <Setter Property="Spacing" Value="8" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+        </Style>
+
+        <Style x:Key="FilterLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource BrushText}" />
+        </Style>
+    </ContentDialog.Resources>
+
+    <Grid Width="560">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="520">
+            <StackPanel Spacing="16" Padding="8,4,8,0">
+                <StackPanel Style="{StaticResource FilterSectionStyle}">
+                    <TextBlock Text="Trạng thái" Style="{StaticResource FilterLabelStyle}" />
+                    <ComboBox x:Name="StatusComboBox"
+                              SelectedIndex="0"
+                              BorderBrush="{StaticResource BrushBorder}"
+                              BorderThickness="1"
+                              CornerRadius="8"
+                              Padding="12"
+                              SelectionChanged="StatusComboBox_SelectionChanged">
+                        <ComboBoxItem Content="Tất cả" Tag="All" />
+                        <ComboBoxItem Content="Đang làm việc" Tag="Active" />
+                        <ComboBoxItem Content="Đã nghỉ việc" Tag="Inactive" />
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Style="{StaticResource FilterSectionStyle}">
+                    <TextBlock Text="Ngày vào làm" Style="{StaticResource FilterLabelStyle}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Spacing="6">
+                            <TextBlock Text="Từ ngày" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" />
+                            <DatePicker x:Name="HireDateFromPicker"
+                                        CornerRadius="8"
+                                        BorderBrush="{StaticResource BrushBorder}"
+                                        BorderThickness="1"
+                                        SelectedDateChanged="HireDatePicker_SelectedDateChanged" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Spacing="6">
+                            <TextBlock Text="Đến ngày" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" />
+                            <DatePicker x:Name="HireDateToPicker"
+                                        CornerRadius="8"
+                                        BorderBrush="{StaticResource BrushBorder}"
+                                        BorderThickness="1"
+                                        SelectedDateChanged="HireDatePicker_SelectedDateChanged" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+
+                <StackPanel Style="{StaticResource FilterSectionStyle}">
+                    <TextBlock Text="Thông tin liên hệ" Style="{StaticResource FilterLabelStyle}" />
+                    <StackPanel Orientation="Vertical" Spacing="8">
+                        <CheckBox x:Name="HasEmailCheckBox"
+                                  Content="Chỉ hiển thị nhân viên có email"
+                                  Checked="ContactCheckBox_Changed"
+                                  Unchecked="ContactCheckBox_Changed" />
+                        <CheckBox x:Name="HasPhoneCheckBox"
+                                  Content="Chỉ hiển thị nhân viên có số điện thoại"
+                                  Checked="ContactCheckBox_Changed"
+                                  Unchecked="ContactCheckBox_Changed" />
+                    </StackPanel>
+                </StackPanel>
+
+                <Border Background="{StaticResource BrushPrimaryLight}"
+                        BorderBrush="{StaticResource BrushPrimary}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16">
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE946;" Foreground="{StaticResource BrushPrimary}" FontSize="16" />
+                            <TextBlock Text="Bộ lọc đang áp dụng" Foreground="{StaticResource BrushPrimary}" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <TextBlock x:Name="SummaryTextBlock"
+                                   Text="Không áp dụng bộ lọc"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Foreground="{StaticResource BrushText}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</ContentDialog>
