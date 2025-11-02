@@ -66,6 +66,17 @@
                     Icon="PreviewLink"
                     Tag="Batches" />
                 <NavigationViewItem
+                    x:Name="CustomersNavItem"
+                    x:Uid="MenuItemCustomers"
+                    Icon="ContactInfo"
+                    Tag="Customers" />
+                <NavigationViewItem
+                    x:Name="EmployeesNavItem"
+                    x:Uid="MenuItemEmployees"
+                    Content="Nhân viên"
+                    Icon="Contact"
+                    Tag="Employees" />
+                <NavigationViewItem
                     x:Uid="MenuAccount"
                     x:Name="AccountsNavItem"
                     Icon="People"
