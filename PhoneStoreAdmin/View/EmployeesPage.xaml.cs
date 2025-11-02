@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using PhoneStoreAdmin.Helpers;
 using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Utils;
@@ -129,11 +130,16 @@ namespace PhoneStoreAdmin.View
         {
             var count = Items.Count;
 
-            RecordCountText.Text = count == 0
-                ? "Khong co nhan vien"
-                : count == 1
-                    ? "Hien thi 1 nhan vien"
-                    : $"Hien thi {count} nhan vien";
+            var recordCountText = count switch
+            {
+                0 => LocalizationHelper.GetString("EmployeesPage_NoEmployees"),
+                1 => LocalizationHelper.GetString("EmployeesPage_RecordCountSingle"),
+                _ => string.Format(
+                    LocalizationHelper.GetString("EmployeesPage_RecordCountMultiple"),
+                    count)
+            };
+
+            RecordCountText.Text = recordCountText;
 
             PageInfoText.Text = $"Trang {_currentPage} / {Math.Max(1, _totalPages)}";
             PreviousPageButton.IsEnabled = _currentPage > 1;
