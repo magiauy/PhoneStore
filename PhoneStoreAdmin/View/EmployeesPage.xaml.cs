@@ -1,9 +1,11 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Utils;
+using PhoneStoreAdmin.View.Controls;
 using PhoneStoreAdmin.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -28,6 +30,7 @@ namespace PhoneStoreAdmin.View
         private int _totalPages = 1;
         private int _totalCount = 0;
         private string _currentSearchText = string.Empty;
+        private EmployeeFilterCriteria _currentFilterCriteria = new();
 
         // Search debounce
         private Timer? _searchTimer;
@@ -52,7 +55,8 @@ namespace PhoneStoreAdmin.View
         private async Task LoadDataAsync()
         {
             var searchTextSnapshot = _currentSearchText;
-            var cacheKey = GetCacheKey(_currentPage, searchTextSnapshot);
+            var filterSnapshot = _currentFilterCriteria?.Clone() ?? new EmployeeFilterCriteria();
+            var cacheKey = GetCacheKey(_currentPage, searchTextSnapshot, filterSnapshot);
 
             try
             {
@@ -71,16 +75,17 @@ namespace PhoneStoreAdmin.View
                     }
 
                     UpdateUI();
-                    _ = StartBackgroundCachingAsync(searchTextSnapshot);
+                    _ = StartBackgroundCachingAsync(searchTextSnapshot, filterSnapshot);
                     return;
                 }
 
                 var result = await Task.Run(() =>
-                    _employeeService.GetEmployeesFiltered(searchTextSnapshot, _currentPage, _pageSize));
+                    _employeeService.GetEmployeesFiltered(searchTextSnapshot, _currentPage, _pageSize, filterSnapshot));
 
-                if (searchTextSnapshot != _currentSearchText)
+                if (searchTextSnapshot != _currentSearchText
+                    || !_currentFilterCriteria.HasSameState(filterSnapshot))
                 {
-                    Logger.Info($"Search text changed from '{searchTextSnapshot}' to '{_currentSearchText}', reloading...");
+                    Logger.Info($"Search or filter changed, reloading...");
                     await LoadDataAsync();
                     return;
                 }
@@ -104,7 +109,7 @@ namespace PhoneStoreAdmin.View
 
                     Logger.Info($"Loaded {Items.Count} employees (page {_currentPage}/{_totalPages}, total: {_totalCount})");
 
-                    _ = StartBackgroundCachingAsync(searchTextSnapshot);
+                    _ = StartBackgroundCachingAsync(searchTextSnapshot, filterSnapshot);
                 }
                 else
                 {
@@ -149,11 +154,32 @@ namespace PhoneStoreAdmin.View
                 DataListView.Visibility = Visibility.Visible;
                 EmptyStatePanel.Visibility = Visibility.Collapsed;
             }
+
+            UpdateFilterStatusUI();
         }
 
-        private void AddButton_Click(object sender, RoutedEventArgs e)
+        private void UpdateFilterStatusUI()
         {
-            // TODO: Open add employee dialog or navigate to add page
+            if (FilterStatusBadge == null || FilterStatusText == null)
+            {
+                return;
+            }
+
+            if (_currentFilterCriteria.HasAnyFilter())
+            {
+                FilterStatusBadge.Visibility = Visibility.Visible;
+                FilterStatusText.Text = _currentFilterCriteria.ToSummaryString();
+            }
+            else
+            {
+                FilterStatusBadge.Visibility = Visibility.Collapsed;
+                FilterStatusText.Text = "Không áp dụng bộ lọc";
+            }
+        }
+
+        private async void AddButton_Click(object sender, RoutedEventArgs e)
+        {
+            await ShowEmployeeDialogAsync(EmployeeDialog.DialogMode.Add, null);
         }
 
         private void SearchBox_TextChanged(AutoSuggestBox sender,
@@ -186,9 +212,29 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private void FilterButton_Click(object sender, RoutedEventArgs e)
+        private async void FilterButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Show filter dialog (by status, hire date, etc.)
+            await ShowFilterDialogAsync();
+        }
+
+        private async Task ShowFilterDialogAsync()
+        {
+            var dialog = new EmployeeFilterDialog(_currentFilterCriteria)
+            {
+                XamlRoot = this.XamlRoot
+            };
+
+            var result = await dialog.ShowAsync();
+
+            if (result == ContentDialogResult.Primary)
+            {
+                _currentFilterCriteria = dialog.Criteria.Clone();
+                _currentPage = 1;
+                UpdateFilterStatusUI();
+                ClearCache();
+                _cachingCts?.Cancel();
+                await LoadDataAsync();
+            }
         }
 
         private async void RefreshButton_Click(object sender, RoutedEventArgs e)
@@ -216,31 +262,213 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private void ViewMenuItem_Click(object sender, RoutedEventArgs e)
+        private async void ViewMenuItem_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuFlyoutItem menuItem &&
                 menuItem.Tag is EmployeeViewModel employee)
             {
-                // TODO: Navigate to employee detail page or show detail dialog
+                await ShowEmployeeDialogAsync(EmployeeDialog.DialogMode.View, employee);
             }
         }
 
-        private void EditMenuItem_Click(object sender, RoutedEventArgs e)
+        private async void EditMenuItem_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuFlyoutItem menuItem &&
                 menuItem.Tag is EmployeeViewModel employee)
             {
-                // TODO: Open edit employee dialog or navigate to edit page
+                await ShowEmployeeDialogAsync(EmployeeDialog.DialogMode.Edit, employee);
             }
         }
 
-        private void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
+        private async void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuFlyoutItem menuItem &&
                 menuItem.Tag is EmployeeViewModel employee)
             {
-                // TODO: Show confirmation dialog and delete employee
+                await DeleteEmployeeAsync(employee);
             }
+        }
+
+        private async Task ShowEmployeeDialogAsync(EmployeeDialog.DialogMode mode, EmployeeViewModel? employee)
+        {
+            var dialogControl = new EmployeeDialog();
+            dialogControl.SetMode(mode, employee);
+
+            var dialog = new ContentDialog
+            {
+                XamlRoot = this.XamlRoot,
+                Content = dialogControl
+            };
+
+            switch (mode)
+            {
+                case EmployeeDialog.DialogMode.Add:
+                    dialog.Title = "Thêm nhân viên";
+                    dialog.PrimaryButtonText = "Thêm";
+                    dialog.CloseButtonText = "Hủy";
+                    dialog.DefaultButton = ContentDialogButton.Primary;
+                    dialog.PrimaryButtonClick += async (s, args) =>
+                    {
+                        args.Cancel = true;
+                        dialogControl.HideError();
+
+                        if (!dialogControl.ValidateInputs())
+                        {
+                            return;
+                        }
+
+                        dialogControl.SetLoading(true);
+
+                        try
+                        {
+                            _cachingCts?.Cancel();
+                            var employeeModel = dialogControl.BuildEmployee();
+                            var result = await _employeeService.AddEmployeeAsync(employeeModel);
+                            if (result == null)
+                            {
+                                dialogControl.ShowError("Không thể thêm nhân viên. Vui lòng thử lại.");
+                                return;
+                            }
+
+                            Items.Insert(0, new EmployeeViewModel(result));
+                            _currentPage = 1;
+                            ClearCache();
+                            await LoadDataAsync();
+                            dialog.Hide();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error("Failed to add employee", ex);
+                            dialogControl.ShowError("Đã xảy ra lỗi khi thêm nhân viên.");
+                        }
+                        finally
+                        {
+                            dialogControl.SetLoading(false);
+                        }
+                    };
+                    break;
+
+                case EmployeeDialog.DialogMode.Edit:
+                    dialog.Title = "Chỉnh sửa nhân viên";
+                    dialog.PrimaryButtonText = "Lưu";
+                    dialog.CloseButtonText = "Hủy";
+                    dialog.DefaultButton = ContentDialogButton.Primary;
+                    dialog.PrimaryButtonClick += async (s, args) =>
+                    {
+                        args.Cancel = true;
+                        dialogControl.HideError();
+
+                        if (!dialogControl.ValidateInputs())
+                        {
+                            return;
+                        }
+
+                        dialogControl.SetLoading(true);
+
+                        try
+                        {
+                            _cachingCts?.Cancel();
+                            var employeeModel = dialogControl.BuildEmployee();
+                            var success = await _employeeService.UpdateEmployeeAsync(employeeModel);
+                            if (!success)
+                            {
+                                dialogControl.ShowError("Không thể cập nhật nhân viên.");
+                                return;
+                            }
+
+                            if (employee != null)
+                            {
+                                var updatedVm = new EmployeeViewModel(employeeModel);
+                                var index = Items.IndexOf(employee);
+                                if (index >= 0)
+                                {
+                                    Items[index] = updatedVm;
+                                }
+                            }
+
+                            ClearCache();
+                            await LoadDataAsync();
+                            dialog.Hide();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error("Failed to update employee", ex);
+                            dialogControl.ShowError("Đã xảy ra lỗi khi cập nhật nhân viên.");
+                        }
+                        finally
+                        {
+                            dialogControl.SetLoading(false);
+                        }
+                    };
+                    break;
+
+                case EmployeeDialog.DialogMode.View:
+                    dialog.Title = "Thông tin nhân viên";
+                    dialog.CloseButtonText = "Đóng";
+                    dialog.DefaultButton = ContentDialogButton.Close;
+                    break;
+            }
+
+            await dialog.ShowAsync();
+        }
+
+        private async Task DeleteEmployeeAsync(EmployeeViewModel employee)
+        {
+            var confirmDialog = new ContentDialog
+            {
+                Title = "Xóa nhân viên",
+                Content = $"Bạn có chắc chắn muốn xóa nhân viên {employee.FullName}?",
+                PrimaryButtonText = "Xóa",
+                CloseButtonText = "Hủy",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = this.XamlRoot
+            };
+
+            var result = await confirmDialog.ShowAsync();
+
+            if (result != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            try
+            {
+                _cachingCts?.Cancel();
+                var success = await _employeeService.DeleteEmployeeAsync(employee.Id);
+                if (!success)
+                {
+                    await ShowMessageDialogAsync("Không thể xóa", "Xóa nhân viên thất bại. Vui lòng thử lại.");
+                    return;
+                }
+
+                Items.Remove(employee);
+
+                if (_currentPage > 1 && Items.Count == 0)
+                {
+                    _currentPage--;
+                }
+
+                ClearCache();
+                await LoadDataAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to delete employee {employee.Id}", ex);
+                await ShowMessageDialogAsync("Đã xảy ra lỗi", "Không thể xóa nhân viên. Vui lòng thử lại sau.");
+            }
+        }
+
+        private async Task ShowMessageDialogAsync(string title, string message)
+        {
+            var dialog = new ContentDialog
+            {
+                Title = title,
+                Content = message,
+                CloseButtonText = "Đóng",
+                XamlRoot = this.XamlRoot
+            };
+
+            await dialog.ShowAsync();
         }
 
         // Pagination
@@ -276,7 +504,7 @@ namespace PhoneStoreAdmin.View
             };
         }
 
-        private async Task StartBackgroundCachingAsync(string searchText)
+        private async Task StartBackgroundCachingAsync(string searchText, EmployeeFilterCriteria filterCriteria)
         {
             _cachingCts?.Cancel();
             _cachingCts = new CancellationTokenSource();
@@ -302,7 +530,7 @@ namespace PhoneStoreAdmin.View
                     if (token.IsCancellationRequested)
                         break;
 
-                    await CachePageAsync(pageIndex, searchText, token);
+                    await CachePageAsync(pageIndex, searchText, filterCriteria, token);
                     await Task.Delay(100, token);
                 }
 
@@ -318,11 +546,11 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private async Task CachePageAsync(int pageIndex, string searchText, CancellationToken cancellationToken)
+        private async Task CachePageAsync(int pageIndex, string searchText, EmployeeFilterCriteria filterCriteria, CancellationToken cancellationToken)
         {
             try
             {
-                var cacheKey = GetCacheKey(pageIndex, searchText);
+                var cacheKey = GetCacheKey(pageIndex, searchText, filterCriteria);
 
                 if (_pageCache.ContainsKey(cacheKey))
                 {
@@ -331,7 +559,7 @@ namespace PhoneStoreAdmin.View
                 }
 
                 var result = await Task.Run(() =>
-                    _employeeService.GetEmployeesFiltered(searchText, pageIndex, _pageSize),
+                    _employeeService.GetEmployeesFiltered(searchText, pageIndex, _pageSize, filterCriteria),
                     cancellationToken);
 
                 if (cancellationToken.IsCancellationRequested)
@@ -354,9 +582,10 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private string GetCacheKey(int pageIndex, string searchText)
+        private string GetCacheKey(int pageIndex, string searchText, EmployeeFilterCriteria filterCriteria)
         {
-            return $"{pageIndex}_{searchText ?? string.Empty}".ToLowerInvariant();
+            var filterKey = filterCriteria?.GetCacheKey() ?? "nofilter";
+            return $"{pageIndex}_{searchText ?? string.Empty}_{filterKey}".ToLowerInvariant();
         }
 
         private void ClearCache()
