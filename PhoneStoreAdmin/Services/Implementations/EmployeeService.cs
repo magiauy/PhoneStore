@@ -128,14 +128,14 @@ namespace PhoneStoreAdmin.Services.Implementations
             }
         }
         
-        public EmployeeResult GetEmployeesFiltered(string? searchTerm, int page = 1, int pageSize = 10)
+        public EmployeeResult GetEmployeesFiltered(string? searchTerm, int page = 1, int pageSize = 10, EmployeeFilterCriteria? filterCriteria = null)
         {
             try
             {
-                Logger.Info($"Getting employees filtered: search='{searchTerm}', page={page}, pageSize={pageSize}");
-                
-                var allEmployees = GetAll().Where(e => e.IsActive).ToList();
-                
+                Logger.Info($"Getting employees filtered: search='{searchTerm}', page={page}, pageSize={pageSize}, filter='{filterCriteria?.GetCacheKey() ?? "none"}'");
+
+                var allEmployees = GetAll().ToList();
+
                 // Apply search filter
                 if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
@@ -147,10 +147,53 @@ namespace PhoneStoreAdmin.Services.Implementations
                         (e.Code?.ToLower().Contains(searchLower) ?? false)
                     ).ToList();
                 }
-                
+
+                if (filterCriteria != null)
+                {
+                    switch (filterCriteria.Status)
+                    {
+                        case "Active":
+                            allEmployees = allEmployees.Where(e => e.IsActive).ToList();
+                            break;
+                        case "Inactive":
+                            allEmployees = allEmployees.Where(e => !e.IsActive).ToList();
+                            break;
+                    }
+
+                    if (filterCriteria.HireDateFrom.HasValue)
+                    {
+                        var fromDate = filterCriteria.HireDateFrom.Value.Date;
+                        allEmployees = allEmployees
+                            .Where(e => e.HireDate.HasValue && e.HireDate.Value.Date >= fromDate)
+                            .ToList();
+                    }
+
+                    if (filterCriteria.HireDateTo.HasValue)
+                    {
+                        var toDate = filterCriteria.HireDateTo.Value.Date;
+                        allEmployees = allEmployees
+                            .Where(e => e.HireDate.HasValue && e.HireDate.Value.Date <= toDate)
+                            .ToList();
+                    }
+
+                    if (filterCriteria.HasEmail == true)
+                    {
+                        allEmployees = allEmployees
+                            .Where(e => !string.IsNullOrWhiteSpace(e.Email))
+                            .ToList();
+                    }
+
+                    if (filterCriteria.HasPhone == true)
+                    {
+                        allEmployees = allEmployees
+                            .Where(e => !string.IsNullOrWhiteSpace(e.Phone))
+                            .ToList();
+                    }
+                }
+
                 var totalRecords = allEmployees.Count;
                 var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
-                
+
                 // Apply pagination
                 var employees = allEmployees
                     .Skip((page - 1) * pageSize)
