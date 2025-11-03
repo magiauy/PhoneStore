@@ -3,6 +3,7 @@
     <!--  Primary  -->
     <Color x:Key="ColorPrimary">#FF4053F7</Color>
     <Color x:Key="ColorPrimaryHover">#FF3042C9</Color>
+    <Color x:Key="ColorPrimaryDark">#FF2E3BA0</Color>
     <Color x:Key="ColorPrimaryLight">#FFA5AEFF</Color>
     <Color x:Key="ColorOnPrimary">#FFFFFFFF</Color>
     <Color x:Key="ColorPrimaryPressed">#CC4053F7</Color>
@@ -12,6 +13,7 @@
 
     <SolidColorBrush x:Key="BrushPrimary" Color="{StaticResource ColorPrimary}" />
     <SolidColorBrush x:Key="BrushPrimaryHover" Color="{StaticResource ColorPrimaryHover}" />
+    <SolidColorBrush x:Key="BrushPrimaryDark" Color="{StaticResource ColorPrimaryDark}" />
     <SolidColorBrush x:Key="BrushPrimaryLight" Color="{StaticResource ColorPrimaryLight}" />
     <SolidColorBrush x:Key="BrushOnPrimary" Color="{StaticResource ColorOnPrimary}" />
     <SolidColorBrush x:Key="BrushPrimaryPressed" Color="{StaticResource ColorPrimaryPressed}" />
