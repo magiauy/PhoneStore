@@ -92,8 +92,8 @@ namespace PhoneStoreAdmin.View.Controls
             FilterCriteria = new CustomerFilterCriteria
             {
                 Status = (StatusComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All",
-                CreatedFrom = CreatedFromDatePicker.SelectedDate,
-                CreatedTo = CreatedToDatePicker.SelectedDate,
+                CreatedFrom = CreatedFromDatePicker.SelectedDate?.DateTime,
+                CreatedTo = CreatedToDatePicker.SelectedDate?.DateTime,
                 PhonePrefix = string.IsNullOrWhiteSpace(PhonePrefixTextBox.Text)
                     ? null
                     : PhonePrefixTextBox.Text.Trim(),

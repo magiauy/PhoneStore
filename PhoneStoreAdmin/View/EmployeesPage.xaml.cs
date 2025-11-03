@@ -264,7 +264,11 @@ namespace PhoneStoreAdmin.View
         {
             if (sender is Button button)
             {
-                FlyoutBase.ShowAttachedFlyout(button);
+                var flyout = FlyoutBase.GetAttachedFlyout(button);
+                if (flyout != null)
+                {
+                    flyout.ShowAt(button);
+                }
             }
         }
 
