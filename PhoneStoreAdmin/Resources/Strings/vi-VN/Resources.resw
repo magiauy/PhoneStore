@@ -2134,4 +2134,16 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="ConfirmDeactivateCodeContent" xml:space="preserve">
     <value>Bạn có chắc muốn vô hiệu hóa mã này?</value>
   </data>
+  <data name="EmployeesPage_RecordCount.Text" xml:space="preserve">
+    <value>Hiển thị 0 nhân viên</value>
+  </data>
+  <data name="EmployeesPage_NoEmployees" xml:space="preserve">
+    <value>Không có nhân viên</value>
+  </data>
+  <data name="EmployeesPage_RecordCountSingle" xml:space="preserve">
+    <value>Hiển thị 1 nhân viên</value>
+  </data>
+  <data name="EmployeesPage_RecordCountMultiple" xml:space="preserve">
+    <value>Hiển thị {0} nhân viên</value>
+  </data>
 </root>

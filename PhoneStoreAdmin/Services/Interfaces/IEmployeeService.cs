@@ -55,7 +55,7 @@ namespace PhoneStoreAdmin.Services.Interfaces
         /// <summary>
         /// Get employees filtered with pagination
         /// </summary>
-        EmployeeResult GetEmployeesFiltered(string? searchTerm, int page = 1, int pageSize = 10);
+        EmployeeResult GetEmployeesFiltered(string? searchTerm, int page = 1, int pageSize = 10, EmployeeFilterCriteria? filterCriteria = null);
 
         /// <summary>
         /// Get employees who don't have any account

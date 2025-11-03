@@ -1,11 +1,13 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.ViewModels;
 using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Utils;
+using PhoneStoreAdmin.View.Controls;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -39,6 +41,9 @@ namespace PhoneStoreAdmin.View
         private const int CachePagesAround = 3; // Cache 3 pages before and after
         private CancellationTokenSource? _cachingCts;
 
+        private CustomerFilterCriteria _currentFilterCriteria = new CustomerFilterCriteria();
+        private readonly ResourceLoader _resourceLoader = new ResourceLoader();
+
         public CustomersPage()
         {
             this.InitializeComponent();
@@ -47,7 +52,9 @@ namespace PhoneStoreAdmin.View
             // Get service from container
             _customerService = ServiceContainer.GetService<ICustomerService>()
                 ?? throw new InvalidOperationException("CustomerService not registered");
-            
+
+            UpdateFilterBadge();
+
             // Load data asynchronously without blocking UI
             _ = LoadDataAsync();
         }
@@ -56,7 +63,9 @@ namespace PhoneStoreAdmin.View
         {
             // Capture the current search text at the start
             var searchTextSnapshot = _currentSearchText;
-            var cacheKey = GetCacheKey(_currentPage, searchTextSnapshot);
+            var filterSnapshot = CloneFilterCriteria(_currentFilterCriteria);
+            var filterKey = filterSnapshot?.GetCacheKey() ?? string.Empty;
+            var cacheKey = GetCacheKey(_currentPage, searchTextSnapshot, filterKey);
             
             try
             {
@@ -68,7 +77,7 @@ namespace PhoneStoreAdmin.View
                 {
                     Logger.Info($"Loading page {_currentPage} from cache");
                     var (cachedCustomers, cachedTotalCount) = cachedData;
-                    
+
                     _totalCount = cachedTotalCount;
                     Items.Clear();
                     foreach (var customer in cachedCustomers.Select(MapToViewModel))
@@ -81,22 +90,21 @@ namespace PhoneStoreAdmin.View
                     Logger.Info($"Loaded {Items.Count} customers from cache");
                     
                     // Still trigger background caching for surrounding pages
-                    _ = StartBackgroundCachingAsync(searchTextSnapshot);
+                    _ = StartBackgroundCachingAsync(searchTextSnapshot, filterSnapshot);
                     return;
                 }
 
                 // Not in cache, fetch from service
-                var result = await _customerService.GetCustomersFilteredAsync(searchTextSnapshot, _currentPage, _pageSize);
-                
+                var result = await _customerService.GetCustomersFilteredAsync(searchTextSnapshot, filterSnapshot, _currentPage, _pageSize);
+
                 // Check if search text has changed during the query
-                if (searchTextSnapshot != _currentSearchText)
+                if (searchTextSnapshot != _currentSearchText || !AreFiltersEqual(filterSnapshot, _currentFilterCriteria))
                 {
-                    // Search text changed, need to reload with new search text
-                    Logger.Info($"Search text changed from '{searchTextSnapshot}' to '{_currentSearchText}', reloading...");
+                    Logger.Info("Search text or filter changed during load, reloading...");
                     await LoadDataAsync();
                     return;
                 }
-                
+
                 if (result != null)
                 {
                     _totalCount = result.Info.TotalRecords;
@@ -114,7 +122,7 @@ namespace PhoneStoreAdmin.View
                         CreatedAt = vm.CreatedAt
                     }).ToList();
                     _pageCache[cacheKey] = (rawCustomers, _totalCount);
-                    
+
                     // Update Items collection
                     Items.Clear();
                     foreach (var customer in result.Customers)
@@ -129,7 +137,7 @@ namespace PhoneStoreAdmin.View
                     Logger.Info($"Loaded {Items.Count} customers (page {_currentPage}/{_totalPages}, total: {_totalCount})");
                     
                     // Start background caching after successful load
-                    _ = StartBackgroundCachingAsync(searchTextSnapshot);
+                    _ = StartBackgroundCachingAsync(searchTextSnapshot, filterSnapshot);
                 }
                 else
                 {
@@ -197,9 +205,82 @@ namespace PhoneStoreAdmin.View
         }
 
         // Header Button
-        private void AddButton_Click(object sender, RoutedEventArgs e)
+        private async void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Open add customer dialog or navigate to add page
+            var dialogContent = new CustomerDialog();
+            dialogContent.SetMode(CustomerDialog.DialogMode.Add);
+
+            var dialog = new ContentDialog
+            {
+                Title = "Thêm khách hàng",
+                Content = dialogContent,
+                PrimaryButtonText = _resourceLoader.GetString("DialogAdd"),
+                CloseButtonText = _resourceLoader.GetString("DialogCancel"),
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = this.XamlRoot
+            };
+
+            if (string.IsNullOrWhiteSpace(dialog.PrimaryButtonText))
+            {
+                dialog.PrimaryButtonText = "Thêm";
+            }
+
+            if (string.IsNullOrWhiteSpace(dialog.CloseButtonText))
+            {
+                dialog.CloseButtonText = "Hủy";
+            }
+
+            dialog.PrimaryButtonClick += async (s, args) =>
+            {
+                if (dialog.Content is not CustomerDialog ctrl)
+                {
+                    return;
+                }
+
+                if (!ctrl.ValidateForm())
+                {
+                    args.Cancel = true;
+                    return;
+                }
+
+                args.Cancel = true;
+
+                var customer = ctrl.BuildCustomer();
+
+                try
+                {
+                    ctrl.SetLoadingState(true);
+                    LoadingOverlay?.Show("Đang thêm khách hàng...");
+
+                    var result = await _customerService.AddCustomerAsync(customer);
+                    if (result != null)
+                    {
+                        ctrl.NotifySaved(result);
+                        dialog.Hide();
+
+                        _currentPage = 1;
+                        ClearCache();
+                        _cachingCts?.Cancel();
+
+                        await LoadDataAsync();
+                    }
+                    else
+                    {
+                        ctrl.ShowErrorMessage("Không thể thêm khách hàng. Vui lòng thử lại.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ctrl.ShowErrorMessage($"Lỗi khi thêm khách hàng: {ex.Message}");
+                }
+                finally
+                {
+                    ctrl.SetLoadingState(false);
+                    LoadingOverlay?.Hide();
+                }
+            };
+
+            await dialog.ShowAsync();
         }
 
         // Toolbar Actions
@@ -237,9 +318,29 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private void FilterButton_Click(object sender, RoutedEventArgs e)
+        private async void FilterButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Show filter dialog (by status, created date, etc.)
+            var dialog = new CustomerFilterDialog
+            {
+                XamlRoot = this.XamlRoot
+            };
+
+            dialog.SetCurrentFilters(CloneFilterCriteria(_currentFilterCriteria));
+
+            await dialog.ShowAsync();
+
+            if (dialog.IsApplied)
+            {
+                _currentFilterCriteria = dialog.FilterCriteria;
+                _currentPage = 1;
+
+                ClearCache();
+                _cachingCts?.Cancel();
+
+                UpdateFilterBadge();
+
+                await LoadDataAsync();
+            }
         }
 
         private async void RefreshButton_Click(object sender, RoutedEventArgs e)
@@ -249,15 +350,18 @@ namespace PhoneStoreAdmin.View
             {
                 SearchBox.Text = string.Empty;
             }
-            
+
             // Clear search text and reset to first page
             _currentSearchText = string.Empty;
             _currentPage = 1;
-            
+
+            _currentFilterCriteria = new CustomerFilterCriteria();
+            UpdateFilterBadge();
+
             // Clear cache and cancel any ongoing caching
             ClearCache();
             _cachingCts?.Cancel();
-            
+
             // Reload data
             await LoadDataAsync();
         }
@@ -267,34 +371,165 @@ namespace PhoneStoreAdmin.View
         {
             if (sender is Button button)
             {
-                FlyoutBase.ShowAttachedFlyout(button);
+                var flyout = FlyoutBase.GetAttachedFlyout(button);
+                if (flyout != null)
+                {
+                    flyout.ShowAt(button);
+                }
             }
         }
 
-        private void ViewMenuItem_Click(object sender, RoutedEventArgs e)
+        private async void ViewMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuFlyoutItem menuItem && 
+            if (sender is MenuFlyoutItem menuItem &&
                 menuItem.Tag is CustomerViewModel customer)
             {
-                // TODO: Navigate to customer detail page or show detail dialog
+                var dialogContent = new CustomerDialog();
+                dialogContent.SetMode(CustomerDialog.DialogMode.View, CloneCustomerViewModel(customer));
+
+                var dialog = new ContentDialog
+                {
+                    Title = "Thông tin khách hàng",
+                    Content = dialogContent,
+                    PrimaryButtonText = "Đóng",
+                    CloseButtonText = string.Empty,
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = this.XamlRoot
+                };
+
+                await dialog.ShowAsync();
             }
         }
 
-        private void EditMenuItem_Click(object sender, RoutedEventArgs e)
+        private async void EditMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuFlyoutItem menuItem && 
+            if (sender is MenuFlyoutItem menuItem &&
                 menuItem.Tag is CustomerViewModel customer)
             {
-                // TODO: Open edit customer dialog or navigate to edit page
+                var dialogContent = new CustomerDialog();
+                dialogContent.SetMode(CustomerDialog.DialogMode.Edit, CloneCustomerViewModel(customer));
+
+                var dialog = new ContentDialog
+                {
+                    Title = "Chỉnh sửa khách hàng",
+                    Content = dialogContent,
+                    PrimaryButtonText = _resourceLoader.GetString("DialogUpdate"),
+                    CloseButtonText = _resourceLoader.GetString("DialogCancel"),
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = this.XamlRoot
+                };
+
+                if (string.IsNullOrWhiteSpace(dialog.PrimaryButtonText))
+                {
+                    dialog.PrimaryButtonText = "Cập nhật";
+                }
+
+                if (string.IsNullOrWhiteSpace(dialog.CloseButtonText))
+                {
+                    dialog.CloseButtonText = "Hủy";
+                }
+
+                dialog.PrimaryButtonClick += async (s, args) =>
+                {
+                    if (dialog.Content is not CustomerDialog ctrl)
+                    {
+                        return;
+                    }
+
+                    if (!ctrl.ValidateForm())
+                    {
+                        args.Cancel = true;
+                        return;
+                    }
+
+                    args.Cancel = true;
+
+                    var updatedCustomer = ctrl.BuildCustomer();
+
+                    try
+                    {
+                        ctrl.SetLoadingState(true);
+                        LoadingOverlay?.Show("Đang cập nhật khách hàng...");
+
+                        var success = await _customerService.UpdateCustomerAsync(updatedCustomer);
+                        if (success)
+                        {
+                            dialog.Hide();
+
+                            ClearCache();
+                            _cachingCts?.Cancel();
+
+                            await LoadDataAsync();
+                        }
+                        else
+                        {
+                            ctrl.ShowErrorMessage("Không thể cập nhật khách hàng. Vui lòng thử lại.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ctrl.ShowErrorMessage($"Lỗi khi cập nhật khách hàng: {ex.Message}");
+                    }
+                    finally
+                    {
+                        ctrl.SetLoadingState(false);
+                        LoadingOverlay?.Hide();
+                    }
+                };
+
+                await dialog.ShowAsync();
             }
         }
 
-        private void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
+        private async void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuFlyoutItem menuItem && 
+            if (sender is MenuFlyoutItem menuItem &&
                 menuItem.Tag is CustomerViewModel customer)
             {
-                // TODO: Show confirmation dialog and delete customer
+                var confirmDialog = new ContentDialog
+                {
+                    Title = "Xóa khách hàng",
+                    Content = $"Bạn có chắc chắn muốn xóa khách hàng '{customer.FullName}'?",
+                    PrimaryButtonText = "Xóa",
+                    CloseButtonText = _resourceLoader.GetString("DialogCancel"),
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = this.XamlRoot
+                };
+
+                if (string.IsNullOrWhiteSpace(confirmDialog.CloseButtonText))
+                {
+                    confirmDialog.CloseButtonText = "Hủy";
+                }
+
+                var result = await confirmDialog.ShowAsync();
+
+                if (result == ContentDialogResult.Primary)
+                {
+                    try
+                    {
+                        LoadingOverlay?.Show("Đang xóa khách hàng...");
+
+                        var success = await _customerService.DeleteCustomerAsync(customer.Id);
+                        if (success)
+                        {
+                            ClearCache();
+                            _cachingCts?.Cancel();
+                            await LoadDataAsync();
+                        }
+                        else
+                        {
+                            await ShowMessageAsync("Không thể xóa", "Không thể xóa khách hàng. Vui lòng thử lại.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        await ShowMessageAsync("Lỗi", $"Xảy ra lỗi khi xóa khách hàng: {ex.Message}");
+                    }
+                    finally
+                    {
+                        LoadingOverlay?.Hide();
+                    }
+                }
             }
         }
 
@@ -319,12 +554,15 @@ namespace PhoneStoreAdmin.View
 
         #region Cache and Helper Methods
 
-        private async Task StartBackgroundCachingAsync(string searchText)
+        private async Task StartBackgroundCachingAsync(string searchText, CustomerFilterCriteria? filterCriteria)
         {
             // Cancel any existing caching operation
             _cachingCts?.Cancel();
             _cachingCts = new CancellationTokenSource();
             var token = _cachingCts.Token;
+
+            var filterSnapshot = CloneFilterCriteria(filterCriteria);
+            var filterKey = filterSnapshot?.GetCacheKey() ?? string.Empty;
 
             try
             {
@@ -348,8 +586,8 @@ namespace PhoneStoreAdmin.View
                     if (token.IsCancellationRequested)
                         break;
 
-                    await CachePageAsync(pageIndex, searchText, token);
-                    
+                    await CachePageAsync(pageIndex, searchText, filterSnapshot, filterKey, token);
+
                     // Small delay between caching to avoid overloading
                     await Task.Delay(100, token);
                 }
@@ -366,12 +604,12 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private async Task CachePageAsync(int pageIndex, string searchText, CancellationToken cancellationToken)
+        private async Task CachePageAsync(int pageIndex, string searchText, CustomerFilterCriteria? filterCriteria, string filterKey, CancellationToken cancellationToken)
         {
             try
             {
-                var cacheKey = GetCacheKey(pageIndex, searchText);
-                
+                var cacheKey = GetCacheKey(pageIndex, searchText, filterKey);
+
                 // Skip if already cached
                 if (_pageCache.ContainsKey(cacheKey))
                 {
@@ -380,7 +618,7 @@ namespace PhoneStoreAdmin.View
                 }
 
                 // Fetch page data
-                var result = await _customerService.GetCustomersFilteredAsync(searchText, pageIndex, _pageSize);
+                var result = await _customerService.GetCustomersFilteredAsync(searchText, filterCriteria, pageIndex, _pageSize);
                 
                 if (cancellationToken.IsCancellationRequested)
                     return;
@@ -395,7 +633,8 @@ namespace PhoneStoreAdmin.View
                         Phone = vm.Phone,
                         Email = vm.Email,
                         Address = vm.Address,
-                        IsActive = vm.IsActive
+                        IsActive = vm.IsActive,
+                        CreatedAt = vm.CreatedAt
                     }).ToList();
                     
                     _pageCache[cacheKey] = (rawCustomers, result.Info.TotalRecords);
@@ -408,9 +647,136 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private string GetCacheKey(int pageIndex, string searchText)
+        private string GetCacheKey(int pageIndex, string searchText, string filterKey)
         {
-            return $"{pageIndex}_{searchText ?? ""}".ToLowerInvariant();
+            return $"{pageIndex}_{searchText ?? ""}_{filterKey}".ToLowerInvariant();
+        }
+
+        private static CustomerViewModel CloneCustomerViewModel(CustomerViewModel source)
+        {
+            return new CustomerViewModel
+            {
+                Id = source.Id,
+                Code = source.Code,
+                FullName = source.FullName,
+                Phone = source.Phone,
+                Email = source.Email,
+                Address = source.Address,
+                IsActive = source.IsActive,
+                CreatedAt = source.CreatedAt
+            };
+        }
+
+        private void UpdateFilterBadge()
+        {
+            if (FilterStatusBadge == null || FilterStatusText == null)
+            {
+                return;
+            }
+
+            if (_currentFilterCriteria != null && _currentFilterCriteria.HasAnyFilter())
+            {
+                FilterStatusBadge.Visibility = Visibility.Visible;
+                FilterStatusText.Text = BuildFilterSummary(_currentFilterCriteria);
+            }
+            else
+            {
+                FilterStatusBadge.Visibility = Visibility.Collapsed;
+                FilterStatusText.Text = "Không có bộ lọc";
+            }
+        }
+
+        private string BuildFilterSummary(CustomerFilterCriteria criteria)
+        {
+            var summaries = new List<string>();
+
+            switch (criteria.Status)
+            {
+                case "Active":
+                    summaries.Add("Đang hoạt động");
+                    break;
+                case "Inactive":
+                    summaries.Add("Ngưng hoạt động");
+                    break;
+            }
+
+            if (criteria.CreatedFrom.HasValue || criteria.CreatedTo.HasValue)
+            {
+                var from = criteria.CreatedFrom?.ToString("dd/MM/yyyy") ?? "...";
+                var to = criteria.CreatedTo?.ToString("dd/MM/yyyy") ?? "...";
+                summaries.Add($"Ngày tạo: {from} - {to}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(criteria.PhonePrefix))
+            {
+                summaries.Add($"Đầu số: {criteria.PhonePrefix}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(criteria.City))
+            {
+                summaries.Add($"Thành phố: {criteria.City}");
+            }
+
+            if (criteria.HasEmail == true)
+            {
+                summaries.Add("Có email");
+            }
+
+            if (criteria.HasAddress == true)
+            {
+                summaries.Add("Có địa chỉ");
+            }
+
+            return summaries.Count > 0
+                ? string.Join(" • ", summaries)
+                : "Đã áp dụng bộ lọc";
+        }
+
+        private async Task ShowMessageAsync(string title, string message)
+        {
+            var dialog = new ContentDialog
+            {
+                Title = title,
+                Content = message,
+                CloseButtonText = "Đóng",
+                XamlRoot = this.XamlRoot
+            };
+
+            await dialog.ShowAsync();
+        }
+
+        private static CustomerFilterCriteria? CloneFilterCriteria(CustomerFilterCriteria? criteria)
+        {
+            if (criteria == null)
+            {
+                return null;
+            }
+
+            return new CustomerFilterCriteria
+            {
+                Status = criteria.Status,
+                CreatedFrom = criteria.CreatedFrom,
+                CreatedTo = criteria.CreatedTo,
+                PhonePrefix = criteria.PhonePrefix,
+                City = criteria.City,
+                HasEmail = criteria.HasEmail,
+                HasAddress = criteria.HasAddress
+            };
+        }
+
+        private static bool AreFiltersEqual(CustomerFilterCriteria? first, CustomerFilterCriteria? second)
+        {
+            if (first == null && second == null)
+            {
+                return true;
+            }
+
+            if (first == null || second == null)
+            {
+                return false;
+            }
+
+            return string.Equals(first.GetCacheKey(), second.GetCacheKey(), StringComparison.Ordinal);
         }
 
         private void ClearCache()
