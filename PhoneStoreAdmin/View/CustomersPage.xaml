@@ -237,7 +237,7 @@
                                        TextChanged="SearchBox_TextChanged"/>
 
                         <!-- Filter & Refresh Buttons -->
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                             <Button x:Name="FilterButton"
                                     x:Uid="CustomersPage_FilterButton"
                                     ToolTipService.ToolTip="Lọc dữ liệu"
@@ -260,6 +260,22 @@
                                     CornerRadius="8">
                                 <FontIcon FontSize="16" Glyph="&#xE72C;"/>
                             </Button>
+
+                            <Border x:Name="FilterStatusBadge"
+                                    Background="{StaticResource BrushPrimaryLight}"
+                                    CornerRadius="16"
+                                    Padding="12,6"
+                                    Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE73E;" Foreground="{StaticResource BrushPrimary}"/>
+                                    <TextBlock x:Name="FilterStatusText"
+                                               Text="Đã áp dụng bộ lọc"
+                                               Foreground="{StaticResource BrushPrimary}"
+                                               FontSize="13"
+                                               FontWeight="Medium"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </Grid>
                 </Border>
