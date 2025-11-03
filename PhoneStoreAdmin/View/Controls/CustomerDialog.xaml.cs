@@ -105,7 +105,7 @@ namespace PhoneStoreAdmin.View.Controls
             if (string.IsNullOrWhiteSpace(phone))
             {
                 _isPhoneValid = false;
-                ShowError(PhoneError, _resourceLoader.GetString("PhoneRequired/Text") ?? "Vui lòng nhập số điện thoại hợp lệ");
+                ShowError(PhoneError, "Vui lòng nhập số điện thoại hợp lệ");
                 return;
             }
 
@@ -113,7 +113,7 @@ namespace PhoneStoreAdmin.View.Controls
 
             if (!_isPhoneValid)
             {
-                ShowError(PhoneError, _resourceLoader.GetString("InvalidPhone/Text") ?? "Số điện thoại không hợp lệ");
+                ShowError(PhoneError, "Số điện thoại không hợp lệ");
             }
             else
             {
