@@ -2135,4 +2135,16 @@ How many devices do you want to add?</value>
   <data name="ConfirmDeactivateCodeContent" xml:space="preserve">
     <value>Are you sure you want to deactivate this code?</value>
   </data>
+  <data name="EmployeesPage_RecordCount.Text" xml:space="preserve">
+    <value>Showing 0 employees</value>
+  </data>
+  <data name="EmployeesPage_NoEmployees" xml:space="preserve">
+    <value>No employees</value>
+  </data>
+  <data name="EmployeesPage_RecordCountSingle" xml:space="preserve">
+    <value>Showing 1 employee</value>
+  </data>
+  <data name="EmployeesPage_RecordCountMultiple" xml:space="preserve">
+    <value>Showing {0} employees</value>
+  </data>
 </root>

@@ -54,12 +54,12 @@ namespace PhoneStoreAdmin.Services.Interfaces
         /// <summary>
         /// Get customers filtered with pagination
         /// </summary>
-        CustomerResult GetCustomersFiltered(string? searchTerm, int page = 1, int pageSize = 10);
+        CustomerResult GetCustomersFiltered(string? searchTerm, CustomerFilterCriteria? filterCriteria = null, int page = 1, int pageSize = 10);
 
         /// <summary>
         /// Get customers filtered with pagination (async)
         /// </summary>
-        Task<CustomerResult> GetCustomersFilteredAsync(string? searchTerm, int page = 1, int pageSize = 10);
+        Task<CustomerResult> GetCustomersFilteredAsync(string? searchTerm, CustomerFilterCriteria? filterCriteria = null, int page = 1, int pageSize = 10);
 
         /// <summary>
         /// Add new customer
