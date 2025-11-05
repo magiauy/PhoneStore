@@ -21,6 +21,7 @@ namespace PhoneStoreAdmin.View.Controls
         private bool _isDiscountAmountValid = false;
         private bool _isMinimumAmountValid = false;
         private bool _isInitializing = true;
+        private int _currentPromotionCodeId = 0;
         private PromotionCodeViewModel? _pendingPromotionCodeData = null;
         private DialogMode _pendingMode = DialogMode.Add;
 
@@ -110,9 +111,6 @@ namespace PhoneStoreAdmin.View.Controls
             try
             {
                 Logger.Info("Getting promotion service and fetching promotions...");
-                
-                // In Edit mode or when a preset PromotionId is provided (e.g., from PromotionEditPage), load all promotions
-                // Otherwise in Add mode, only load active promotions
                 bool hasPresetPromotion = (_pendingPromotionCodeData?.PromotionId ?? 0) > 0;
                 var promotions = (_currentMode == DialogMode.Edit || hasPresetPromotion)
                     ? _promotionService.GetAll().ToList()
@@ -140,55 +138,7 @@ namespace PhoneStoreAdmin.View.Controls
                 ShowError(PromotionError, _resourceLoader.GetString("LoadPromotionsError"));
             }
         }
-
-        private void LoadPromotionCodeData(int promotionCodeId)
-        {
-            try
-            {
-                var promotionCode = _promotionCodeService.GetPromotionCodeById(promotionCodeId);
-                if (promotionCode != null)
-                {
-                    PromotionCodeIdTextBox.Text = promotionCode.Id.ToString();
-                    PromotionCodeTextBox.Text = promotionCode.Code;
-                    DiscountAmountNumberBox.Value = (double)promotionCode.DiscountAmount;
-                    MinimumAmountNumberBox.Value = (double)promotionCode.MinimumAmount;
-                    
-                    if (promotionCode.UsageLimit.HasValue)
-                    {
-                        UsageLimitNumberBox.Value = promotionCode.UsageLimit.Value;
-                    }
-                    
-                    UsedCountTextBox.Text = promotionCode.UsedCount.ToString();
-                    IsActiveToggleSwitch.IsOn = promotionCode.IsActive;
-
-                    try
-                    {
-                        var promotionViewModels = PromotionComboBox?.ItemsSource as IEnumerable<PromotionViewModel>;
-                        var selectedPromotion = promotionViewModels?.FirstOrDefault(p => p.Id == promotionCode.PromotionId);
-                        if (selectedPromotion != null && PromotionComboBox != null)
-                        {
-                            PromotionComboBox.SelectedItem = selectedPromotion;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Error($"Error selecting promotion in PromotionCodeDialog for PromotionId={promotionCode.PromotionId}", ex);
-                    }
-
-                    // Set validation states
-                    _isCodeValid = !string.IsNullOrWhiteSpace(promotionCode.Code);
-                    _isPromotionValid = promotionCode.PromotionId > 0;
-                    _isDiscountAmountValid = promotionCode.DiscountAmount > 0;
-                    _isMinimumAmountValid = promotionCode.MinimumAmount >= 0;
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Error("Failed to load promotion code in PromotionCodeDialog", ex);
-                ShowError(PromotionCodeError, _resourceLoader.GetString("LoadPromotionCodeError"));
-            }
-        }
-
+        
         #region Validation
 
         private void PromotionCodeTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -361,7 +311,7 @@ namespace PhoneStoreAdmin.View.Controls
                 _pendingPromotionCodeData = promotionCode;
                 
                 // Only apply immediately if controls are ready
-                if (PromotionCodeIdTextBox != null && PromotionCodeTextBox != null)
+                if (PromotionCodeTextBox != null)
                 {
                     ApplyModeAndData();
                 }
@@ -410,7 +360,7 @@ namespace PhoneStoreAdmin.View.Controls
                 if (promotionCode == null || _currentMode == DialogMode.Add)
                 {
                     Logger.Info("Loading default data for Add mode");
-                    if (PromotionCodeIdTextBox != null) PromotionCodeIdTextBox.Text = "";
+                    _currentPromotionCodeId = 0;
                     if (PromotionCodeTextBox != null) PromotionCodeTextBox.Text = "";
                     if (DiscountAmountNumberBox != null) DiscountAmountNumberBox.Value = 0;
                     if (MinimumAmountNumberBox != null) MinimumAmountNumberBox.Value = 0;
@@ -432,7 +382,7 @@ namespace PhoneStoreAdmin.View.Controls
                 }
 
                 Logger.Info($"Loading existing promotion code data - ID: {promotionCode.Id}, Code: {promotionCode.Code}, PromotionId: {promotionCode.PromotionId}");
-                if (PromotionCodeIdTextBox != null) PromotionCodeIdTextBox.Text = promotionCode.Id.ToString();
+                _currentPromotionCodeId = promotionCode.Id;
                 if (PromotionCodeTextBox != null) PromotionCodeTextBox.Text = promotionCode.Code;
                 if (DiscountAmountNumberBox != null) DiscountAmountNumberBox.Value = (double)promotionCode.DiscountAmount;
                 if (MinimumAmountNumberBox != null) MinimumAmountNumberBox.Value = (double)promotionCode.MinimumAmount;
@@ -475,10 +425,7 @@ namespace PhoneStoreAdmin.View.Controls
         private void UpdateUIForMode()
         {
             bool isEditable = _currentMode != DialogMode.View;
-
-            if (PromotionCodeIdTextBox != null) PromotionCodeIdTextBox.IsReadOnly = true;
             if (PromotionCodeTextBox != null) PromotionCodeTextBox.IsReadOnly = !isEditable;
-            // Only changeable in Add mode from standalone page; if PromotionId is preset (>0), keep disabled
             if (PromotionComboBox != null)
             {
                 var preset = (_pendingPromotionCodeData?.PromotionId ?? 0) > 0;
@@ -511,7 +458,7 @@ namespace PhoneStoreAdmin.View.Controls
 
                 var promotionCode = new PromotionCode
                 {
-                    Id = int.TryParse(PromotionCodeIdTextBox?.Text, out int id) ? id : 0,
+                    Id = _currentPromotionCodeId,
                     Code = PromotionCodeTextBox?.Text?.Trim() ?? string.Empty,
                     PromotionId = (PromotionComboBox?.SelectedItem as PromotionViewModel)?.Id ?? 0,
                     DiscountAmount = (decimal)DiscountAmountNumberBox.Value,

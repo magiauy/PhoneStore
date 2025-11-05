@@ -84,13 +84,6 @@
 			<StackPanel HorizontalAlignment="Center">
 
 				<StackPanel HorizontalAlignment="Center" Spacing="4">
-
-					<TextBlock x:Uid="PromotionCodeIdLabel" Style="{StaticResource InputLabelStyle}" />
-					<TextBox
-                        x:Name="PromotionCodeIdTextBox"
-                        IsEnabled="False"
-                        Style="{StaticResource ReadOnlyFieldStyle}" />
-
 					<TextBlock x:Uid="PromotionCodeLabel" Style="{StaticResource InputLabelStyle}" />
 					<TextBox
                         x:Name="PromotionCodeTextBox"

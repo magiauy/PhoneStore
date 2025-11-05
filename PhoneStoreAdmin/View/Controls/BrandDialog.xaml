@@ -56,13 +56,6 @@
             <StackPanel HorizontalAlignment="Center">
 
                 <StackPanel HorizontalAlignment="Center" Spacing="4">
-
-                    <TextBlock x:Uid="BrandIdLabel" Style="{StaticResource InputLabelStyle}" />
-                    <TextBox
-                        x:Name="BrandIdTextBox"
-                        IsEnabled="False"
-                        Style="{StaticResource ReadOnlyFieldStyle}" />
-
                     <TextBlock x:Uid="BrandNameLabel" Style="{StaticResource InputLabelStyle}" />
                     <TextBox
                         x:Name="BrandNameTextBox"
