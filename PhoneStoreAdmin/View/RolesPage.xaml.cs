@@ -1,6 +1,5 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
@@ -10,6 +9,7 @@ using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Utils;
+using PhoneStoreAdmin.View.Controls;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -443,89 +443,41 @@ namespace PhoneStoreAdmin.View
 
         #region CRUD Operations
 
-        private async void AddRoleButton_Click(object sender, RoutedEventArgs e)
+        private async void CreateRoleButton_Click(object sender, RoutedEventArgs e)
         {
-            // Get current user's role weight
+            await EnsurePermissionsLoadedAsync();
+
             var currentUserRole = UserSession.Instance.Role;
             int minWeight = currentUserRole?.Weight ?? 0;
 
-            // Show add role dialog
-            var dialog = new ContentDialog
+            var dialog = new RoleDialog(null, _allPermissions, minWeight)
             {
                 XamlRoot = this.XamlRoot,
                 Title = "Thêm vai trò mới",
-                PrimaryButtonText = "Thêm",
-                CloseButtonText = "Hủy",
-                DefaultButton = ContentDialogButton.Primary
+                PrimaryButtonText = "Tạo",
+                SecondaryButtonText = "Hủy"
             };
-
-            var stackPanel = new StackPanel { Spacing = 12 };
-            
-            var nameBox = new TextBox
-            {
-                Header = "Tên vai trò",
-                PlaceholderText = "Nhập tên vai trò..."
-            };
-            stackPanel.Children.Add(nameBox);
-
-            var descBox = new TextBox
-            {
-                Header = "Mô tả",
-                PlaceholderText = "Nhập mô tả...",
-                AcceptsReturn = true,
-                TextWrapping = TextWrapping.Wrap,
-                Height = 80
-            };
-            stackPanel.Children.Add(descBox);
-
-            var weightBox = new NumberBox
-            {
-                Header = $"Trọng số",
-                Value = minWeight + 1,
-                Minimum = minWeight + 1,
-                Maximum = 1000,
-                SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline
-            };
-            stackPanel.Children.Add(weightBox);
-
-            // Add info message
-            var infoText = new TextBlock
-            {
-                Text = $"Lưu ý: Trọng số phải lớn hơn {minWeight}",
-                FontSize = 12,
-                Foreground = (Brush)Application.Current.Resources["BrushTextSecondary"],
-                TextWrapping = TextWrapping.Wrap
-            };
-            stackPanel.Children.Add(infoText);
-
-            dialog.Content = stackPanel;
 
             var result = await dialog.ShowAsync();
 
-            if (result == ContentDialogResult.Primary)
+            if (result == ContentDialogResult.Primary && dialog.Result != null)
             {
-                await CreateRoleAsync(nameBox.Text, descBox.Text, (int)weightBox.Value);
+                await CreateRoleAsync(dialog.Result);
             }
         }
 
-        private async Task CreateRoleAsync(string name, string description, int weight)
+        private async Task EnsurePermissionsLoadedAsync()
+        {
+            if (_allPermissions.Count == 0)
+            {
+                await LoadAllPermissionsAsync();
+            }
+        }
+
+        private async Task CreateRoleAsync(RoleDialogResult dialogResult)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(name))
-                {
-                    await ShowErrorDialogAsync("Lỗi", "Tên vai trò không được để trống");
-                    return;
-                }
-
-                // Frontend validation for weight
-                var currentUserRole = UserSession.Instance.Role;
-                if (currentUserRole != null && weight <= currentUserRole.Weight)
-                {
-                    await ShowErrorDialogAsync("Lỗi", $"Trọng số phải lớn hơn {currentUserRole.Weight} (trọng số vai trò của bạn)");
-                    return;
-                }
-
                 if (_roleService == null)
                 {
                     Logger.Error("RoleService is not available");
@@ -534,15 +486,17 @@ namespace PhoneStoreAdmin.View
 
                 LoadingOverlay.Show();
 
-                var newRole = new Role
-                {
-                    Name = name,
-                    Description = description,
-                    Weight = weight
-                };
+                var createdRole = await _roleService.CreateRoleAsync(dialogResult.Role, dialogResult.SelectedPermissionIds);
 
-                await _roleService.CreateRoleAsync(newRole);
                 await LoadRolesAsync();
+
+                // Select the newly created role to display permissions immediately
+                var createdRoleVm = Roles.FirstOrDefault(r => r.Id == createdRole.Id);
+                if (createdRoleVm != null)
+                {
+                    RolesListView.SelectedItem = createdRoleVm;
+                    await LoadRolePermissionsAsync(createdRoleVm.Id);
+                }
 
                 await ShowSuccessDialogAsync("Thành công", "Vai trò đã được tạo thành công");
             }
@@ -561,90 +515,31 @@ namespace PhoneStoreAdmin.View
         {
             if (_selectedRole == null) return;
 
-            // Store local reference to prevent race condition
-            var selectedRole = _selectedRole;
+            await EnsurePermissionsLoadedAsync();
 
-            // Get current user's role weight
             var currentUserRole = UserSession.Instance.Role;
             int minWeight = currentUserRole?.Weight ?? 0;
 
-            // Show edit role dialog
-            var dialog = new ContentDialog
+            var dialog = new RoleDialog(_selectedRole, _allPermissions, minWeight)
             {
                 XamlRoot = this.XamlRoot,
                 Title = "Chỉnh sửa vai trò",
                 PrimaryButtonText = "Lưu",
-                CloseButtonText = "Hủy",
-                DefaultButton = ContentDialogButton.Primary
+                SecondaryButtonText = "Hủy"
             };
-
-            var stackPanel = new StackPanel { Spacing = 12 };
-            
-            var nameBox = new TextBox
-            {
-                Header = "Tên vai trò",
-                Text = selectedRole.Name
-            };
-            stackPanel.Children.Add(nameBox);
-
-            var descBox = new TextBox
-            {
-                Header = "Mô tả",
-                Text = selectedRole.Description ?? string.Empty,
-                AcceptsReturn = true,
-                TextWrapping = TextWrapping.Wrap,
-                Height = 80
-            };
-            stackPanel.Children.Add(descBox);
-
-            var weightBox = new NumberBox
-            {
-                Header = $"Trọng số (phải > {minWeight})",
-                Value = selectedRole.Weight,
-                Minimum = minWeight + 1,
-                Maximum = 1000,
-                SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline
-            };
-            stackPanel.Children.Add(weightBox);
-
-            // Add info message
-            var infoText = new TextBlock
-            {
-                Text = $"Lưu ý: Trọng số phải lớn hơn {minWeight} (trọng số vai trò của bạn)",
-                FontSize = 12,
-                Foreground = (Brush)Application.Current.Resources["BrushTextSecondary"],
-                TextWrapping = TextWrapping.Wrap
-            };
-            stackPanel.Children.Add(infoText);
-
-            dialog.Content = stackPanel;
 
             var result = await dialog.ShowAsync();
 
-            if (result == ContentDialogResult.Primary)
+            if (result == ContentDialogResult.Primary && dialog.Result != null)
             {
-                await UpdateRoleAsync(selectedRole.Id, nameBox.Text, descBox.Text, (int)weightBox.Value);
+                await UpdateRoleAsync(dialog.Result);
             }
         }
 
-        private async Task UpdateRoleAsync(int roleId, string name, string description, int weight)
+        private async Task UpdateRoleAsync(RoleDialogResult dialogResult)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(name))
-                {
-                    await ShowErrorDialogAsync("Lỗi", "Tên vai trò không được để trống");
-                    return;
-                }
-
-                // Frontend validation for weight
-                var currentUserRole = UserSession.Instance.Role;
-                if (currentUserRole != null && weight <= currentUserRole.Weight)
-                {
-                    await ShowErrorDialogAsync("Lỗi", $"Trọng số phải lớn hơn {currentUserRole.Weight} (trọng số vai trò của bạn)");
-                    return;
-                }
-
                 if (_roleService == null)
                 {
                     Logger.Error("RoleService is not available");
@@ -653,15 +548,16 @@ namespace PhoneStoreAdmin.View
 
                 LoadingOverlay.Show();
 
-                _selectedRole!.Name = name;
-                _selectedRole.Description = description;
-                _selectedRole.Weight = weight;
+                await _roleService.UpdateRoleAsync(dialogResult.Role, dialogResult.SelectedPermissionIds);
 
-                await _roleService.UpdateRoleAsync(_selectedRole);
                 await LoadRolesAsync();
 
-                // Reload selected role
-                await LoadRolePermissionsAsync(roleId);
+                var updatedRoleVm = Roles.FirstOrDefault(r => r.Id == dialogResult.Role.Id);
+                if (updatedRoleVm != null)
+                {
+                    RolesListView.SelectedItem = updatedRoleVm;
+                    await LoadRolePermissionsAsync(updatedRoleVm.Id);
+                }
 
                 await ShowSuccessDialogAsync("Thành công", "Vai trò đã được cập nhật");
             }
