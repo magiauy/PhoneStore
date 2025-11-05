@@ -2296,4 +2296,7 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="GenericDialogTitle" xml:space="preserve">
     <value>Thông báo</value>
   </data>
+  <data name="Product_Status_Discontinued" xml:space="preserve">
+    <value>Ngừng bán</value>
+  </data>
 </root>
