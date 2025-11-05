@@ -66,6 +66,13 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<ICustomerService>(() => new CustomerService(GetService<ICustomerRepository>()));
             RegisterSingleton<ISupplierService>(() => new SupplierService(GetService<ISupplierRepository>()));
             RegisterSingleton<IBrandService>(() => new BrandService(GetService<IBrandRepository>()));
+            RegisterSingleton<IProductService>(() => new ProductService(
+                GetService<IProductRepository>(),
+                GetService<IBrandRepository>(),
+                GetService<IProductCategoryRepository>(),
+                GetService<IProductAttributeRepository>(),
+                GetService<IProductAttributeValueRepository>(),
+                GetService<IProductSerialRepository>()));
             RegisterSingleton<IPromotionService>(() => new PromotionService(GetService<IPromotionRepository>()));
             RegisterSingleton<IPromotionCodeService>(() => new PromotionCodeService(GetService<IPromotionCodeRepository>(), GetService<IPromotionRepository>()));
             RegisterSingleton<IPurchaseOrderService>(() => new PurchaseOrderService(
