@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="PhoneStoreAdmin.View.Controls.RoleDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PhoneStoreAdmin.View.Controls"
+    Title="Quản lý vai trò"
+    MinWidth="520"
+    MaxWidth="840"
+    DefaultButton="Primary"
+    PrimaryButtonText="Lưu"
+    SecondaryButtonText="Hủy"
+    PrimaryButtonClick="ContentDialog_PrimaryButtonClick">
+
+    <ContentDialog.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Theme/Colors.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </ContentDialog.Resources>
+
+    <ScrollViewer VerticalScrollMode="Auto">
+        <StackPanel Spacing="20" Padding="4">
+            <StackPanel Spacing="12">
+                <TextBlock
+                    Text="Thông tin vai trò"
+                    FontSize="18"
+                    FontWeight="SemiBold"
+                    Foreground="{StaticResource BrushPrimary}" />
+
+                <TextBox
+                    x:Name="NameTextBox"
+                    Header="Tên vai trò"
+                    PlaceholderText="Nhập tên vai trò"
+                    VerticalAlignment="Center" />
+
+                <TextBox
+                    x:Name="DescriptionTextBox"
+                    Header="Mô tả"
+                    PlaceholderText="Nhập mô tả"
+                    AcceptsReturn="True"
+                    TextWrapping="Wrap"
+                    Height="96" />
+
+                <NumberBox
+                    x:Name="WeightNumberBox"
+                    Header="Trọng số"
+                    Minimum="1"
+                    Maximum="1000"
+                    SpinButtonPlacementMode="Inline" />
+
+                <TextBlock
+                    x:Name="WeightInfoText"
+                    FontSize="12"
+                    Foreground="{StaticResource BrushTextSecondary}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <StackPanel Spacing="12">
+                <TextBlock
+                    Text="Phân quyền"
+                    FontSize="18"
+                    FontWeight="SemiBold"
+                    Foreground="{StaticResource BrushPrimary}" />
+
+                <TextBlock
+                    x:Name="PermissionHintText"
+                    Text="Chọn các quyền áp dụng cho vai trò này."
+                    FontSize="12"
+                    Foreground="{StaticResource BrushTextSecondary}"
+                    TextWrapping="Wrap" />
+
+                <TextBlock
+                    x:Name="EmptyPermissionsTextBlock"
+                    Text="Không có quyền khả dụng."
+                    Visibility="Collapsed"
+                    FontSize="14"
+                    Foreground="{StaticResource BrushTextSecondary}" />
+
+                <StackPanel x:Name="PermissionsContainer" Spacing="16" />
+            </StackPanel>
+
+            <TextBlock
+                x:Name="ErrorTextBlock"
+                Foreground="#D32F2F"
+                Visibility="Collapsed"
+                TextWrapping="Wrap" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>
