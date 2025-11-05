@@ -199,6 +199,10 @@ namespace PhoneStoreAdmin.View
 
             try
             {
+                if (_allPermissions.Count == 0)
+                {
+                    await LoadAllPermissionsAsync();
+                }
 
                 if (_roleService == null)
                 {
@@ -445,12 +449,10 @@ namespace PhoneStoreAdmin.View
 
         private async void CreateRoleButton_Click(object sender, RoutedEventArgs e)
         {
-            await EnsurePermissionsLoadedAsync();
-
             var currentUserRole = UserSession.Instance.Role;
             int minWeight = currentUserRole?.Weight ?? 0;
 
-            var dialog = new RoleDialog(null, _allPermissions, minWeight)
+            var dialog = new RoleDialog(null, minWeight)
             {
                 XamlRoot = this.XamlRoot,
                 Title = "Thêm vai trò mới",
@@ -466,14 +468,6 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private async Task EnsurePermissionsLoadedAsync()
-        {
-            if (_allPermissions.Count == 0)
-            {
-                await LoadAllPermissionsAsync();
-            }
-        }
-
         private async Task CreateRoleAsync(RoleDialogResult dialogResult)
         {
             try
@@ -486,7 +480,7 @@ namespace PhoneStoreAdmin.View
 
                 LoadingOverlay.Show();
 
-                var createdRole = await _roleService.CreateRoleAsync(dialogResult.Role, dialogResult.SelectedPermissionIds);
+                var createdRole = await _roleService.CreateRoleAsync(dialogResult.Role);
 
                 await LoadRolesAsync();
 
@@ -515,12 +509,10 @@ namespace PhoneStoreAdmin.View
         {
             if (_selectedRole == null) return;
 
-            await EnsurePermissionsLoadedAsync();
-
             var currentUserRole = UserSession.Instance.Role;
             int minWeight = currentUserRole?.Weight ?? 0;
 
-            var dialog = new RoleDialog(_selectedRole, _allPermissions, minWeight)
+            var dialog = new RoleDialog(_selectedRole, minWeight)
             {
                 XamlRoot = this.XamlRoot,
                 Title = "Chỉnh sửa vai trò",
@@ -548,7 +540,7 @@ namespace PhoneStoreAdmin.View
 
                 LoadingOverlay.Show();
 
-                await _roleService.UpdateRoleAsync(dialogResult.Role, dialogResult.SelectedPermissionIds);
+                await _roleService.UpdateRoleAsync(dialogResult.Role);
 
                 await LoadRolesAsync();
 
