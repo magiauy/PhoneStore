@@ -72,6 +72,24 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             entity.Id = GetLastInsertedId(connection);
         }
 
+        public void Insert(PurchaseOrderLine entity, MySqlConnection connection, MySqlTransaction transaction)
+        {
+            using var command = new MySqlCommand(
+                @"INSERT INTO purchase_order_lines (purchase_order_id, product_id, quantity, unit_cost, total_cost) 
+                  VALUES (@purchaseOrderId, @productId, @quantity, @unitCost, @totalCost)",
+                connection, transaction);
+            command.Parameters.AddWithValue("@purchaseOrderId", entity.PurchaseOrderId);
+            command.Parameters.AddWithValue("@productId", entity.ProductId);
+            command.Parameters.AddWithValue("@quantity", entity.Quantity);
+            command.Parameters.AddWithValue("@unitCost", entity.UnitCost);
+            command.Parameters.AddWithValue("@totalCost", entity.TotalCost);
+            command.ExecuteNonQuery();
+
+            // Get last inserted ID with transaction
+            using var idCommand = new MySqlCommand("SELECT LAST_INSERT_ID()", connection, transaction);
+            entity.Id = Convert.ToInt32(idCommand.ExecuteScalar());
+        }
+
         public void Update(PurchaseOrderLine entity)
         {
             using var connection = _dataSource.GetConnection();
@@ -127,9 +145,38 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             }
         }
 
+        public void DeleteByPurchaseOrderId(int purchaseOrderId, MySqlConnection connection, MySqlTransaction transaction)
+        {
+            // First, delete all product_serials that reference the purchase_order_lines
+            using (var deleteSerials = new MySqlCommand(
+                @"DELETE ps FROM product_serials ps
+INNER JOIN purchase_order_lines pol ON ps.purchase_order_line_id = pol.id
+    WHERE pol.purchase_order_id = @purchaseOrderId", 
+                connection, transaction))
+            {
+                deleteSerials.Parameters.AddWithValue("@purchaseOrderId", purchaseOrderId);
+                deleteSerials.ExecuteNonQuery();
+            }
+            
+            // Then delete the purchase_order_lines
+            using (var deleteLines = new MySqlCommand(
+                "DELETE FROM purchase_order_lines WHERE purchase_order_id = @purchaseOrderId", 
+                connection, transaction))
+            {
+                deleteLines.Parameters.AddWithValue("@purchaseOrderId", purchaseOrderId);
+                deleteLines.ExecuteNonQuery();
+            }
+        }
+
         private int GetLastInsertedId(MySqlConnection connection)
         {
             using var command = new MySqlCommand("SELECT LAST_INSERT_ID()", connection);
+            return Convert.ToInt32(command.ExecuteScalar());
+        }
+ 
+        private int GetLastInsertedId(MySqlConnection connection, MySqlTransaction transaction)
+        {
+            using var command = new MySqlCommand("SELECT LAST_INSERT_ID()", connection, transaction);
             return Convert.ToInt32(command.ExecuteScalar());
         }
 

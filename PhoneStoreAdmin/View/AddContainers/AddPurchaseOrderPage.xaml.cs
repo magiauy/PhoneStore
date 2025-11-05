@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -304,6 +304,40 @@ namespace PhoneStoreAdmin.View
                 return;
             }
 
+            // VALIDATION: Check if all serial-tracked products have complete serial information
+            var incompleteSerialItems = new List<string>();
+            foreach (var item in PurchaseOrderItems.Where(i => i.IsSerialTracked))
+            {
+                // Check if the number of serial entries matches the quantity
+                if (item.SerialEntries.Count != item.Quantity)
+                {
+                    incompleteSerialItems.Add($"{item.ProductName}: Có {item.Quantity} sản phẩm nhập chưa có {item.SerialEntries.Count} serial");
+                    continue;
+                }
+
+                // Check if all serial entries have complete information (Serial Number and IMEI1)
+                var missingInfo = item.SerialEntries.Where(s => 
+                    string.IsNullOrWhiteSpace(s.SerialNumber) || 
+                    string.IsNullOrWhiteSpace(s.Imei1)).ToList();
+
+                if (missingInfo.Any())
+                {
+                    incompleteSerialItems.Add($"{item.ProductName}: Thiếu thông tin Serial Number hoặc IMEI cho {missingInfo.Count} sản phẩm");
+                }
+            }
+
+            // If there are incomplete serial items, show error and don't save
+            if (incompleteSerialItems.Any())
+            {
+                var errorMessage = "Vui lòng nhập thông tin Serial Number và IMEI cho các sản phẩm sau:\n\n" + 
+                    string.Join("\n", incompleteSerialItems);
+                
+                await ShowMessageDialog(
+                    "Thông tin chưa đầy đủ", 
+                    errorMessage);
+                return;
+            }
+
             try
             {
                 // Show notes input dialog (for both creating and editing)
@@ -468,30 +502,57 @@ namespace PhoneStoreAdmin.View
 
             try
             {
+                Logger.Info($"Starting PDF generation. Supplier: {SelectedSupplier?.Name}, Items count: {PurchaseOrderItems?.Count}");
+
+                // Ensure supplier is not null
+                if (SelectedSupplier == null)
+                {
+                    Logger.Error("SelectedSupplier is null");
+                    await ShowMessageDialog(
+                        _resourceLoader.GetString("PurchaseOrderErrorTitle"),
+                        "Supplier not selected. Please select a supplier.");
+                    return;
+                }
+
                 // Create temporary purchase order object for printing
                 var tempPurchaseOrder = new PurchaseOrder
                 {
                     Id = _editingPurchaseOrderId ?? 0,
                     SupplierId = SelectedSupplier.Id,
-                    CreatedBy = _editingPurchaseOrderId.HasValue ? _originalPurchaseOrder!.CreatedBy : 1,
+                    CreatedBy = _editingPurchaseOrderId.HasValue && _originalPurchaseOrder != null 
+                        ? _originalPurchaseOrder.CreatedBy 
+                        : 1,
                     OrderDate = OrderDate,
                     Status = PoStatus.DRAFT,
                     TotalAmount = TotalAmount,
-                    Note = Note
+                    Note = Note ?? string.Empty
                 };
 
-                // Add purchase order lines
-                foreach (var item in PurchaseOrderItems)
+                // Ensure PurchaseOrderLines collection is initialized
+                if (tempPurchaseOrder.PurchaseOrderLines == null)
                 {
-                    var line = new PurchaseOrderLine
-                    {
-                        ProductId = item.ProductId,
-                        Quantity = item.Quantity,
-                        UnitCost = item.UnitCost,
-                        TotalCost = item.TotalCost
-                    };
-                    tempPurchaseOrder.PurchaseOrderLines.Add(line);
+                    tempPurchaseOrder.PurchaseOrderLines = new List<PurchaseOrderLine>();
                 }
+
+                // Add purchase order lines
+                if (PurchaseOrderItems != null)
+                {
+                    foreach (var item in PurchaseOrderItems)
+                    {
+                        if (item == null) continue;
+
+                        var line = new PurchaseOrderLine
+                        {
+                            ProductId = item.ProductId,
+                            Quantity = item.Quantity,
+                            UnitCost = item.UnitCost,
+                            TotalCost = item.TotalCost
+                        };
+                        tempPurchaseOrder.PurchaseOrderLines.Add(line);
+                    }
+                }
+
+                Logger.Info($"Created temp PO with {tempPurchaseOrder.PurchaseOrderLines.Count} lines");
 
                 // Open file save dialog
                 var savePicker = new Windows.Storage.Pickers.FileSavePicker();
@@ -500,6 +561,7 @@ namespace PhoneStoreAdmin.View
                 var window = GetWindowForElement(this);
                 if (window == null)
                 {
+                    Logger.Error("Could not find window for file picker");
                     throw new InvalidOperationException("Could not find window");
                 }
                 
@@ -513,8 +575,24 @@ namespace PhoneStoreAdmin.View
                 var file = await savePicker.PickSaveFileAsync();
                 if (file != null)
                 {
-                    // Generate PDF
+                    Logger.Info($"File path selected: {file.Path}");
+
+                    // Generate PDF with null checks
+                    if (tempPurchaseOrder == null)
+                    {
+                        Logger.Error("tempPurchaseOrder is null before PDF generation");
+                        throw new InvalidOperationException("Purchase order is null");
+                    }
+
+                    if (SelectedSupplier == null)
+                    {
+                        Logger.Error("SelectedSupplier is null before PDF generation");
+                        throw new InvalidOperationException("Supplier is null");
+                    }
+
                     Utils.PurchaseOrderPdfGenerator.GeneratePdf(tempPurchaseOrder, SelectedSupplier, file.Path);
+
+                    Logger.Info("PDF generated successfully");
 
                     // Show success message
                     var dialog = new ContentDialog
@@ -534,12 +612,17 @@ namespace PhoneStoreAdmin.View
                         await Windows.System.Launcher.LaunchFileAsync(file);
                     }
                 }
+                else
+                {
+                    Logger.Info("User cancelled file picker");
+                }
             }
             catch (Exception ex)
             {
+                Logger.Error($"Failed to generate PDF: {ex.Message}", ex);
                 await ShowMessageDialog(
                     _resourceLoader.GetString("PurchaseOrderErrorTitle"),
-                    $"Failed to generate PDF: {ex.Message}");
+                    $"Failed to generate PDF: {ex.Message}\n\nPlease check the logs for more details.");
             }
         }
 
@@ -1041,7 +1124,7 @@ namespace PhoneStoreAdmin.View
 
         public string GetMachineTitle()
         {
-            return $"M�y {Index}";
+            return $"Máy {Index}";
         }
 
         public Visibility HasImei2()

@@ -25,5 +25,15 @@ namespace PhoneStoreAdmin.Data
             connection.Open();
             return connection;
         }
+
+        /// <summary>
+        /// Get a new connection with a transaction started
+        /// </summary>
+        public (MySqlConnection connection, MySqlTransaction transaction) BeginTransaction()
+        {
+            var connection = GetConnection();
+            var transaction = connection.BeginTransaction();
+            return (connection, transaction);
+        }
     }
 }

@@ -66,6 +66,11 @@
                     Icon="PreviewLink"
                     Tag="Batches" />
                 <NavigationViewItem
+                    x:Name="ReportNavItem"
+                    x:Uid="MenuItemReports"
+                    Icon="ReportHacked"
+                    Tag="Reports" />
+                <NavigationViewItem
                     x:Name="CustomersNavItem"
                     x:Uid="MenuItemCustomers"
                     Icon="ContactInfo"
@@ -77,13 +82,13 @@
                     Icon="Contact"
                     Tag="Employees" />
                 <NavigationViewItem
-                    x:Uid="MenuAccount"
                     x:Name="AccountsNavItem"
+                    x:Uid="MenuAccount"
                     Icon="People"
                     Tag="Accounts" />
                 <NavigationViewItem
-                    x:Uid="MenuRoles"
                     x:Name="RolesNavItem"
+                    x:Uid="MenuRoles"
                     Icon="Permissions"
                     Tag="Roles" />
             </NavigationView.MenuItems>

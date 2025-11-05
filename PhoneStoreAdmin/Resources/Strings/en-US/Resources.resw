@@ -1567,7 +1567,6 @@ How many devices do you want to add?</value>
   <data name="LoadingData" xml:space="preserve">
     <value>Loading Data...</value>
   </data>
-  <!-- Roles Page -->
   <data name="Roles_PageTitle.Text" xml:space="preserve">
     <value>Roles Management</value>
   </data>
@@ -1622,7 +1621,6 @@ How many devices do you want to add?</value>
   <data name="MenuRoles.Content" xml:space="preserve">
     <value>Roles</value>
   </data>
-  <!-- AccountEdit Page -->
   <data name="AccountEdit_BasicInfoSection.Text" xml:space="preserve">
     <value>Basic Information</value>
   </data>
@@ -1746,7 +1744,7 @@ How many devices do you want to add?</value>
   <data name="Common/Close" xml:space="preserve">
     <value>Close</value>
   </data>
-    <data name="MenuItemBrands.Content" xml:space="preserve">
+  <data name="MenuItemBrands.Content" xml:space="preserve">
     <value>Brands</value>
   </data>
   <data name="HeaderTitleBrand.Text" xml:space="preserve">
@@ -1806,7 +1804,7 @@ How many devices do you want to add?</value>
   <data name="ProcessingBrandText.Text" xml:space="preserve">
     <value>Processing...</value>
   </data>
-    <data name="AddBrandTitle" xml:space="preserve">
+  <data name="AddBrandTitle" xml:space="preserve">
     <value>Add Brand</value>
   </data>
   <data name="EditBrandTitle" xml:space="preserve">
@@ -1821,9 +1819,6 @@ How many devices do you want to add?</value>
   <data name="DialogCancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
-  
-  <!-- Promotions Module -->
-  <!-- Navigation & Headers -->
   <data name="MenuItemPromotions.Content" xml:space="preserve">
     <value>Promotions</value>
   </data>
@@ -1833,14 +1828,12 @@ How many devices do you want to add?</value>
   <data name="SubHeaderTitlePromotion.Text" xml:space="preserve">
     <value>Add, edit, delete and manage promotions</value>
   </data>
-    <data name="SubHeaderUpdateTitlePromotion.Text" xml:space="preserve">
+  <data name="SubHeaderUpdateTitlePromotion.Text" xml:space="preserve">
     <value>Update promotion information and manage promotion codes</value>
   </data>
   <data name="PromotionInfo.Text" xml:space="preserve">
     <value>Promotion Information</value>
   </data>
-  
-  <!-- Buttons -->
   <data name="BtnNewPromotion.Text" xml:space="preserve">
     <value>Add a promotion</value>
   </data>
@@ -1856,8 +1849,6 @@ How many devices do you want to add?</value>
   <data name="BtnDeactivatePromotion.Text" xml:space="preserve">
     <value>Deactivate</value>
   </data>
-  
-  <!-- Search & Filter -->
   <data name="SearchPromotion.PlaceholderText" xml:space="preserve">
     <value>Search by promotion name...</value>
   </data>
@@ -1870,8 +1861,6 @@ How many devices do you want to add?</value>
   <data name="FilterEndDateBoxPromotion.Text" xml:space="preserve">
     <value>End Date</value>
   </data>
-  
-  <!-- Table Columns -->
   <data name="ColIDPromotion.Text" xml:space="preserve">
     <value>ID</value>
   </data>
@@ -1893,8 +1882,6 @@ How many devices do you want to add?</value>
   <data name="ColActionsPromotion.Text" xml:space="preserve">
     <value>ACTIONS</value>
   </data>
-  
-  <!-- Pagination -->
   <data name="ShowIngPromotion.Text" xml:space="preserve">
     <value>Showing</value>
   </data>
@@ -1904,16 +1891,12 @@ How many devices do you want to add?</value>
   <data name="PagePromotion.Text" xml:space="preserve">
     <value>Page</value>
   </data>
-  
-  <!-- Empty State -->
   <data name="EmptyStateTitlePromotion.Text" xml:space="preserve">
     <value>No promotions found</value>
   </data>
   <data name="EmptyStateDescriptionPromotion.Text" xml:space="preserve">
     <value>There are no promotions to display. Add a new promotion or check your filters.</value>
   </data>
-  
-  <!-- Dialog -->
   <data name="ViewPromotionTitle" xml:space="preserve">
     <value>Promotion detail</value>
   </data>
@@ -1935,21 +1918,18 @@ How many devices do you want to add?</value>
   <data name="PromotionIsActiveLabel.Text" xml:space="preserve">
     <value>Active</value>
   </data>
-  
   <data name="PromotionNamePlaceholder.PlaceholderText" xml:space="preserve">
     <value>Enter promotion name</value>
   </data>
   <data name="PromotionDescriptionPlaceholder.PlaceholderText" xml:space="preserve">
     <value>Enter description (optional)</value>
   </data>
-  
   <data name="AddPromotionTitle" xml:space="preserve">
     <value>Add Promotion</value>
   </data>
   <data name="EditPromotionTitle.Text" xml:space="preserve">
     <value>Edit Promotion</value>
   </data>
-  
   <data name="PromotionUpdateFailedMessage.Message" xml:space="preserve">
     <value>Failed to update promotion. Please try again.</value>
   </data>
@@ -1959,8 +1939,6 @@ How many devices do you want to add?</value>
   <data name="ProcessingPromotionText.Text" xml:space="preserve">
     <value>Processing...</value>
   </data>
-   <!-- Promotion Codes Module -->
-  <!-- Navigation & Headers -->
   <data name="MenuItemPromotionCodes.Content" xml:space="preserve">
     <value>Promotion Codes</value>
   </data>
@@ -1970,8 +1948,6 @@ How many devices do you want to add?</value>
   <data name="SubHeaderTitlePromotionCode.Text" xml:space="preserve">
     <value>Add, edit, delete and manage promotion codes</value>
   </data>
-  
-  <!-- Buttons -->
   <data name="BtnNewPromotionCode.Text" xml:space="preserve">
     <value>Add a promotion code</value>
   </data>
@@ -1987,8 +1963,6 @@ How many devices do you want to add?</value>
   <data name="BtnDeactivatePromotionCode.Text" xml:space="preserve">
     <value>Deactivate</value>
   </data>
-  
-  <!-- Search & Filter -->
   <data name="SearchPromotionCode.PlaceholderText" xml:space="preserve">
     <value>Search by code...</value>
   </data>
@@ -1998,8 +1972,6 @@ How many devices do you want to add?</value>
   <data name="FilterStatusBoxPromotionCode.Text" xml:space="preserve">
     <value>Status</value>
   </data>
-  
-  <!-- Table Columns -->
   <data name="ColIDPromotionCode.Text" xml:space="preserve">
     <value>ID</value>
   </data>
@@ -2027,8 +1999,6 @@ How many devices do you want to add?</value>
   <data name="ColActionsPromotionCode.Text" xml:space="preserve">
     <value>ACTIONS</value>
   </data>
-  
-  <!-- Pagination -->
   <data name="ShowIngPromotionCode.Text" xml:space="preserve">
     <value>Showing</value>
   </data>
@@ -2038,16 +2008,12 @@ How many devices do you want to add?</value>
   <data name="PagePromotionCode.Text" xml:space="preserve">
     <value>Page</value>
   </data>
-  
-  <!-- Empty State -->
   <data name="EmptyStateTitlePromotionCode.Text" xml:space="preserve">
     <value>No promotion codes found</value>
   </data>
   <data name="EmptyStateDescriptionPromotionCode.Text" xml:space="preserve">
     <value>There are no promotion codes to display. Add a new promotion code or check your filters.</value>
   </data>
-  
-  <!-- Dialog -->
   <data name="PromotionCodeIdLabel.Text" xml:space="preserve">
     <value>ID</value>
   </data>
@@ -2072,7 +2038,6 @@ How many devices do you want to add?</value>
   <data name="PromotionCodeIsActiveLabel.Text" xml:space="preserve">
     <value>Active</value>
   </data>
-  
   <data name="PromotionCodePlaceholder.PlaceholderText" xml:space="preserve">
     <value>Enter promotion code</value>
   </data>
@@ -2088,14 +2053,12 @@ How many devices do you want to add?</value>
   <data name="PromotionCodeUsageLimitHint.Text" xml:space="preserve">
     <value>Leave empty for unlimited usage</value>
   </data>
-  
   <data name="AddPromotionCodeTitle" xml:space="preserve">
     <value>Add Promotion Code</value>
   </data>
   <data name="EditPromotionCodeTitle" xml:space="preserve">
     <value>Edit Promotion Code</value>
   </data>
-  <!-- PromotionCode Dialog Validation Messages -->
   <data name="PromotionCodeRequiredError" xml:space="preserve">
     <value>Promotion code is required</value>
   </data>
@@ -2173,5 +2136,8 @@ How many devices do you want to add?</value>
   </data>
   <data name="NotificationRestartMessage/Text" xml:space="preserve">
     <value>Notification preferences have been updated. Restart to refresh background listeners if necessary.</value>
+  </data>
+  <data name="MenuItemReports" xml:space="preserve">
+    <value>Reports</value>
   </data>
 </root>
