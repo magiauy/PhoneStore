@@ -596,7 +596,10 @@ namespace PhoneStoreAdmin.View.Controls
 
             foreach (var attribute in _attributeInputs)
             {
-                attribute.InputControl.IsEnabled = enabled;
+                if (attribute.InputControl is Control control)
+                {
+                    control.IsEnabled = enabled;
+                }
             }
         }
 
@@ -1032,12 +1035,11 @@ namespace PhoneStoreAdmin.View.Controls
 
         private int? GetSelectedBrandId()
         {
-            var selected = BrandComboBox.SelectedValue;
-            return selected switch
+            return BrandComboBox.SelectedValue switch
             {
-                int value => value,
-                int? value => value,
-                _ => null
+                int intValue => intValue,
+                null => (int?)null,
+                _ => (int?)null
             };
         }
 
