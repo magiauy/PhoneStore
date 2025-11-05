@@ -36,6 +36,18 @@ namespace PhoneStoreAdmin.Services.Implementations
             _productSerialRepository = productSerialRepository ?? throw new ArgumentNullException(nameof(productSerialRepository));
         }
 
+        public ProductSearchResult SearchProducts(ProductFilterCriteria criteria)
+        {
+            if (criteria == null)
+            {
+                Logger.Warning("Product search criteria is null. Returning empty result.");
+                return new ProductSearchResult(Array.Empty<ProductListItemViewModel>(), new InfoTable(0, 0));
+            }
+
+            criteria.Normalize();
+            return SearchProducts(criteria.Sku, criteria.Name, criteria.CategoryId, criteria.BrandId, criteria.Status, criteria.Page, criteria.PageSize);
+        }
+
         public ProductSearchResult SearchProducts(string? sku, string? name, int? categoryId, int? brandId, ProductStatus? status, int page = 1, int pageSize = 20)
         {
             try
@@ -71,11 +83,25 @@ namespace PhoneStoreAdmin.Services.Implementations
                 var categoryLookup = BuildCategoryLookup();
                 var brandLookup = BuildBrandLookup();
 
+                var productIds = pagedProducts.Select(p => p.Id).ToList();
+                var serialCounts = productIds.Count > 0
+                    ? _productSerialRepository.GetCountsByProductIds(productIds)
+                    : new Dictionary<int, int>();
+
                 var viewModels = pagedProducts
-                    .Select(p => new ProductListItemViewModel(
-                        p,
-                        categoryLookup.TryGetValue(p.CategoryId, out var categoryName) ? categoryName : string.Empty,
-                        p.BrandId.HasValue && brandLookup.TryGetValue(p.BrandId.Value, out var brandName) ? brandName : null))
+                    .Select(p =>
+                    {
+                        var categoryName = categoryLookup.TryGetValue(p.CategoryId, out var catName) ? catName : string.Empty;
+                        string? brandName = null;
+                        if (p.BrandId.HasValue && brandLookup.TryGetValue(p.BrandId.Value, out var brand))
+                        {
+                            brandName = brand;
+                        }
+
+                        var serialCount = serialCounts.TryGetValue(p.Id, out var count) ? count : 0;
+
+                        return new ProductListItemViewModel(p, categoryName, brandName, serialCount);
+                    })
                     .ToList();
 
                 return new ProductSearchResult(viewModels, new InfoTable(totalRecords, totalPages));
@@ -123,7 +149,7 @@ namespace PhoneStoreAdmin.Services.Implementations
                     Note = serial.Note
                 }).ToList();
 
-                var productViewModel = new ProductListItemViewModel(product, categoryName, brandName);
+                var productViewModel = new ProductListItemViewModel(product, categoryName, brandName, serialViewModels.Count);
 
                 return new ProductDetailViewModel(productViewModel, attributeViewModels, serialViewModels);
             }

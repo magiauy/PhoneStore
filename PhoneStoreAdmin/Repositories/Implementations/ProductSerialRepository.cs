@@ -4,6 +4,7 @@ using PhoneStoreAdmin.Repositories.Interfaces;
 using PhoneStoreAdmin.Models.Enums;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MySqlConnector;
 
 namespace PhoneStoreAdmin.Repositories.Implementations
@@ -160,6 +161,41 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                 result.Add(MapFromReader(reader));
             }
             return result;
+        }
+
+        public IDictionary<int, int> GetCountsByProductIds(IEnumerable<int> productIds)
+        {
+            var counts = new Dictionary<int, int>();
+            if (productIds == null)
+            {
+                return counts;
+            }
+
+            var ids = productIds.Distinct().ToList();
+            if (ids.Count == 0)
+            {
+                return counts;
+            }
+
+            using var connection = _dataSource.GetConnection();
+            var parameterNames = ids.Select((_, index) => $"@id{index}").ToList();
+            var query = $"SELECT product_id, COUNT(*) AS serial_count FROM product_serials WHERE product_id IN ({string.Join(",", parameterNames)}) GROUP BY product_id";
+
+            using var command = new MySqlCommand(query, connection);
+            for (var i = 0; i < ids.Count; i++)
+            {
+                command.Parameters.AddWithValue(parameterNames[i], ids[i]);
+            }
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var productId = reader.GetInt32("product_id");
+                var count = reader.GetInt32("serial_count");
+                counts[productId] = count;
+            }
+
+            return counts;
         }
 
         private int GetLastInsertedId(MySqlConnection connection)
