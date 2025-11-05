@@ -27,20 +27,18 @@ namespace PhoneStoreAdmin.Services.Interfaces
         Task<Role?> GetRoleByNameAsync(string name);
 
         /// <summary>
-        /// Create a new role and assign permissions
+        /// Create a new role
         /// </summary>
         /// <param name="role">Role to create</param>
-        /// <param name="permissionIds">Permission identifiers to assign</param>
         /// <returns>Created role with ID</returns>
-        Task<Role> CreateRoleAsync(Role role, List<int> permissionIds);
+        Task<Role> CreateRoleAsync(Role role);
 
         /// <summary>
-        /// Update an existing role and its permissions
+        /// Update an existing role
         /// </summary>
         /// <param name="role">Role to update</param>
-        /// <param name="permissionIds">Permission identifiers to assign</param>
         /// <returns>True if update successful, false otherwise</returns>
-        Task<bool> UpdateRoleAsync(Role role, List<int> permissionIds);
+        Task<bool> UpdateRoleAsync(Role role);
 
         /// <summary>
         /// Delete a role
