@@ -114,6 +114,40 @@ namespace PhoneStoreAdmin.View
             await LoadDataFromDatabaseAsync();
         }
 
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+
+            // Dispose search timer to prevent callbacks after navigation
+            _searchTimer?.Dispose();
+            _searchTimer = null;
+
+            // Cancel background caching operations
+            if (_cachingCts != null)
+            {
+                _cachingCts.Cancel();
+                _cachingCts.Dispose();
+                _cachingCts = null;
+            }
+
+            // Clear cached data
+            ClearCache();
+
+            // Reset selected employee and role selections to avoid stale data
+            _selectedEmployee = null;
+            _selectedRoleIds.Clear();
+
+            if (EmployeesListView != null)
+            {
+                EmployeesListView.SelectedItem = null;
+            }
+
+            if (SelectedRolesText != null)
+            {
+                SelectedRolesText.Text = _resourceLoader.GetString("Accounts_SelectRolesPlaceholder");
+            }
+        }
+
         #region Event Handlers
 
         private void AccountsListTab_Click(object sender, RoutedEventArgs e)
@@ -200,8 +234,19 @@ namespace PhoneStoreAdmin.View
                     async _ =>
                     {
                         // Execute search on UI thread
-                        DispatcherQueue.TryEnqueue(async () =>
+                        var dispatcherQueue = DispatcherQueue;
+                        if (dispatcherQueue == null)
                         {
+                            return;
+                        }
+
+                        dispatcherQueue.TryEnqueue(async () =>
+                        {
+                            if (!IsLoaded)
+                            {
+                                return;
+                            }
+
                             await LoadPageDataAsync();
                         });
                     },
