@@ -18,7 +18,7 @@ namespace PhoneStoreAdmin.View
 {
     public sealed partial class ProductsPage : Page
     {
-        private sealed class SelectionOption<T>
+        public sealed class SelectionOption<T>
         {
             public SelectionOption(string displayName, T value)
             {
@@ -446,7 +446,7 @@ namespace PhoneStoreAdmin.View
                     panel.Children.Add(new TextBlock
                     {
                         Text = _resourceLoader.GetString("ProductNoAttributes"),
-                        FontStyle = FontStyle.Italic,
+                        FontStyle = Microsoft.UI.Text.FontStyle.Italic,
                         FontSize = 13
                     });
                 }
