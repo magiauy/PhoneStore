@@ -172,7 +172,7 @@
                             x:Uid="SearchSku"
                             Grid.Column="0"
                             Style="{StaticResource InputStyle}"
-                            QueryIcon="Barcode"
+                            QueryIcon="Find"
                             TextChanged="SearchSkuBox_TextChanged" />
 
                         <AutoSuggestBox
