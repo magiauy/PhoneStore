@@ -6,6 +6,7 @@
     xmlns:local="using:PhoneStoreAdmin.View"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:DataType="local:SettingsPage"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -243,41 +244,74 @@
                                 </ComboBox>
                             </Grid>
 
-                            <!-- Theme Setting (Placeholder) -->
+                            <!-- Theme Setting -->
                             <Grid Style="{StaticResource SettingItemStyle}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                
-                                <FontIcon Grid.Column="0" 
-                                          Glyph="&#xE790;" 
-                                          FontSize="20" 
+
+                                <FontIcon Grid.Column="0"
+                                          Glyph="&#xE790;"
+                                          FontSize="20"
                                           Foreground="{StaticResource BrushTextSecondary}"
                                           VerticalAlignment="Center"/>
-                                
-                                <StackPanel Grid.Column="1" 
-                                            Margin="16,0,0,0" 
+
+                                <StackPanel Grid.Column="1"
+                                            Margin="16,0,0,0"
                                             VerticalAlignment="Center">
                                     <TextBlock x:Uid="Theme"
-                                               FontSize="16" 
+                                               FontSize="16"
                                                Foreground="{StaticResource BrushText}"/>
                                     <TextBlock x:Uid="ThemeDescription"
-                                               FontSize="14" 
+                                               FontSize="14"
+                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                    <TextBlock Text="Changes take effect immediately."
+                                               FontSize="12"
                                                Foreground="{StaticResource BrushTextSecondary}"/>
                                 </StackPanel>
-                                
-                                <ComboBox Grid.Column="2" 
-                                          x:Name="ThemeComboBox"
-                                          Style="{StaticResource SettingComboBoxStyle}"
-                                          IsEnabled="False">
-                                    <ComboBoxItem x:Uid="Light" IsSelected="True"/>
-                                    <ComboBoxItem x:Uid="Dark"/>
-                                    <ComboBoxItem x:Uid="System"/>
-                                </ComboBox>
+
+                                <ToggleSwitch Grid.Column="2"
+                                              x:Name="ThemeToggleSwitch"
+                                              IsOn="{x:Bind IsDarkThemeEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              OnContent="Dark"
+                                              OffContent="Light"
+                                              HorizontalAlignment="Right"/>
                             </Grid>
 
+                            <!-- Notification Setting -->
+                            <Grid Style="{StaticResource SettingItemStyle}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <FontIcon Grid.Column="0"
+                                          Glyph="&#xE7F4;"
+                                          FontSize="20"
+                                          Foreground="{StaticResource BrushTextSecondary}"
+                                          VerticalAlignment="Center"/>
+
+                                <StackPanel Grid.Column="1"
+                                            Margin="16,0,0,0"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="Notifications"
+                                               FontSize="16"
+                                               Foreground="{StaticResource BrushText}"/>
+                                    <TextBlock Text="Receive alerts about order updates and critical events."
+                                               FontSize="14"
+                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                </StackPanel>
+
+                                <ToggleSwitch Grid.Column="2"
+                                              x:Name="NotificationsToggleSwitch"
+                                              IsOn="{x:Bind AreNotificationsEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              OnContent="On"
+                                              OffContent="Off"
+                                              HorizontalAlignment="Right"/>
+                            </Grid>
 
                         </StackPanel>
                     </Border>
