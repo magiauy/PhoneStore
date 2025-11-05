@@ -7,5 +7,8 @@ namespace PhoneStoreAdmin.Repositories.Interfaces
     {
         ProductCategory GetByName(string name);
         IEnumerable<ProductCategory> GetByParentId(int? parentId);
+        IEnumerable<ProductCategory> GetCategoriesFiltered(string? name, int? parentId, int page, int pageSize);
+        int GetTotalRecords(string? name, int? parentId);
+        int GetTotalPages(string? name, int? parentId, int pageSize);
     }
 }

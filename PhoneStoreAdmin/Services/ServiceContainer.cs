@@ -49,6 +49,8 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<IBatchesRepository>(() => new BatchesRepository(GetService<DataSource>()));
             RegisterSingleton<IProductCategoryRepository>(() => new ProductCategoryRepository(GetService<DataSource>()));
             RegisterSingleton<IBrandRepository>(() => new BrandRepository(GetService<DataSource>()));
+            RegisterSingleton<IProductAttributeRepository>(() => new ProductAttributeRepository(GetService<DataSource>()));
+            RegisterSingleton<IProductAttributeValueRepository>(() => new ProductAttributeValueRepository(GetService<DataSource>()));
             RegisterSingleton<IPromotionRepository>(() => new PromotionRepository(GetService<DataSource>()));
             RegisterSingleton<IPromotionCodeRepository>(() => new PromotionCodeRepository(GetService<DataSource>()));
             RegisterSingleton<IProductRepository>(() => new ProductRepository(GetService<DataSource>()));
