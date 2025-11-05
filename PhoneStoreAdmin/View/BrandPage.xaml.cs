@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
 using PhoneStoreAdmin.Services.Interfaces;
 using System;
 using System.Collections.ObjectModel;
@@ -264,6 +265,49 @@ namespace PhoneStoreAdmin.View
                 CurrentPage--;
                 LoadBrands();
             }
+        }
+        private async void Grid_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+        {
+            var grid = sender as Grid;
+            if (grid?.DataContext == null) return;
+
+            var brandViewModel = grid.DataContext as BrandViewModel;
+            if (brandViewModel == null) return;
+
+            var brandDialog = new BrandDialog();
+            brandDialog.SetMode(BrandDialog.DialogMode.Edit, brandViewModel);
+
+            var dialog = CreateContentDialog(brandDialog, _resourceLoader.GetString("EditBrandTitle"));
+            dialog.PrimaryButtonText = _resourceLoader.GetString("DialogUpdate");
+            dialog.CloseButtonText = _resourceLoader.GetString("DialogCancel");
+
+            brandDialog.BrandSaved += (s, model) =>
+            {
+                if (model != null) LoadBrands();
+            };
+
+            dialog.PrimaryButtonClick += (s, args) =>
+            {
+                var ctrl = (BrandDialog)dialog.Content;
+                if (!ctrl.IsValid())
+                {
+                    args.Cancel = true;
+                    return;
+                }
+                try
+                {
+                    ctrl.Save();
+                    LoadBrands();
+                }
+                catch (Exception ex)
+                {
+                    args.Cancel = true;
+                    ShowErrorDialog("Error", ex.Message);
+                }
+            };
+
+            _currentDialog = dialog;
+            await dialog.ShowAsync();
         }
 
     }
