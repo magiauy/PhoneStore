@@ -1564,10 +1564,9 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="Loading" xml:space="preserve">
     <value>Đang tải...</value>
   </data>
-    <data name="LoadingData" xml:space="preserve">
+  <data name="LoadingData" xml:space="preserve">
     <value>Đang tải dữ liệu...</value>
   </data>
-  <!-- Roles Page -->
   <data name="Roles_PageTitle.Text" xml:space="preserve">
     <value>Quản lý Vai trò</value>
   </data>
@@ -1622,7 +1621,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="MenuRoles.Content" xml:space="preserve">
     <value>Vai Trò</value>
   </data>
-  <!-- AccountEdit Page -->
   <data name="AccountEdit_BasicInfoSection.Text" xml:space="preserve">
     <value>Thông tin cơ bản</value>
   </data>
@@ -1746,7 +1744,7 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="Common/Close" xml:space="preserve">
     <value>Đóng</value>
   </data>
-    <data name="MenuItemBrands.Content" xml:space="preserve">
+  <data name="MenuItemBrands.Content" xml:space="preserve">
     <value>Thương hiệu</value>
   </data>
   <data name="HeaderTitleBrand.Text" xml:space="preserve">
@@ -1806,7 +1804,7 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="ProcessingBrandText.Text" xml:space="preserve">
     <value>Đang xử lý...</value>
   </data>
-    <data name="AddBrandTitle" xml:space="preserve">
+  <data name="AddBrandTitle" xml:space="preserve">
     <value>Thêm thương hiệu</value>
   </data>
   <data name="EditBrandTitle" xml:space="preserve">
@@ -1821,8 +1819,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="DialogCancel" xml:space="preserve">
     <value>Hủy</value>
   </data>
-   <!-- Promotions Module -->
-  <!-- Navigation & Headers -->
   <data name="MenuItemPromotions.Content" xml:space="preserve">
     <value>Khuyến mãi</value>
   </data>
@@ -1838,8 +1834,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="PromotionInfo.Text" xml:space="preserve">
     <value>Thông tin khuyến mãi</value>
   </data>
-  
-  <!-- Buttons -->
   <data name="BtnNewPromotion.Text" xml:space="preserve">
     <value>Thêm khuyến mãi</value>
   </data>
@@ -1855,8 +1849,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="BtnDeactivatePromotion.Text" xml:space="preserve">
     <value>Vô hiệu hóa</value>
   </data>
-  
-  <!-- Search & Filter -->
   <data name="SearchPromotion.PlaceholderText" xml:space="preserve">
     <value>Tìm kiếm theo tên khuyến mãi...</value>
   </data>
@@ -1869,8 +1861,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="FilterEndDateBoxPromotion.Text" xml:space="preserve">
     <value>Ngày kết thúc</value>
   </data>
-  
-  <!-- Table Columns -->
   <data name="ColIDPromotion.Text" xml:space="preserve">
     <value>ID</value>
   </data>
@@ -1892,8 +1882,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="ColActionsPromotion.Text" xml:space="preserve">
     <value>THAO TÁC</value>
   </data>
-  
-  <!-- Pagination -->
   <data name="ShowIngPromotion.Text" xml:space="preserve">
     <value>Hiển thị</value>
   </data>
@@ -1903,16 +1891,12 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="PagePromotion.Text" xml:space="preserve">
     <value>Trang</value>
   </data>
-  
-  <!-- Empty State -->
   <data name="EmptyStateTitlePromotion.Text" xml:space="preserve">
     <value>Không tìm thấy khuyến mãi</value>
   </data>
   <data name="EmptyStateDescriptionPromotion.Text" xml:space="preserve">
     <value>Không có khuyến mãi nào để hiển thị. Thêm khuyến mãi mới hoặc kiểm tra bộ lọc.</value>
   </data>
-  
-  <!-- Dialog -->
   <data name="ViewPromotionTitle" xml:space="preserve">
     <value>Chi tiết khuyến mãi</value>
   </data>
@@ -1934,21 +1918,18 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="PromotionIsActiveLabel.Text" xml:space="preserve">
     <value>Kích hoạt</value>
   </data>
-  
   <data name="PromotionNamePlaceholder.PlaceholderText" xml:space="preserve">
     <value>Nhập tên khuyến mãi</value>
   </data>
   <data name="PromotionDescriptionPlaceholder.PlaceholderText" xml:space="preserve">
     <value>Nhập mô tả (tùy chọn)</value>
   </data>
-  
   <data name="AddPromotionTitle" xml:space="preserve">
     <value>Thêm khuyến mãi</value>
   </data>
   <data name="EditPromotionTitle.Text" xml:space="preserve">
     <value>Chỉnh sửa khuyến mãi</value>
   </data>
-  
   <data name="PromotionUpdateFailedMessage.Message" xml:space="preserve">
     <value>Cập nhật khuyến mãi thất bại. Vui lòng thử lại.</value>
   </data>
@@ -1958,8 +1939,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="ProcessingPromotionText.Text" xml:space="preserve">
     <value>Đang xử lý...</value>
   </data>
-   <!-- Promotion Codes Module -->
-  <!-- Navigation & Headers -->
   <data name="MenuItemPromotionCodes.Content" xml:space="preserve">
     <value>Mã khuyến mãi</value>
   </data>
@@ -1969,8 +1948,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="SubHeaderTitlePromotionCode.Text" xml:space="preserve">
     <value>Thêm, chỉnh sửa, xóa và quản lý mã khuyến mãi</value>
   </data>
-  
-  <!-- Buttons -->
   <data name="BtnNewPromotionCode.Text" xml:space="preserve">
     <value>Thêm mã khuyến mãi</value>
   </data>
@@ -1986,8 +1963,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="BtnDeactivatePromotionCode.Text" xml:space="preserve">
     <value>Vô hiệu hóa</value>
   </data>
-  
-  <!-- Search & Filter -->
   <data name="SearchPromotionCode.PlaceholderText" xml:space="preserve">
     <value>Tìm kiếm theo mã...</value>
   </data>
@@ -1997,8 +1972,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="FilterStatusBoxPromotionCode.Text" xml:space="preserve">
     <value>Trạng thái</value>
   </data>
-  
-  <!-- Table Columns -->
   <data name="ColIDPromotionCode.Text" xml:space="preserve">
     <value>ID</value>
   </data>
@@ -2026,8 +1999,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="ColActionsPromotionCode.Text" xml:space="preserve">
     <value>THAO TÁC</value>
   </data>
-  
-  <!-- Pagination -->
   <data name="ShowIngPromotionCode.Text" xml:space="preserve">
     <value>Hiển thị</value>
   </data>
@@ -2037,16 +2008,12 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="PagePromotionCode.Text" xml:space="preserve">
     <value>Trang</value>
   </data>
-  
-  <!-- Empty State -->
   <data name="EmptyStateTitlePromotionCode.Text" xml:space="preserve">
     <value>Không tìm thấy mã khuyến mãi</value>
   </data>
   <data name="EmptyStateDescriptionPromotionCode.Text" xml:space="preserve">
     <value>Không có mã khuyến mãi nào để hiển thị. Thêm mã khuyến mãi mới hoặc kiểm tra bộ lọc.</value>
   </data>
-  
-  <!-- Dialog -->
   <data name="PromotionCodeIdLabel.Text" xml:space="preserve">
     <value>ID</value>
   </data>
@@ -2071,7 +2038,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="PromotionCodeIsActiveLabel.Text" xml:space="preserve">
     <value>Kích hoạt</value>
   </data>
-  
   <data name="PromotionCodePlaceholder.PlaceholderText" xml:space="preserve">
     <value>Nhập mã khuyến mãi</value>
   </data>
@@ -2087,14 +2053,12 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="PromotionCodeUsageLimitHint.Text" xml:space="preserve">
     <value>Để trống nếu không giới hạn số lần sử dụng</value>
   </data>
-  
   <data name="AddPromotionCodeTitle" xml:space="preserve">
     <value>Thêm mã khuyến mãi</value>
   </data>
   <data name="EditPromotionCodeTitle" xml:space="preserve">
     <value>Chỉnh sửa mã khuyến mãi</value>
   </data>
-  <!-- PromotionCode Dialog Validation Messages -->
   <data name="PromotionCodeRequiredError" xml:space="preserve">
     <value>Mã khuyến mãi không được để trống</value>
   </data>
@@ -2122,7 +2086,7 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="BtnFilterPromotion.Text" xml:space="preserve">
     <value>Lọc</value>
   </data>
- <data name="UnlimitedPromotionCode" xml:space="preserve">
+  <data name="UnlimitedPromotionCode" xml:space="preserve">
     <value>Không giới hạn</value>
   </data>
   <data name="ConfirmActivateCodeTitle" xml:space="preserve">
@@ -2172,5 +2136,8 @@ Bạn muốn thêm bao nhiêu máy?</value>
   </data>
   <data name="NotificationRestartMessage/Text" xml:space="preserve">
     <value>Các tùy chọn thông báo đã được cập nhật. Khởi động lại để làm mới trình lắng nghe nền nếu cần.</value>
+  </data>
+  <data name="MenuItemReports" xml:space="preserve">
+    <value>Báo cáo</value>
   </data>
 </root>

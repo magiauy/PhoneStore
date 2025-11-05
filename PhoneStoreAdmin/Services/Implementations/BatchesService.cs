@@ -1,9 +1,10 @@
 ﻿using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Repositories.Implementations;
 using PhoneStoreAdmin.Repositories.Interfaces;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Utils;
 using PhoneStoreAdmin.ViewModels;
+using PhoneStoreAdmin.Data;
+using MySqlConnector;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,13 +17,20 @@ namespace PhoneStoreAdmin.Services.Implementations
         private readonly IBatchProductRepository _batchProductRepository;
         private readonly IPurchaseOrderRepository _purchaseOrderRepository;
         private readonly ISupplierRepository _supplierRepository;
+        private readonly DataSource _dataSource;
 
-        public BatchesService(IBatchesRepository batchesRepository, IBatchProductRepository batchProductRepository, IPurchaseOrderRepository purchaseOrderRepository, ISupplierRepository supplierRepository)
+        public BatchesService(
+            IBatchesRepository batchesRepository,
+            IBatchProductRepository batchProductRepository,
+            IPurchaseOrderRepository purchaseOrderRepository,
+            ISupplierRepository supplierRepository,
+            DataSource dataSource)
         {
             _batchesRepository = batchesRepository ?? throw new ArgumentNullException(nameof(batchesRepository));
             _batchProductRepository = batchProductRepository ?? throw new ArgumentNullException(nameof(batchProductRepository));
             _purchaseOrderRepository = purchaseOrderRepository ?? throw new ArgumentNullException(nameof(purchaseOrderRepository));
             _supplierRepository = supplierRepository ?? throw new ArgumentNullException(nameof(supplierRepository));
+            _dataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
         }
 
         public Batches? GetById(int id)
@@ -46,55 +54,116 @@ namespace PhoneStoreAdmin.Services.Implementations
 
         public void Insert(Batches batch)
         {
+            var (connection, transaction) = _dataSource.BeginTransaction();
             try
             {
                 Logger.Info($"Inserting Batches for PurchaseOrder {batch.PurchaseOrderId}");
-                _batchesRepository.Insert(batch);
+
+                // Insert batch with transaction
+                _batchesRepository.Insert(batch, connection, transaction);
+
+                // Insert batch products with transaction
                 foreach (var product in batch.BatchProducts)
                 {
                     product.BatchId = batch.id;
-                    _batchProductRepository.Insert(product);
+                    _batchProductRepository.Insert(product, connection, transaction);
                 }
+
+                transaction.Commit();
+                Logger.Info($"Batch {batch.id} created successfully");
             }
             catch (Exception ex)
             {
-                Logger.Error("Failed to insert Batches", ex);
+                transaction.Rollback();
+                Logger.Error("Failed to insert Batches - transaction rolled back", ex);
                 throw;
+            }
+            finally
+            {
+                transaction.Dispose();
+                connection.Dispose();
             }
         }
 
         public void Update(Batches batch)
         {
+            var (connection, transaction) = _dataSource.BeginTransaction();
             try
             {
                 Logger.Info($"Updating Batches ID {batch.id}");
-                _batchesRepository.Update(batch);
-                _batchProductRepository.DeleteByBatchId(batch.id);
+
+                // Update batch with transaction (cần thêm method này trong BatchesRepository)
+                // Hiện tại Update không có overload với transaction, vì vậy sẽ dùng method thông thường
+                // nhưng gọi trong transaction context
+                using (var command = new MySqlCommand(
+@"UPDATE batches 
+ SET purchase_order_id = @purchaseOrderId, batch_code = @batchCode, created_at = @createdAt, 
+     note = @note
+WHERE id = @id",
+                    connection, transaction))
+                {
+                    command.Parameters.AddWithValue("@id", batch.id);
+                    command.Parameters.AddWithValue("@purchaseOrderId", batch.PurchaseOrderId);
+                    command.Parameters.AddWithValue("@batchCode", batch.BatchCode ?? (object)System.DBNull.Value);
+                    command.Parameters.AddWithValue("@createdAt", batch.CreatedAt);
+                    command.Parameters.AddWithValue("@note", batch.Note ?? (object)System.DBNull.Value);
+                    command.ExecuteNonQuery();
+                }
+
+                // Delete old batch products and insert new ones with transaction
+                _batchProductRepository.DeleteByBatchId(batch.id, connection, transaction);
                 foreach (var product in batch.BatchProducts)
                 {
                     product.BatchId = batch.id;
-                    _batchProductRepository.Insert(product);
+                    _batchProductRepository.Insert(product, connection, transaction);
                 }
+
+                transaction.Commit();
+                Logger.Info($"Batch {batch.id} updated successfully");
             }
             catch (Exception ex)
             {
-                Logger.Error($"Failed to update Batches {batch.id}", ex);
+                transaction.Rollback();
+                Logger.Error($"Failed to update Batches {batch.id} - transaction rolled back", ex);
                 throw;
+            }
+            finally
+            {
+                transaction.Dispose();
+                connection.Dispose();
             }
         }
 
         public void Delete(int id)
         {
+            var (connection, transaction) = _dataSource.BeginTransaction();
             try
             {
                 Logger.Info($"Deleting Batches ID {id}");
-                _batchProductRepository.DeleteByBatchId(id);
-                _batchesRepository.Delete(id);
+
+                // Delete batch products with transaction
+                _batchProductRepository.DeleteByBatchId(id, connection, transaction);
+
+                // Delete batch with transaction
+                using (var command = new MySqlCommand("DELETE FROM batches WHERE id = @id", connection, transaction))
+                {
+                    command.Parameters.AddWithValue("@id", id);
+                    command.ExecuteNonQuery();
+                }
+
+                transaction.Commit();
+                Logger.Info($"Batch {id} deleted successfully");
             }
             catch (Exception ex)
             {
-                Logger.Error($"Failed to delete Batches {id}", ex);
+                transaction.Rollback();
+                Logger.Error($"Failed to delete Batches {id} - transaction rolled back", ex);
                 throw;
+            }
+            finally
+            {
+                transaction.Dispose();
+                connection.Dispose();
             }
         }
 

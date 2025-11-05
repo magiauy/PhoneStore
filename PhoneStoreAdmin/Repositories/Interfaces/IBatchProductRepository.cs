@@ -1,4 +1,5 @@
 using PhoneStoreAdmin.Models;
+using MySqlConnector;
 using System.Collections.Generic;
 
 namespace PhoneStoreAdmin.Repositories.Interfaces
@@ -18,5 +19,15 @@ namespace PhoneStoreAdmin.Repositories.Interfaces
         IEnumerable<BatchProduct> GetBatchProductsFiltered(int? batchId, int? productId, int? minQuantity, int? maxQuantity, decimal? minCostPrice, decimal? maxCostPrice, decimal? minSellingPrice, decimal? maxSellingPrice, int page = 1, int pageSize = 20);
         int GetTotalPages(int? batchId, int? productId, int? minQuantity, int? maxQuantity, decimal? minCostPrice, decimal? maxCostPrice, decimal? minSellingPrice, decimal? maxSellingPrice, int pageSize);
         #endregion
+
+        /// <summary>
+        /// Insert a batch product using an existing transaction
+        /// </summary>
+        void Insert(BatchProduct entity, MySqlConnection connection, MySqlTransaction transaction);
+
+        /// <summary>
+        /// Delete batch products by batch ID using an existing transaction
+        /// </summary>
+        void DeleteByBatchId(int batchId, MySqlConnection connection, MySqlTransaction transaction);
     }
 }
