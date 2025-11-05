@@ -2147,4 +2147,28 @@ How many devices do you want to add?</value>
   <data name="EmployeesPage_RecordCountMultiple" xml:space="preserve">
     <value>Showing {0} employees</value>
   </data>
+  <data name="RestartNow/Text" xml:space="preserve">
+    <value>Restart Now</value>
+  </data>
+  <data name="RestartLater/Text" xml:space="preserve">
+    <value>Restart Later</value>
+  </data>
+  <data name="RestartFailedTitle/Text" xml:space="preserve">
+    <value>Unable to Restart</value>
+  </data>
+  <data name="RestartFailedMessage/Text" xml:space="preserve">
+    <value>The application could not restart automatically ({0}). Please restart manually.</value>
+  </data>
+  <data name="ThemeRestartTitle/Text" xml:space="preserve">
+    <value>Restart Recommended</value>
+  </data>
+  <data name="ThemeRestartMessage/Text" xml:space="preserve">
+    <value>Theme changes are applied immediately, but restarting ensures all windows use the new appearance.</value>
+  </data>
+  <data name="NotificationRestartTitle/Text" xml:space="preserve">
+    <value>Restart May Be Required</value>
+  </data>
+  <data name="NotificationRestartMessage/Text" xml:space="preserve">
+    <value>Notification preferences have been updated. Restart to refresh background listeners if necessary.</value>
+  </data>
 </root>
