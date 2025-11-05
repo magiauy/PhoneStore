@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Navigation;
 using PhoneStoreAdmin.Helpers;
 using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Services;
@@ -41,6 +42,7 @@ namespace PhoneStoreAdmin.View
         private readonly Dictionary<string, (List<EmployeeViewModel> Employees, int TotalCount)> _pageCache = new();
         private const int CachePagesAround = 3;
         private CancellationTokenSource? _cachingCts;
+        private bool _isPageActive = true;
 
         public EmployeesPage()
         {
@@ -55,12 +57,22 @@ namespace PhoneStoreAdmin.View
 
         private async Task LoadDataAsync()
         {
+            if (!_isPageActive)
+            {
+                return;
+            }
+
             var searchTextSnapshot = _currentSearchText;
             var filterSnapshot = _currentFilterCriteria?.Clone() ?? new EmployeeFilterCriteria();
             var cacheKey = GetCacheKey(_currentPage, searchTextSnapshot, filterSnapshot);
 
             try
             {
+                if (!_isPageActive)
+                {
+                    return;
+                }
+
                 Logger.Info($"Loading employees (page {_currentPage}, search='{searchTextSnapshot}')");
 
                 if (_pageCache.TryGetValue(cacheKey, out var cachedData))
@@ -68,6 +80,11 @@ namespace PhoneStoreAdmin.View
                     Logger.Info($"Using cached employees for page {_currentPage}");
                     _totalCount = cachedData.TotalCount;
                     _totalPages = Math.Max(1, (int)Math.Ceiling(_totalCount / (double)_pageSize));
+
+                    if (!_isPageActive)
+                    {
+                        return;
+                    }
 
                     Items.Clear();
                     foreach (var employee in cachedData.Employees.Select(CloneEmployeeViewModel))
@@ -83,6 +100,11 @@ namespace PhoneStoreAdmin.View
                 var result = await Task.Run(() =>
                     _employeeService.GetEmployeesFiltered(searchTextSnapshot, _currentPage, _pageSize, filterSnapshot));
 
+                if (!_isPageActive)
+                {
+                    return;
+                }
+
                 if (searchTextSnapshot != _currentSearchText
                     || !_currentFilterCriteria.HasSameState(filterSnapshot))
                 {
@@ -97,6 +119,11 @@ namespace PhoneStoreAdmin.View
                     _totalPages = Math.Max(1, result.Info.TotalPages);
 
                     var employees = result.Employees?.ToList() ?? new List<EmployeeViewModel>();
+
+                    if (!_isPageActive)
+                    {
+                        return;
+                    }
 
                     Items.Clear();
                     foreach (var employee in employees)
@@ -115,19 +142,25 @@ namespace PhoneStoreAdmin.View
                 else
                 {
                     Logger.Warning("Employee service returned null result");
-                    Items.Clear();
-                    _totalCount = 0;
-                    _totalPages = 1;
-                    UpdateUI();
+                    if (_isPageActive)
+                    {
+                        Items.Clear();
+                        _totalCount = 0;
+                        _totalPages = 1;
+                        UpdateUI();
+                    }
                 }
             }
             catch (Exception ex)
             {
                 Logger.Error("Failed to load employees", ex);
-                Items.Clear();
-                _totalCount = 0;
-                _totalPages = 1;
-                UpdateUI();
+                if (_isPageActive)
+                {
+                    Items.Clear();
+                    _totalCount = 0;
+                    _totalPages = 1;
+                    UpdateUI();
+                }
             }
         }
 
@@ -191,6 +224,11 @@ namespace PhoneStoreAdmin.View
         private void SearchBox_TextChanged(AutoSuggestBox sender,
             AutoSuggestBoxTextChangedEventArgs args)
         {
+            if (!_isPageActive)
+            {
+                return;
+            }
+
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
             {
                 var previousSearchText = _currentSearchText;
@@ -200,17 +238,36 @@ namespace PhoneStoreAdmin.View
                 if (previousSearchText != _currentSearchText)
                 {
                     ClearCache();
-                    _cachingCts?.Cancel();
+                    AsyncResourceCleanupHelper.CancelAndDispose(ref _cachingCts);
                 }
 
-                _searchTimer?.Dispose();
+                AsyncResourceCleanupHelper.DisposeTimer(ref _searchTimer);
                 _searchTimer = new Timer(
-                    async _ =>
+                    _ =>
                     {
-                        DispatcherQueue.TryEnqueue(async () =>
+                        if (!_isPageActive)
                         {
+                            return;
+                        }
+
+                        var dispatcher = DispatcherQueue;
+                        if (dispatcher == null)
+                        {
+                            return;
+                        }
+
+                        if (!dispatcher.TryEnqueue(async () =>
+                        {
+                            if (!_isPageActive)
+                            {
+                                return;
+                            }
+
                             await LoadDataAsync();
-                        });
+                        }))
+                        {
+                            Logger.Warning("Unable to enqueue employee search refresh on dispatcher queue");
+                        }
                     },
                     null,
                     SearchDelayMs,
@@ -238,7 +295,7 @@ namespace PhoneStoreAdmin.View
                 _currentPage = 1;
                 UpdateFilterStatusUI();
                 ClearCache();
-                _cachingCts?.Cancel();
+                AsyncResourceCleanupHelper.CancelAndDispose(ref _cachingCts);
                 await LoadDataAsync();
             }
         }
@@ -254,7 +311,7 @@ namespace PhoneStoreAdmin.View
             _currentPage = 1;
 
             ClearCache();
-            _cachingCts?.Cancel();
+            AsyncResourceCleanupHelper.CancelAndDispose(ref _cachingCts);
 
             await LoadDataAsync();
         }
@@ -331,7 +388,7 @@ namespace PhoneStoreAdmin.View
 
                         try
                         {
-                            _cachingCts?.Cancel();
+                            AsyncResourceCleanupHelper.CancelAndDispose(ref _cachingCts);
                             var employeeModel = dialogControl.BuildEmployee();
                             var result = await _employeeService.AddEmployeeAsync(employeeModel);
                             if (result == null)
@@ -377,7 +434,7 @@ namespace PhoneStoreAdmin.View
 
                         try
                         {
-                            _cachingCts?.Cancel();
+                            AsyncResourceCleanupHelper.CancelAndDispose(ref _cachingCts);
                             var employeeModel = dialogControl.BuildEmployee();
                             var success = await _employeeService.UpdateEmployeeAsync(employeeModel);
                             if (!success)
@@ -443,7 +500,7 @@ namespace PhoneStoreAdmin.View
 
             try
             {
-                _cachingCts?.Cancel();
+                AsyncResourceCleanupHelper.CancelAndDispose(ref _cachingCts);
                 var success = await _employeeService.DeleteEmployeeAsync(employee.Id);
                 if (!success)
                 {
@@ -516,7 +573,12 @@ namespace PhoneStoreAdmin.View
 
         private async Task StartBackgroundCachingAsync(string searchText, EmployeeFilterCriteria filterCriteria)
         {
-            _cachingCts?.Cancel();
+            if (!_isPageActive)
+            {
+                return;
+            }
+
+            AsyncResourceCleanupHelper.CancelAndDispose(ref _cachingCts);
             _cachingCts = new CancellationTokenSource();
             var token = _cachingCts.Token;
 
@@ -537,10 +599,15 @@ namespace PhoneStoreAdmin.View
 
                 foreach (var pageIndex in pagesToCache)
                 {
-                    if (token.IsCancellationRequested)
+                    if (token.IsCancellationRequested || !_isPageActive)
                         break;
 
                     await CachePageAsync(pageIndex, searchText, filterCriteria, token);
+                    if (!_isPageActive)
+                    {
+                        break;
+                    }
+
                     await Task.Delay(100, token);
                 }
 
@@ -560,6 +627,11 @@ namespace PhoneStoreAdmin.View
         {
             try
             {
+                if (!_isPageActive)
+                {
+                    return;
+                }
+
                 var cacheKey = GetCacheKey(pageIndex, searchText, filterCriteria);
 
                 if (_pageCache.ContainsKey(cacheKey))
@@ -572,7 +644,7 @@ namespace PhoneStoreAdmin.View
                     _employeeService.GetEmployeesFiltered(searchText, pageIndex, _pageSize, filterCriteria),
                     cancellationToken);
 
-                if (cancellationToken.IsCancellationRequested)
+                if (cancellationToken.IsCancellationRequested || !_isPageActive)
                     return;
 
                 if (result != null)
@@ -602,6 +674,20 @@ namespace PhoneStoreAdmin.View
         {
             _pageCache.Clear();
             Logger.Info("Employee page cache cleared");
+        }
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            _isPageActive = true;
+            base.OnNavigatedTo(e);
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            _isPageActive = false;
+            AsyncResourceCleanupHelper.CleanupDebounceAndCaching(ref _searchTimer, ref _cachingCts);
+            ClearCache();
+            base.OnNavigatedFrom(e);
         }
     }
 }
