@@ -11,6 +11,8 @@ using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Models;
 using Windows.Globalization;
 using PhoneStoreAdmin.Helpers;
+using Windows.ApplicationModel.Core;
+using PhoneStoreAdmin.Utils;
 
 
 namespace PhoneStoreAdmin.View
@@ -217,6 +219,7 @@ namespace PhoneStoreAdmin.View
 
             ApplyTheme(IsDarkThemeEnabled);
             ApplyNotificationPreference(AreNotificationsEnabled);
+            LockThemeToggle(); // Lock theme toggle - changes require app restart
         }
 
         private async void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -246,15 +249,11 @@ namespace PhoneStoreAdmin.View
                         // Apply language immediately
                         ApplicationLanguages.PrimaryLanguageOverride = languageCode;
 
-                        // Show confirmation dialog
-                        var dialog = new ContentDialog()
-                        {
-                            Title = LocalizationHelper.GetString("LanguageChangedTitle/Text"),
-                            Content = LocalizationHelper.GetString("LanguageChangedMessage/Text"),
-                            CloseButtonText = LocalizationHelper.GetString("OK/Content"),
-                            XamlRoot = this.XamlRoot
-                        };
-                        await dialog.ShowAsync();
+                        // Prompt for restart (language changes require restart)
+                        await PromptForRestartAsync(
+                            LocalizationHelper.GetString("LanguageChangedTitle/Text") ?? "Restart required",
+                            LocalizationHelper.GetString("LanguageChangedMessage/Text") ?? 
+                            "Language changes require restarting the application. Would you like to restart now?");
                     }
                 }
             }
@@ -263,9 +262,9 @@ namespace PhoneStoreAdmin.View
                 // Show error dialog
                 var errorDialog = new ContentDialog()
                 {
-                    Title = LocalizationHelper.GetString("ErrorTitle/Text"),
-                    Content = LocalizationHelper.GetString("LanguageErrorMessage/Text"),
-                    CloseButtonText = LocalizationHelper.GetString("OK/Content"),
+                    Title = LocalizationHelper.GetString("ErrorTitle/Text") ?? "Error",
+                    Content = LocalizationHelper.GetString("LanguageErrorMessage/Text") ?? "An error occurred while changing language",
+                    CloseButtonText = LocalizationHelper.GetString("OK/Content") ?? "OK",
                     XamlRoot = this.XamlRoot
                 };
                 await errorDialog.ShowAsync();
@@ -274,9 +273,34 @@ namespace PhoneStoreAdmin.View
 
         private void ApplyTheme(bool isDarkTheme)
         {
-            if (Application.Current is App app)
+            try
             {
-                app.RequestedTheme = isDarkTheme ? ApplicationTheme.Dark : ApplicationTheme.Light;
+                if (Application.Current is App app)
+                {
+                    // WinUI3: Theme must be set during app initialization
+                    // We can only try to apply it, but it may not work at runtime
+                    // The theme is typically controlled by system settings or App.xaml
+                    app.RequestedTheme = isDarkTheme ? ApplicationTheme.Dark : ApplicationTheme.Light;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning($"Cannot apply theme at runtime: {ex.Message}");
+                // Theme change requires app restart - this is expected behavior
+            }
+        }
+
+        /// <summary>
+        /// Disable theme toggle (locked - theme changes require app restart)
+        /// </summary>
+        private void LockThemeToggle()
+        {
+            if (Application.Current.Resources.TryGetValue("ThemeToggleSwitch", out var themeToggleObj))
+            {
+                if (themeToggleObj is ToggleSwitch themeToggle)
+                {
+                    themeToggle.IsEnabled = false;
+                }
             }
         }
 
@@ -355,7 +379,7 @@ namespace PhoneStoreAdmin.View
                 if (result == ContentDialogResult.Primary)
                 {
                     var restartResult = AppInstance.Restart(string.Empty);
-                    if (restartResult != AppRestartFailureReason.None)
+                    if (restartResult != AppRestartFailureReason.RestartPending)
                     {
                         await ShowErrorDialogAsync(
                             LocalizationHelper.GetString("RestartFailedTitle/Text") ?? "Unable to restart",

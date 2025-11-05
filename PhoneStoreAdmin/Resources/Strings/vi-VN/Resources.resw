@@ -2146,4 +2146,28 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="EmployeesPage_RecordCountMultiple" xml:space="preserve">
     <value>Hiển thị {0} nhân viên</value>
   </data>
+  <data name="RestartNow/Text" xml:space="preserve">
+    <value>Khởi động lại ngay</value>
+  </data>
+  <data name="RestartLater/Text" xml:space="preserve">
+    <value>Khởi động lại sau</value>
+  </data>
+  <data name="RestartFailedTitle/Text" xml:space="preserve">
+    <value>Không thể khởi động lại</value>
+  </data>
+  <data name="RestartFailedMessage/Text" xml:space="preserve">
+    <value>Ứng dụng không thể khởi động lại tự động ({0}). Vui lòng khởi động lại thủ công.</value>
+  </data>
+  <data name="ThemeRestartTitle/Text" xml:space="preserve">
+    <value>Khuyến nghị khởi động lại</value>
+  </data>
+  <data name="ThemeRestartMessage/Text" xml:space="preserve">
+    <value>Những thay đổi chủ đề được áp dụng ngay lập tức, nhưng khởi động lại sẽ đảm bảo tất cả các cửa sổ sử dụng giao diện mới.</value>
+  </data>
+  <data name="NotificationRestartTitle/Text" xml:space="preserve">
+    <value>Có thể cần khởi động lại</value>
+  </data>
+  <data name="NotificationRestartMessage/Text" xml:space="preserve">
+    <value>Các tùy chọn thông báo đã được cập nhật. Khởi động lại để làm mới trình lắng nghe nền nếu cần.</value>
+  </data>
 </root>

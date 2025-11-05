@@ -277,7 +277,9 @@
                                               IsOn="{x:Bind IsDarkThemeEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                               OnContent="Dark"
                                               OffContent="Light"
-                                              HorizontalAlignment="Right"/>
+                                              HorizontalAlignment="Right"
+                                              IsEnabled="False"
+                                              />
                             </Grid>
 
                             <!-- Notification Setting -->
