@@ -13,6 +13,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.UI.Text;
 
 namespace PhoneStoreAdmin.View
 {
@@ -446,7 +447,7 @@ namespace PhoneStoreAdmin.View
                     panel.Children.Add(new TextBlock
                     {
                         Text = _resourceLoader.GetString("ProductNoAttributes"),
-                        FontStyle = Microsoft.UI.Text.FontStyle.Italic,
+                        FontStyle = FontStyle.Italic,
                         FontSize = 13
                     });
                 }

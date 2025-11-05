@@ -2297,4 +2297,7 @@ How many devices do you want to add?</value>
   <data name="GenericDialogTitle" xml:space="preserve">
     <value>Notification</value>
   </data>
+  <data name="Product_Status_Discontinued" xml:space="preserve">
+    <value>Discontinued</value>
+  </data>
 </root>
