@@ -4,6 +4,7 @@ using PhoneStoreAdmin.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace PhoneStoreAdmin.ViewModels
 {
@@ -22,6 +23,7 @@ namespace PhoneStoreAdmin.ViewModels
         public int WarrantyMonths { get; set; }
         public ProductStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
+        public int SerialCount { get; set; }
 
         public string StatusText
         {
@@ -43,7 +45,7 @@ namespace PhoneStoreAdmin.ViewModels
         {
         }
 
-        public ProductListItemViewModel(Product product, string categoryName, string? brandName)
+        public ProductListItemViewModel(Product product, string categoryName, string? brandName, int serialCount = 0)
         {
             Id = product.Id;
             Sku = product.Sku;
@@ -58,6 +60,7 @@ namespace PhoneStoreAdmin.ViewModels
             WarrantyMonths = product.WarrantyMonths;
             Status = product.Status;
             CreatedAt = product.CreatedAt;
+            SerialCount = serialCount;
         }
     }
 
@@ -103,9 +106,9 @@ namespace PhoneStoreAdmin.ViewModels
 
     public class ProductDetailViewModel
     {
-        public ProductListItemViewModel Product { get; set; }
-        public IEnumerable<ProductAttributeValueViewModel> Attributes { get; set; }
-        public IEnumerable<ProductSerialViewModel> Serials { get; set; }
+        public ProductListItemViewModel Product { get; }
+        public IReadOnlyList<ProductAttributeValueViewModel> AttributeValues { get; }
+        public IReadOnlyList<ProductSerialViewModel> Serials { get; }
 
         public ProductDetailViewModel(
             ProductListItemViewModel product,
@@ -113,8 +116,35 @@ namespace PhoneStoreAdmin.ViewModels
             IEnumerable<ProductSerialViewModel> serials)
         {
             Product = product;
-            Attributes = attributes;
-            Serials = serials;
+            AttributeValues = attributes?.ToList() ?? new List<ProductAttributeValueViewModel>();
+            Serials = serials?.ToList() ?? new List<ProductSerialViewModel>();
+        }
+    }
+
+    public class ProductFilterCriteria
+    {
+        public string? Sku { get; set; }
+        public string? Name { get; set; }
+        public int? CategoryId { get; set; }
+        public int? BrandId { get; set; }
+        public ProductStatus? Status { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 20;
+
+        public void Normalize()
+        {
+            if (Page <= 0)
+            {
+                Page = 1;
+            }
+
+            if (PageSize <= 0)
+            {
+                PageSize = 20;
+            }
+
+            Sku = string.IsNullOrWhiteSpace(Sku) ? null : Sku.Trim();
+            Name = string.IsNullOrWhiteSpace(Name) ? null : Name.Trim();
         }
     }
 

@@ -2173,4 +2173,127 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="NotificationRestartMessage/Text" xml:space="preserve">
     <value>Các tùy chọn thông báo đã được cập nhật. Khởi động lại để làm mới trình lắng nghe nền nếu cần.</value>
   </data>
+  <data name="HeaderTitleProduct.Text" xml:space="preserve">
+    <value>Quản lý sản phẩm</value>
+  </data>
+  <data name="SubHeaderTitleProduct.Text" xml:space="preserve">
+    <value>Theo dõi và quản lý toàn bộ danh mục sản phẩm của bạn.</value>
+  </data>
+  <data name="SearchSku.PlaceholderText" xml:space="preserve">
+    <value>Tìm theo mã SKU</value>
+  </data>
+  <data name="SearchName.PlaceholderText" xml:space="preserve">
+    <value>Tìm theo tên</value>
+  </data>
+  <data name="RefreshProducts.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Làm mới</value>
+  </data>
+  <data name="ClearProductFilters.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Xóa bộ lọc</value>
+  </data>
+  <data name="FilterBrandLabel.Text" xml:space="preserve">
+    <value>Thương hiệu</value>
+  </data>
+  <data name="FilterCategoryLabel.Text" xml:space="preserve">
+    <value>Danh mục</value>
+  </data>
+  <data name="FilterStatusLabel.Text" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="ColSkuProduct.Text" xml:space="preserve">
+    <value>Mã SKU</value>
+  </data>
+  <data name="ColNameProduct.Text" xml:space="preserve">
+    <value>Sản phẩm</value>
+  </data>
+  <data name="ColBrandProduct.Text" xml:space="preserve">
+    <value>Thương hiệu</value>
+  </data>
+  <data name="ColCategoryProduct.Text" xml:space="preserve">
+    <value>Danh mục</value>
+  </data>
+  <data name="ColPriceProduct.Text" xml:space="preserve">
+    <value>Giá</value>
+  </data>
+  <data name="ColStatusProduct.Text" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="ColSerialsProduct.Text" xml:space="preserve">
+    <value>Số serial</value>
+  </data>
+  <data name="EmptyStateTitleProduct.Text" xml:space="preserve">
+    <value>Không có sản phẩm nào</value>
+  </data>
+  <data name="EmptyStateDescriptionProduct.Text" xml:space="preserve">
+    <value>Hãy điều chỉnh bộ lọc hoặc thêm sản phẩm mới để xem danh sách tại đây.</value>
+  </data>
+  <data name="ShowingProducts.Text" xml:space="preserve">
+    <value>Hiển thị </value>
+  </data>
+  <data name="PageProduct.Text" xml:space="preserve">
+    <value>Trang </value>
+  </data>
+  <data name="PreviousPageProduct.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Trang trước</value>
+  </data>
+  <data name="NextPageProduct.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Trang tiếp theo</value>
+  </data>
+  <data name="FilterOptionAll" xml:space="preserve">
+    <value>Tất cả</value>
+  </data>
+  <data name="UnknownBrandLabel" xml:space="preserve">
+    <value>Thương hiệu chưa rõ</value>
+  </data>
+  <data name="UnknownCategoryLabel" xml:space="preserve">
+    <value>Chưa phân loại</value>
+  </data>
+  <data name="LoadProductsErrorTitle" xml:space="preserve">
+    <value>Không thể tải sản phẩm</value>
+  </data>
+  <data name="LoadProductsErrorMessage" xml:space="preserve">
+    <value>Có lỗi khi tải danh sách sản phẩm: {0}</value>
+  </data>
+  <data name="LoadProductsUnavailableMessage" xml:space="preserve">
+    <value>Dữ liệu sản phẩm hiện không khả dụng. Vui lòng thử lại sau.</value>
+  </data>
+  <data name="ProductDetailErrorTitle" xml:space="preserve">
+    <value>Chi tiết sản phẩm</value>
+  </data>
+  <data name="ProductDetailSku" xml:space="preserve">
+    <value>Mã SKU: {0}</value>
+  </data>
+  <data name="ProductDetailName" xml:space="preserve">
+    <value>Tên: {0}</value>
+  </data>
+  <data name="ProductDetailPrice" xml:space="preserve">
+    <value>Giá: {0}</value>
+  </data>
+  <data name="ProductDetailSerialCount" xml:space="preserve">
+    <value>Số lượng serial: {0}</value>
+  </data>
+  <data name="ProductAttributesHeader" xml:space="preserve">
+    <value>Thuộc tính</value>
+  </data>
+  <data name="ProductAttributeEmptyValue" xml:space="preserve">
+    <value>(Chưa có giá trị)</value>
+  </data>
+  <data name="ProductAttributeFormat" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="ProductNoAttributes" xml:space="preserve">
+    <value>Không có thuộc tính nào.</value>
+  </data>
+  <data name="ProductDetailDialogTitle" xml:space="preserve">
+    <value>Chi tiết sản phẩm - {0}</value>
+  </data>
+  <data name="DialogCloseButton" xml:space="preserve">
+    <value>Đóng</value>
+  </data>
+  <data name="ProductDetailErrorMessage" xml:space="preserve">
+    <value>Có lỗi khi tải chi tiết sản phẩm: {0}</value>
+  </data>
+  <data name="GenericDialogTitle" xml:space="preserve">
+    <value>Thông báo</value>
+  </data>
 </root>
