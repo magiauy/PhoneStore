@@ -2174,4 +2174,127 @@ How many devices do you want to add?</value>
   <data name="NotificationRestartMessage/Text" xml:space="preserve">
     <value>Notification preferences have been updated. Restart to refresh background listeners if necessary.</value>
   </data>
+  <data name="HeaderTitleProduct.Text" xml:space="preserve">
+    <value>Product Management</value>
+  </data>
+  <data name="SubHeaderTitleProduct.Text" xml:space="preserve">
+    <value>Browse and manage your entire product catalog.</value>
+  </data>
+  <data name="SearchSku.PlaceholderText" xml:space="preserve">
+    <value>Search by SKU</value>
+  </data>
+  <data name="SearchName.PlaceholderText" xml:space="preserve">
+    <value>Search by name</value>
+  </data>
+  <data name="RefreshProducts.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="ClearProductFilters.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Clear filters</value>
+  </data>
+  <data name="FilterBrandLabel.Text" xml:space="preserve">
+    <value>Brand</value>
+  </data>
+  <data name="FilterCategoryLabel.Text" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="FilterStatusLabel.Text" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ColSkuProduct.Text" xml:space="preserve">
+    <value>SKU</value>
+  </data>
+  <data name="ColNameProduct.Text" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="ColBrandProduct.Text" xml:space="preserve">
+    <value>Brand</value>
+  </data>
+  <data name="ColCategoryProduct.Text" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="ColPriceProduct.Text" xml:space="preserve">
+    <value>Price</value>
+  </data>
+  <data name="ColStatusProduct.Text" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ColSerialsProduct.Text" xml:space="preserve">
+    <value>Serials</value>
+  </data>
+  <data name="EmptyStateTitleProduct.Text" xml:space="preserve">
+    <value>No products found</value>
+  </data>
+  <data name="EmptyStateDescriptionProduct.Text" xml:space="preserve">
+    <value>Try adjusting your filters or adding a new product to see it listed here.</value>
+  </data>
+  <data name="ShowingProducts.Text" xml:space="preserve">
+    <value>Showing </value>
+  </data>
+  <data name="PageProduct.Text" xml:space="preserve">
+    <value>Page </value>
+  </data>
+  <data name="PreviousPageProduct.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Previous page</value>
+  </data>
+  <data name="NextPageProduct.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Next page</value>
+  </data>
+  <data name="FilterOptionAll" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="UnknownBrandLabel" xml:space="preserve">
+    <value>Unknown brand</value>
+  </data>
+  <data name="UnknownCategoryLabel" xml:space="preserve">
+    <value>Uncategorized</value>
+  </data>
+  <data name="LoadProductsErrorTitle" xml:space="preserve">
+    <value>Unable to load products</value>
+  </data>
+  <data name="LoadProductsErrorMessage" xml:space="preserve">
+    <value>An error occurred while loading products: {0}</value>
+  </data>
+  <data name="LoadProductsUnavailableMessage" xml:space="preserve">
+    <value>No product data is available right now. Please try again later.</value>
+  </data>
+  <data name="ProductDetailErrorTitle" xml:space="preserve">
+    <value>Product details</value>
+  </data>
+  <data name="ProductDetailSku" xml:space="preserve">
+    <value>SKU: {0}</value>
+  </data>
+  <data name="ProductDetailName" xml:space="preserve">
+    <value>Name: {0}</value>
+  </data>
+  <data name="ProductDetailPrice" xml:space="preserve">
+    <value>Price: {0}</value>
+  </data>
+  <data name="ProductDetailSerialCount" xml:space="preserve">
+    <value>Serial numbers: {0}</value>
+  </data>
+  <data name="ProductAttributesHeader" xml:space="preserve">
+    <value>Attributes</value>
+  </data>
+  <data name="ProductAttributeEmptyValue" xml:space="preserve">
+    <value>(No value)</value>
+  </data>
+  <data name="ProductAttributeFormat" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="ProductNoAttributes" xml:space="preserve">
+    <value>No attribute values available.</value>
+  </data>
+  <data name="ProductDetailDialogTitle" xml:space="preserve">
+    <value>Product details - {0}</value>
+  </data>
+  <data name="DialogCloseButton" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="ProductDetailErrorMessage" xml:space="preserve">
+    <value>An unexpected error occurred while loading product details: {0}</value>
+  </data>
+  <data name="GenericDialogTitle" xml:space="preserve">
+    <value>Notification</value>
+  </data>
 </root>

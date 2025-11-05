@@ -31,6 +31,13 @@ namespace PhoneStoreAdmin.Services.Interfaces
             int pageSize = 20);
 
         /// <summary>
+        /// Search products with a filter criteria object.
+        /// </summary>
+        /// <param name="criteria">Filter options for the query.</param>
+        /// <returns>Paged list of products for the UI.</returns>
+        ProductSearchResult SearchProducts(ProductFilterCriteria criteria);
+
+        /// <summary>
         /// Retrieve product detail with attribute values and serials.
         /// </summary>
         /// <param name="productId">Product identifier.</param>
