@@ -71,12 +71,14 @@ namespace PhoneStoreAdmin.Services.Implementations
             }
         }
 
-        public async Task<Role> CreateRoleAsync(Role role)
+        public async Task<Role> CreateRoleAsync(Role role, List<int> permissionIds)
         {
             try
             {
                 if (role == null)
                     throw new ArgumentNullException(nameof(role));
+
+                permissionIds ??= new List<int>();
 
                 // Validate weight against current user's role weight
                 var currentUserRole = UserSession.Instance.Role;
@@ -91,6 +93,21 @@ namespace PhoneStoreAdmin.Services.Implementations
 
                 if (result != null)
                 {
+                    var permissionsUpdated = await _roleRepository.UpdateRolePermissionsAsync(result.Id, permissionIds);
+                    if (!permissionsUpdated)
+                    {
+                        Logger.Warning($"Failed to assign permissions for role: {role.Name} (ID: {result.Id})");
+                        throw new InvalidOperationException("Không thể gán quyền cho vai trò mới.");
+                    }
+
+                    result.RolePermissions = permissionIds
+                        .Select(id => new RolePermission
+                        {
+                            RoleId = result.Id,
+                            PermissionId = id
+                        })
+                        .ToList();
+
                     Logger.Info($"Successfully created role: {role.Name} (ID: {result.Id})");
                     return result;
                 }
@@ -107,12 +124,14 @@ namespace PhoneStoreAdmin.Services.Implementations
             }
         }
 
-        public async Task<bool> UpdateRoleAsync(Role role)
+        public async Task<bool> UpdateRoleAsync(Role role, List<int> permissionIds)
         {
             try
             {
                 if (role == null)
                     throw new ArgumentNullException(nameof(role));
+
+                permissionIds ??= new List<int>();
 
                 // Validate weight against current user's role weight
                 var currentUserRole = UserSession.Instance.Role;
@@ -124,6 +143,21 @@ namespace PhoneStoreAdmin.Services.Implementations
 
                 Logger.Info($"Updating role: {role.Name} (ID: {role.Id})");
                 await _roleRepository.UpdateAsync(role);
+                var permissionsUpdated = await _roleRepository.UpdateRolePermissionsAsync(role.Id, permissionIds);
+                if (!permissionsUpdated)
+                {
+                    Logger.Warning($"Failed to update permissions for role: {role.Name} (ID: {role.Id})");
+                    throw new InvalidOperationException("Không thể cập nhật quyền cho vai trò.");
+                }
+
+                role.RolePermissions = permissionIds
+                    .Select(id => new RolePermission
+                    {
+                        RoleId = role.Id,
+                        PermissionId = id
+                    })
+                    .ToList();
+
                 Logger.Info($"Successfully updated role: {role.Name} (ID: {role.Id})");
                 return true;
             }
