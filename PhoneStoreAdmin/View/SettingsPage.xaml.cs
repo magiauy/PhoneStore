@@ -1,8 +1,11 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.Windows.ApplicationModel.Resources;
+using Microsoft.Windows.AppLifecycle;
 using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Models;
@@ -12,10 +15,13 @@ using PhoneStoreAdmin.Helpers;
 
 namespace PhoneStoreAdmin.View
 {
-    public sealed partial class SettingsPage : Page
+    public sealed partial class SettingsPage : Page, INotifyPropertyChanged
     {
         private readonly ILocalStorageService _localStorageService;
         private bool _isLoadingSettings = false;
+        private bool _isDarkThemeEnabled;
+        private bool _areNotificationsEnabled;
+        private bool _isRestartPromptVisible;
 
         public SettingsPage()
         {
@@ -23,6 +29,46 @@ namespace PhoneStoreAdmin.View
             _localStorageService = ServiceContainer.GetService<ILocalStorageService>();
             LoadUserInfo();
             LoadSettings();
+        }
+
+        public bool IsDarkThemeEnabled
+        {
+            get => _isDarkThemeEnabled;
+            set
+            {
+                if (SetProperty(ref _isDarkThemeEnabled, value) && !_isLoadingSettings)
+                {
+                    ApplyTheme(value);
+                    _ = SaveThemePreferenceAsync(value);
+                }
+            }
+        }
+
+        public bool AreNotificationsEnabled
+        {
+            get => _areNotificationsEnabled;
+            set
+            {
+                if (SetProperty(ref _areNotificationsEnabled, value) && !_isLoadingSettings)
+                {
+                    ApplyNotificationPreference(value);
+                    _ = SaveNotificationPreferenceAsync(value);
+                }
+            }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(storage, value))
+            {
+                return false;
+            }
+
+            storage = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            return true;
         }
 
         private void LoadUserInfo()
@@ -123,7 +169,7 @@ namespace PhoneStoreAdmin.View
             try
             {
                 _isLoadingSettings = true;
-                
+
                 // Load language setting
                 var savedLanguage = await _localStorageService.GetItemAsync<string>("app_language");
                 if (!string.IsNullOrEmpty(savedLanguage))
@@ -144,18 +190,33 @@ namespace PhoneStoreAdmin.View
                     LanguageComboBox.SelectedIndex = 0;
                 }
 
-                // Load other settings here in the future
-                // Example: Theme, Notifications, etc.
+                var savedTheme = await _localStorageService.GetItemAsync<string>("app_theme");
+                if (!string.IsNullOrEmpty(savedTheme))
+                {
+                    IsDarkThemeEnabled = string.Equals(savedTheme, "Dark", StringComparison.OrdinalIgnoreCase);
+                }
+                else
+                {
+                    IsDarkThemeEnabled = false;
+                }
+
+                var savedNotificationPreference = await _localStorageService.GetItemAsync<bool?>("notifications_enabled");
+                AreNotificationsEnabled = savedNotificationPreference ?? true;
             }
             catch (Exception)
             {
                 // Log error - for now just set defaults
                 LanguageComboBox.SelectedIndex = 0;
+                IsDarkThemeEnabled = false;
+                AreNotificationsEnabled = true;
             }
             finally
             {
                 _isLoadingSettings = false;
             }
+
+            ApplyTheme(IsDarkThemeEnabled);
+            ApplyNotificationPreference(AreNotificationsEnabled);
         }
 
         private async void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -209,6 +270,119 @@ namespace PhoneStoreAdmin.View
                 };
                 await errorDialog.ShowAsync();
             }
+        }
+
+        private void ApplyTheme(bool isDarkTheme)
+        {
+            if (Application.Current is App app)
+            {
+                app.RequestedTheme = isDarkTheme ? ApplicationTheme.Dark : ApplicationTheme.Light;
+            }
+        }
+
+        private void ApplyNotificationPreference(bool notificationsEnabled)
+        {
+            if (Application.Current is App app)
+            {
+                app.Resources["NotificationsEnabled"] = notificationsEnabled;
+            }
+        }
+
+        private async Task SaveThemePreferenceAsync(bool isDarkTheme)
+        {
+            try
+            {
+                var themeValue = isDarkTheme ? "Dark" : "Light";
+                await _localStorageService.SetItemAsync("app_theme", themeValue);
+
+                await PromptForRestartAsync(
+                    LocalizationHelper.GetString("ThemeRestartTitle/Text") ?? "Restart recommended",
+                    LocalizationHelper.GetString("ThemeRestartMessage/Text") ??
+                    "Theme changes are applied immediately, but restarting ensures all windows use the new appearance.");
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorDialogAsync(
+                    LocalizationHelper.GetString("ErrorTitle/Text") ?? "Error",
+                    string.Format(
+                        LocalizationHelper.GetString("ThemeSaveError/Text") ?? "Unable to save theme preference: {0}",
+                        ex.Message));
+            }
+        }
+
+        private async Task SaveNotificationPreferenceAsync(bool notificationsEnabled)
+        {
+            try
+            {
+                await _localStorageService.SetItemAsync("notifications_enabled", notificationsEnabled);
+
+                await PromptForRestartAsync(
+                    LocalizationHelper.GetString("NotificationRestartTitle/Text") ?? "Restart may be required",
+                    LocalizationHelper.GetString("NotificationRestartMessage/Text") ??
+                    "Notification preferences have been updated. Restart to refresh background listeners if necessary.");
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorDialogAsync(
+                    LocalizationHelper.GetString("ErrorTitle/Text") ?? "Error",
+                    string.Format(
+                        LocalizationHelper.GetString("NotificationSaveError/Text") ?? "Unable to save notification preference: {0}",
+                        ex.Message));
+            }
+        }
+
+        private async Task PromptForRestartAsync(string title, string message)
+        {
+            if (_isRestartPromptVisible)
+            {
+                return;
+            }
+
+            _isRestartPromptVisible = true;
+            var dialog = new ContentDialog()
+            {
+                Title = title,
+                Content = message,
+                PrimaryButtonText = LocalizationHelper.GetString("RestartNow/Text") ?? "Restart now",
+                CloseButtonText = LocalizationHelper.GetString("RestartLater/Text") ?? "Later",
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = this.XamlRoot
+            };
+
+            try
+            {
+                var result = await dialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    var restartResult = AppInstance.Restart(string.Empty);
+                    if (restartResult != AppRestartFailureReason.None)
+                    {
+                        await ShowErrorDialogAsync(
+                            LocalizationHelper.GetString("RestartFailedTitle/Text") ?? "Unable to restart",
+                            string.Format(
+                                LocalizationHelper.GetString("RestartFailedMessage/Text") ??
+                                "The application could not restart automatically ({0}). Please restart manually.",
+                                restartResult));
+                    }
+                }
+            }
+            finally
+            {
+                _isRestartPromptVisible = false;
+            }
+        }
+
+        private async Task ShowErrorDialogAsync(string title, string message)
+        {
+            var errorDialog = new ContentDialog()
+            {
+                Title = title,
+                Content = message,
+                CloseButtonText = LocalizationHelper.GetString("OK/Content") ?? "OK",
+                XamlRoot = this.XamlRoot
+            };
+
+            await errorDialog.ShowAsync();
         }
 
         private async void EditProfileButton_Click(object sender, RoutedEventArgs e)
