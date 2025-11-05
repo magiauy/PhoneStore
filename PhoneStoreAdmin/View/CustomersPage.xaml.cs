@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
@@ -44,6 +45,8 @@ namespace PhoneStoreAdmin.View
         private CustomerFilterCriteria _currentFilterCriteria = new CustomerFilterCriteria();
         private readonly ResourceLoader _resourceLoader = new ResourceLoader();
 
+        private bool _isPageUnloaded;
+
         public CustomersPage()
         {
             this.InitializeComponent();
@@ -57,6 +60,33 @@ namespace PhoneStoreAdmin.View
 
             // Load data asynchronously without blocking UI
             _ = LoadDataAsync();
+        }
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            _isPageUnloaded = false;
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+
+            _isPageUnloaded = true;
+
+            _searchTimer?.Dispose();
+            _searchTimer = null;
+
+            if (_cachingCts != null)
+            {
+                if (!_cachingCts.IsCancellationRequested)
+                {
+                    _cachingCts.Cancel();
+                }
+
+                _cachingCts.Dispose();
+                _cachingCts = null;
+            }
         }
 
         private async Task LoadDataAsync()
@@ -305,11 +335,29 @@ namespace PhoneStoreAdmin.View
                 _searchTimer = new Timer(
                     async _ =>
                     {
-                        // Execute search on UI thread
-                        DispatcherQueue.TryEnqueue(async () =>
+                        if (_isPageUnloaded)
                         {
+                            return;
+                        }
+
+                        var dispatcher = DispatcherQueue;
+                        if (dispatcher == null)
+                        {
+                            return;
+                        }
+
+                        if (!dispatcher.TryEnqueue(async () =>
+                        {
+                            if (_isPageUnloaded)
+                            {
+                                return;
+                            }
+
                             await LoadDataAsync();
-                        });
+                        }))
+                        {
+                            return;
+                        }
                     },
                     null,
                     SearchDelayMs,
@@ -584,9 +632,16 @@ namespace PhoneStoreAdmin.View
                 foreach (var pageIndex in pagesToCache)
                 {
                     if (token.IsCancellationRequested)
+                    {
                         break;
+                    }
 
                     await CachePageAsync(pageIndex, searchText, filterSnapshot, filterKey, token);
+
+                    if (token.IsCancellationRequested)
+                    {
+                        break;
+                    }
 
                     // Small delay between caching to avoid overloading
                     await Task.Delay(100, token);
@@ -608,6 +663,11 @@ namespace PhoneStoreAdmin.View
         {
             try
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 var cacheKey = GetCacheKey(pageIndex, searchText, filterKey);
 
                 // Skip if already cached
@@ -618,8 +678,13 @@ namespace PhoneStoreAdmin.View
                 }
 
                 // Fetch page data
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 var result = await _customerService.GetCustomersFilteredAsync(searchText, filterCriteria, pageIndex, _pageSize);
-                
+
                 if (cancellationToken.IsCancellationRequested)
                     return;
 
