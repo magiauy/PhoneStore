@@ -49,6 +49,8 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<IBatchesRepository>(() => new BatchesRepository(GetService<DataSource>()));
             RegisterSingleton<IProductCategoryRepository>(() => new ProductCategoryRepository(GetService<DataSource>()));
             RegisterSingleton<IBrandRepository>(() => new BrandRepository(GetService<DataSource>()));
+            RegisterSingleton<IProductAttributeRepository>(() => new ProductAttributeRepository(GetService<DataSource>()));
+            RegisterSingleton<IProductAttributeValueRepository>(() => new ProductAttributeValueRepository(GetService<DataSource>()));
             RegisterSingleton<IPromotionRepository>(() => new PromotionRepository(GetService<DataSource>()));
             RegisterSingleton<IPromotionCodeRepository>(() => new PromotionCodeRepository(GetService<DataSource>()));
             RegisterSingleton<IProductRepository>(() => new ProductRepository(GetService<DataSource>()));
@@ -64,6 +66,13 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<ICustomerService>(() => new CustomerService(GetService<ICustomerRepository>()));
             RegisterSingleton<ISupplierService>(() => new SupplierService(GetService<ISupplierRepository>()));
             RegisterSingleton<IBrandService>(() => new BrandService(GetService<IBrandRepository>()));
+            RegisterSingleton<IProductService>(() => new ProductService(
+                GetService<IProductRepository>(),
+                GetService<IBrandRepository>(),
+                GetService<IProductCategoryRepository>(),
+                GetService<IProductAttributeRepository>(),
+                GetService<IProductAttributeValueRepository>(),
+                GetService<IProductSerialRepository>()));
             RegisterSingleton<IPromotionService>(() => new PromotionService(GetService<IPromotionRepository>()));
             RegisterSingleton<IPromotionCodeService>(() => new PromotionCodeService(GetService<IPromotionCodeRepository>(), GetService<IPromotionRepository>()));
             RegisterSingleton<IPurchaseOrderService>(() => new PurchaseOrderService(
