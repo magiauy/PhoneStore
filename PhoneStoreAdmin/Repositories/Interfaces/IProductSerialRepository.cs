@@ -10,5 +10,6 @@ namespace PhoneStoreAdmin.Repositories.Interfaces
         ProductSerial GetByImei2(string imei2);
         IEnumerable<ProductSerial> GetByProductId(int productId);
         IEnumerable<ProductSerial> GetByStatus(PhoneStoreAdmin.Models.Enums.SerialStatus status);
+        IDictionary<int, int> GetCountsByProductIds(IEnumerable<int> productIds);
     }
 }
