@@ -2131,13 +2131,83 @@ How many devices do you want to add?</value>
   <data name="ThemeRestartMessage/Text" xml:space="preserve">
     <value>Theme changes are applied immediately, but restarting ensures all windows use the new appearance.</value>
   </data>
-  <data name="NotificationRestartTitle/Text" xml:space="preserve">
+  <data name="NotificationRestartTitle" xml:space="preserve">
     <value>Restart May Be Required</value>
   </data>
-  <data name="NotificationRestartMessage/Text" xml:space="preserve">
+  <data name="NotificationRestartMessage" xml:space="preserve">
     <value>Notification preferences have been updated. Restart to refresh background listeners if necessary.</value>
   </data>
-  <data name="MenuItemReports" xml:space="preserve">
+  <data name="MenuItemReports.Content" xml:space="preserve">
     <value>Reports</value>
+  </data>
+  <!-- Reports Page -->
+  <data name="Reports_PageTitle.Text" xml:space="preserve">
+    <value>Reports and Statistics</value>
+  </data>
+  <data name="Reports_PageDescription.Text" xml:space="preserve">
+    <value>View detailed statistics and reports on business activities</value>
+  </data>
+  <data name="Reports_RefreshButton.Text" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Reports_PurchaseOrdersTab.Text" xml:space="preserve">
+    <value>Purchase Orders Statistics</value>
+  </data>
+  <data name="Reports_SalesTab.Text" xml:space="preserve">
+    <value>Sales Statistics</value>
+  </data>
+  <data name="Reports_FilterTitle.Text" xml:space="preserve">
+    <value>Filter Data</value>
+  </data>
+  <data name="Reports_FromDateLabel.Text" xml:space="preserve">
+    <value>From Date</value>
+  </data>
+  <data name="Reports_ToDateLabel.Text" xml:space="preserve">
+    <value>To Date</value>
+  </data>
+  <data name="Reports_StatusLabel.Text" xml:space="preserve">
+<value>Status</value>
+  </data>
+  <data name="Reports_AllStatus.Content" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Reports_DraftStatus.Content" xml:space="preserve">
+    <value>Draft</value>
+  </data>
+  <data name="Reports_ReceivedStatus.Content" xml:space="preserve">
+    <value>Received</value>
+  </data>
+  <data name="Reports_CancelledStatus.Content" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="Reports_ApplyButton.Text" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Reports_TotalOrdersLabel.Text" xml:space="preserve">
+    <value>Total Purchase Orders</value>
+  </data>
+  <data name="Reports_TotalAmountLabel.Text" xml:space="preserve">
+    <value>Total Amount</value>
+  </data>
+  <data name="Reports_DraftOrdersLabel.Text" xml:space="preserve">
+    <value>Draft Orders</value>
+  </data>
+  <data name="Reports_ReceivedOrdersLabel.Text" xml:space="preserve">
+ <value>Received Orders</value>
+  </data>
+  <data name="Reports_MonthlyTrendTitle.Text" xml:space="preserve">
+    <value>Monthly Purchase Trend</value>
+  </data>
+  <data name="Reports_TopSuppliersTitle.Text" xml:space="preserve">
+    <value>Top Suppliers</value>
+  </data>
+  <data name="Reports_OrdersCount.Text" xml:space="preserve">
+    <value>orders</value>
+  </data>
+  <data name="Reports_NoDataAvailable" xml:space="preserve">
+  <value>No data available</value>
+  </data>
+  <data name="Reports_ChartTooltip_Orders" xml:space="preserve">
+    <value>orders</value>
   </data>
 </root>

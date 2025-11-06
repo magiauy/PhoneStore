@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+ï»¿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
@@ -57,10 +57,19 @@ namespace PhoneStoreAdmin.View
             _toDate = DateTime.Now.Date;
             _fromDate = _toDate.Value.AddDays(-30);
 
+            // Configure date pickers with DD/MM/YYYY format
             if (ToDatePicker != null)
+            {
                 ToDatePicker.Date = new DateTimeOffset(_toDate.Value);
+                // Set format to display as DD/MM/YYYY
+                ToDatePicker.DateFormat = "{day.integer(2)}/{month.integer(2)}/{year.full}";
+            }
             if (FromDatePicker != null)
+            {
                 FromDatePicker.Date = new DateTimeOffset(_fromDate.Value);
+                // Set format to display as DD/MM/YYYY
+                FromDatePicker.DateFormat = "{day.integer(2)}/{month.integer(2)}/{year.full}";
+            }
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -107,7 +116,7 @@ namespace PhoneStoreAdmin.View
                     TotalOrdersText.Text = totalOrders.ToString("N0");
 
                 if (TotalAmountText != null)
-                    TotalAmountText.Text = totalAmount.ToString("N0") + " ?";
+                    TotalAmountText.Text = totalAmount.ToString("N0");
 
                 if (DraftOrdersText != null)
                     DraftOrdersText.Text = draftOrders.ToString("N0");
@@ -124,7 +133,7 @@ namespace PhoneStoreAdmin.View
             catch (Exception ex)
             {
                 Logger.Error("Failed to load statistics", ex);
-                ShowErrorDialog("L?i", $"Không th? t?i th?ng kê: {ex.Message}");
+                ShowErrorDialog("Lá»—i", $"KhÃ´ng thá»ƒ táº£i thá»‘ng kÃª: {ex.Message}");
             }
         }
 
@@ -155,7 +164,7 @@ namespace PhoneStoreAdmin.View
                         Rank = rank++,
                         SupplierName = supplier?.Name ?? "Unknown",
                         OrderCount = stat.OrderCount,
-                        TotalAmount = stat.TotalAmount.ToString("N0") + " ?"
+                        TotalAmount = stat.TotalAmount.ToString("N0")
                     });
                 }
             }
@@ -190,7 +199,7 @@ namespace PhoneStoreAdmin.View
                 {
                     var noDataText = new TextBlock
                     {
-                        Text = "Không có d? li?u",
+                        Text = _resourceLoader.GetString("Reports_NoDataAvailable"),
                         FontSize = 16,
                         Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray),
                         HorizontalAlignment = HorizontalAlignment.Center,
@@ -246,7 +255,7 @@ namespace PhoneStoreAdmin.View
                         Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 79, 70, 229)),
                         CornerRadius = new CornerRadius(4, 4, 0, 0)
                     };
-                    ToolTipService.SetToolTip(bar, $"{data.Count} ??n hàng\n{data.Amount:N0} ?");
+                    ToolTipService.SetToolTip(bar, $"{data.Count} {_resourceLoader.GetString("Reports_ChartTooltip_Orders")}\n{data.Amount:N0} â‚«");
                     barContainer.Children.Add(bar);
 
                     // Month label
