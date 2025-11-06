@@ -136,8 +136,7 @@
                     <TextBlock
                         x:Uid="Reports_PageTitle"
                         FontSize="36"
-                        FontWeight="Bold"
-                        Text="Báo cáo và Thống kê">
+                        FontWeight="Bold">
                         <TextBlock.Foreground>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                 <GradientStop Offset="0" Color="{StaticResource ColorPrimary}" />
@@ -148,8 +147,7 @@
                     <TextBlock
                         x:Uid="Reports_PageDescription"
                         FontSize="16"
-                        Foreground="{StaticResource BrushTextSecondary}"
-                        Text="Xem thống kê và báo cáo chi tiết về hoạt động kinh doanh" />
+                        Foreground="{StaticResource BrushTextSecondary}" />
                 </StackPanel>
 
                 <Button
@@ -160,7 +158,7 @@
                     Style="{StaticResource SecondaryButtonStyle}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon FontSize="16" Glyph="&#xE72C;" />
-                        <TextBlock x:Uid="Reports_RefreshButton" Text="Làm mới" />
+                        <TextBlock x:Uid="Reports_RefreshButton" />
                     </StackPanel>
                 </Button>
             </Grid>
@@ -170,7 +168,7 @@
         <Border
             Grid.Row="1"
             Margin="32,0,32,32"
-            Padding="0"
+            Padding="32,24"
             Shadow="{StaticResource SharedShadow}"
             Style="{StaticResource CardStyle}">
 
@@ -184,12 +182,12 @@
                     <PivotItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon FontSize="16" Glyph="&#xE7BF;" />
-                            <TextBlock x:Uid="Reports_PurchaseOrdersTab" Text="Thống kê nhập hàng" />
+                            <TextBlock x:Uid="Reports_PurchaseOrdersTab" FontSize="16" />
                         </StackPanel>
                     </PivotItem.Header>
 
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel Padding="32,24" Spacing="24">
+                        <StackPanel Padding="0,24" Spacing="24">
 
                             <!--  Filter Section  -->
                             <Border Padding="20" Style="{StaticResource CardStyle}">
@@ -213,18 +211,14 @@
                                         Grid.ColumnSpan="4"
                                         Margin="0,0,0,0"
                                         FontSize="16"
-                                        FontWeight="SemiBold"
-                                        Text="Lọc dữ liệu" />
+                                        FontWeight="SemiBold" />
 
                                     <!--  From Date  -->
                                     <StackPanel
                                         Grid.Row="2"
                                         Grid.Column="0"
                                         Margin="0,0,12,0">
-                                        <TextBlock
-                                            x:Uid="Reports_FromDateLabel"
-                                            Margin="0,0,0,8"
-                                            Text="Từ ngày" />
+                                        <TextBlock x:Uid="Reports_FromDateLabel" Margin="0,0,0,8" />
                                         <CalendarDatePicker
                                             x:Name="FromDatePicker"
                                             HorizontalAlignment="Stretch"
@@ -236,10 +230,7 @@
                                         Grid.Row="2"
                                         Grid.Column="1"
                                         Margin="0,0,12,0">
-                                        <TextBlock
-                                            x:Uid="Reports_ToDateLabel"
-                                            Margin="0,0,0,8"
-                                            Text="Đến ngày" />
+                                        <TextBlock x:Uid="Reports_ToDateLabel" Margin="0,0,0,8" />
                                         <CalendarDatePicker
                                             x:Name="ToDatePicker"
                                             HorizontalAlignment="Stretch"
@@ -251,30 +242,15 @@
                                         Grid.Row="2"
                                         Grid.Column="2"
                                         Margin="0,0,12,0">
-                                        <TextBlock
-                                            x:Uid="Reports_StatusLabel"
-                                            Margin="0,0,0,8"
-                                            Text="Trạng thái" />
+                                        <TextBlock x:Uid="Reports_StatusLabel" Margin="0,0,0,8" />
                                         <ComboBox
                                             x:Name="StatusFilterComboBox"
                                             HorizontalAlignment="Stretch"
                                             SelectionChanged="StatusFilter_Changed">
-                                            <ComboBoxItem
-                                                x:Uid="Reports_AllStatus"
-                                                Content="Tất cả"
-                                                Tag="" />
-                                            <ComboBoxItem
-                                                x:Uid="Reports_DraftStatus"
-                                                Content="Nháp"
-                                                Tag="DRAFT" />
-                                            <ComboBoxItem
-                                                x:Uid="Reports_ReceivedStatus"
-                                                Content="Đã nhận"
-                                                Tag="RECEIVED" />
-                                            <ComboBoxItem
-                                                x:Uid="Reports_CancelledStatus"
-                                                Content="Đã hủy"
-                                                Tag="CANCELLED" />
+                                            <ComboBoxItem x:Uid="Reports_AllStatus" Tag="" />
+                                            <ComboBoxItem x:Uid="Reports_DraftStatus" Tag="DRAFT" />
+                                            <ComboBoxItem x:Uid="Reports_ReceivedStatus" Tag="RECEIVED" />
+                                            <ComboBoxItem x:Uid="Reports_CancelledStatus" Tag="CANCELLED" />
                                         </ComboBox>
                                     </StackPanel>
 
@@ -289,7 +265,7 @@
                                         Style="{StaticResource PrimaryButtonStyle}">
                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                             <FontIcon FontSize="14" Glyph="&#xE71C;" />
-                                            <TextBlock x:Uid="Reports_ApplyButton" Text="Áp dụng" />
+                                            <TextBlock x:Uid="Reports_ApplyButton" />
                                         </StackPanel>
                                     </Button>
                                 </Grid>
@@ -327,8 +303,7 @@
                                                 <TextBlock
                                                     x:Uid="Reports_TotalOrdersLabel"
                                                     FontSize="13"
-                                                    Foreground="{StaticResource BrushTextSecondary}"
-                                                    Text="Tổng đơn nhập" />
+                                                    Foreground="{StaticResource BrushTextSecondary}" />
                                                 <TextBlock
                                                     x:Name="TotalOrdersText"
                                                     FontSize="28"
@@ -360,8 +335,7 @@
                                                 <TextBlock
                                                     x:Uid="Reports_TotalAmountLabel"
                                                     FontSize="13"
-                                                    Foreground="{StaticResource BrushTextSecondary}"
-                                                    Text="Tổng giá trị" />
+                                                    Foreground="{StaticResource BrushTextSecondary}" />
                                                 <TextBlock
                                                     x:Name="TotalAmountText"
                                                     FontSize="28"
@@ -393,8 +367,7 @@
                                                 <TextBlock
                                                     x:Uid="Reports_DraftOrdersLabel"
                                                     FontSize="13"
-                                                    Foreground="{StaticResource BrushTextSecondary}"
-                                                    Text="Đơn nháp" />
+                                                    Foreground="{StaticResource BrushTextSecondary}" />
                                                 <TextBlock
                                                     x:Name="DraftOrdersText"
                                                     FontSize="28"
@@ -426,8 +399,7 @@
                                                 <TextBlock
                                                     x:Uid="Reports_ReceivedOrdersLabel"
                                                     FontSize="13"
-                                                    Foreground="{StaticResource BrushTextSecondary}"
-                                                    Text="Đã nhận hàng" />
+                                                    Foreground="{StaticResource BrushTextSecondary}" />
                                                 <TextBlock
                                                     x:Name="ReceivedOrdersText"
                                                     FontSize="28"
@@ -457,8 +429,7 @@
                                         <TextBlock
                                             x:Uid="Reports_MonthlyTrendTitle"
                                             FontSize="18"
-                                            FontWeight="SemiBold"
-                                            Text="Xu hướng nhập hàng theo tháng" />
+                                            FontWeight="SemiBold" />
 
                                         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                                             <Grid
@@ -480,8 +451,7 @@
                                         <TextBlock
                                             x:Uid="Reports_TopSuppliersTitle"
                                             FontSize="18"
-                                            FontWeight="SemiBold"
-                                            Text="Nhà cung cấp hàng đầu" />
+                                            FontWeight="SemiBold" />
 
                                         <ListView
                                             x:Name="TopSuppliersListView"
@@ -514,12 +484,15 @@
 
                                                         <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                                             <TextBlock
+                                                                Padding="0,0,20,0"
                                                                 FontSize="14"
                                                                 FontWeight="SemiBold"
-                                                                Text="{Binding SupplierName}" />
+                                                                Text="{Binding SupplierName}"
+                                                                TextTrimming="CharacterEllipsis"
+                                                                TextWrapping="NoWrap" />
                                                             <TextBlock FontSize="12" Foreground="{StaticResource BrushTextSecondary}">
                                                                 <Run Text="{Binding OrderCount}" />
-                                                                <Run x:Uid="Reports_OrdersCount" Text="đơn hàng" />
+                                                                <Run x:Uid="Reports_OrdersCount" />
                                                             </TextBlock>
                                                         </StackPanel>
 
@@ -547,7 +520,7 @@
                     <PivotItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon FontSize="16" Glyph="&#xE8EC;" />
-                            <TextBlock x:Uid="Reports_SalesTab" Text="Thống kê bán hàng" />
+                            <TextBlock x:Uid="Reports_SalesTab" FontSize="16" />
                         </StackPanel>
                     </PivotItem.Header>
                     <Grid Padding="32">
