@@ -38,6 +38,16 @@ namespace PhoneStoreAdmin.Services.Interfaces
         ProductSearchResult SearchProducts(ProductFilterCriteria criteria);
 
         /// <summary>
+        /// Retrieve all product models for selection lists.
+        /// </summary>
+        IReadOnlyList<ProductModel> GetAllModels();
+
+        /// <summary>
+        /// Retrieve product attribute definitions including available options.
+        /// </summary>
+        IReadOnlyList<ProductAttributeDefinition> GetAttributeDefinitions();
+
+        /// <summary>
         /// Retrieve product detail with attribute values and serials.
         /// </summary>
         /// <param name="productId">Product identifier.</param>

@@ -45,12 +45,13 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         {
             using var connection = _dataSource.GetConnection();
             using var command = new MySqlCommand(
-                @"INSERT INTO product_attribute_values (product_id, attribute_id, value_text, value_number, value_date, value_bool)
-                  VALUES (@productId, @attributeId, @valueText, @valueNumber, @valueDate, @valueBool)",
+                @"INSERT INTO product_attribute_values (product_id, attribute_id, option_id, value_text, value_number, value_date, value_bool)
+                  VALUES (@productId, @attributeId, @optionId, @valueText, @valueNumber, @valueDate, @valueBool)",
                 connection);
 
             command.Parameters.AddWithValue("@productId", entity.ProductId);
             command.Parameters.AddWithValue("@attributeId", entity.AttributeId);
+            command.Parameters.AddWithValue("@optionId", entity.OptionId.HasValue ? entity.OptionId.Value : (object)DBNull.Value);
             command.Parameters.AddWithValue("@valueText", entity.ValueText ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@valueNumber", entity.ValueNumber.HasValue ? entity.ValueNumber.Value : (object)DBNull.Value);
             command.Parameters.AddWithValue("@valueDate", entity.ValueDate.HasValue ? entity.ValueDate.Value : (object)DBNull.Value);
@@ -67,6 +68,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                 @"UPDATE product_attribute_values
                   SET product_id = @productId,
                       attribute_id = @attributeId,
+                      option_id = @optionId,
                       value_text = @valueText,
                       value_number = @valueNumber,
                       value_date = @valueDate,
@@ -77,6 +79,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             command.Parameters.AddWithValue("@id", entity.Id);
             command.Parameters.AddWithValue("@productId", entity.ProductId);
             command.Parameters.AddWithValue("@attributeId", entity.AttributeId);
+            command.Parameters.AddWithValue("@optionId", entity.OptionId.HasValue ? entity.OptionId.Value : (object)DBNull.Value);
             command.Parameters.AddWithValue("@valueText", entity.ValueText ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@valueNumber", entity.ValueNumber.HasValue ? entity.ValueNumber.Value : (object)DBNull.Value);
             command.Parameters.AddWithValue("@valueDate", entity.ValueDate.HasValue ? entity.ValueDate.Value : (object)DBNull.Value);
@@ -142,6 +145,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                 ProductId = reader.GetInt32("product_id"),
                 AttributeId = reader.GetInt32("attribute_id"),
                 ValueText = reader.IsDBNull(reader.GetOrdinal("value_text")) ? null : reader.GetString("value_text"),
+                OptionId = reader.IsDBNull(reader.GetOrdinal("option_id")) ? null : reader.GetInt32("option_id"),
                 ValueNumber = reader.IsDBNull(reader.GetOrdinal("value_number")) ? null : reader.GetDecimal("value_number"),
                 ValueDate = reader.IsDBNull(reader.GetOrdinal("value_date")) ? null : reader.GetDateTime("value_date"),
                 ValueBool = reader.IsDBNull(reader.GetOrdinal("value_bool")) ? null : reader.GetBoolean("value_bool")
