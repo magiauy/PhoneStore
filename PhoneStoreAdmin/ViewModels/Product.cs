@@ -15,6 +15,8 @@ namespace PhoneStoreAdmin.ViewModels
         public string Name { get; set; } = string.Empty;
         public int CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
+        public int ModelId { get; set; }
+        public string ModelName { get; set; } = string.Empty;
         public int? BrandId { get; set; }
         public string? BrandName { get; set; }
         public decimal Price { get; set; }
@@ -45,13 +47,15 @@ namespace PhoneStoreAdmin.ViewModels
         {
         }
 
-        public ProductListItemViewModel(Product product, string categoryName, string? brandName, int serialCount = 0)
+        public ProductListItemViewModel(Product product, string categoryName, string? brandName, int serialCount = 0, string? modelName = null)
         {
             Id = product.Id;
             Sku = product.Sku;
             Name = product.Name;
             CategoryId = product.CategoryId;
             CategoryName = categoryName;
+            ModelId = product.ModelId;
+            ModelName = modelName ?? string.Empty;
             BrandId = product.BrandId;
             BrandName = brandName;
             Price = product.Price;
@@ -73,11 +77,18 @@ namespace PhoneStoreAdmin.ViewModels
         public decimal? ValueNumber { get; set; }
         public DateTime? ValueDate { get; set; }
         public bool? ValueBool { get; set; }
+        public int? OptionId { get; set; }
+        public string? OptionDisplayValue { get; set; }
 
         public string DisplayValue
         {
             get
             {
+                if (!string.IsNullOrWhiteSpace(OptionDisplayValue))
+                {
+                    return OptionDisplayValue;
+                }
+
                 return DataType switch
                 {
                     AttributeDataType.TEXT => ValueText ?? string.Empty,
@@ -163,10 +174,23 @@ namespace PhoneStoreAdmin.ViewModels
     public class ProductAttributeValueInput
     {
         public int AttributeId { get; set; }
+        public int? OptionId { get; set; }
         public string? TextValue { get; set; }
         public decimal? NumberValue { get; set; }
         public DateTime? DateValue { get; set; }
         public bool? BoolValue { get; set; }
         public string? RawValue { get; set; }
+    }
+
+    public class ProductAttributeDefinition
+    {
+        public ProductAttributeDefinition(ProductAttribute attribute, IReadOnlyList<ProductAttributeOption> options)
+        {
+            Attribute = attribute;
+            Options = options ?? Array.Empty<ProductAttributeOption>();
+        }
+
+        public ProductAttribute Attribute { get; }
+        public IReadOnlyList<ProductAttributeOption> Options { get; }
     }
 }

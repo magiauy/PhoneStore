@@ -41,13 +41,14 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         {
             using var connection = _dataSource.GetConnection();
             using var command = new MySqlCommand(
-                @"INSERT INTO products (sku, name, category_id, brand_id, price, cost, is_serial_tracked, warranty_months, status, created_at)
-                  VALUES (@sku, @name, @categoryId, @brandId, @price, @cost, @isSerialTracked, @warrantyMonths, @status, @createdAt)",
+                @"INSERT INTO products (sku, name, category_id, model_id, brand_id, price, cost, is_serial_tracked, warranty_months, status, created_at)
+                  VALUES (@sku, @name, @categoryId, @modelId, @brandId, @price, @cost, @isSerialTracked, @warrantyMonths, @status, @createdAt)",
                 connection);
 
             command.Parameters.AddWithValue("@sku", entity.Sku);
             command.Parameters.AddWithValue("@name", entity.Name);
             command.Parameters.AddWithValue("@categoryId", entity.CategoryId);
+            command.Parameters.AddWithValue("@modelId", entity.ModelId);
             command.Parameters.AddWithValue("@brandId", entity.BrandId.HasValue ? entity.BrandId.Value : (object)DBNull.Value);
             command.Parameters.AddWithValue("@price", entity.Price);
             command.Parameters.AddWithValue("@cost", entity.Cost);
@@ -68,6 +69,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                   SET sku = @sku,
                       name = @name,
                       category_id = @categoryId,
+                      model_id = @modelId,
                       brand_id = @brandId,
                       price = @price,
                       cost = @cost,
@@ -82,6 +84,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             command.Parameters.AddWithValue("@sku", entity.Sku);
             command.Parameters.AddWithValue("@name", entity.Name);
             command.Parameters.AddWithValue("@categoryId", entity.CategoryId);
+            command.Parameters.AddWithValue("@modelId", entity.ModelId);
             command.Parameters.AddWithValue("@brandId", entity.BrandId.HasValue ? entity.BrandId.Value : (object)DBNull.Value);
             command.Parameters.AddWithValue("@price", entity.Price);
             command.Parameters.AddWithValue("@cost", entity.Cost);
@@ -173,6 +176,22 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             return products;
         }
 
+        public IEnumerable<Product> GetByModelId(int modelId)
+        {
+            var products = new List<Product>();
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand("SELECT * FROM products WHERE model_id = @modelId", connection);
+            command.Parameters.AddWithValue("@modelId", modelId);
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                products.Add(MapFromReader(reader));
+            }
+
+            return products;
+        }
+
         #region Private Helper
 
         private static Product MapFromReader(MySqlDataReader reader)
@@ -191,6 +210,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                 Name = reader.GetString("name"),
                 Price = reader.GetDecimal("price"),
                 CategoryId = reader.GetInt32("category_id"),
+                ModelId = reader.IsDBNull(reader.GetOrdinal("model_id")) ? 0 : reader.GetInt32("model_id"),
                 BrandId = reader.IsDBNull(reader.GetOrdinal("brand_id")) ? null : reader.GetInt32("brand_id"),
                 Status = statusEnum,
                 CreatedAt = reader.GetDateTime("created_at"),

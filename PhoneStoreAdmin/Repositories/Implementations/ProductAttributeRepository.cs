@@ -5,6 +5,7 @@ using PhoneStoreAdmin.Data;
 using PhoneStoreAdmin.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PhoneStoreAdmin.Repositories.Implementations
 {
@@ -107,6 +108,41 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             }
 
             throw new InvalidOperationException($"Product attribute with name '{name}' not found.");
+        }
+
+        public IDictionary<string, ProductAttribute> GetByNames(IEnumerable<string> names)
+        {
+            var nameList = names?
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Select(n => n.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (nameList == null || nameList.Count == 0)
+            {
+                return new Dictionary<string, ProductAttribute>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            var parameterNames = nameList.Select((_, index) => $"@name{index}").ToList();
+            var sql = $"SELECT * FROM product_attributes WHERE name IN ({string.Join(",", parameterNames)})";
+
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand(sql, connection);
+
+            for (var i = 0; i < nameList.Count; i++)
+            {
+                command.Parameters.AddWithValue(parameterNames[i], nameList[i]);
+            }
+
+            var result = new Dictionary<string, ProductAttribute>(StringComparer.OrdinalIgnoreCase);
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var attribute = MapFromReader(reader);
+                result[attribute.Name] = attribute;
+            }
+
+            return result;
         }
 
         public IEnumerable<ProductAttribute> GetAttributesFiltered(string? name, AttributeDataType? dataType, int page = 1, int pageSize = 20)

@@ -30,7 +30,9 @@ namespace PhoneStoreAdmin.View.Controls
 
         private sealed class AttributeInputState
         {
-            public required ProductAttribute Attribute { get; init; }
+            public required ProductAttributeDefinition Definition { get; init; }
+            public ProductAttribute Attribute => Definition.Attribute;
+            public IReadOnlyList<ProductAttributeOption> Options => Definition.Options;
             public required FrameworkElement InputControl { get; init; }
             public required TextBlock ErrorTextBlock { get; init; }
             public bool IsRequired { get; init; }
@@ -40,19 +42,20 @@ namespace PhoneStoreAdmin.View.Controls
         private readonly IProductService _productService;
         private readonly IBrandService _brandService;
         private readonly IProductCategoryRepository _categoryRepository;
-        private readonly IProductAttributeRepository _attributeRepository;
         private readonly IProductSerialRepository _serialRepository;
         private readonly ResourceLoader _resourceLoader;
 
         private readonly List<SelectionOption<int>> _categoryOptions = new();
+        private readonly List<SelectionOption<int>> _modelOptions = new();
         private readonly List<SelectionOption<int?>> _brandOptions = new();
         private readonly List<SelectionOption<ProductStatus>> _statusOptions = new();
         private readonly List<AttributeInputState> _attributeInputs = new();
-        private IReadOnlyList<ProductAttribute> _attributeDefinitions = new List<ProductAttribute>();
+        private IReadOnlyList<ProductAttributeDefinition> _attributeDefinitions = new List<ProductAttributeDefinition>();
 
         private bool _referenceDataLoaded;
         private bool _isSkuValid;
         private bool _isNameValid;
+        private bool _isModelValid;
         private bool _isCategoryValid;
         private bool _isPriceValid;
         private bool _isCostValid;
@@ -83,7 +86,6 @@ namespace PhoneStoreAdmin.View.Controls
             _productService = App.GetService<IProductService>();
             _brandService = App.GetService<IBrandService>();
             _categoryRepository = App.GetService<IProductCategoryRepository>();
-            _attributeRepository = App.GetService<IProductAttributeRepository>();
             _serialRepository = App.GetService<IProductSerialRepository>();
             _resourceLoader = new ResourceLoader();
 
@@ -186,6 +188,7 @@ namespace PhoneStoreAdmin.View.Controls
             ValidateAllFields();
             return _isSkuValid
                 && _isNameValid
+                && _isModelValid
                 && _isCategoryValid
                 && _isPriceValid
                 && _isCostValid
@@ -214,6 +217,11 @@ namespace PhoneStoreAdmin.View.Controls
         private void NameTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             ValidateName(NameTextBox.Text ?? string.Empty);
+        }
+
+        private void ModelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ValidateModel();
         }
 
         private void CategoryComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -268,6 +276,7 @@ namespace PhoneStoreAdmin.View.Controls
         {
             ValidateSku(SkuTextBox.Text ?? string.Empty);
             ValidateName(NameTextBox.Text ?? string.Empty);
+            ValidateModel();
             ValidateCategory();
             ValidatePrice();
             ValidateCost();
@@ -305,6 +314,26 @@ namespace PhoneStoreAdmin.View.Controls
             else
             {
                 HideError(NameError);
+            }
+        }
+
+        private void ValidateModel()
+        {
+            _isModelValid = ModelComboBox.SelectedValue is int;
+
+            if (!_isModelValid)
+            {
+                var message = _resourceLoader.GetString("ProductModelRequiredError");
+                if (string.IsNullOrWhiteSpace(message))
+                {
+                    message = "Please select a model.";
+                }
+
+                ShowError(ModelError, message);
+            }
+            else
+            {
+                HideError(ModelError);
             }
         }
 
@@ -385,6 +414,12 @@ namespace PhoneStoreAdmin.View.Controls
                 return;
             }
 
+            if (state.Options.Count > 0)
+            {
+                ValidateOptionAttribute(state);
+                return;
+            }
+
             switch (state.Attribute.DataType)
             {
                 case AttributeDataType.TEXT:
@@ -403,6 +438,36 @@ namespace PhoneStoreAdmin.View.Controls
                     state.IsValid = true;
                     HideError(state.ErrorTextBlock);
                     break;
+            }
+        }
+
+        private void ValidateOptionAttribute(AttributeInputState state)
+        {
+            if (state.InputControl is ComboBox comboBox)
+            {
+                var hasSelection = comboBox.SelectedItem is ProductAttributeOption;
+                state.IsValid = hasSelection || !state.IsRequired;
+
+                if (!state.IsValid)
+                {
+                    ShowAttributeRequiredError(state);
+                }
+                else
+                {
+                    HideError(state.ErrorTextBlock);
+                }
+            }
+            else
+            {
+                state.IsValid = !state.IsRequired;
+                if (!state.IsValid)
+                {
+                    ShowAttributeRequiredError(state);
+                }
+                else
+                {
+                    HideError(state.ErrorTextBlock);
+                }
             }
         }
 
@@ -502,6 +567,7 @@ namespace PhoneStoreAdmin.View.Controls
 
                 SkuTextBox.Text = string.Empty;
                 NameTextBox.Text = string.Empty;
+                ModelComboBox.SelectedIndex = -1;
                 CategoryComboBox.SelectedIndex = -1;
                 BrandComboBox.SelectedIndex = -1;
                 PriceNumberBox.Value = 0;
@@ -522,6 +588,7 @@ namespace PhoneStoreAdmin.View.Controls
 
             SkuTextBox.Text = product.Sku;
             NameTextBox.Text = product.Name;
+            ModelComboBox.SelectedValue = product.ModelId;
             CategoryComboBox.SelectedValue = product.CategoryId;
             if (product.BrandId.HasValue)
             {
@@ -584,6 +651,7 @@ namespace PhoneStoreAdmin.View.Controls
         {
             SkuTextBox.IsEnabled = enabled;
             NameTextBox.IsEnabled = enabled;
+            ModelComboBox.IsEnabled = enabled;
             CategoryComboBox.IsEnabled = enabled;
             BrandComboBox.IsEnabled = enabled;
             PriceNumberBox.IsEnabled = enabled;
@@ -628,9 +696,10 @@ namespace PhoneStoreAdmin.View.Controls
 
             var valueLookup = values?.ToDictionary(v => v.AttributeId) ?? new Dictionary<int, ProductAttributeValueViewModel>();
 
-            foreach (var attribute in _attributeDefinitions)
+            foreach (var definition in _attributeDefinitions)
             {
-                var isRequired = IsAttributeRequired(attribute);
+                var attribute = definition.Attribute;
+                var isRequired = IsAttributeRequired(definition);
                 var container = new StackPanel();
 
                 var label = new TextBlock
@@ -642,7 +711,9 @@ namespace PhoneStoreAdmin.View.Controls
                 container.Children.Add(label);
 
                 valueLookup.TryGetValue(attribute.Id, out var existingValue);
-                FrameworkElement inputControl = CreateAttributeInputControl(attribute, existingValue);
+                FrameworkElement inputControl = definition.Options.Count > 0
+                    ? CreateAttributeOptionControl(definition, existingValue)
+                    : CreateAttributeInputControl(attribute, existingValue);
                 container.Children.Add(inputControl);
 
                 var errorText = new TextBlock
@@ -655,7 +726,7 @@ namespace PhoneStoreAdmin.View.Controls
 
                 var state = new AttributeInputState
                 {
-                    Attribute = attribute,
+                    Definition = definition,
                     InputControl = inputControl,
                     ErrorTextBlock = errorText,
                     IsRequired = isRequired,
@@ -667,6 +738,35 @@ namespace PhoneStoreAdmin.View.Controls
 
                 _attributeInputs.Add(state);
             }
+        }
+
+        private FrameworkElement CreateAttributeOptionControl(ProductAttributeDefinition definition, ProductAttributeValueViewModel? existing)
+        {
+            var comboBox = new ComboBox
+            {
+                Style = (Style)Resources["ComboInputStyle"],
+                ItemsSource = definition.Options,
+                DisplayMemberPath = nameof(ProductAttributeOption.DisplayValue),
+                SelectedValuePath = nameof(ProductAttributeOption.Id),
+                Margin = new Thickness(0, 4, 0, 8)
+            };
+
+            var placeholder = _resourceLoader.GetString("ProductAttributeOptionPlaceholder");
+            if (!string.IsNullOrWhiteSpace(placeholder))
+            {
+                comboBox.PlaceholderText = placeholder;
+            }
+
+            if (existing?.OptionId.HasValue == true)
+            {
+                comboBox.SelectedValue = existing.OptionId.Value;
+            }
+            else
+            {
+                comboBox.SelectedIndex = -1;
+            }
+
+            return comboBox;
         }
 
         private FrameworkElement CreateAttributeInputControl(ProductAttribute attribute, ProductAttributeValueViewModel? existing)
@@ -722,6 +822,16 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void AttachAttributeValidationHandlers(AttributeInputState state)
         {
+            if (state.Options.Count > 0)
+            {
+                if (state.InputControl is ComboBox comboBox)
+                {
+                    comboBox.SelectionChanged += (_, _) => ValidateAttribute(state);
+                }
+
+                return;
+            }
+
             switch (state.Attribute.DataType)
             {
                 case AttributeDataType.TEXT:
@@ -761,14 +871,14 @@ namespace PhoneStoreAdmin.View.Controls
             return isRequired ? string.Format(CultureInfo.InvariantCulture, "{0} *", name) : name;
         }
 
-        private bool IsAttributeRequired(ProductAttribute attribute)
+        private bool IsAttributeRequired(ProductAttributeDefinition definition)
         {
-            if (attribute == null)
+            if (definition?.Attribute == null)
             {
                 return false;
             }
 
-            var note = attribute.Note;
+            var note = definition.Attribute.Note;
             if (string.IsNullOrWhiteSpace(note))
             {
                 return false;
@@ -781,6 +891,7 @@ namespace PhoneStoreAdmin.View.Controls
         {
             HideError(SkuError);
             HideError(NameError);
+            HideError(ModelError);
             HideError(CategoryError);
             HideError(BrandError);
             HideError(PriceError);
@@ -798,6 +909,7 @@ namespace PhoneStoreAdmin.View.Controls
         {
             _isSkuValid = false;
             _isNameValid = false;
+            _isModelValid = false;
             _isCategoryValid = false;
             _isPriceValid = false;
             _isCostValid = false;
@@ -843,6 +955,7 @@ namespace PhoneStoreAdmin.View.Controls
 
             try
             {
+                LoadModels();
                 LoadCategories();
                 LoadBrands();
                 LoadStatuses();
@@ -875,6 +988,27 @@ namespace PhoneStoreAdmin.View.Controls
             CategoryComboBox.ItemsSource = null;
             CategoryComboBox.ItemsSource = _categoryOptions;
             CategoryComboBox.SelectedIndex = -1;
+        }
+
+        private void LoadModels()
+        {
+            _modelOptions.Clear();
+            var models = _productService.GetAllModels() ?? Array.Empty<ProductModel>();
+            var unknown = _resourceLoader.GetString("UnknownModelLabel");
+            if (string.IsNullOrWhiteSpace(unknown))
+            {
+                unknown = "Unknown Model";
+            }
+
+            foreach (var model in models.OrderBy(m => m.Name ?? string.Empty))
+            {
+                var displayName = string.IsNullOrWhiteSpace(model.Name) ? unknown : model.Name!;
+                _modelOptions.Add(new SelectionOption<int>(displayName, model.Id));
+            }
+
+            ModelComboBox.ItemsSource = null;
+            ModelComboBox.ItemsSource = _modelOptions;
+            ModelComboBox.SelectedIndex = -1;
         }
 
         private void LoadBrands()
@@ -927,8 +1061,7 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void LoadAttributes()
         {
-            _attributeDefinitions = _attributeRepository.GetAll()?.OrderBy(a => a.Name).ToList()
-                ?? new List<ProductAttribute>();
+            _attributeDefinitions = _productService.GetAttributeDefinitions() ?? Array.Empty<ProductAttributeDefinition>();
         }
 
         private Product BuildProductFromForm()
@@ -938,6 +1071,7 @@ namespace PhoneStoreAdmin.View.Controls
                 Id = _currentProductId,
                 Sku = (SkuTextBox.Text ?? string.Empty).Trim(),
                 Name = (NameTextBox.Text ?? string.Empty).Trim(),
+                ModelId = ModelComboBox.SelectedValue is int modelId ? modelId : 0,
                 CategoryId = CategoryComboBox.SelectedValue is int categoryId ? categoryId : 0,
                 BrandId = GetSelectedBrandId(),
                 Price = ConvertToDecimal(PriceNumberBox.Value),
@@ -964,6 +1098,49 @@ namespace PhoneStoreAdmin.View.Controls
                 {
                     AttributeId = state.Attribute.Id
                 };
+
+                if (state.Options.Count > 0)
+                {
+                    if (state.InputControl is ComboBox comboBox && comboBox.SelectedItem is ProductAttributeOption option)
+                    {
+                        input.OptionId = option.Id;
+                        input.TextValue = option.DisplayValue;
+                        input.RawValue = option.DisplayValue;
+
+                        if (!string.IsNullOrWhiteSpace(option.NormalizedValue))
+                        {
+                            if (state.Attribute.DataType == AttributeDataType.NUMBER
+                                && decimal.TryParse(option.NormalizedValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsedNumber))
+                            {
+                                input.NumberValue = parsedNumber;
+                            }
+                            else if (state.Attribute.DataType == AttributeDataType.DATE
+                                && DateTime.TryParse(option.NormalizedValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedDate))
+                            {
+                                input.DateValue = parsedDate;
+                            }
+                            else if (state.Attribute.DataType == AttributeDataType.BOOLEAN)
+                            {
+                                if (bool.TryParse(option.NormalizedValue, out var parsedBool))
+                                {
+                                    input.BoolValue = parsedBool;
+                                }
+                                else if (int.TryParse(option.NormalizedValue, out var parsedInt))
+                                {
+                                    input.BoolValue = parsedInt != 0;
+                                }
+                            }
+                        }
+
+                        yield return input;
+                    }
+                    else if (state.IsRequired)
+                    {
+                        yield return input;
+                    }
+
+                    continue;
+                }
 
                 switch (state.Attribute.DataType)
                 {
@@ -1011,22 +1188,26 @@ namespace PhoneStoreAdmin.View.Controls
             var brandName = product.BrandId.HasValue
                 ? _brandOptions.FirstOrDefault(b => b.Value == product.BrandId)?.DisplayName
                 : null;
+            var modelName = _modelOptions.FirstOrDefault(m => m.Value == product.ModelId)?.DisplayName ?? string.Empty;
 
-            var productViewModel = new ProductListItemViewModel(product, categoryName, brandName, _currentSerialCount);
+            var productViewModel = new ProductListItemViewModel(product, categoryName, brandName, _currentSerialCount, modelName);
 
-            var attributeLookup = _attributeDefinitions.ToDictionary(a => a.Id);
+            var attributeLookup = _attributeDefinitions.ToDictionary(a => a.Attribute.Id);
             var attributeViewModels = attributeInputs.Select(input =>
             {
                 attributeLookup.TryGetValue(input.AttributeId, out var attribute);
+                var option = attribute?.Options.FirstOrDefault(o => input.OptionId.HasValue && o.Id == input.OptionId.Value);
                 return new ProductAttributeValueViewModel
                 {
                     AttributeId = input.AttributeId,
-                    AttributeName = attribute?.Name ?? string.Empty,
-                    DataType = attribute?.DataType ?? AttributeDataType.TEXT,
+                    AttributeName = attribute?.Attribute.Name ?? string.Empty,
+                    DataType = attribute?.Attribute.DataType ?? AttributeDataType.TEXT,
                     ValueText = input.TextValue,
                     ValueNumber = input.NumberValue,
                     ValueDate = input.DateValue,
-                    ValueBool = input.BoolValue
+                    ValueBool = input.BoolValue,
+                    OptionId = input.OptionId,
+                    OptionDisplayValue = option?.DisplayValue
                 };
             });
 
