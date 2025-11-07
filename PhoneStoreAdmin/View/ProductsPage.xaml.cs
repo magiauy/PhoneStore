@@ -471,12 +471,38 @@ namespace PhoneStoreAdmin.View
                         return;
                     }
 
-                    detail = ProductService.GetProductDetail(product.Id);
-                    if (detail == null)
+                    try
+                    {
+                        detail = ProductService.GetProductDetail(product.Id);
+                        if (detail == null)
+                        {
+                            // GetProductDetail returns null when there's an error
+                            // The error has already been logged in the service layer
+                            ShowMessageDialog(
+                                _resourceLoader.GetString("ProductDetailErrorTitle") ?? "Error Loading Product",
+                                "Failed to load product details. Please check the application logs for more information.");
+                            return;
+                        }
+                    }
+                    catch (ArgumentException argEx)
                     {
                         ShowMessageDialog(
-                            _resourceLoader.GetString("ProductDetailErrorTitle"),
-                            _resourceLoader.GetString("ProductNotFoundError"));
+                            _resourceLoader.GetString("ProductDetailErrorTitle") ?? "Invalid Input",
+                            $"Invalid product information: {argEx.Message}");
+                        return;
+                    }
+                    catch (InvalidOperationException opEx)
+                    {
+                        ShowMessageDialog(
+                            _resourceLoader.GetString("ProductDetailErrorTitle") ?? "Product Error",
+                            $"Problem accessing product: {opEx.Message}");
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        ShowMessageDialog(
+                            _resourceLoader.GetString("ProductDetailErrorTitle") ?? "Unexpected Error",
+                            $"An unexpected error occurred while loading product details: {ex.Message}");
                         return;
                     }
                 }
@@ -516,7 +542,7 @@ namespace PhoneStoreAdmin.View
                     primaryText = mode == ProductDialog.DialogMode.View ? "Close" : "Save";
                 }
 
-                string closeText = null;
+                string? closeText = null;
                 if (mode != ProductDialog.DialogMode.View)
                 {
                     closeText = _resourceLoader.GetString("DialogCancel");
@@ -592,24 +618,77 @@ namespace PhoneStoreAdmin.View
 
             try
             {
-                var detail = ProductService.GetProductDetail(productId);
-                if (detail == null)
+                // Validate product ID
+                if (productId <= 0)
                 {
                     ShowMessageDialog(
-                        _resourceLoader.GetString("ProductDetailErrorTitle"),
-                        _resourceLoader.GetString("ProductNotFoundError"));
+                        _resourceLoader.GetString("ProductDetailErrorTitle") ?? "Invalid Product",
+                        "Invalid product ID. Cannot load serial information.");
                     return;
                 }
 
+                // Get product detail with error handling
+                ProductDetailViewModel? detail = null;
+                try
+                {
+                    detail = ProductService.GetProductDetail(productId);
+                }
+                catch (Exception ex)
+                {
+                    ShowMessageDialog(
+                        _resourceLoader.GetString("ProductDetailErrorTitle") ?? "Error",
+                        $"Error retrieving product details: {ex.Message}");
+                    return;
+                }
+
+                // Check if product detail is null
+                if (detail == null)
+                {
+                    ShowMessageDialog(
+                        _resourceLoader.GetString("ProductDetailErrorTitle") ?? "Product Not Found",
+                        $"Could not load product {productId}. The product may have been deleted or there is a database error.");
+                    return;
+                }
+
+                // Check if serials collection is empty
+                if (detail.Serials == null || detail.Serials.Count == 0)
+                {
+                    var summary = _resourceLoader.GetString("ProductSerialSummaryFormat");
+                    if (!string.IsNullOrWhiteSpace(summary))
+                    {
+                        ShowMessageDialog(
+                            _resourceLoader.GetString("ProductDetailErrorTitle") ?? "No Serials",
+                            string.Format(summary, 0));
+                    }
+                    else
+                    {
+                        ShowMessageDialog(
+                            _resourceLoader.GetString("ProductDetailErrorTitle") ?? "No Serials",
+                            "This product has no serial numbers currently in stock.");
+                    }
+                    return;
+                }
+
+                // Process and display serials
                 var serialPanel = new StackPanel { Spacing = 4 };
+                int processedCount = 0;
+
                 foreach (var serial in detail.Serials)
                 {
+                    // Validate serial object
+                    if (serial == null)
+                    {
+                        continue;
+                    }
+
+                    // Extract serial display text with priority: SerialNumber > Imei1 > Imei2
                     var serialText = string.IsNullOrWhiteSpace(serial.SerialNumber)
                         ? string.IsNullOrWhiteSpace(serial.Imei1)
                             ? serial.Imei2 ?? string.Empty
                             : serial.Imei1!
                         : serial.SerialNumber!;
 
+                    // Skip empty serials
                     if (string.IsNullOrWhiteSpace(serialText))
                     {
                         continue;
@@ -621,24 +700,16 @@ namespace PhoneStoreAdmin.View
                         FontSize = 14,
                         TextWrapping = TextWrapping.WrapWholeWords
                     });
+
+                    processedCount++;
                 }
 
+                // Check if any valid serials were found
                 if (serialPanel.Children.Count == 0)
                 {
-                    var summary = _resourceLoader.GetString("ProductSerialSummaryFormat");
-                    if (!string.IsNullOrWhiteSpace(summary))
-                    {
-                        ShowMessageDialog(
-                            _resourceLoader.GetString("ProductDetailErrorTitle"),
-                            string.Format(summary, 0));
-                    }
-                    else
-                    {
-                        ShowMessageDialog(
-                            _resourceLoader.GetString("ProductDetailErrorTitle"),
-                            "No serial numbers available.");
-                    }
-
+                    ShowMessageDialog(
+                        _resourceLoader.GetString("ProductDetailErrorTitle") ?? "No Serials",
+                        $"Product has {detail.Serials.Count} serial record(s) but none contain valid serial number or IMEI information.");
                     return;
                 }
 
@@ -674,11 +745,23 @@ namespace PhoneStoreAdmin.View
                 serialDialog.Closed += (_, _) => _currentDialog = null;
                 await serialDialog.ShowAsync();
             }
+            catch (ArgumentException argEx)
+            {
+                ShowMessageDialog(
+                    _resourceLoader.GetString("ProductDetailErrorTitle") ?? "Invalid Input",
+                    $"Invalid product ID: {argEx.Message}");
+            }
+            catch (InvalidOperationException opEx)
+            {
+                ShowMessageDialog(
+                    _resourceLoader.GetString("ProductDetailErrorTitle") ?? "Database Error",
+                    $"Error accessing product data: {opEx.Message}");
+            }
             catch (Exception ex)
             {
                 ShowMessageDialog(
-                    _resourceLoader.GetString("ProductDetailErrorTitle"),
-                    string.Format(_resourceLoader.GetString("ProductDetailErrorMessage"), ex.Message));
+                    _resourceLoader.GetString("ProductDetailErrorTitle") ?? "Unexpected Error",
+                    $"An unexpected error occurred while retrieving serial information: {ex.Message}");
             }
         }
 

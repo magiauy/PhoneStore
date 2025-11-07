@@ -117,45 +117,130 @@ namespace PhoneStoreAdmin.Services.Implementations
         {
             try
             {
-                var product = _productRepository.GetById(productId);
-                if (product == null)
+                // Validate product ID
+                if (productId <= 0)
                 {
-                    Logger.Warning($"Product {productId} not found.");
-                    return null;
+                    Logger.Warning($"Invalid product ID: {productId}");
+                    throw new ArgumentException($"Invalid product ID: {productId}");
                 }
 
-                var categoryName = TryGetCategoryName(product.CategoryId);
-                var brandName = product.BrandId.HasValue ? TryGetBrandName(product.BrandId.Value) : null;
-
-                var attributeValues = _productAttributeValueRepository.GetByProductId(productId).ToList();
-                var attributeViewModels = attributeValues
-                    .Select(value => BuildAttributeViewModel(value))
-                    .Where(vm => vm != null)
-                    .Cast<ProductAttributeValueViewModel>()
-                    .ToList();
-
-                var serials = _productSerialRepository.GetByProductId(productId).ToList();
-                SynchronizeSerialTracking(product, serials);
-
-                var serialViewModels = serials.Select(serial => new ProductSerialViewModel
+                // Get product by ID
+                Product? product = null;
+                try
                 {
-                    Id = serial.Id,
-                    SerialNumber = serial.SerialNumber,
-                    Imei1 = serial.Imei1,
-                    Imei2 = serial.Imei2,
-                    BatchId = serial.BatchId,
-                    Status = serial.Status,
-                    PurchaseOrderLineId = serial.PurchaseOrderLineId,
-                    Note = serial.Note
-                }).ToList();
+                    product = _productRepository.GetById(productId);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Logger.Error($"Product repository error - Product {productId} not found in database", ex);
+                    throw new InvalidOperationException($"Product {productId} not found in database", ex);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"Database error when retrieving product {productId}", ex);
+                    throw new InvalidOperationException($"Database error retrieving product {productId}: {ex.Message}", ex);
+                }
 
-                var productViewModel = new ProductListItemViewModel(product, categoryName, brandName, serialViewModels.Count);
+                if (product == null)
+                {
+                    Logger.Warning($"Product {productId} returned null from repository");
+                    throw new InvalidOperationException($"Product with ID {productId} does not exist");
+                }
 
-                return new ProductDetailViewModel(productViewModel, attributeViewModels, serialViewModels);
+                // Get category name
+                string categoryName = string.Empty;
+                try
+                {
+                    categoryName = TryGetCategoryName(product.CategoryId);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"Error loading category for product {productId}: {ex.Message}", ex);
+                    categoryName = "[Category Error]";
+                }
+
+                // Get brand name
+                string? brandName = null;
+                if (product.BrandId.HasValue)
+                {
+                    try
+                    {
+                        brandName = TryGetBrandName(product.BrandId.Value);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error($"Error loading brand for product {productId}: {ex.Message}", ex);
+                        brandName = "[Brand Error]";
+                    }
+                }
+
+                // Get attribute values
+                List<ProductAttributeValueViewModel> attributeViewModels = new();
+                try
+                {
+                    var attributeValues = _productAttributeValueRepository.GetByProductId(productId).ToList();
+                    attributeViewModels = attributeValues
+                        .Select(value => BuildAttributeViewModel(value))
+                        .Where(vm => vm != null)
+                        .Cast<ProductAttributeValueViewModel>()
+                        .ToList();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"Error loading attributes for product {productId}: {ex.Message}", ex);
+                    // Continue without attributes - they are optional
+                }
+
+                // Get product serials
+                List<ProductSerialViewModel> serialViewModels = new();
+                try
+                {
+                    var serials = _productSerialRepository.GetByProductId(productId).ToList();
+                    SynchronizeSerialTracking(product, serials);
+
+                    serialViewModels = serials.Select(serial => new ProductSerialViewModel
+                    {
+                        Id = serial.Id,
+                        SerialNumber = serial.SerialNumber,
+                        Imei1 = serial.Imei1,
+                        Imei2 = serial.Imei2,
+                        BatchId = serial.BatchId,
+                        Status = serial.Status,
+                        PurchaseOrderLineId = serial.PurchaseOrderLineId,
+                        Note = serial.Note
+                    }).ToList();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"Error loading serials for product {productId}: {ex.Message}", ex);
+                    // Continue without serials - they are optional
+                }
+
+                // Build view model
+                try
+                {
+                    var productViewModel = new ProductListItemViewModel(product, categoryName, brandName, serialViewModels.Count);
+                    return new ProductDetailViewModel(productViewModel, attributeViewModels, serialViewModels);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"Error building view model for product {productId}: {ex.Message}", ex);
+                    throw new InvalidOperationException($"Failed to build product view model: {ex.Message}", ex);
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                Logger.Error($"Argument error loading product detail for {productId}: {ex.Message}", ex);
+                return null;
+            }
+            catch (InvalidOperationException ex)
+            {
+                Logger.Error($"Operation error loading product detail for {productId}: {ex.Message}", ex);
+                return null;
             }
             catch (Exception ex)
             {
-                Logger.Error($"Failed to get product detail for {productId}", ex);
+                Logger.Error($"Unexpected error loading product detail for {productId}: {ex.Message}", ex);
                 return null;
             }
         }
