@@ -627,7 +627,7 @@ namespace PhoneStoreAdmin.View
                         // RECEIVED: Can only cancel
                         if (editMenuItem != null) editMenuItem.Visibility = Visibility.Collapsed;
                         if (receiveMenuItem != null) receiveMenuItem.Visibility = Visibility.Collapsed;
-                        if (cancelMenuItem != null) cancelMenuItem.Visibility = Visibility.Visible;
+                        if (cancelMenuItem != null) cancelMenuItem.Visibility = Visibility.Collapsed;
                         break;
 
                     case PoStatus.CANCELLED:

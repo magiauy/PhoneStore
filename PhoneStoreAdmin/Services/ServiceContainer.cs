@@ -80,12 +80,14 @@ namespace PhoneStoreAdmin.Services
                 GetService<IPurchaseOrderLineRepository>(),
                 GetService<IBatchesRepository>(),
                 GetService<IBatchProductRepository>(),
-                GetService<IProductRepository>()));
+                GetService<IProductRepository>(),
+                GetService<DataSource>()));
             RegisterSingleton<IBatchesService>(() => new BatchesService(
                 GetService<IBatchesRepository>(), 
                 GetService<IBatchProductRepository>(), 
                 GetService<IPurchaseOrderRepository>(), 
-                GetService<ISupplierRepository>()));
+                GetService<ISupplierRepository>(),
+                GetService<DataSource>()));
             RegisterSingleton<ILocalStorageService>(() => new LocalStorageService());
             RegisterSingleton<IRoleService>(() => new RoleService(GetService<IRoleRepository>()));
             RegisterSingleton<IPermissionService>(() => new PermissionService(GetService<IPermissionRepository>()));
