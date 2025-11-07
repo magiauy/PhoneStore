@@ -51,8 +51,10 @@ namespace PhoneStoreAdmin.Services
             RegisterSingleton<IProductRepository>(() => new ProductRepository(GetService<DataSource>()));
             RegisterSingleton<IProductSerialRepository>(() => new ProductSerialRepository(GetService<DataSource>()));
             RegisterSingleton<IInvoiceRepository>(() => new InvoiceRepository(GetService<DataSource>()));
+            RegisterSingleton<IPromotionCodeRepository>(() => new PromotionCodeRepository(GetService<DataSource>()));
 
             // Register services
+            RegisterSingleton<IPromotionCodeService>(() => new PromotionCodeService(GetService<IPromotionCodeRepository>()));
             RegisterSingleton<IAuthService>(() => new AuthService(GetService<IAuthRepository>()));
             RegisterSingleton<IAccountService>(() => new AccountService(GetService<IAccountRepository>()));
             RegisterSingleton<IPersonService>(() => new PersonService(GetService<IPersonRepository>()));

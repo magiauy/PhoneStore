@@ -1,10 +1,16 @@
 using PhoneStoreAdmin.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace PhoneStoreAdmin.Services.Interfaces
 {
     public interface IPersonService
     {
+        /// <summary>
+        /// Get all persons
+        /// </summary>
+        /// <returns>List of persons</returns>
+        Task<IEnumerable<Person>> GetAllAsync();
         /// <summary>
         /// Get person by ID
         /// </summary>

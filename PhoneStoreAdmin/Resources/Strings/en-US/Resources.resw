@@ -1243,4 +1243,52 @@ How many devices do you want to add?</value>
   <data name="POStatus_REFUNDED.Content" xml:space="preserve">
     <value>Refunded</value>
   </data>
+  <data name="SearchName.PlaceholderText" xml:space="preserve">
+    <value>Search by name</value>
+  </data>
+  <data name="InvoicePaymentLabel.Text" xml:space="preserve">
+    <value>Payment Method</value>
+  </data>
+  <data name="InvoiceFinalLabel.Text" xml:space="preserve">
+    <value>Final Amount</value>
+  </data>
+  <data name="InvoiceDiscountLabel.Text" xml:space="preserve">
+    <value>Discount Amount</value>
+  </data>
+  <data name="InvoiceStatusLabel.Text" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="InvoiceNoteLable.Text" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="InvoiceTotalLabel.Text" xml:space="preserve">
+    <value>Total Amount</value>
+  </data>
+  <data name="InvoiceDateLabel.Text" xml:space="preserve">
+    <value>Date </value>
+  </data>
+  <data name="InvoiceCreatorLabel.Text" xml:space="preserve">
+    <value>Creator</value>
+  </data>
+  <data name="InvoicePromoteCodeLabel.Text" xml:space="preserve">
+    <value>Promote Code</value>
+  </data>
+  <data name="InvoiceCustomerLabel.Text" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="InvoiceIdLabel.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="DialogUpdateInvoice" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="DialogCloseInvoice" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="DialogCancelInvoice" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="DialogAddInvoice" xml:space="preserve">
+    <value>Add</value>
+  </data>
 </root>

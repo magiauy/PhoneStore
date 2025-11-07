@@ -4,6 +4,7 @@ using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Utils;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace PhoneStoreAdmin.Services.Implementations
@@ -169,6 +170,19 @@ namespace PhoneStoreAdmin.Services.Implementations
             {
                 Logger.Error($"Failed to add account: {account.Username}", ex);
                 return 0;
+            }
+        }
+        public async Task<IEnumerable<Account>> GetAllAsync()
+        {
+            try
+            {
+                Logger.Info("Getting all accounts");
+                return await Task.Run(() => _accountRepository.GetAll());
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to get accounts", ex);
+                return Enumerable.Empty<Account>();
             }
         }
     }

@@ -19,7 +19,7 @@ namespace PhoneStoreAdmin.Models
         private DateTime _createdAt = DateTime.UtcNow;
         private bool _isActive = true;
         private ICollection<Account> _accounts = new List<Account>();
-
+        private ICollection<Invoice> _invoice = new List<Invoice>();
         // Public properties with backing fields
         [Key]
         public int Id
@@ -84,6 +84,11 @@ namespace PhoneStoreAdmin.Models
         {
             get => _accounts;
             set => _accounts = value ?? new List<Account>();
+        }
+
+        public ICollection<Invoice> Invoices {
+            get => _invoice; 
+            set => _invoice = value ?? new List<Invoice>();
         }
 
         // Constructors

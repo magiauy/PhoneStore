@@ -42,20 +42,18 @@ namespace PhoneStoreAdmin.Services.Implementations
             }
         }
 
-        public void Insert(Invoice invoice)
-        {
-            /*
+        public async void Insert(Invoice invoice)
+        {          
             try
             {
-                Logger.Info($"Inserting Invoice for Customer {invoice.CustomerId}");
+                Logger.Info($"Inserting Invoice for Customer {invoice.CustomerName}");
                 _invoiceRepository.Insert(invoice);
             }
             catch (Exception ex)
             {
                 Logger.Error("Failed to insert Invoice", ex);
                 throw;
-            }
-            */
+            }          
         }
 
         public void Update(Invoice invoice)
