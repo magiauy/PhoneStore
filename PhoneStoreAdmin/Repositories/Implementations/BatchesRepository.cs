@@ -72,6 +72,23 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             entity.id = GetLastInsertedId(connection);
         }
 
+        public void Insert(Batches entity, MySqlConnection connection, MySqlTransaction transaction)
+        {
+            using var command = new MySqlCommand(
+                @"INSERT INTO batches (purchase_order_id, batch_code, created_at, note) 
+                  VALUES (@purchaseOrderId, @batchCode, @createdAt, @note)",
+                connection, transaction);
+            command.Parameters.AddWithValue("@purchaseOrderId", entity.PurchaseOrderId);
+            command.Parameters.AddWithValue("@batchCode", entity.BatchCode ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@createdAt", entity.CreatedAt);
+            command.Parameters.AddWithValue("@note", entity.Note ?? (object)DBNull.Value);
+            command.ExecuteNonQuery();
+
+            // Get last inserted ID with transaction
+            using var idCommand = new MySqlCommand("SELECT LAST_INSERT_ID()", connection, transaction);
+            entity.id = Convert.ToInt32(idCommand.ExecuteScalar());
+        }
+
         public void Update(Batches entity)
         {
             using var connection = _dataSource.GetConnection();
@@ -105,6 +122,13 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         {
             using var connection = _dataSource.GetConnection();
             using var command = new MySqlCommand("DELETE FROM batches WHERE purchase_order_id = @purchaseOrderId", connection);
+            command.Parameters.AddWithValue("@purchaseOrderId", purchaseOrderId);
+            command.ExecuteNonQuery();
+        }
+
+        public void DeleteByPurchaseOrderId(int purchaseOrderId, MySqlConnection connection, MySqlTransaction transaction)
+        {
+            using var command = new MySqlCommand("DELETE FROM batches WHERE purchase_order_id = @purchaseOrderId", connection, transaction);
             command.Parameters.AddWithValue("@purchaseOrderId", purchaseOrderId);
             command.ExecuteNonQuery();
         }
@@ -229,6 +253,12 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         private int GetLastInsertedId(MySqlConnection connection)
         {
             using var command = new MySqlCommand("SELECT LAST_INSERT_ID()", connection);
+            return Convert.ToInt32(command.ExecuteScalar());
+        }
+
+        private int GetLastInsertedId(MySqlConnection connection, MySqlTransaction transaction)
+        {
+            using var command = new MySqlCommand("SELECT LAST_INSERT_ID()", connection, transaction);
             return Convert.ToInt32(command.ExecuteScalar());
         }
 

@@ -68,6 +68,27 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             entity.Id = GetLastInsertedId(connection);
         }
 
+        public void Insert(PurchaseOrder entity, MySqlConnection connection, MySqlTransaction transaction)
+        {
+            using var command = new MySqlCommand(
+                @"INSERT INTO purchase_orders (supplier_id, created_by, order_date, status, total_amount, note) 
+                  VALUES (@supplierId, @createdBy, @orderDate, @status, @totalAmount, @note)",
+                connection, transaction);
+
+            command.Parameters.AddWithValue("@supplierId", entity.SupplierId);
+            command.Parameters.AddWithValue("@createdBy", entity.CreatedBy);
+            command.Parameters.AddWithValue("@orderDate", entity.OrderDate);
+            command.Parameters.AddWithValue("@status", entity.Status.ToString());
+            command.Parameters.AddWithValue("@totalAmount", entity.TotalAmount);
+            command.Parameters.AddWithValue("@note", entity.Note ?? (object)DBNull.Value);
+
+            command.ExecuteNonQuery();
+            
+            // Get last inserted ID with transaction
+            using var idCommand = new MySqlCommand("SELECT LAST_INSERT_ID()", connection, transaction);
+            entity.Id = Convert.ToInt32(idCommand.ExecuteScalar());
+        }
+
         public void Update(PurchaseOrder entity)
         {
             using var connection = _dataSource.GetConnection();
@@ -77,6 +98,28 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                       status = @status, total_amount = @totalAmount, note = @note
                   WHERE id = @id",   // sửa Id -> id
                 connection);
+
+            command.Parameters.AddWithValue("@id", entity.Id);
+            command.Parameters.AddWithValue("@supplierId", entity.SupplierId);
+            command.Parameters.AddWithValue("@createdBy", entity.CreatedBy);
+            command.Parameters.AddWithValue("@orderDate", entity.OrderDate);
+            command.Parameters.AddWithValue("@status", entity.Status.ToString());
+            command.Parameters.AddWithValue("@totalAmount", entity.TotalAmount);
+            command.Parameters.AddWithValue("@note", entity.Note ?? (object)DBNull.Value);
+
+            var rows = command.ExecuteNonQuery();
+            if (rows == 0)
+                throw new InvalidOperationException($"PurchaseOrder with ID {entity.Id} not found for update.");
+        }
+
+        public void Update(PurchaseOrder entity, MySqlConnection connection, MySqlTransaction transaction)
+        {
+            using var command = new MySqlCommand(
+                @"UPDATE purchase_orders 
+                  SET supplier_id = @supplierId, created_by = @createdBy, order_date = @orderDate, 
+                      status = @status, total_amount = @totalAmount, note = @note
+                  WHERE id = @id",
+                connection, transaction);
 
             command.Parameters.AddWithValue("@id", entity.Id);
             command.Parameters.AddWithValue("@supplierId", entity.SupplierId);
@@ -105,6 +148,12 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         private int GetLastInsertedId(MySqlConnection connection)
         {
             using var command = new MySqlCommand("SELECT LAST_INSERT_ID()", connection);
+            return Convert.ToInt32(command.ExecuteScalar());
+        }
+        
+        private int GetLastInsertedId(MySqlConnection connection, MySqlTransaction transaction)
+        {
+            using var command = new MySqlCommand("SELECT LAST_INSERT_ID()", connection, transaction);
             return Convert.ToInt32(command.ExecuteScalar());
         }
 
