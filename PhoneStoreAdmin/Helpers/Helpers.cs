@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreAdmin.Utils;
 
@@ -7,21 +8,27 @@ namespace PhoneStoreAdmin.Helpers
     public static class LocalizationHelper
     {
         private static readonly ResourceLoader _resourceLoader = new(); // Mặc định Resources.resw
-        private static ResourceManager? _permissionResourceManager;
+        private static readonly ConcurrentDictionary<string, ResourceLoader> _resourceLoaders = new();
 
         /// <summary>
-        /// Lấy chuỗi từ Resources.resw (file mặc định)
+        /// Lấy chuỗi từ các resource theo section. Mặc định sử dụng Resources.resw
         /// </summary>
-        public static string GetString(string key)
+        public static string GetString(string key, string section = "Resources")
         {
+            if (string.IsNullOrWhiteSpace(section))
+            {
+                section = "Resources";
+            }
+
             try
             {
-                string value = _resourceLoader.GetString(key);
+                var loader = GetResourceLoader(section);
+                string value = loader.GetString(key);
                 return string.IsNullOrEmpty(value) ? key : value;
             }
             catch (Exception ex)
             {
-                Logger.Error($"Missing localization key: {key}, ex: {ex.Message}");
+                Logger.Error($"Missing localization key: {key} in section {section}, ex: {ex.Message}");
                 return key;
             }
         }
@@ -31,29 +38,18 @@ namespace PhoneStoreAdmin.Helpers
         /// </summary>
         public static string GetPermissionString(string key)
         {
-            try
+            string value = GetString(key, "Permission");
+            return value.Equals(key, StringComparison.Ordinal) ? key.Replace('_', ' ') : value;
+        }
+
+        private static ResourceLoader GetResourceLoader(string section)
+        {
+            if (section.Equals("Resources", StringComparison.OrdinalIgnoreCase))
             {
-                _permissionResourceManager ??= new ResourceManager();
-                var subtree = _permissionResourceManager.MainResourceMap.TryGetSubtree("Permission");
-
-                if (subtree is null)
-                {
-                    Logger.Warning("Permission resource subtree not found.");
-                    return key.Replace('_', ' ');
-                }
-
-                var resource = subtree.TryGetValue(key);
-                if (resource != null)
-                    return resource.ValueAsString;
-
-                Logger.Warning($"Permission key not found: {key}");
-                return key.Replace('_', ' ');
+                return _resourceLoader;
             }
-            catch (Exception ex)
-            {
-                Logger.Error($"Error retrieving permission key: {key}. Ex: {ex.Message}");
-                return key.Replace('_', ' ');
-            }
+
+            return _resourceLoaders.GetOrAdd(section, static s => new ResourceLoader($"Resources/{s}"));
         }
     }
 }
