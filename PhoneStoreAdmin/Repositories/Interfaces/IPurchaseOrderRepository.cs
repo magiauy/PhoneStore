@@ -1,6 +1,7 @@
 using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Models.Enums;
 using PhoneStoreAdmin.Repositories.Implementations;
+using MySqlConnector;
 using System;
 using System.Collections.Generic;
 
@@ -46,5 +47,15 @@ namespace PhoneStoreAdmin.Repositories.Interfaces
             decimal? maxAmount,
             int pageSize
         );
+    
+        /// <summary>
+        /// Insert a purchase order using an existing transaction
+        /// </summary>
+        void Insert(PurchaseOrder entity, MySqlConnection connection, MySqlTransaction transaction);
+    
+        /// <summary>
+        /// Update a purchase order using an existing transaction
+        /// </summary>
+        void Update(PurchaseOrder entity, MySqlConnection connection, MySqlTransaction transaction);
     }
 }
