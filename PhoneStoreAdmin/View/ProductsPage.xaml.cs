@@ -14,6 +14,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.UI.Text;
+using PhoneStoreAdmin.Utils;
 
 namespace PhoneStoreAdmin.View
 {
@@ -393,6 +394,7 @@ namespace PhoneStoreAdmin.View
         {
             if (sender is FrameworkElement element && element.DataContext is ProductListItemViewModel product)
             {
+                Logger.Info($"Product item double-tapped: ID={product.Id}, Name={product.Name}");
                 await ShowProductDetailDialogAsync(product);
             }
         }

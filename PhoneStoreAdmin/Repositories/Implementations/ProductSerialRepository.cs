@@ -55,7 +55,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             command.Parameters.AddWithValue("@serialNumber", entity.SerialNumber ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@imei1", entity.Imei1 ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@imei2", entity.Imei2 ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@batchId", entity.BatchId);
+            command.Parameters.AddWithValue("@batchId", entity.BatchId ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@status", entity.Status.ToString().ToLower());
             command.Parameters.AddWithValue("@purchaseOrderLineId", entity.PurchaseOrderLineId ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@note", entity.Note ?? (object)DBNull.Value);
@@ -77,7 +77,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             command.Parameters.AddWithValue("@serialNumber", entity.SerialNumber ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@imei1", entity.Imei1 ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@imei2", entity.Imei2 ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@batchId", entity.BatchId);
+            command.Parameters.AddWithValue("@batchId", entity.BatchId ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@status", entity.Status.ToString().ToLower());
             command.Parameters.AddWithValue("@purchaseOrderLineId", entity.PurchaseOrderLineId ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@note", entity.Note ?? (object)DBNull.Value);
@@ -213,7 +213,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                 SerialNumber = reader.IsDBNull(reader.GetOrdinal("serial_number")) ? null : reader.GetString("serial_number"),
                 Imei1 = reader.IsDBNull(reader.GetOrdinal("imei1")) ? null : reader.GetString("imei1"),
                 Imei2 = reader.IsDBNull(reader.GetOrdinal("imei2")) ? null : reader.GetString("imei2"),
-                BatchId = reader.GetInt32("batch_id"),
+                BatchId = reader.IsDBNull(reader.GetOrdinal("batch_id")) ? null : reader.GetInt32("batch_id"),
                 Status = Enum.Parse<SerialStatus>(reader.GetString("status"), true),
                 PurchaseOrderLineId = reader.IsDBNull(reader.GetOrdinal("purchase_order_line_id")) ? null : reader.GetInt32("purchase_order_line_id"),
                 Note = reader.IsDBNull(reader.GetOrdinal("note")) ? null : reader.GetString("note")
