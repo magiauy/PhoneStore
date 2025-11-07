@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS `brands` (
   `name` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -206,12 +206,9 @@ CREATE TABLE IF NOT EXISTS `persons` (
   `is_active` tinyint(1) DEFAULT 1,
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`),
-  KEY `idx_persons_customer_active` (`person_type`,`is_active`,`full_name`),
-  KEY `idx_persons_code` (`code`),
-  KEY `idx_persons_phone` (`phone`),
-  KEY `idx_persons_email` (`email`),
-  KEY `idx_persons_fullname` (`full_name`),
-  FULLTEXT KEY `ft_search` (`full_name`,`email`,`phone`,`code`)
+  KEY `idx_persons_customer_active` (`person_type`,`is_active`,`id`) USING BTREE,
+  FULLTEXT KEY `ft_search` (`full_name`,`email`,`phone`,`code`),
+  FULLTEXT KEY `ft_full_name` (`full_name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1000054 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
@@ -229,13 +226,16 @@ CREATE TABLE IF NOT EXISTS `products` (
   `warranty_months` int(11) NOT NULL DEFAULT 12,
   `status` enum('active','inactive','discontinued') NOT NULL DEFAULT 'active',
   `created_at` datetime NOT NULL,
+  `product_models` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `sku` (`sku`),
   KEY `category_id` (`category_id`),
   KEY `brand_id` (`brand_id`),
+  KEY `FK_products_product_models` (`product_models`),
+  CONSTRAINT `FK_products_product_models` FOREIGN KEY (`product_models`) REFERENCES `product_models` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `product_categories` (`id`),
   CONSTRAINT `products_ibfk_2` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -247,6 +247,20 @@ CREATE TABLE IF NOT EXISTS `product_attributes` (
   `note` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table bandienthoai.product_attribute_options
+CREATE TABLE IF NOT EXISTS `product_attribute_options` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `attribute_id` int(11) DEFAULT NULL,
+  `display_value` varchar(50) DEFAULT NULL,
+  `normalized_value` int(11) DEFAULT NULL,
+  `is_active` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FK__product_attributes` (`attribute_id`),
+  CONSTRAINT `FK__product_attributes` FOREIGN KEY (`attribute_id`) REFERENCES `product_attributes` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
@@ -265,7 +279,7 @@ CREATE TABLE IF NOT EXISTS `product_attribute_values` (
   KEY `attribute_id` (`attribute_id`),
   CONSTRAINT `product_attribute_values_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
   CONSTRAINT `product_attribute_values_ibfk_2` FOREIGN KEY (`attribute_id`) REFERENCES `product_attributes` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -279,6 +293,20 @@ CREATE TABLE IF NOT EXISTS `product_categories` (
   UNIQUE KEY `name` (`name`),
   KEY `parent_id` (`parent_id`),
   CONSTRAINT `product_categories_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `product_categories` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table bandienthoai.product_models
+CREATE TABLE IF NOT EXISTS `product_models` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) DEFAULT NULL,
+  `slug` varchar(255) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `default_image_url` varchar(255) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
@@ -304,7 +332,7 @@ CREATE TABLE IF NOT EXISTS `product_serials` (
   CONSTRAINT `product_serials_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
   CONSTRAINT `product_serials_ibfk_2` FOREIGN KEY (`batch_id`) REFERENCES `batches` (`id`),
   CONSTRAINT `product_serials_ibfk_3` FOREIGN KEY (`purchase_order_line_id`) REFERENCES `purchase_order_lines` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -382,7 +410,7 @@ CREATE TABLE IF NOT EXISTS `roles` (
   `weight` int(11) NOT NULL DEFAULT 100,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
