@@ -19,6 +19,12 @@ namespace PhoneStoreAdmin.Services.Implementations
         private readonly IProductAttributeRepository _productAttributeRepository;
         private readonly IProductAttributeValueRepository _productAttributeValueRepository;
         private readonly IProductSerialRepository _productSerialRepository;
+        private readonly IProductModelRepository _productModelRepository;
+        private readonly IProductAttributeOptionService _productAttributeOptionService;
+
+        private readonly Dictionary<int, string> _modelNameCache = new();
+        private readonly Dictionary<int, IReadOnlyList<ProductAttributeOption>> _attributeOptionCache = new();
+        private bool _seedAttempted;
 
         public ProductService(
             IProductRepository productRepository,
@@ -26,7 +32,9 @@ namespace PhoneStoreAdmin.Services.Implementations
             IProductCategoryRepository productCategoryRepository,
             IProductAttributeRepository productAttributeRepository,
             IProductAttributeValueRepository productAttributeValueRepository,
-            IProductSerialRepository productSerialRepository)
+            IProductSerialRepository productSerialRepository,
+            IProductModelRepository productModelRepository,
+            IProductAttributeOptionService productAttributeOptionService)
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
             _brandRepository = brandRepository ?? throw new ArgumentNullException(nameof(brandRepository));
@@ -34,6 +42,10 @@ namespace PhoneStoreAdmin.Services.Implementations
             _productAttributeRepository = productAttributeRepository ?? throw new ArgumentNullException(nameof(productAttributeRepository));
             _productAttributeValueRepository = productAttributeValueRepository ?? throw new ArgumentNullException(nameof(productAttributeValueRepository));
             _productSerialRepository = productSerialRepository ?? throw new ArgumentNullException(nameof(productSerialRepository));
+            _productModelRepository = productModelRepository ?? throw new ArgumentNullException(nameof(productModelRepository));
+            _productAttributeOptionService = productAttributeOptionService ?? throw new ArgumentNullException(nameof(productAttributeOptionService));
+
+            EnsureSeedData();
         }
 
         public ProductSearchResult SearchProducts(ProductFilterCriteria criteria)
@@ -46,6 +58,55 @@ namespace PhoneStoreAdmin.Services.Implementations
 
             criteria.Normalize();
             return SearchProducts(criteria.Sku, criteria.Name, criteria.CategoryId, criteria.BrandId, criteria.Status, criteria.Page, criteria.PageSize);
+        }
+
+        public IReadOnlyList<ProductModel> GetAllModels()
+        {
+            try
+            {
+                var models = _productModelRepository.GetAll()?.OrderBy(m => m.Name ?? string.Empty).ToList() ?? new List<ProductModel>();
+                foreach (var model in models)
+                {
+                    _modelNameCache[model.Id] = model.Name ?? string.Empty;
+                }
+
+                return models;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to load product models", ex);
+                return Array.Empty<ProductModel>();
+            }
+        }
+
+        public IReadOnlyList<ProductAttributeDefinition> GetAttributeDefinitions()
+        {
+            try
+            {
+                var attributes = _productAttributeRepository.GetAll()?.OrderBy(a => a.Name).ToList() ?? new List<ProductAttribute>();
+                var optionsLookup = _productAttributeOptionService.GetOptionsForAttributes(attributes.Select(a => a.Id))
+                    ?? new Dictionary<int, IReadOnlyList<ProductAttributeOption>>();
+
+                foreach (var pair in optionsLookup)
+                {
+                    _attributeOptionCache[pair.Key] = pair.Value;
+                }
+
+                var definitions = new List<ProductAttributeDefinition>(attributes.Count);
+                foreach (var attribute in attributes)
+                {
+                    optionsLookup.TryGetValue(attribute.Id, out var options);
+                    options ??= Array.Empty<ProductAttributeOption>();
+                    definitions.Add(new ProductAttributeDefinition(attribute, options));
+                }
+
+                return definitions;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to load product attribute definitions", ex);
+                return Array.Empty<ProductAttributeDefinition>();
+            }
         }
 
         public ProductSearchResult SearchProducts(string? sku, string? name, int? categoryId, int? brandId, ProductStatus? status, int page = 1, int pageSize = 20)
@@ -82,6 +143,7 @@ namespace PhoneStoreAdmin.Services.Implementations
 
                 var categoryLookup = BuildCategoryLookup();
                 var brandLookup = BuildBrandLookup();
+                var modelLookup = BuildModelLookup();
 
                 var productIds = pagedProducts.Select(p => p.Id).ToList();
                 var serialCounts = productIds.Count > 0
@@ -99,8 +161,9 @@ namespace PhoneStoreAdmin.Services.Implementations
                         }
 
                         var serialCount = serialCounts.TryGetValue(p.Id, out var count) ? count : 0;
+                        var modelName = modelLookup.TryGetValue(p.ModelId, out var mName) ? mName : string.Empty;
 
-                        return new ProductListItemViewModel(p, categoryName, brandName, serialCount);
+                        return new ProductListItemViewModel(p, categoryName, brandName, serialCount, modelName);
                     })
                     .ToList();
 
@@ -126,6 +189,7 @@ namespace PhoneStoreAdmin.Services.Implementations
 
                 var categoryName = TryGetCategoryName(product.CategoryId);
                 var brandName = product.BrandId.HasValue ? TryGetBrandName(product.BrandId.Value) : null;
+                var modelName = TryGetModelName(product.ModelId);
 
                 var attributeValues = _productAttributeValueRepository.GetByProductId(productId).ToList();
                 var attributeViewModels = attributeValues
@@ -149,7 +213,7 @@ namespace PhoneStoreAdmin.Services.Implementations
                     Note = serial.Note
                 }).ToList();
 
-                var productViewModel = new ProductListItemViewModel(product, categoryName, brandName, serialViewModels.Count);
+                var productViewModel = new ProductListItemViewModel(product, categoryName, brandName, serialViewModels.Count, modelName);
 
                 return new ProductDetailViewModel(productViewModel, attributeViewModels, serialViewModels);
             }
@@ -327,6 +391,25 @@ namespace PhoneStoreAdmin.Services.Implementations
             }
         }
 
+        private Dictionary<int, string> BuildModelLookup()
+        {
+            try
+            {
+                var models = _productModelRepository.GetAll()?.ToList() ?? new List<ProductModel>();
+                foreach (var model in models)
+                {
+                    _modelNameCache[model.Id] = model.Name ?? string.Empty;
+                }
+
+                return _modelNameCache.ToDictionary(pair => pair.Key, pair => pair.Value);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to build model lookup", ex);
+                return new Dictionary<int, string>();
+            }
+        }
+
         private string TryGetCategoryName(int categoryId)
         {
             try
@@ -355,6 +438,32 @@ namespace PhoneStoreAdmin.Services.Implementations
             }
         }
 
+        private string TryGetModelName(int modelId)
+        {
+            if (modelId <= 0)
+            {
+                return string.Empty;
+            }
+
+            if (_modelNameCache.TryGetValue(modelId, out var cached))
+            {
+                return cached;
+            }
+
+            try
+            {
+                var model = _productModelRepository.GetById(modelId);
+                var name = model?.Name ?? string.Empty;
+                _modelNameCache[modelId] = name;
+                return name;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to resolve model name for {modelId}", ex);
+                return string.Empty;
+            }
+        }
+
         private ProductAttributeValueViewModel? BuildAttributeViewModel(ProductAttributeValue value)
         {
             try
@@ -365,6 +474,13 @@ namespace PhoneStoreAdmin.Services.Implementations
                     return null;
                 }
 
+                ProductAttributeOption? option = null;
+                if (value.OptionId.HasValue)
+                {
+                    var options = GetOptionsForAttribute(attribute.Id);
+                    option = options.FirstOrDefault(o => o.Id == value.OptionId.Value);
+                }
+
                 return new ProductAttributeValueViewModel
                 {
                     AttributeId = value.AttributeId,
@@ -373,7 +489,9 @@ namespace PhoneStoreAdmin.Services.Implementations
                     ValueText = value.ValueText,
                     ValueNumber = value.ValueNumber,
                     ValueDate = value.ValueDate,
-                    ValueBool = value.ValueBool
+                    ValueBool = value.ValueBool,
+                    OptionId = value.OptionId,
+                    OptionDisplayValue = option?.DisplayValue
                 };
             }
             catch (Exception ex)
@@ -412,7 +530,8 @@ namespace PhoneStoreAdmin.Services.Implementations
                         AttributeId = attributeValue.AttributeId
                     };
 
-                    ApplyAttributeValue(attribute, attributeValue, dummy);
+                    var option = ResolveAttributeOption(attribute, attributeValue);
+                    ApplyAttributeValue(attribute, attributeValue, dummy, option);
                 }
                 catch (FormatException ex)
                 {
@@ -462,6 +581,8 @@ namespace PhoneStoreAdmin.Services.Implementations
                     continue;
                 }
 
+                var option = ResolveAttributeOption(attribute, attributeValue);
+
                 if (!existing.TryGetValue(attributeValue.AttributeId, out var entity))
                 {
                     entity = new ProductAttributeValue
@@ -469,12 +590,12 @@ namespace PhoneStoreAdmin.Services.Implementations
                         ProductId = productId,
                         AttributeId = attributeValue.AttributeId
                     };
-                    ApplyAttributeValue(attribute, attributeValue, entity);
+                    ApplyAttributeValue(attribute, attributeValue, entity, option);
                     _productAttributeValueRepository.Insert(entity);
                 }
                 else
                 {
-                    ApplyAttributeValue(attribute, attributeValue, entity);
+                    ApplyAttributeValue(attribute, attributeValue, entity, option);
                     _productAttributeValueRepository.Update(entity);
                 }
 
@@ -490,12 +611,73 @@ namespace PhoneStoreAdmin.Services.Implementations
             }
         }
 
-        private void ApplyAttributeValue(ProductAttribute attribute, ProductAttributeValueInput input, ProductAttributeValue entity)
+        private void ApplyAttributeValue(ProductAttribute attribute, ProductAttributeValueInput input, ProductAttributeValue entity, ProductAttributeOption? option)
         {
+            entity.OptionId = option?.Id;
             entity.ValueText = null;
             entity.ValueNumber = null;
             entity.ValueDate = null;
             entity.ValueBool = null;
+
+            if (option != null)
+            {
+                switch (attribute.DataType)
+                {
+                    case AttributeDataType.TEXT:
+                        entity.ValueText = option.DisplayValue;
+                        break;
+                    case AttributeDataType.NUMBER:
+                        if (input.NumberValue.HasValue)
+                        {
+                            entity.ValueNumber = input.NumberValue;
+                        }
+                        else if (!string.IsNullOrWhiteSpace(option.NormalizedValue)
+                            && decimal.TryParse(option.NormalizedValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var optionNumber))
+                        {
+                            entity.ValueNumber = optionNumber;
+                        }
+
+                        entity.ValueText = option.DisplayValue;
+                        break;
+                    case AttributeDataType.DATE:
+                        if (input.DateValue.HasValue)
+                        {
+                            entity.ValueDate = input.DateValue;
+                        }
+                        else if (!string.IsNullOrWhiteSpace(option.NormalizedValue)
+                            && DateTime.TryParse(option.NormalizedValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out var optionDate))
+                        {
+                            entity.ValueDate = optionDate;
+                        }
+
+                        entity.ValueText = option.DisplayValue;
+                        break;
+                    case AttributeDataType.BOOLEAN:
+                        if (input.BoolValue.HasValue)
+                        {
+                            entity.ValueBool = input.BoolValue;
+                        }
+                        else if (!string.IsNullOrWhiteSpace(option.NormalizedValue))
+                        {
+                            if (bool.TryParse(option.NormalizedValue, out var boolValue))
+                            {
+                                entity.ValueBool = boolValue;
+                            }
+                            else if (int.TryParse(option.NormalizedValue, out var intValue))
+                            {
+                                entity.ValueBool = intValue != 0;
+                            }
+                        }
+
+                        entity.ValueText = option.DisplayValue;
+                        break;
+                    default:
+                        entity.ValueText = option.DisplayValue;
+                        break;
+                }
+
+                return;
+            }
 
             switch (attribute.DataType)
             {
@@ -584,6 +766,100 @@ namespace PhoneStoreAdmin.Services.Implementations
             }
         }
 
+        private ProductAttributeOption? ResolveAttributeOption(ProductAttribute attribute, ProductAttributeValueInput input)
+        {
+            var options = GetOptionsForAttribute(attribute.Id);
+            if (options.Count == 0)
+            {
+                input.OptionId = null;
+                return null;
+            }
+
+            ProductAttributeOption? option = null;
+            if (input.OptionId.HasValue)
+            {
+                option = options.FirstOrDefault(o => o.Id == input.OptionId.Value);
+                if (option == null)
+                {
+                    throw new FormatException($"Option {input.OptionId.Value} not found for attribute {attribute.Id}.");
+                }
+            }
+
+            if (option == null && !string.IsNullOrWhiteSpace(input.TextValue))
+            {
+                option = options.FirstOrDefault(o => string.Equals(o.DisplayValue, input.TextValue, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (option == null && !string.IsNullOrWhiteSpace(input.RawValue))
+            {
+                option = options.FirstOrDefault(o => string.Equals(o.DisplayValue, input.RawValue, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(o.NormalizedValue, input.RawValue, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (option == null)
+            {
+                if (input.OptionId.HasValue)
+                {
+                    throw new FormatException($"Option {input.OptionId.Value} not found for attribute {attribute.Id}.");
+                }
+
+                if (!string.IsNullOrWhiteSpace(input.RawValue) || !string.IsNullOrWhiteSpace(input.TextValue))
+                {
+                    throw new FormatException($"Value '{input.RawValue ?? input.TextValue}' is not valid for attribute {attribute.Id}.");
+                }
+
+                return null;
+            }
+
+            input.OptionId = option.Id;
+            input.TextValue = option.DisplayValue;
+
+            if (attribute.DataType == AttributeDataType.NUMBER)
+            {
+                if (!input.NumberValue.HasValue && !string.IsNullOrWhiteSpace(option.NormalizedValue)
+                    && decimal.TryParse(option.NormalizedValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var number))
+                {
+                    input.NumberValue = number;
+                }
+            }
+            else if (attribute.DataType == AttributeDataType.DATE)
+            {
+                if (!input.DateValue.HasValue && !string.IsNullOrWhiteSpace(option.NormalizedValue)
+                    && DateTime.TryParse(option.NormalizedValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+                {
+                    input.DateValue = date;
+                }
+            }
+            else if (attribute.DataType == AttributeDataType.BOOLEAN)
+            {
+                if (!input.BoolValue.HasValue && !string.IsNullOrWhiteSpace(option.NormalizedValue))
+                {
+                    if (bool.TryParse(option.NormalizedValue, out var boolValue))
+                    {
+                        input.BoolValue = boolValue;
+                    }
+                    else if (int.TryParse(option.NormalizedValue, out var intValue))
+                    {
+                        input.BoolValue = intValue != 0;
+                    }
+                }
+            }
+
+            return option;
+        }
+
+        private IReadOnlyList<ProductAttributeOption> GetOptionsForAttribute(int attributeId)
+        {
+            if (_attributeOptionCache.TryGetValue(attributeId, out var cached))
+            {
+                return cached;
+            }
+
+            var options = _productAttributeOptionService.GetOptionsForAttribute(attributeId) ?? Array.Empty<ProductAttributeOption>();
+            _attributeOptionCache[attributeId] = options;
+            return options;
+        }
+
         private bool ValidateProduct(Product product, bool isUpdate)
         {
             if (string.IsNullOrWhiteSpace(product.Sku))
@@ -636,7 +912,188 @@ namespace PhoneStoreAdmin.Services.Implementations
                 }
             }
 
+            if (product.ModelId <= 0)
+            {
+                Logger.Warning("Product model is required.");
+                return false;
+            }
+
+            try
+            {
+                var model = _productModelRepository.GetById(product.ModelId);
+                _modelNameCache[model.Id] = model.Name ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Invalid model {product.ModelId}", ex);
+                return false;
+            }
+
             return true;
+        }
+
+        private void EnsureSeedData()
+        {
+            if (_seedAttempted)
+            {
+                return;
+            }
+
+            _seedAttempted = true;
+
+            try
+            {
+                EnsureSeedModels();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to seed product models", ex);
+            }
+
+            try
+            {
+                EnsureSeedAttributeOptions();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to seed product attribute options", ex);
+            }
+        }
+
+        private void EnsureSeedModels()
+        {
+            var existing = _productModelRepository.GetAll()?.ToList() ?? new List<ProductModel>();
+            foreach (var model in existing)
+            {
+                _modelNameCache[model.Id] = model.Name ?? string.Empty;
+            }
+
+            if (existing.Count > 0)
+            {
+                return;
+            }
+
+            var now = DateTime.UtcNow;
+            var seeds = new List<ProductModel>
+            {
+                new ProductModel
+                {
+                    Name = "iPhone 15 Pro Max",
+                    Slug = GenerateSlug("iPhone 15 Pro Max"),
+                    Description = "Apple flagship with A17 Pro chipset",
+                    DefaultImageUrl = "https://example.com/images/iphone-15-pro-max.png",
+                    CreatedAt = now,
+                    UpdatedAt = now
+                },
+                new ProductModel
+                {
+                    Name = "Samsung Galaxy S23 Ultra",
+                    Slug = GenerateSlug("Samsung Galaxy S23 Ultra"),
+                    Description = "Samsung premium S series with S Pen",
+                    DefaultImageUrl = "https://example.com/images/galaxy-s23-ultra.png",
+                    CreatedAt = now,
+                    UpdatedAt = now
+                },
+                new ProductModel
+                {
+                    Name = "Xiaomi 13 Pro",
+                    Slug = GenerateSlug("Xiaomi 13 Pro"),
+                    Description = "Xiaomi flagship co-engineered with Leica",
+                    DefaultImageUrl = "https://example.com/images/xiaomi-13-pro.png",
+                    CreatedAt = now,
+                    UpdatedAt = now
+                }
+            };
+
+            foreach (var seed in seeds)
+            {
+                try
+                {
+                    var existingModel = _productModelRepository.FindBySlug(seed.Slug);
+                    if (existingModel != null)
+                    {
+                        _modelNameCache[existingModel.Id] = existingModel.Name ?? string.Empty;
+                        continue;
+                    }
+
+                    _productModelRepository.Insert(seed);
+                    _modelNameCache[seed.Id] = seed.Name ?? string.Empty;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"Failed to insert product model seed {seed.Name}", ex);
+                }
+            }
+        }
+
+        private void EnsureSeedAttributeOptions()
+        {
+            var attributeSeeds = new Dictionary<string, (string Display, string Normalized, int SortOrder)[]>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["RAM"] = new[]
+                {
+                    ("4 GB", "4", 10),
+                    ("8 GB", "8", 20),
+                    ("12 GB", "12", 30),
+                    ("16 GB", "16", 40)
+                },
+                ["Storage"] = new[]
+                {
+                    ("64 GB", "64", 10),
+                    ("128 GB", "128", 20),
+                    ("256 GB", "256", 30),
+                    ("512 GB", "512", 40)
+                },
+                ["ROM"] = new[]
+                {
+                    ("64 GB", "64", 10),
+                    ("128 GB", "128", 20),
+                    ("256 GB", "256", 30),
+                    ("512 GB", "512", 40)
+                },
+                ["Color"] = new[]
+                {
+                    ("Black", "black", 10),
+                    ("Silver", "silver", 20),
+                    ("Blue", "blue", 30),
+                    ("Gold", "gold", 40)
+                }
+            };
+
+            var attributes = _productAttributeRepository.GetByNames(attributeSeeds.Keys);
+            foreach (var pair in attributes)
+            {
+                if (!attributeSeeds.TryGetValue(pair.Key, out var seeds))
+                {
+                    continue;
+                }
+
+                foreach (var seed in seeds)
+                {
+                    _productAttributeOptionService.EnsureOption(pair.Value.Id, seed.Display, seed.Normalized, seed.SortOrder);
+                }
+
+                _attributeOptionCache.Remove(pair.Value.Id);
+                GetOptionsForAttribute(pair.Value.Id);
+            }
+        }
+
+        private static string GenerateSlug(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return string.Empty;
+            }
+
+            var normalized = text.Trim().ToLowerInvariant();
+            var chars = normalized.Select(ch => char.IsLetterOrDigit(ch) ? ch : '-').ToArray();
+            var slug = new string(chars);
+            while (slug.Contains("--", StringComparison.Ordinal))
+            {
+                slug = slug.Replace("--", "-", StringComparison.Ordinal);
+            }
+
+            return slug.Trim('-');
         }
 
         private void SynchronizeSerialTracking(Product product, IEnumerable<ProductSerial>? serials)

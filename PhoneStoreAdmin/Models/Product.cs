@@ -12,6 +12,7 @@ namespace PhoneStoreAdmin.Models
         private string _sku = string.Empty;
         private string _name = string.Empty;
         private int _categoryId;
+        private int _modelId;
         private int? _brandId;
         private decimal _price = 0;
         private decimal _cost = 0;
@@ -49,6 +50,13 @@ namespace PhoneStoreAdmin.Models
         {
             get => _categoryId;
             set => _categoryId = value;
+        }
+
+        [Required]
+        public int ModelId
+        {
+            get => _modelId;
+            set => _modelId = value;
         }
 
         public int? BrandId
@@ -116,6 +124,7 @@ namespace PhoneStoreAdmin.Models
             _sku = string.Empty;
             _name = string.Empty;
             _categoryId = 0;
+            _modelId = 0;
             _brandId = null;
             _price = 0;
             _cost = 0;
@@ -132,6 +141,7 @@ namespace PhoneStoreAdmin.Models
             _sku = sku ?? string.Empty;
             _name = name ?? string.Empty;
             _categoryId = categoryId;
+            _modelId = 0;
             _brandId = null;
             _price = price;
             _cost = 0;
