@@ -1,19 +1,17 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Text;
 using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Models.Enums;
 using PhoneStoreAdmin.Repositories.Interfaces;
 using PhoneStoreAdmin.Services.Interfaces;
+using PhoneStoreAdmin.View.Controls;
 using PhoneStoreAdmin.ViewModels;
 using System;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.UI.Text;
 
 namespace PhoneStoreAdmin.View
 {
@@ -39,6 +37,10 @@ namespace PhoneStoreAdmin.View
         private bool _isInitialized;
         private bool _isUpdatingFilters;
         private ContentDialog? _currentDialog;
+        private ProductDialog? _productDialog;
+        private ContentDialog? _productDialogHost;
+        private ProductListItemViewModel? _selectedProduct;
+        private int? _pendingSelectionProductId;
 
         public ObservableCollection<ProductListItemViewModel> Products { get; } = new();
         public ObservableCollection<SelectionOption<int?>> BrandOptions { get; } = new();
@@ -72,8 +74,44 @@ namespace PhoneStoreAdmin.View
 
         private void CleanupResources()
         {
+            CloseProductDialog();
+            DisposeProductDialog();
             _currentDialog = null;
             _isInitialized = false;
+        }
+
+        private void CloseProductDialog()
+        {
+            if (_productDialogHost != null)
+            {
+                try
+                {
+                    _productDialogHost.Hide();
+                }
+                catch
+                {
+                    // Ignore errors when dialog is already dismissed
+                }
+            }
+        }
+
+        private void DisposeProductDialog()
+        {
+            if (_productDialog != null)
+            {
+                _productDialog.ProductSaved -= ProductDialog_ProductSaved;
+                _productDialog.DialogClosed -= ProductDialog_DialogClosed;
+                _productDialog.ViewSerialsRequested -= ProductDialog_ViewSerialsRequested;
+                _productDialog = null;
+            }
+
+            if (_productDialogHost != null)
+            {
+                _productDialogHost.PrimaryButtonClick -= ProductDialogHost_PrimaryButtonClick;
+                _productDialogHost.CloseButtonClick -= ProductDialogHost_CloseButtonClick;
+                _productDialogHost.Closed -= ProductDialogHost_Closed;
+                _productDialogHost = null;
+            }
         }
 
         private void InitializeFilterOptions()
@@ -169,6 +207,12 @@ namespace PhoneStoreAdmin.View
 
             try
             {
+                if (ProductsListView != null)
+                {
+                    ProductsListView.SelectedItem = null;
+                }
+
+                UpdateSelectedProduct(null);
                 Products.Clear();
 
                 var criteria = BuildCurrentFilter();
@@ -199,6 +243,18 @@ namespace PhoneStoreAdmin.View
                 foreach (var product in result.Products)
                 {
                     Products.Add(product);
+                }
+
+                if (_pendingSelectionProductId.HasValue)
+                {
+                    var pendingProduct = Products.FirstOrDefault(p => p.Id == _pendingSelectionProductId.Value);
+                    if (pendingProduct != null && ProductsListView != null)
+                    {
+                        ProductsListView.SelectedItem = pendingProduct;
+                        UpdateSelectedProduct(pendingProduct);
+                    }
+
+                    _pendingSelectionProductId = null;
                 }
 
                 UpdatePaginationControls();
@@ -393,75 +449,100 @@ namespace PhoneStoreAdmin.View
         {
             if (sender is FrameworkElement element && element.DataContext is ProductListItemViewModel product)
             {
-                await ShowProductDetailDialogAsync(product);
+                ProductsListView.SelectedItem = product;
+                UpdateSelectedProduct(product);
+                await OpenProductDialogAsync(ProductDialog.DialogMode.Edit, product);
             }
         }
 
-        private async Task ShowProductDetailDialogAsync(ProductListItemViewModel product)
+        private async Task OpenProductDialogAsync(ProductDialog.DialogMode mode, ProductListItemViewModel? product = null)
         {
             try
             {
-                var detail = ProductService.GetProductDetail(product.Id);
-                if (detail == null)
+                ProductDetailViewModel? detail = null;
+
+                if (mode != ProductDialog.DialogMode.Add)
                 {
-                    ShowMessageDialog(
-                        _resourceLoader.GetString("ProductDetailErrorTitle"),
-                        _resourceLoader.GetString("ProductNotFoundError"));
-                    return;
-                }
-
-                var panel = new StackPanel { Spacing = 12 };
-
-                panel.Children.Add(CreateDetailTextBlock(string.Format(_resourceLoader.GetString("ProductDetailSku"), detail.Product.Sku)));
-                panel.Children.Add(CreateDetailTextBlock(string.Format(_resourceLoader.GetString("ProductDetailName"), detail.Product.Name)));
-                panel.Children.Add(CreateDetailTextBlock(string.Format(_resourceLoader.GetString("ProductDetailPrice"), detail.Product.Price.ToString("C0", CultureInfo.CurrentCulture))));
-                panel.Children.Add(CreateDetailTextBlock(string.Format(_resourceLoader.GetString("ProductDetailSerialCount"), detail.Product.SerialCount)));
-
-                if (detail.AttributeValues.Count > 0)
-                {
-                    panel.Children.Add(new TextBlock
+                    if (product == null)
                     {
-                        Text = _resourceLoader.GetString("ProductAttributesHeader"),
-                        FontWeight = FontWeights.SemiBold,
-                        FontSize = 14
-                    });
-
-                    var attributesPanel = new StackPanel { Spacing = 4 };
-                    foreach (var attribute in detail.AttributeValues)
-                    {
-                        var value = string.IsNullOrWhiteSpace(attribute.DisplayValue)
-                            ? _resourceLoader.GetString("ProductAttributeEmptyValue")
-                            : attribute.DisplayValue;
-                        attributesPanel.Children.Add(new TextBlock
-                        {
-                            Text = string.Format(_resourceLoader.GetString("ProductAttributeFormat"), attribute.AttributeName, value),
-                            TextWrapping = TextWrapping.WrapWholeWords,
-                            FontSize = 13
-                        });
+                        ShowMessageDialog(
+                            _resourceLoader.GetString("ProductDetailErrorTitle"),
+                            _resourceLoader.GetString("ProductNotFoundError"));
+                        return;
                     }
 
-                    panel.Children.Add(attributesPanel);
-                }
-                else
-                {
-                    panel.Children.Add(new TextBlock
+                    detail = ProductService.GetProductDetail(product.Id);
+                    if (detail == null)
                     {
-                        Text = _resourceLoader.GetString("ProductNoAttributes"),
-                        FontStyle = FontStyle.Italic,
-                        FontSize = 13
-                    });
+                        ShowMessageDialog(
+                            _resourceLoader.GetString("ProductDetailErrorTitle"),
+                            _resourceLoader.GetString("ProductNotFoundError"));
+                        return;
+                    }
+                }
+
+                CloseProductDialog();
+                DisposeProductDialog();
+
+                var dialogContent = new ProductDialog();
+                dialogContent.ProductSaved += ProductDialog_ProductSaved;
+                dialogContent.DialogClosed += ProductDialog_DialogClosed;
+                dialogContent.ViewSerialsRequested += ProductDialog_ViewSerialsRequested;
+                dialogContent.SetMode(mode, detail);
+
+                var title = mode switch
+                {
+                    ProductDialog.DialogMode.Add => _resourceLoader.GetString("AddProductDialogTitle"),
+                    ProductDialog.DialogMode.Edit => _resourceLoader.GetString("EditProductDialogTitle"),
+                    ProductDialog.DialogMode.View => _resourceLoader.GetString("ProductDetailDialogTitle"),
+                    _ => string.Empty
+                };
+
+                if (string.IsNullOrWhiteSpace(title))
+                {
+                    title = mode switch
+                    {
+                        ProductDialog.DialogMode.Add => "Add product",
+                        ProductDialog.DialogMode.Edit => "Edit product",
+                        _ => "Product details"
+                    };
+                }
+
+                var primaryText = mode == ProductDialog.DialogMode.View
+                    ? _resourceLoader.GetString("DialogCloseButton")
+                    : _resourceLoader.GetString("DialogSave");
+                if (string.IsNullOrWhiteSpace(primaryText))
+                {
+                    primaryText = mode == ProductDialog.DialogMode.View ? "Close" : "Save";
+                }
+
+                string closeText = null;
+                if (mode != ProductDialog.DialogMode.View)
+                {
+                    closeText = _resourceLoader.GetString("DialogCancel");
+                    if (string.IsNullOrWhiteSpace(closeText))
+                    {
+                        closeText = "Cancel";
+                    }
                 }
 
                 var dialog = new ContentDialog
                 {
-                    Title = string.Format(_resourceLoader.GetString("ProductDetailDialogTitle"), detail.Product.Name),
-                    Content = panel,
-                    CloseButtonText = _resourceLoader.GetString("DialogCloseButton"),
+                    Title = title,
+                    Content = dialogContent,
+                    PrimaryButtonText = primaryText,
+                    CloseButtonText = closeText,
+                    DefaultButton = ContentDialogButton.Primary,
                     XamlRoot = XamlRoot
                 };
 
-                _currentDialog = dialog;
-                dialog.Closed += (_, _) => _currentDialog = null;
+                dialog.PrimaryButtonClick += ProductDialogHost_PrimaryButtonClick;
+                dialog.CloseButtonClick += ProductDialogHost_CloseButtonClick;
+                dialog.Closed += ProductDialogHost_Closed;
+
+                _productDialog = dialogContent;
+                _productDialogHost = dialog;
+
                 await dialog.ShowAsync();
             }
             catch (Exception ex)
@@ -472,14 +553,178 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private static TextBlock CreateDetailTextBlock(string text)
+        private void ProductDialogHost_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
-            return new TextBlock
+            if (_productDialog == null)
             {
-                Text = text,
-                FontSize = 14,
-                TextWrapping = TextWrapping.WrapWholeWords
-            };
+                return;
+            }
+
+            args.Cancel = true;
+            _productDialog.Save();
+        }
+
+        private void ProductDialogHost_CloseButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        {
+            if (_productDialog == null)
+            {
+                return;
+            }
+
+            args.Cancel = true;
+            _productDialog.Cancel();
+        }
+
+        private void ProductDialogHost_Closed(ContentDialog sender, ContentDialogClosedEventArgs args)
+        {
+            DisposeProductDialog();
+        }
+
+        private void ProductDialog_ProductSaved(object? sender, ProductDetailViewModel detail)
+        {
+            _pendingSelectionProductId = detail.Product.Id;
+            LoadProducts();
+        }
+
+        private async void ProductDialog_ViewSerialsRequested(object? sender, int productId)
+        {
+            CloseProductDialog();
+
+            try
+            {
+                var detail = ProductService.GetProductDetail(productId);
+                if (detail == null)
+                {
+                    ShowMessageDialog(
+                        _resourceLoader.GetString("ProductDetailErrorTitle"),
+                        _resourceLoader.GetString("ProductNotFoundError"));
+                    return;
+                }
+
+                var serialPanel = new StackPanel { Spacing = 4 };
+                foreach (var serial in detail.Serials)
+                {
+                    var serialText = string.IsNullOrWhiteSpace(serial.SerialNumber)
+                        ? string.IsNullOrWhiteSpace(serial.Imei1)
+                            ? serial.Imei2 ?? string.Empty
+                            : serial.Imei1!
+                        : serial.SerialNumber!;
+
+                    if (string.IsNullOrWhiteSpace(serialText))
+                    {
+                        continue;
+                    }
+
+                    serialPanel.Children.Add(new TextBlock
+                    {
+                        Text = serialText,
+                        FontSize = 14,
+                        TextWrapping = TextWrapping.WrapWholeWords
+                    });
+                }
+
+                if (serialPanel.Children.Count == 0)
+                {
+                    var summary = _resourceLoader.GetString("ProductSerialSummaryFormat");
+                    if (!string.IsNullOrWhiteSpace(summary))
+                    {
+                        ShowMessageDialog(
+                            _resourceLoader.GetString("ProductDetailErrorTitle"),
+                            string.Format(summary, 0));
+                    }
+                    else
+                    {
+                        ShowMessageDialog(
+                            _resourceLoader.GetString("ProductDetailErrorTitle"),
+                            "No serial numbers available.");
+                    }
+
+                    return;
+                }
+
+                var scrollViewer = new ScrollViewer
+                {
+                    Content = serialPanel,
+                    VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                    HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                    MaxHeight = 320,
+                    Padding = new Thickness(8)
+                };
+
+                var summaryText = _resourceLoader.GetString("ProductSerialSummaryFormat");
+                if (string.IsNullOrWhiteSpace(summaryText))
+                {
+                    summaryText = "Serials available in stock: {0}";
+                }
+
+                var serialDialog = new ContentDialog
+                {
+                    Title = string.Format(summaryText, detail.Serials.Count),
+                    Content = scrollViewer,
+                    CloseButtonText = _resourceLoader.GetString("DialogCloseButton"),
+                    XamlRoot = XamlRoot
+                };
+
+                if (string.IsNullOrWhiteSpace(serialDialog.CloseButtonText))
+                {
+                    serialDialog.CloseButtonText = "Close";
+                }
+
+                _currentDialog = serialDialog;
+                serialDialog.Closed += (_, _) => _currentDialog = null;
+                await serialDialog.ShowAsync();
+            }
+            catch (Exception ex)
+            {
+                ShowMessageDialog(
+                    _resourceLoader.GetString("ProductDetailErrorTitle"),
+                    string.Format(_resourceLoader.GetString("ProductDetailErrorMessage"), ex.Message));
+            }
+        }
+
+        private void ProductDialog_DialogClosed(object? sender, EventArgs e)
+        {
+            CloseProductDialog();
+        }
+
+        private void UpdateSelectedProduct(ProductListItemViewModel? product)
+        {
+            _selectedProduct = product;
+
+            if (EditProductButton != null)
+            {
+                EditProductButton.IsEnabled = _selectedProduct != null;
+            }
+        }
+
+        private async void AddProductButton_Click(object sender, RoutedEventArgs e)
+        {
+            await OpenProductDialogAsync(ProductDialog.DialogMode.Add);
+        }
+
+        private async void EditProductButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedProduct == null)
+            {
+                ShowMessageDialog(
+                    _resourceLoader.GetString("ProductDetailErrorTitle"),
+                    _resourceLoader.GetString("ProductNotFoundError"));
+                return;
+            }
+
+            await OpenProductDialogAsync(ProductDialog.DialogMode.Edit, _selectedProduct);
+        }
+
+        private void ProductsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ProductsListView?.SelectedItem is ProductListItemViewModel selected)
+            {
+                UpdateSelectedProduct(selected);
+            }
+            else
+            {
+                UpdateSelectedProduct(null);
+            }
         }
 
         private async void ShowMessageDialog(string title, string message)
