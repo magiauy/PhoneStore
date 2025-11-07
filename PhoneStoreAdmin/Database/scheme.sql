@@ -226,13 +226,13 @@ CREATE TABLE IF NOT EXISTS `products` (
   `warranty_months` int(11) NOT NULL DEFAULT 12,
   `status` enum('active','inactive','discontinued') NOT NULL DEFAULT 'active',
   `created_at` datetime NOT NULL,
-  `product_models` int(11) DEFAULT NULL,
+  `model_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `sku` (`sku`),
   KEY `category_id` (`category_id`),
   KEY `brand_id` (`brand_id`),
-  KEY `FK_products_product_models` (`product_models`),
-  CONSTRAINT `FK_products_product_models` FOREIGN KEY (`product_models`) REFERENCES `product_models` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  KEY `idx_products_model` (`model_id`),
+  CONSTRAINT `FK_products_model` FOREIGN KEY (`model_id`) REFERENCES `product_models` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `product_categories` (`id`),
   CONSTRAINT `products_ibfk_2` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -257,6 +257,7 @@ CREATE TABLE IF NOT EXISTS `product_attribute_options` (
   `attribute_id` int(11) DEFAULT NULL,
   `display_value` varchar(50) DEFAULT NULL,
   `normalized_value` int(11) DEFAULT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
   `is_active` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FK__product_attributes` (`attribute_id`),
@@ -270,6 +271,7 @@ CREATE TABLE IF NOT EXISTS `product_attribute_values` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `product_id` int(11) NOT NULL,
   `attribute_id` int(11) NOT NULL,
+  `option_id` int(11) DEFAULT NULL,
   `value_text` varchar(255) DEFAULT NULL,
   `value_number` decimal(18,4) DEFAULT NULL,
   `value_date` date DEFAULT NULL,
@@ -277,8 +279,10 @@ CREATE TABLE IF NOT EXISTS `product_attribute_values` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `product_attribute_values_index_0` (`product_id`,`attribute_id`),
   KEY `attribute_id` (`attribute_id`),
+  KEY `option_id` (`option_id`),
   CONSTRAINT `product_attribute_values_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
-  CONSTRAINT `product_attribute_values_ibfk_2` FOREIGN KEY (`attribute_id`) REFERENCES `product_attributes` (`id`)
+  CONSTRAINT `product_attribute_values_ibfk_2` FOREIGN KEY (`attribute_id`) REFERENCES `product_attributes` (`id`),
+  CONSTRAINT `product_attribute_values_ibfk_3` FOREIGN KEY (`option_id`) REFERENCES `product_attribute_options` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
