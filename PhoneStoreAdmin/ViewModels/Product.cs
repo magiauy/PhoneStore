@@ -98,7 +98,7 @@ namespace PhoneStoreAdmin.ViewModels
         public string? SerialNumber { get; set; }
         public string? Imei1 { get; set; }
         public string? Imei2 { get; set; }
-        public int BatchId { get; set; }
+        public int? BatchId { get; set; }
         public SerialStatus Status { get; set; }
         public int? PurchaseOrderLineId { get; set; }
         public string? Note { get; set; }

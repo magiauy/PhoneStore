@@ -11,7 +11,7 @@ namespace PhoneStoreAdmin.Models
         private string? _serialNumber;
         private string? _imei1;
         private string? _imei2;
-        private int _batchId;
+        private int? _batchId;
         private SerialStatus _status = SerialStatus.IN_STOCK;
         private int? _purchaseOrderLineId;
         private string? _note;
@@ -51,8 +51,7 @@ namespace PhoneStoreAdmin.Models
             set => _imei2 = value;
         }
 
-        [Required]
-        public int BatchId
+        public int? BatchId
         {
             get => _batchId;
             set => _batchId = value;
@@ -86,13 +85,13 @@ namespace PhoneStoreAdmin.Models
             _serialNumber = null;
             _imei1 = null;
             _imei2 = null;
-            _batchId = 0;
+            _batchId = null;
             _status = SerialStatus.IN_STOCK;
             _purchaseOrderLineId = null;
             _note = null;
         }
 
-        public ProductSerial(int productId, int batchId)
+        public ProductSerial(int productId, int? batchId)
         {
             _id = 0;
             _productId = productId;
