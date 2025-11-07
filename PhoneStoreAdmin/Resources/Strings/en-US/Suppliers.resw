@@ -1,0 +1,277 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:schema id="root">
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xs:element name="root" ns1:IsDataSet="true">
+      <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="metadata">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" />
+              </xs:sequence>
+              <xs:attribute name="name" use="required" type="xsd:string" />
+              <xs:attribute name="type" type="xsd:string" />
+              <xs:attribute name="mimetype" type="xsd:string" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="assembly">
+            <xs:complexType>
+              <xs:attribute name="alias" type="xsd:string" />
+              <xs:attribute name="name" type="xsd:string" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="data">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
+              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
+              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="resheader">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="FilterNameBoxSupplier.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="FilterPhoneBoxSupplier.Text" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="FilterAddressBoxSupplier.Text" xml:space="preserve">
+    <value>Address</value>
+  </data>
+  <data name="FilterTaxBoxSupplier.Text" xml:space="preserve">
+    <value>Tax number</value>
+  </data>
+  <data name="FilterActiveBoxSupplier.Text" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="BtnSearchSupplier.Content" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="ColIDSupplier.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="ColNameSupplier.Text" xml:space="preserve">
+    <value>SUPPLIER NAME</value>
+  </data>
+  <data name="ColPhoneSupplier.Text" xml:space="preserve">
+    <value>PHONE</value>
+  </data>
+  <data name="ColEmailSupplier.Text" xml:space="preserve">
+    <value>EMAIL</value>
+  </data>
+  <data name="ColAddressSupplier.Text" xml:space="preserve">
+    <value>ADDRESS</value>
+  </data>
+  <data name="ColTaxSupplier.Text" xml:space="preserve">
+    <value>TAX NUMBER</value>
+  </data>
+  <data name="ColActiveSupplier.Text" xml:space="preserve">
+    <value>ACTIVATE</value>
+  </data>
+  <data name="ColActionsSupplier.Text" xml:space="preserve">
+    <value>ACTIONS</value>
+  </data>
+  <data name="BtnDeActivateSupplier.Text" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="BtnDetailSupplier.Text" xml:space="preserve">
+    <value>Detail</value>
+  </data>
+  <data name="AllItemSupplier.Content" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="YesItemSupplier.Content" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="NoItemSupplier.Content" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="FilterEmailBoxSupplier.Text" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="BtnNewSupplier.Text" xml:space="preserve">
+    <value>Add a supplier</value>
+  </data>
+  <data name="BtnImportSupplier.Text" xml:space="preserve">
+    <value>Import Excel</value>
+  </data>
+  <data name="BtnExportSupplier.Text" xml:space="preserve">
+    <value>Export Excel</value>
+  </data>
+  <data name="BtnEditSupplier.Text" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="SearchSupplier.PlaceholderText" xml:space="preserve">
+    <value>Search by supplier name...</value>
+  </data>
+  <data name="BtnFilterSupplier.Text" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="ShowIngSupplier.Text" xml:space="preserve">
+    <value>Showing</value>
+  </data>
+  <data name="Suppliers.Text" xml:space="preserve">
+    <value>suppliers</value>
+  </data>
+  <data name="PageSupplier.Text" xml:space="preserve">
+    <value>Page</value>
+  </data>
+  <data name="BtnActionSupplier.Content" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="ColSupplierName.Text" xml:space="preserve">
+    <value>SUPPLIER</value>
+  </data>
+  <data name="SupplierSaveError/Text" xml:space="preserve">
+    <value>Failed to save supplier. Please try again.</value>
+  </data>
+  <data name="AddSupplierTitle/Text" xml:space="preserve">
+    <value>Add Supplier</value>
+  </data>
+  <data name="EditSupplierTitle/Text" xml:space="preserve">
+    <value>Edit Supplier</value>
+  </data>
+  <data name="ViewSupplierTitle/Text" xml:space="preserve">
+    <value>View Supplier</value>
+  </data>
+  <data name="SupplierDialogTitle/Text" xml:space="preserve">
+    <value>Supplier</value>
+  </data>
+  <data name="AddSupplierDescription/Text" xml:space="preserve">
+    <value>Create a new supplier in the system</value>
+  </data>
+  <data name="EditSupplierDescription/Text" xml:space="preserve">
+    <value>Edit supplier details</value>
+  </data>
+  <data name="ViewSupplierDescription/Text" xml:space="preserve">
+    <value>View supplier details</value>
+  </data>
+  <data name="SupplierDialogDescription/Text" xml:space="preserve">
+    <value>Manage supplier information</value>
+  </data>
+  <data name="SupplierIdLabel.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="SupplierNameLabel.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="SupplierPhoneLabel.Text" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="SupplierEmailLabel.Text" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="SupplierAddressLabel.Text" xml:space="preserve">
+    <value>Address</value>
+  </data>
+  <data name="SupplierTaxNumberLabel.Text" xml:space="preserve">
+    <value>Tax number</value>
+  </data>
+  <data name="SupplierIsActiveLabel.Text" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="SupplierIdTextBox.PlaceholderText" xml:space="preserve">
+    <value>Enter ID</value>
+  </data>
+  <data name="SupplierNamePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter name</value>
+  </data>
+  <data name="DialogAddSupplier" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="DialogUpdateSupplier" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="DialogCancelSupplier" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="DialogCloseSupplier" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="BtnActivateSupplier.Text" xml:space="preserve">
+    <value>Activate</value>
+  </data>
+  <data name="ConfirmActivateSupplierTitle" xml:space="preserve">
+    <value>Activate supplier</value>
+  </data>
+  <data name="ConfirmActivateSupplierContent" xml:space="preserve">
+    <value>Are you sure you want to activate this supplier?</value>
+  </data>
+  <data name="ConfirmDeactivateSupplierTitle" xml:space="preserve">
+    <value>Deactivate supplier</value>
+  </data>
+  <data name="ConfirmDeactivateSupplierContent" xml:space="preserve">
+    <value>Are you sure you want to deactivate this supplier?</value>
+  </data>
+  <data name="TxtSelectedSupplierName.Text" xml:space="preserve">
+    <value>Select supplier</value>
+  </data>
+  <data name="BtnSelectedSupplierName.Content" xml:space="preserve">
+    <value>Select supplier</value>
+  </data>
+  <data name="SelectedSupplierName" xml:space="preserve">
+    <value>Select supplier</value>
+  </data>
+  <data name="PleaseSelectSupplierAndProducts" xml:space="preserve">
+    <value>Please select a supplier and add products to the purchase order</value>
+  </data>
+  <data name="PleaseSelectSupplier" xml:space="preserve">
+    <value>Please select a supplier</value>
+  </data>
+  <data name="ErrorSelectSupplier" xml:space="preserve">
+    <value>Cannot select supplier</value>
+  </data>
+  <data name="SupplierInfoTitle.Text" xml:space="preserve">
+    <value>Supplier Information</value>
+  </data>
+  <data name="BtnSelectSupplier.Content" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="Dlg_PODetails_SupplierInfoTitle" xml:space="preserve">
+    <value>Supplier Information</value>
+  </data>
+  <data name="Dlg_PODetails_SupplierNameLabel" xml:space="preserve">
+    <value>Name:</value>
+  </data>
+  <data name="Dlg_PODetails_SupplierPhoneLabel" xml:space="preserve">
+    <value>Phone:</value>
+  </data>
+  <data name="Dlg_PODetails_SupplierEmailLabel" xml:space="preserve">
+    <value>Email:</value>
+  </data>
+  <data name="Dlg_PODetails_SupplierAddressLabel" xml:space="preserve">
+    <value>Address:</value>
+  </data>
+  <data name="Reports_TopSuppliersTitle.Text" xml:space="preserve">
+    <value>Top Suppliers</value>
+  </data>
+</root>

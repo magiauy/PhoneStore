@@ -58,4 +58,67 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Reports_PageTitle.Text" xml:space="preserve">
+    <value>Báo cáo và Thống kê</value>
+  </data>
+  <data name="Reports_PageDescription.Text" xml:space="preserve">
+    <value>Xem thống kê và báo cáo chi tiết về hoạt động kinh doanh</value>
+  </data>
+  <data name="Reports_RefreshButton.Text" xml:space="preserve">
+    <value>Làm mới</value>
+  </data>
+  <data name="Reports_SalesTab.Text" xml:space="preserve">
+    <value>Thống kê bán hàng</value>
+  </data>
+  <data name="Reports_FilterTitle.Text" xml:space="preserve">
+    <value>Lọc dữ liệu</value>
+  </data>
+  <data name="Reports_FromDateLabel.Text" xml:space="preserve">
+    <value>Từ ngày</value>
+  </data>
+  <data name="Reports_ToDateLabel.Text" xml:space="preserve">
+    <value>Đến ngày</value>
+  </data>
+  <data name="Reports_StatusLabel.Text" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="Reports_AllStatus.Content" xml:space="preserve">
+    <value>Tất cả</value>
+  </data>
+  <data name="Reports_DraftStatus.Content" xml:space="preserve">
+    <value>Nháp</value>
+  </data>
+  <data name="Reports_ReceivedStatus.Content" xml:space="preserve">
+    <value>Đã nhận</value>
+  </data>
+  <data name="Reports_CancelledStatus.Content" xml:space="preserve">
+    <value>Đã hủy</value>
+  </data>
+  <data name="Reports_ApplyButton.Text" xml:space="preserve">
+    <value>Áp dụng</value>
+  </data>
+  <data name="Reports_TotalOrdersLabel.Text" xml:space="preserve">
+    <value>Tổng đơn nhập</value>
+  </data>
+  <data name="Reports_TotalAmountLabel.Text" xml:space="preserve">
+    <value>Tổng giá trị</value>
+  </data>
+  <data name="Reports_DraftOrdersLabel.Text" xml:space="preserve">
+    <value>Đơn nháp</value>
+  </data>
+  <data name="Reports_ReceivedOrdersLabel.Text" xml:space="preserve">
+    <value>Đã nhận hàng</value>
+  </data>
+  <data name="Reports_MonthlyTrendTitle.Text" xml:space="preserve">
+    <value>Xu hướng nhập hàng theo tháng</value>
+  </data>
+  <data name="Reports_OrdersCount.Text" xml:space="preserve">
+    <value>đơn hàng</value>
+  </data>
+  <data name="Reports_NoDataAvailable" xml:space="preserve">
+    <value>Không có dữ liệu</value>
+  </data>
+  <data name="Reports_ChartTooltip_Orders" xml:space="preserve">
+    <value>đơn hàng</value>
+  </data>
 </root>

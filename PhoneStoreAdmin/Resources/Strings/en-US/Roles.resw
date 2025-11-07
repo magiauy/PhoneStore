@@ -58,4 +58,55 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Roles_PageTitle.Text" xml:space="preserve">
+    <value>Roles Management</value>
+  </data>
+  <data name="Roles_PageDescription.Text" xml:space="preserve">
+    <value>Manage roles and permissions for the system</value>
+  </data>
+  <data name="Roles_RoleListTitle.Text" xml:space="preserve">
+    <value>Role List</value>
+  </data>
+  <data name="Roles_AddRoleButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Add new role</value>
+  </data>
+  <data name="Roles_AddRoleButtonText.Text" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Roles_RefreshButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Roles_SearchBox.PlaceholderText" xml:space="preserve">
+    <value>Search roles...</value>
+  </data>
+  <data name="Roles_EmptyStateMessage.Text" xml:space="preserve">
+    <value>No roles found</value>
+  </data>
+  <data name="Roles_NoRoleSelectedTitle.Text" xml:space="preserve">
+    <value>Select a role to view permissions</value>
+  </data>
+  <data name="Roles_NoRoleSelectedMessage.Text" xml:space="preserve">
+    <value>Please select a role from the list on the left to view and edit permissions</value>
+  </data>
+  <data name="Roles_EditButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Edit role</value>
+  </data>
+  <data name="Roles_EditButtonText.Text" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Roles_DeleteButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Delete role</value>
+  </data>
+  <data name="Roles_DeleteButtonText.Text" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Roles_SaveChangesInfo.Text" xml:space="preserve">
+    <value>Click Save to update permissions for this role</value>
+  </data>
+  <data name="Roles_SaveButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Save permission changes</value>
+  </data>
+  <data name="Roles_SaveButtonText.Text" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
 </root>

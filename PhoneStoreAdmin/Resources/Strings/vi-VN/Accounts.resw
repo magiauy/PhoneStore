@@ -1,0 +1,358 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:schema id="root">
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xs:element name="root" ns1:IsDataSet="true">
+      <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="metadata">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" />
+              </xs:sequence>
+              <xs:attribute name="name" use="required" type="xsd:string" />
+              <xs:attribute name="type" type="xsd:string" />
+              <xs:attribute name="mimetype" type="xsd:string" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="assembly">
+            <xs:complexType>
+              <xs:attribute name="alias" type="xsd:string" />
+              <xs:attribute name="name" type="xsd:string" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="data">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
+              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
+              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="resheader">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Accounts_PageTitle.Text" xml:space="preserve">
+    <value>Quản lý tài khoản</value>
+  </data>
+  <data name="Accounts_PageDescription.Text" xml:space="preserve">
+    <value>Thêm, sửa, xóa và quản lý trạng thái tài khoản người dùng</value>
+  </data>
+  <data name="Accounts_TabAccountsList.Content" xml:space="preserve">
+    <value>Danh sách tài khoản</value>
+  </data>
+  <data name="Accounts_TabEmployeesWithoutAccount.Content" xml:space="preserve">
+    <value>Nhân viên chưa có tài khoản</value>
+  </data>
+  <data name="Accounts_SearchBox.PlaceholderText" xml:space="preserve">
+    <value>Tìm kiếm theo tên đăng nhập...</value>
+  </data>
+  <data name="Accounts_FilterButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Lọc</value>
+  </data>
+  <data name="Accounts_RefreshButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Làm mới</value>
+  </data>
+  <data name="Accounts_HeaderId.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="Accounts_HeaderUsername.Text" xml:space="preserve">
+    <value>TÊN ĐĂNG NHẬP</value>
+  </data>
+  <data name="Accounts_HeaderFullName.Text" xml:space="preserve">
+    <value>HỌ VÀ TÊN</value>
+  </data>
+  <data name="Accounts_HeaderStatus.Text" xml:space="preserve">
+    <value>TRẠNG THÁI</value>
+  </data>
+  <data name="Accounts_HeaderCreatedDate.Text" xml:space="preserve">
+    <value>NGÀY TẠO</value>
+  </data>
+  <data name="Accounts_HeaderLastLogin.Text" xml:space="preserve">
+    <value>ĐĂNG NHẬP CUỐI</value>
+  </data>
+  <data name="Accounts_HeaderActions.Text" xml:space="preserve">
+    <value>HÀNH ĐỘNG</value>
+  </data>
+  <data name="Accounts_ActionsButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Thao tác</value>
+  </data>
+  <data name="Accounts_EmptyStateTitle.Text" xml:space="preserve">
+    <value>Không có tài khoản nào</value>
+  </data>
+  <data name="Accounts_EmptyStateMessage.Text" xml:space="preserve">
+    <value>Danh sách tài khoản đang trống. Vui lòng thêm tài khoản mới hoặc kiểm tra lại bộ lọc.</value>
+  </data>
+  <data name="Accounts_EmployeeListTitle.Text" xml:space="preserve">
+    <value>Danh sách nhân viên</value>
+  </data>
+  <data name="Accounts_EmployeeSearchBox.PlaceholderText" xml:space="preserve">
+    <value>Tìm kiếm nhân viên...</value>
+  </data>
+  <data name="Accounts_AllEmployeesHaveAccount.Text" xml:space="preserve">
+    <value>Tất cả nhân viên đã có tài khoản</value>
+  </data>
+  <data name="Accounts_FormTitle.Text" xml:space="preserve">
+    <value>Thêm tài khoản mới</value>
+  </data>
+  <data name="Accounts_UsernameLabel.Text" xml:space="preserve">
+    <value>Tên đăng nhập *</value>
+  </data>
+  <data name="Accounts_UsernameInput.PlaceholderText" xml:space="preserve">
+    <value>Nhập tên đăng nhập</value>
+  </data>
+  <data name="Accounts_PasswordLabel.Text" xml:space="preserve">
+    <value>Mật khẩu *</value>
+  </data>
+  <data name="Accounts_PasswordInput.PlaceholderText" xml:space="preserve">
+    <value>Nhập mật khẩu</value>
+  </data>
+  <data name="Accounts_ConfirmPasswordLabel.Text" xml:space="preserve">
+    <value>Xác nhận mật khẩu *</value>
+  </data>
+  <data name="Accounts_ConfirmPasswordInput.PlaceholderText" xml:space="preserve">
+    <value>Nhập lại mật khẩu</value>
+  </data>
+  <data name="Accounts_RoleLabel.Text" xml:space="preserve">
+    <value>Vai trò *</value>
+  </data>
+  <data name="Accounts_RoleComboBox.PlaceholderText" xml:space="preserve">
+    <value>Chọn vai trò...</value>
+  </data>
+  <data name="Accounts_ActivateCheckbox.Content" xml:space="preserve">
+    <value>Kích hoạt tài khoản ngay</value>
+  </data>
+  <data name="Accounts_SelectEmployeePrompt.Text" xml:space="preserve">
+    <value>Chọn nhân viên để tạo tài khoản</value>
+  </data>
+  <data name="Accounts_EditMenuItem.Text" xml:space="preserve">
+    <value>Chỉnh sửa</value>
+  </data>
+  <data name="Accounts_SelectRolesPlaceholder" xml:space="preserve">
+    <value>Chọn vai trò...</value>
+  </data>
+  <data name="Accounts_EmployeeCodeLabel.Text" xml:space="preserve">
+    <value>Mã NV:</value>
+  </data>
+  <data name="Accounts_Error_RoleServiceNotAvailable" xml:space="preserve">
+    <value>RoleService không khả dụng</value>
+  </data>
+  <data name="Accounts_Error_RoleSelectorFailed" xml:space="preserve">
+    <value>Không thể mở dialog chọn vai trò: {0}</value>
+  </data>
+  <data name="Accounts_Status_Activated" xml:space="preserve">
+    <value>Đã kích hoạt</value>
+  </data>
+  <data name="Accounts_Status_Deactivated" xml:space="preserve">
+    <value>Chưa kích hoạt</value>
+  </data>
+  <data name="Accounts_Type_Employee" xml:space="preserve">
+    <value>Nhân viên</value>
+  </data>
+  <data name="Accounts_Type_Customer" xml:space="preserve">
+    <value>Khách hàng</value>
+  </data>
+  <data name="Accounts_Filter_Status" xml:space="preserve">
+    <value>Trạng thái: {0}</value>
+  </data>
+  <data name="Accounts_Filter_Type" xml:space="preserve">
+    <value>Loại: {0}</value>
+  </data>
+  <data name="Accounts_Filter_CreatedDate" xml:space="preserve">
+    <value>Ngày tạo: {0} - {1}</value>
+  </data>
+  <data name="Accounts_Filter_NeverLoggedIn" xml:space="preserve">
+    <value>Chưa đăng nhập</value>
+  </data>
+  <data name="Accounts_Filter_LastLogin" xml:space="preserve">
+    <value>Đăng nhập: {0} - {1}</value>
+  </data>
+  <data name="Accounts_RecordCount" xml:space="preserve">
+    <value>Hiển thị {0} / {1} tài khoản</value>
+  </data>
+  <data name="Accounts_PageInfo" xml:space="preserve">
+    <value>Trang {0} / {1}</value>
+  </data>
+  <data name="Accounts_NeverLoggedIn" xml:space="preserve">
+    <value>Chưa đăng nhập</value>
+  </data>
+  <data name="Accounts_Validation_SelectEmployee" xml:space="preserve">
+    <value>Vui lòng chọn nhân viên</value>
+  </data>
+  <data name="Accounts_Validation_EnterUsername" xml:space="preserve">
+    <value>Vui lòng nhập tên đăng nhập</value>
+  </data>
+  <data name="Accounts_Validation_EnterPassword" xml:space="preserve">
+    <value>Vui lòng nhập mật khẩu</value>
+  </data>
+  <data name="Accounts_Validation_PasswordMismatch" xml:space="preserve">
+    <value>Mật khẩu xác nhận không khớp</value>
+  </data>
+  <data name="Accounts_Validation_SelectRole" xml:space="preserve">
+    <value>Vui lòng chọn vai trò</value>
+  </data>
+  <data name="Accounts_Success_AccountCreated" xml:space="preserve">
+    <value>Tạo tài khoản thành công cho nhân viên</value>
+  </data>
+  <data name="Accounts_Error_AccountCreationFailed" xml:space="preserve">
+    <value>Không thể tạo tài khoản: {0}</value>
+  </data>
+  <data name="Accounts_VM_Status_Active" xml:space="preserve">
+    <value>Activate</value>
+  </data>
+  <data name="Accounts_VM_Status_Deactivated" xml:space="preserve">
+    <value>Deactivated</value>
+  </data>
+  <data name="AccountEdit_BasicInfoSection.Text" xml:space="preserve">
+    <value>Thông tin cơ bản</value>
+  </data>
+  <data name="AccountEdit_UsernameTextBox.Header" xml:space="preserve">
+    <value>Tên đăng nhập</value>
+  </data>
+  <data name="AccountEdit_UsernameTextBox.PlaceholderText" xml:space="preserve">
+    <value>Nhập tên đăng nhập</value>
+  </data>
+  <data name="AccountEdit_FullNameTextBox.Header" xml:space="preserve">
+    <value>Họ và tên</value>
+  </data>
+  <data name="AccountEdit_FullNameTextBox.PlaceholderText" xml:space="preserve">
+    <value>Nhập họ và tên</value>
+  </data>
+  <data name="AccountEdit_EmailTextBox.Header" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="AccountEdit_EmailTextBox.PlaceholderText" xml:space="preserve">
+    <value>example@email.com</value>
+  </data>
+  <data name="AccountEdit_PhoneTextBox.Header" xml:space="preserve">
+    <value>Số điện thoại</value>
+  </data>
+  <data name="AccountEdit_PhoneTextBox.PlaceholderText" xml:space="preserve">
+    <value>0123456789</value>
+  </data>
+  <data name="AccountEdit_IsActiveToggle.Header" xml:space="preserve">
+    <value>Trạng thái hoạt động</value>
+  </data>
+  <data name="AccountEdit_IsActiveToggle.OnContent" xml:space="preserve">
+    <value>Đang hoạt động</value>
+  </data>
+  <data name="AccountEdit_IsActiveToggle.OffContent" xml:space="preserve">
+    <value>Đã vô hiệu hóa</value>
+  </data>
+  <data name="AccountEdit_SecuritySection.Text" xml:space="preserve">
+    <value>Bảo mật</value>
+  </data>
+  <data name="AccountEdit_PasswordBox.Header" xml:space="preserve">
+    <value>Mật khẩu mới (tùy chọn)</value>
+  </data>
+  <data name="AccountEdit_PasswordBox.PlaceholderText" xml:space="preserve">
+    <value>Nhập mật khẩu mới</value>
+  </data>
+  <data name="AccountEdit_PasswordBox.Description" xml:space="preserve">
+    <value>Để trống nếu không muốn thay đổi mật khẩu</value>
+  </data>
+  <data name="AccountEdit_ConfirmPasswordBox.Header" xml:space="preserve">
+    <value>Xác nhận mật khẩu</value>
+  </data>
+  <data name="AccountEdit_ConfirmPasswordBox.PlaceholderText" xml:space="preserve">
+    <value>Nhập lại mật khẩu</value>
+  </data>
+  <data name="AccountEdit_RolesSection.Text" xml:space="preserve">
+    <value>Vai trò và quyền hạn</value>
+  </data>
+  <data name="AccountEdit_AssignedRolesLabel.Text" xml:space="preserve">
+    <value>Các vai trò được gán</value>
+  </data>
+  <data name="AccountEdit_NoRolesSelected" xml:space="preserve">
+    <value>Chưa chọn vai trò nào</value>
+  </data>
+  <data name="AccountEdit_RolesSelectedCount" xml:space="preserve">
+    <value>{0} vai trò được chọn</value>
+  </data>
+  <data name="AccountEdit_SelectRolesButton" xml:space="preserve">
+    <value>Chọn vai trò</value>
+  </data>
+  <data name="AccountEdit_SaveButton" xml:space="preserve">
+    <value>Lưu thay đổi</value>
+  </data>
+  <data name="AccountEdit_BreadcrumbCurrent" xml:space="preserve">
+    <value>Chỉnh sửa: {0}</value>
+  </data>
+  <data name="AccountEdit_Subtitle" xml:space="preserve">
+    <value>Cập nhật thông tin, trạng thái và vai trò cho tài khoản {0}</value>
+  </data>
+  <data name="AccountEdit_Error_DataNotLoaded" xml:space="preserve">
+    <value>Dữ liệu tài khoản chưa tải xong</value>
+  </data>
+  <data name="AccountEdit_Error_UsernameEmpty" xml:space="preserve">
+    <value>Tên đăng nhập không được để trống</value>
+  </data>
+  <data name="AccountEdit_Error_FullNameEmpty" xml:space="preserve">
+    <value>Họ và tên không được để trống</value>
+  </data>
+  <data name="AccountEdit_Error_PasswordTooShort" xml:space="preserve">
+    <value>Mật khẩu phải có ít nhất 6 ký tự</value>
+  </data>
+  <data name="AccountEdit_Error_PasswordMismatch" xml:space="preserve">
+    <value>Mật khẩu xác nhận không khớp</value>
+  </data>
+  <data name="AccountEdit_Error_SaveFailed" xml:space="preserve">
+    <value>Không thể lưu thay đổi tài khoản</value>
+  </data>
+  <data name="AccountEdit_Success_Updated" xml:space="preserve">
+    <value>Cập nhật tài khoản thành công</value>
+  </data>
+  <data name="AccountEdit_Error_Exception" xml:space="preserve">
+    <value>Đã xảy ra lỗi: {0}</value>
+  </data>
+  <data name="AccountEdit_Error_UnableToDetermineAccount" xml:space="preserve">
+    <value>Không thể xác định tài khoản cần chỉnh sửa</value>
+  </data>
+  <data name="AccountEdit_Error_LoadFailed" xml:space="preserve">
+    <value>Không thể tải thông tin tài khoản</value>
+  </data>
+  <data name="AccountEdit_Error_LoadException" xml:space="preserve">
+    <value>Không thể tải dữ liệu tài khoản: {0}</value>
+  </data>
+  <data name="AccountEdit_Error_RoleSelectorFailed" xml:space="preserve">
+    <value>Không thể mở bộ chọn vai trò</value>
+  </data>
+  <data name="EmployeesPage_RecordCount.Text" xml:space="preserve">
+    <value>Hiển thị 0 nhân viên</value>
+  </data>
+  <data name="EmployeesPage_NoEmployees" xml:space="preserve">
+    <value>Không có nhân viên</value>
+  </data>
+  <data name="EmployeesPage_RecordCountSingle" xml:space="preserve">
+    <value>Hiển thị 1 nhân viên</value>
+  </data>
+  <data name="EmployeesPage_RecordCountMultiple" xml:space="preserve">
+    <value>Hiển thị {0} nhân viên</value>
+  </data>
+</root>

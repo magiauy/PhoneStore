@@ -1,0 +1,358 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:schema id="root">
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xs:element name="root" ns1:IsDataSet="true">
+      <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="metadata">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" />
+              </xs:sequence>
+              <xs:attribute name="name" use="required" type="xsd:string" />
+              <xs:attribute name="type" type="xsd:string" />
+              <xs:attribute name="mimetype" type="xsd:string" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="assembly">
+            <xs:complexType>
+              <xs:attribute name="alias" type="xsd:string" />
+              <xs:attribute name="name" type="xsd:string" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="data">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
+              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
+              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="resheader">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Accounts_PageTitle.Text" xml:space="preserve">
+    <value>Account Management</value>
+  </data>
+  <data name="Accounts_PageDescription.Text" xml:space="preserve">
+    <value>Add, edit, delete and manage user account status</value>
+  </data>
+  <data name="Accounts_TabAccountsList.Content" xml:space="preserve">
+    <value>Accounts List</value>
+  </data>
+  <data name="Accounts_TabEmployeesWithoutAccount.Content" xml:space="preserve">
+    <value>Employees Without Account</value>
+  </data>
+  <data name="Accounts_SearchBox.PlaceholderText" xml:space="preserve">
+    <value>Search by username...</value>
+  </data>
+  <data name="Accounts_FilterButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="Accounts_RefreshButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Accounts_HeaderId.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="Accounts_HeaderUsername.Text" xml:space="preserve">
+    <value>USERNAME</value>
+  </data>
+  <data name="Accounts_HeaderFullName.Text" xml:space="preserve">
+    <value>FULL NAME</value>
+  </data>
+  <data name="Accounts_HeaderStatus.Text" xml:space="preserve">
+    <value>STATUS</value>
+  </data>
+  <data name="Accounts_HeaderCreatedDate.Text" xml:space="preserve">
+    <value>CREATED DATE</value>
+  </data>
+  <data name="Accounts_HeaderLastLogin.Text" xml:space="preserve">
+    <value>LAST LOGIN</value>
+  </data>
+  <data name="Accounts_HeaderActions.Text" xml:space="preserve">
+    <value>ACTIONS</value>
+  </data>
+  <data name="Accounts_ActionsButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Accounts_EmptyStateTitle.Text" xml:space="preserve">
+    <value>No accounts found</value>
+  </data>
+  <data name="Accounts_EmptyStateMessage.Text" xml:space="preserve">
+    <value>The account list is empty. Please add a new account or check your filters.</value>
+  </data>
+  <data name="Accounts_EmployeeListTitle.Text" xml:space="preserve">
+    <value>Employee List</value>
+  </data>
+  <data name="Accounts_EmployeeSearchBox.PlaceholderText" xml:space="preserve">
+    <value>Search employees...</value>
+  </data>
+  <data name="Accounts_AllEmployeesHaveAccount.Text" xml:space="preserve">
+    <value>All employees have accounts</value>
+  </data>
+  <data name="Accounts_FormTitle.Text" xml:space="preserve">
+    <value>Add New Account</value>
+  </data>
+  <data name="Accounts_UsernameLabel.Text" xml:space="preserve">
+    <value>Username *</value>
+  </data>
+  <data name="Accounts_UsernameInput.PlaceholderText" xml:space="preserve">
+    <value>Enter username</value>
+  </data>
+  <data name="Accounts_PasswordLabel.Text" xml:space="preserve">
+    <value>Password *</value>
+  </data>
+  <data name="Accounts_PasswordInput.PlaceholderText" xml:space="preserve">
+    <value>Enter password</value>
+  </data>
+  <data name="Accounts_ConfirmPasswordLabel.Text" xml:space="preserve">
+    <value>Confirm Password *</value>
+  </data>
+  <data name="Accounts_ConfirmPasswordInput.PlaceholderText" xml:space="preserve">
+    <value>Re-enter password</value>
+  </data>
+  <data name="Accounts_RoleLabel.Text" xml:space="preserve">
+    <value>Role *</value>
+  </data>
+  <data name="Accounts_RoleComboBox.PlaceholderText" xml:space="preserve">
+    <value>Select role...</value>
+  </data>
+  <data name="Accounts_ActivateCheckbox.Content" xml:space="preserve">
+    <value>Activate account immediately</value>
+  </data>
+  <data name="Accounts_SelectEmployeePrompt.Text" xml:space="preserve">
+    <value>Select an employee to create account</value>
+  </data>
+  <data name="Accounts_EditMenuItem.Text" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Accounts_SelectRolesPlaceholder" xml:space="preserve">
+    <value>Select roles...</value>
+  </data>
+  <data name="Accounts_EmployeeCodeLabel.Text" xml:space="preserve">
+    <value>Employee ID:</value>
+  </data>
+  <data name="Accounts_Error_RoleServiceNotAvailable" xml:space="preserve">
+    <value>RoleService is not available</value>
+  </data>
+  <data name="Accounts_Error_RoleSelectorFailed" xml:space="preserve">
+    <value>Failed to open role selector dialog: {0}</value>
+  </data>
+  <data name="Accounts_Status_Activated" xml:space="preserve">
+    <value>Activated</value>
+  </data>
+  <data name="Accounts_Status_Deactivated" xml:space="preserve">
+    <value>Deactivated</value>
+  </data>
+  <data name="Accounts_Type_Employee" xml:space="preserve">
+    <value>Employee</value>
+  </data>
+  <data name="Accounts_Type_Customer" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="Accounts_Filter_Status" xml:space="preserve">
+    <value>Status: {0}</value>
+  </data>
+  <data name="Accounts_Filter_Type" xml:space="preserve">
+    <value>Type: {0}</value>
+  </data>
+  <data name="Accounts_Filter_CreatedDate" xml:space="preserve">
+    <value>Created: {0} - {1}</value>
+  </data>
+  <data name="Accounts_Filter_NeverLoggedIn" xml:space="preserve">
+    <value>Never logged in</value>
+  </data>
+  <data name="Accounts_Filter_LastLogin" xml:space="preserve">
+    <value>Last login: {0} - {1}</value>
+  </data>
+  <data name="Accounts_RecordCount" xml:space="preserve">
+    <value>Showing {0} / {1} accounts</value>
+  </data>
+  <data name="Accounts_PageInfo" xml:space="preserve">
+    <value>Page {0} / {1}</value>
+  </data>
+  <data name="Accounts_NeverLoggedIn" xml:space="preserve">
+    <value>Never logged in</value>
+  </data>
+  <data name="Accounts_Validation_SelectEmployee" xml:space="preserve">
+    <value>Please select an employee</value>
+  </data>
+  <data name="Accounts_Validation_EnterUsername" xml:space="preserve">
+    <value>Please enter username</value>
+  </data>
+  <data name="Accounts_Validation_EnterPassword" xml:space="preserve">
+    <value>Please enter password</value>
+  </data>
+  <data name="Accounts_Validation_PasswordMismatch" xml:space="preserve">
+    <value>Password confirmation does not match</value>
+  </data>
+  <data name="Accounts_Validation_SelectRole" xml:space="preserve">
+    <value>Please select a role</value>
+  </data>
+  <data name="Accounts_Success_AccountCreated" xml:space="preserve">
+    <value>Account created successfully for employee</value>
+  </data>
+  <data name="Accounts_Error_AccountCreationFailed" xml:space="preserve">
+    <value>Failed to create account: {0}</value>
+  </data>
+  <data name="Accounts_VM_Status_Active" xml:space="preserve">
+    <value>Activate</value>
+  </data>
+  <data name="Accounts_VM_Status_Deactivated" xml:space="preserve">
+    <value>Deactivated</value>
+  </data>
+  <data name="AccountEdit_BasicInfoSection.Text" xml:space="preserve">
+    <value>Basic Information</value>
+  </data>
+  <data name="AccountEdit_UsernameTextBox.Header" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="AccountEdit_UsernameTextBox.PlaceholderText" xml:space="preserve">
+    <value>Enter username</value>
+  </data>
+  <data name="AccountEdit_FullNameTextBox.Header" xml:space="preserve">
+    <value>Full Name</value>
+  </data>
+  <data name="AccountEdit_FullNameTextBox.PlaceholderText" xml:space="preserve">
+    <value>Enter full name</value>
+  </data>
+  <data name="AccountEdit_EmailTextBox.Header" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="AccountEdit_EmailTextBox.PlaceholderText" xml:space="preserve">
+    <value>example@email.com</value>
+  </data>
+  <data name="AccountEdit_PhoneTextBox.Header" xml:space="preserve">
+    <value>Phone Number</value>
+  </data>
+  <data name="AccountEdit_PhoneTextBox.PlaceholderText" xml:space="preserve">
+    <value>0123456789</value>
+  </data>
+  <data name="AccountEdit_IsActiveToggle.Header" xml:space="preserve">
+    <value>Active Status</value>
+  </data>
+  <data name="AccountEdit_IsActiveToggle.OnContent" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="AccountEdit_IsActiveToggle.OffContent" xml:space="preserve">
+    <value>Deactivated</value>
+  </data>
+  <data name="AccountEdit_SecuritySection.Text" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="AccountEdit_PasswordBox.Header" xml:space="preserve">
+    <value>New Password (optional)</value>
+  </data>
+  <data name="AccountEdit_PasswordBox.PlaceholderText" xml:space="preserve">
+    <value>Enter new password</value>
+  </data>
+  <data name="AccountEdit_PasswordBox.Description" xml:space="preserve">
+    <value>Leave blank if you don't want to change the password</value>
+  </data>
+  <data name="AccountEdit_ConfirmPasswordBox.Header" xml:space="preserve">
+    <value>Confirm Password</value>
+  </data>
+  <data name="AccountEdit_ConfirmPasswordBox.PlaceholderText" xml:space="preserve">
+    <value>Re-enter password</value>
+  </data>
+  <data name="AccountEdit_RolesSection.Text" xml:space="preserve">
+    <value>Roles and Permissions</value>
+  </data>
+  <data name="AccountEdit_AssignedRolesLabel.Text" xml:space="preserve">
+    <value>Assigned Roles</value>
+  </data>
+  <data name="AccountEdit_NoRolesSelected" xml:space="preserve">
+    <value>No roles selected</value>
+  </data>
+  <data name="AccountEdit_RolesSelectedCount" xml:space="preserve">
+    <value>{0} roles selected</value>
+  </data>
+  <data name="AccountEdit_SelectRolesButton" xml:space="preserve">
+    <value>Select Roles</value>
+  </data>
+  <data name="AccountEdit_SaveButton" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
+  <data name="AccountEdit_BreadcrumbCurrent" xml:space="preserve">
+    <value>Edit: {0}</value>
+  </data>
+  <data name="AccountEdit_Subtitle" xml:space="preserve">
+    <value>Update information, status and roles for account {0}</value>
+  </data>
+  <data name="AccountEdit_Error_DataNotLoaded" xml:space="preserve">
+    <value>Account data has not finished loading</value>
+  </data>
+  <data name="AccountEdit_Error_UsernameEmpty" xml:space="preserve">
+    <value>Username cannot be empty</value>
+  </data>
+  <data name="AccountEdit_Error_FullNameEmpty" xml:space="preserve">
+    <value>Full name cannot be empty</value>
+  </data>
+  <data name="AccountEdit_Error_PasswordTooShort" xml:space="preserve">
+    <value>Password must be at least 6 characters long</value>
+  </data>
+  <data name="AccountEdit_Error_PasswordMismatch" xml:space="preserve">
+    <value>Confirmation password does not match</value>
+  </data>
+  <data name="AccountEdit_Error_SaveFailed" xml:space="preserve">
+    <value>Failed to save account changes</value>
+  </data>
+  <data name="AccountEdit_Success_Updated" xml:space="preserve">
+    <value>Account updated successfully</value>
+  </data>
+  <data name="AccountEdit_Error_Exception" xml:space="preserve">
+    <value>An error occurred: {0}</value>
+  </data>
+  <data name="AccountEdit_Error_UnableToDetermineAccount" xml:space="preserve">
+    <value>Unable to determine which account should be edited</value>
+  </data>
+  <data name="AccountEdit_Error_LoadFailed" xml:space="preserve">
+    <value>Could not load account information</value>
+  </data>
+  <data name="AccountEdit_Error_LoadException" xml:space="preserve">
+    <value>Unable to load account data: {0}</value>
+  </data>
+  <data name="AccountEdit_Error_RoleSelectorFailed" xml:space="preserve">
+    <value>Unable to open the role selector</value>
+  </data>
+  <data name="EmployeesPage_RecordCount.Text" xml:space="preserve">
+    <value>Showing 0 employees</value>
+  </data>
+  <data name="EmployeesPage_NoEmployees" xml:space="preserve">
+    <value>No employees</value>
+  </data>
+  <data name="EmployeesPage_RecordCountSingle" xml:space="preserve">
+    <value>Showing 1 employee</value>
+  </data>
+  <data name="EmployeesPage_RecordCountMultiple" xml:space="preserve">
+    <value>Showing {0} employees</value>
+  </data>
+</root>

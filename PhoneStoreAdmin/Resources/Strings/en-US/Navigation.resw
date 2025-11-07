@@ -1,0 +1,139 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:schema id="root">
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xs:element name="root" ns1:IsDataSet="true">
+      <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="metadata">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" />
+              </xs:sequence>
+              <xs:attribute name="name" use="required" type="xsd:string" />
+              <xs:attribute name="type" type="xsd:string" />
+              <xs:attribute name="mimetype" type="xsd:string" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="assembly">
+            <xs:complexType>
+              <xs:attribute name="alias" type="xsd:string" />
+              <xs:attribute name="name" type="xsd:string" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="data">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
+              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
+              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="resheader">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="HeaderTitleSupplier.Text" xml:space="preserve">
+    <value>Supplier Management</value>
+  </data>
+  <data name="SubHeaderTitleSupplier.Text" xml:space="preserve">
+    <value>Add, edit, delete and manage supplier statuses</value>
+  </data>
+  <data name="MenuItemPurchaseOrders.Content" xml:space="preserve">
+    <value>Purchase orders</value>
+  </data>
+  <data name="MenuItemBatches.Content" xml:space="preserve">
+    <value>Batches</value>
+  </data>
+  <data name="MenuItemSuppliers.Content" xml:space="preserve">
+    <value>Suppliers</value>
+  </data>
+  <data name="HeaderTitlePurchaseOrder.Text" xml:space="preserve">
+    <value>Purchase order</value>
+  </data>
+  <data name="SubHeaderTitlePurchaseOrder.Text" xml:space="preserve">
+    <value>Add, edit, delete and manage purchase order statuses</value>
+  </data>
+  <data name="HeaderTitleBatch.Text" xml:space="preserve">
+    <value>Batches</value>
+  </data>
+  <data name="SubHeaderTitleBatch.Text" xml:space="preserve">
+    <value>Manage batches statuses</value>
+  </data>
+  <data name="ListProdcutTitle.Text" xml:space="preserve">
+    <value>List product</value>
+  </data>
+  <data name="MenuItemCustomers.Content" xml:space="preserve">
+    <value>Customers</value>
+  </data>
+  <data name="MenuItemEmployees.Content" xml:space="preserve">
+    <value>Employees</value>
+  </data>
+  <data name="MenuAccount.Content" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="MenuRoles.Content" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="MenuItemBrands.Content" xml:space="preserve">
+    <value>Brands</value>
+  </data>
+  <data name="HeaderTitleBrand.Text" xml:space="preserve">
+    <value>Brand Management</value>
+  </data>
+  <data name="SubHeaderTitleBrand.Text" xml:space="preserve">
+    <value>Add, edit, delete and manage brands</value>
+  </data>
+  <data name="MenuItemPromotions.Content" xml:space="preserve">
+    <value>Promotions</value>
+  </data>
+  <data name="HeaderTitlePromotion.Text" xml:space="preserve">
+    <value>Promotion Management</value>
+  </data>
+  <data name="SubHeaderTitlePromotion.Text" xml:space="preserve">
+    <value>Add, edit, delete and manage promotions</value>
+  </data>
+  <data name="MenuItemPromotionCodes.Content" xml:space="preserve">
+    <value>Promotion Codes</value>
+  </data>
+  <data name="HeaderTitlePromotionCode.Text" xml:space="preserve">
+    <value>Promotion Code Management</value>
+  </data>
+  <data name="SubHeaderTitlePromotionCode.Text" xml:space="preserve">
+    <value>Add, edit, delete and manage promotion codes</value>
+  </data>
+  <data name="MenuItemReports.Content" xml:space="preserve">
+    <value>Reports</value>
+  </data>
+  <data name="HeaderTitleProduct.Text" xml:space="preserve">
+    <value>Product Management</value>
+  </data>
+  <data name="SubHeaderTitleProduct.Text" xml:space="preserve">
+    <value>Browse and manage your entire product catalog.</value>
+  </data>
+</root>

@@ -1,0 +1,211 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:schema id="root">
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xs:element name="root" ns1:IsDataSet="true">
+      <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="metadata">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" />
+              </xs:sequence>
+              <xs:attribute name="name" use="required" type="xsd:string" />
+              <xs:attribute name="type" type="xsd:string" />
+              <xs:attribute name="mimetype" type="xsd:string" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="assembly">
+            <xs:complexType>
+              <xs:attribute name="alias" type="xsd:string" />
+              <xs:attribute name="name" type="xsd:string" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="data">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
+              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
+              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="resheader">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="BtnNewBatch.Text" xml:space="preserve">
+    <value>New batches</value>
+  </data>
+  <data name="SearchBatch.PlaceholderText" xml:space="preserve">
+    <value>Search by batches code...</value>
+  </data>
+  <data name="BtnFilterBatch.Text" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="ColIDBatch.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="ColNoteBatch.Text" xml:space="preserve">
+    <value>NOTE</value>
+  </data>
+  <data name="ColActionsBatch.Text" xml:space="preserve">
+    <value>ACTIONS</value>
+  </data>
+  <data name="BtnActionBatch.Content" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="BtnDetailBatch.Text" xml:space="preserve">
+    <value>Detail</value>
+  </data>
+  <data name="BtnEditBatch.Text" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="BtnDeleteBatch.Text" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="ShowIngBatch.Text" xml:space="preserve">
+    <value>Showing</value>
+  </data>
+  <data name="Batches.Text" xml:space="preserve">
+    <value>Batches</value>
+  </data>
+  <data name="PageBatch.Text" xml:space="preserve">
+    <value>Page</value>
+  </data>
+  <data name="SerialLabel.Text" xml:space="preserve">
+    <value>Serial: </value>
+  </data>
+  <data name="Imei1Label.Text" xml:space="preserve">
+    <value>IMEI 1: </value>
+  </data>
+  <data name="Imei2Label.Text" xml:space="preserve">
+    <value>IMEI 2: </value>
+  </data>
+  <data name="SerialNumberInputDialog.PrimaryButtonText" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
+  <data name="SerialNumberInputDialog.SecondaryButtonText" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="SerialNumberTextBox.Header" xml:space="preserve">
+    <value>Serial Number</value>
+  </data>
+  <data name="SerialNumberTextBox.PlaceholderText" xml:space="preserve">
+    <value>Enter serial number...</value>
+  </data>
+  <data name="Imei1TextBox.Header" xml:space="preserve">
+    <value>IMEI 1</value>
+  </data>
+  <data name="Imei1TextBox.PlaceholderText" xml:space="preserve">
+    <value>Enter IMEI 1...</value>
+  </data>
+  <data name="Imei2TextBox.Header" xml:space="preserve">
+    <value>IMEI 2</value>
+  </data>
+  <data name="Imei2TextBox.PlaceholderText" xml:space="preserve">
+    <value>Enter IMEI 2 (optional)...</value>
+  </data>
+  <data name="SerialNumberDialogTitle" xml:space="preserve">
+    <value>Enter Serial Information</value>
+  </data>
+  <data name="SerialNumberDialogQuantityText" xml:space="preserve">
+    <value>Please enter information for {0} device(s)</value>
+  </data>
+  <data name="SerialNumberValidationMessage" xml:space="preserve">
+    <value>Please enter Serial Number and IMEI 1 for all devices</value>
+  </data>
+  <data name="MachineNumberLabel" xml:space="preserve">
+    <value>Device {0}</value>
+  </data>
+  <data name="SerialOrImeiEmptyError" xml:space="preserve">
+    <value>Please enter Serial Number and IMEI 1 for all devices</value>
+  </data>
+  <data name="Dlg_BatchDetails_Title" xml:space="preserve">
+    <value>Batch Details</value>
+  </data>
+  <data name="Dlg_BatchDetails_BatchLabel" xml:space="preserve">
+    <value>Batch:</value>
+  </data>
+  <data name="Dlg_BatchDetails_SupplierLabel" xml:space="preserve">
+    <value>Supplier:</value>
+  </data>
+  <data name="Dlg_BatchDetails_BatchIdLabel" xml:space="preserve">
+    <value>Batch ID:</value>
+  </data>
+  <data name="Dlg_BatchDetails_CreatedAtLabel" xml:space="preserve">
+    <value>Created At:</value>
+  </data>
+  <data name="Dlg_BatchDetails_PODateLabel" xml:space="preserve">
+    <value>PO Date:</value>
+  </data>
+  <data name="Dlg_BatchDetails_NoteLabel" xml:space="preserve">
+    <value>Note:</value>
+  </data>
+  <data name="Dlg_BatchDetails_BatchProductsHeader" xml:space="preserve">
+    <value>Batch Products ({0})</value>
+  </data>
+  <data name="Dlg_BatchDetails_ProductIdLabel" xml:space="preserve">
+    <value>Product ID:</value>
+  </data>
+  <data name="Dlg_BatchDetails_QuantityLabel" xml:space="preserve">
+    <value>Quantity:</value>
+  </data>
+  <data name="Dlg_BatchDetails_CostPriceLabel" xml:space="preserve">
+    <value>Cost Price:</value>
+  </data>
+  <data name="Dlg_BatchDetails_SellingPriceLabel" xml:space="preserve">
+    <value>Selling Price:</value>
+  </data>
+  <data name="Dlg_BatchDetails_CloseButton" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Common_BatchIdFormat" xml:space="preserve">
+    <value>#{0}</value>
+  </data>
+  <data name="AddPO_DraftSerialMessage" xml:space="preserve">
+    <value>This purchase order is in DRAFT status. Serial numbers are not yet saved to the database. You can re-enter serial information for serial-tracked products when editing.</value>
+  </data>
+  <data name="AddPO_CannotEditSerialMessage" xml:space="preserve">
+    <value>Cannot edit serial numbers</value>
+  </data>
+  <data name="ColSerialsProduct.Text" xml:space="preserve">
+    <value>Serials</value>
+  </data>
+  <data name="ProductIsSerialTrackedLabel.Text" xml:space="preserve">
+    <value>Track serial numbers</value>
+  </data>
+  <data name="ProductSerialSummaryFormat" xml:space="preserve">
+    <value>Serials available in stock: {0}</value>
+  </data>
+  <data name="ProductSerialsButtonText" xml:space="preserve">
+    <value>View serial numbers</value>
+  </data>
+  <data name="ProductDetailSerialCount" xml:space="preserve">
+    <value>Serial numbers: {0}</value>
+  </data>
+</root>

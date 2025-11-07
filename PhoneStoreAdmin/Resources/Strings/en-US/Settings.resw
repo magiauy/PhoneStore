@@ -1,0 +1,370 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:schema id="root">
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xs:element name="root" ns1:IsDataSet="true">
+      <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="metadata">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" />
+              </xs:sequence>
+              <xs:attribute name="name" use="required" type="xsd:string" />
+              <xs:attribute name="type" type="xsd:string" />
+              <xs:attribute name="mimetype" type="xsd:string" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="assembly">
+            <xs:complexType>
+              <xs:attribute name="alias" type="xsd:string" />
+              <xs:attribute name="name" type="xsd:string" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="data">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
+              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
+              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="resheader">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="LogoPath.Source" xml:space="preserve">
+    <value>../Assets/logo_name.png</value>
+  </data>
+  <data name="SideBarLogo.Source" xml:space="preserve">
+    <value>../Assets/sidebar_logo.png</value>
+  </data>
+  <data name="SettingsTitle.Text" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="SettingsSubtitle.Text" xml:space="preserve">
+    <value>Manage your application preferences and account</value>
+  </data>
+  <data name="AccountSection.Text" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="UserName.Text" xml:space="preserve">
+    <value>Administrator</value>
+  </data>
+  <data name="UserEmail.Text" xml:space="preserve">
+    <value>admin@phonestore.com</value>
+  </data>
+  <data name="EditProfile.Content" xml:space="preserve">
+    <value>Edit Profile</value>
+  </data>
+  <data name="ChangePassword.Text" xml:space="preserve">
+    <value>Change Password</value>
+  </data>
+  <data name="ChangePasswordDescription.Text" xml:space="preserve">
+    <value>Update your account password</value>
+  </data>
+  <data name="ChangePasswordButton.Content" xml:space="preserve">
+    <value>Change</value>
+  </data>
+  <data name="ApplicationSection.Text" xml:space="preserve">
+    <value>Application</value>
+  </data>
+  <data name="Language.Text" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="LanguageDescription.Text" xml:space="preserve">
+    <value>Choose your preferred language</value>
+  </data>
+  <data name="English.Content" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="Vietnamese.Content" xml:space="preserve">
+    <value>Tiếng Việt</value>
+  </data>
+  <data name="Theme.Text" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="ThemeDescription.Text" xml:space="preserve">
+    <value>Choose light or dark theme</value>
+  </data>
+  <data name="Light.Content" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Dark.Content" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="System.Content" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Notifications.Text" xml:space="preserve">
+    <value>Notifications</value>
+  </data>
+  <data name="NotificationsDescription.Text" xml:space="preserve">
+    <value>Enable or disable notifications</value>
+  </data>
+  <data name="SystemSection.Text" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="DataManagement.Text" xml:space="preserve">
+    <value>Data Management</value>
+  </data>
+  <data name="DataManagementDescription.Text" xml:space="preserve">
+    <value>Backup and restore application data</value>
+  </data>
+  <data name="Manage.Content" xml:space="preserve">
+    <value>Manage</value>
+  </data>
+  <data name="About.Text" xml:space="preserve">
+    <value>About PhoneStore Admin</value>
+  </data>
+  <data name="AboutAppDescription.Text" xml:space="preserve">
+    <value>Version information and credits</value>
+  </data>
+  <data name="AccountActionsSection.Text" xml:space="preserve">
+    <value>Account Actions</value>
+  </data>
+  <data name="SignOut.Text" xml:space="preserve">
+    <value>Sign Out</value>
+  </data>
+  <data name="SignOutDescription.Text" xml:space="preserve">
+    <value>Sign out from your account</value>
+  </data>
+  <data name="SignOutButton.Content" xml:space="preserve">
+    <value>Sign Out</value>
+  </data>
+  <data name="LanguageChangedTitle.Text" xml:space="preserve">
+    <value>Language Changed</value>
+  </data>
+  <data name="LanguageChangedMessage.Text" xml:space="preserve">
+    <value>Language has been changed successfully. Some changes may require a restart to take full effect.</value>
+  </data>
+  <data name="ErrorTitle.Text" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="LanguageErrorMessage.Text" xml:space="preserve">
+    <value>Failed to save language preference. Please try again.</value>
+  </data>
+  <data name="EditProfileTitle.Text" xml:space="preserve">
+    <value>Edit Profile</value>
+  </data>
+  <data name="EditProfileMessage.Text" xml:space="preserve">
+    <value>Edit profile functionality will be implemented in a future update.</value>
+  </data>
+  <data name="ChangePasswordTitle.Text" xml:space="preserve">
+    <value>Change Password</value>
+  </data>
+  <data name="ChangePasswordMessage.Text" xml:space="preserve">
+    <value>Change password functionality will be implemented in a future update.</value>
+  </data>
+  <data name="AboutTitle.Text" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="AboutAppName.Text" xml:space="preserve">
+    <value>PhoneStore Admin</value>
+  </data>
+  <data name="AboutVersion.Text" xml:space="preserve">
+    <value>Version 1.0.0</value>
+  </data>
+  <data name="AboutDescription.Text" xml:space="preserve">
+    <value>A modern admin panel for phone store management built with WinUI 3.</value>
+  </data>
+  <data name="AboutCopyright.Text" xml:space="preserve">
+    <value>© 2025 PhoneStore. All rights reserved.</value>
+  </data>
+  <data name="SignOutConfirmTitle.Text" xml:space="preserve">
+    <value>Sign Out</value>
+  </data>
+  <data name="SignOutConfirmMessage.Text" xml:space="preserve">
+    <value>Are you sure you want to sign out?</value>
+  </data>
+  <data name="SignOutConfirmButton.Content" xml:space="preserve">
+    <value>Sign Out</value>
+  </data>
+  <data name="SignOutErrorMessage.Text" xml:space="preserve">
+    <value>An error occurred while signing out. Please try again.</value>
+  </data>
+  <data name="NoEmailAvailable.Text" xml:space="preserve">
+    <value>No email available</value>
+  </data>
+  <data name="NotLoggedIn.Text" xml:space="preserve">
+    <value>Not logged in</value>
+  </data>
+  <data name="ErrorLoadingUser.Text" xml:space="preserve">
+    <value>Error loading user info</value>
+  </data>
+  <data name="UserPermissions.Text" xml:space="preserve">
+    <value>Permissions: 0</value>
+  </data>
+  <data name="CurrentPasswordRequired.Text" xml:space="preserve">
+    <value>Current password is required</value>
+  </data>
+  <data name="PasswordTooShort.Text" xml:space="preserve">
+    <value>Password must be at least 8 characters long</value>
+  </data>
+  <data name="PasswordRequirementsNotMet.Text" xml:space="preserve">
+    <value>Password does not meet all requirements</value>
+  </data>
+  <data name="NewPasswordSameAsCurrent.Text" xml:space="preserve">
+    <value>New password cannot be the same as current password</value>
+  </data>
+  <data name="PasswordsDoNotMatch.Text" xml:space="preserve">
+    <value>Passwords do not match</value>
+  </data>
+  <data name="PasswordStrengthWeak.Text" xml:space="preserve">
+    <value>Weak</value>
+  </data>
+  <data name="PasswordStrengthGood.Text" xml:space="preserve">
+    <value>Good</value>
+  </data>
+  <data name="PasswordStrengthStrong.Text" xml:space="preserve">
+    <value>Strong</value>
+  </data>
+  <data name="PasswordStrengthExcellent.Text" xml:space="preserve">
+    <value>Excellent</value>
+  </data>
+  <data name="UserNotLoggedIn.Text" xml:space="preserve">
+    <value>User not logged in</value>
+  </data>
+  <data name="CurrentPasswordIncorrect.Text" xml:space="preserve">
+    <value>Current password is incorrect</value>
+  </data>
+  <data name="PasswordChangeSuccessful.Text" xml:space="preserve">
+    <value>Password changed successfully!</value>
+  </data>
+  <data name="PasswordChangeError.Text" xml:space="preserve">
+    <value>Failed to change password. Please try again.</value>
+  </data>
+  <data name="PasswordChangeSuccessTitle.Text" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="PasswordChangeSuccessMessage.Text" xml:space="preserve">
+    <value>Your password has been changed successfully!</value>
+  </data>
+  <data name="ChangePasswordErrorMessage.Text" xml:space="preserve">
+    <value>An error occurred while trying to change your password</value>
+  </data>
+  <data name="UserRole.Text" xml:space="preserve">
+    <value>Administrator</value>
+  </data>
+  <data name="ChangePasswordDialogTitle.Text" xml:space="preserve">
+    <value>Change Password</value>
+  </data>
+  <data name="ChangePasswordDialogDescription.Text" xml:space="preserve">
+    <value>Enter your current password and choose a new password for your account.</value>
+  </data>
+  <data name="CurrentPasswordLabel.Text" xml:space="preserve">
+    <value>Current Password</value>
+  </data>
+  <data name="NewPasswordLabel.Text" xml:space="preserve">
+    <value>New Password</value>
+  </data>
+  <data name="ConfirmPasswordLabel.Text" xml:space="preserve">
+    <value>Confirm New Password</value>
+  </data>
+  <data name="PasswordRequirementsHeader.Text" xml:space="preserve">
+    <value>Password Requirements:</value>
+  </data>
+  <data name="PasswordRequirementLength.Text" xml:space="preserve">
+    <value>At least 8 characters</value>
+  </data>
+  <data name="PasswordRequirementUppercase.Text" xml:space="preserve">
+    <value>One uppercase letter</value>
+  </data>
+  <data name="PasswordRequirementLowercase.Text" xml:space="preserve">
+    <value>One lowercase letter</value>
+  </data>
+  <data name="PasswordRequirementNumber.Text" xml:space="preserve">
+    <value>One number</value>
+  </data>
+  <data name="PasswordRequirementSpecial.Text" xml:space="preserve">
+    <value>One special character</value>
+  </data>
+  <data name="CurrentPasswordPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter your current password</value>
+  </data>
+  <data name="NewPasswordPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter a strong new password</value>
+  </data>
+  <data name="ConfirmPasswordPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Re-enter your new password</value>
+  </data>
+  <data name="PasswordChangeFailedMessage.Message" xml:space="preserve">
+    <value>Failed to change password. Please try again.</value>
+  </data>
+  <data name="ChangePasswordDialogButton.Content" xml:space="preserve">
+    <value>Change Password</value>
+  </data>
+  <data name="EditProfileDialogTitle.Text" xml:space="preserve">
+    <value>Edit Profile</value>
+  </data>
+  <data name="EditProfileDialogDescription.Text" xml:space="preserve">
+    <value>Update your personal information below. Username cannot be changed.</value>
+  </data>
+  <data name="SaveProfileButton.Content" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
+  <data name="ProfileUpdateFailedMessage.Message" xml:space="preserve">
+    <value>Failed to update profile. Please try again.</value>
+  </data>
+  <data name="ProfileUpdateSuccessMessage.Message" xml:space="preserve">
+    <value>Profile updated successfully!</value>
+  </data>
+  <data name="ProfileUpdateSuccessful.Text" xml:space="preserve">
+    <value>Profile updated successfully!</value>
+  </data>
+  <data name="ProfileUpdateError.Text" xml:space="preserve">
+    <value>Failed to update profile. Please try again.</value>
+  </data>
+  <data name="NotificationTitle" xml:space="preserve">
+    <value>Notification</value>
+  </data>
+  <data name="RestartNow/Text" xml:space="preserve">
+    <value>Restart Now</value>
+  </data>
+  <data name="RestartLater/Text" xml:space="preserve">
+    <value>Restart Later</value>
+  </data>
+  <data name="RestartFailedTitle/Text" xml:space="preserve">
+    <value>Unable to Restart</value>
+  </data>
+  <data name="RestartFailedMessage/Text" xml:space="preserve">
+    <value>The application could not restart automatically ({0}). Please restart manually.</value>
+  </data>
+  <data name="ThemeRestartTitle/Text" xml:space="preserve">
+    <value>Restart Recommended</value>
+  </data>
+  <data name="ThemeRestartMessage/Text" xml:space="preserve">
+    <value>Theme changes are applied immediately, but restarting ensures all windows use the new appearance.</value>
+  </data>
+  <data name="NotificationRestartTitle" xml:space="preserve">
+    <value>Restart May Be Required</value>
+  </data>
+  <data name="NotificationRestartMessage" xml:space="preserve">
+    <value>Notification preferences have been updated. Restart to refresh background listeners if necessary.</value>
+  </data>
+</root>

@@ -1,0 +1,358 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:schema id="root">
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xs:element name="root" ns1:IsDataSet="true">
+      <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="metadata">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" />
+              </xs:sequence>
+              <xs:attribute name="name" use="required" type="xsd:string" />
+              <xs:attribute name="type" type="xsd:string" />
+              <xs:attribute name="mimetype" type="xsd:string" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="assembly">
+            <xs:complexType>
+              <xs:attribute name="alias" type="xsd:string" />
+              <xs:attribute name="name" type="xsd:string" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="data">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
+              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
+              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="resheader">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CancelButton.Content" xml:space="preserve">
+    <value>Hủy</value>
+  </data>
+  <data name="View.Content" xml:space="preserve">
+    <value>Xem</value>
+  </data>
+  <data name="OK.Content" xml:space="preserve">
+    <value>Đồng Ý</value>
+  </data>
+  <data name="UnexpectedError.Text" xml:space="preserve">
+    <value>Có lỗi không mong muốn xảy ra</value>
+  </data>
+  <data name="ProcessingText.Text" xml:space="preserve">
+    <value>Đang xử lý...</value>
+  </data>
+  <data name="EmailLabel.Text" xml:space="preserve">
+    <value>Địa Chỉ Email</value>
+  </data>
+  <data name="FullNameLabel.Text" xml:space="preserve">
+    <value>Họ và Tên</value>
+  </data>
+  <data name="PhoneLabel.Text" xml:space="preserve">
+    <value>Số Điện Thoại</value>
+  </data>
+  <data name="FullNamePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập họ và tên của bạn</value>
+  </data>
+  <data name="PhonePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập số điện thoại (tùy chọn)</value>
+  </data>
+  <data name="EmailRequired.Text" xml:space="preserve">
+    <value>Email là bắt buộc</value>
+  </data>
+  <data name="EmailInvalid.Text" xml:space="preserve">
+    <value>Vui lòng nhập địa chỉ email hợp lệ</value>
+  </data>
+  <data name="FullNameRequired.Text" xml:space="preserve">
+    <value>Họ và tên là bắt buộc</value>
+  </data>
+  <data name="FullNameTooShort.Text" xml:space="preserve">
+    <value>Họ và tên phải có ít nhất 2 ký tự</value>
+  </data>
+  <data name="PhoneInvalid.Text" xml:space="preserve">
+    <value>Vui lòng nhập số điện thoại hợp lệ</value>
+  </data>
+  <data name="BtnClearFilter.Content" xml:space="preserve">
+    <value>Xóa bộ lọc</value>
+  </data>
+  <data name="ComboBoxItemActivate.Content" xml:space="preserve">
+    <value>Hoạt động</value>
+  </data>
+  <data name="ComboBoxItemDe Activate.Content" xml:space="preserve">
+    <value>Ngưng hoạt động</value>
+  </data>
+  <data name="ComboBoxItemAll.Content" xml:space="preserve">
+    <value>Tất cả</value>
+  </data>
+  <data name="SelectBoxAllValue.Content" xml:space="preserve">
+    <value>Tất cả</value>
+  </data>
+  <data name="SelectBoxInActivateValue.Content" xml:space="preserve">
+    <value>Ngưng hoạt động</value>
+  </data>
+  <data name="SelectBoxActivateValue.Content" xml:space="preserve">
+    <value>Hoạt động</value>
+  </data>
+  <data name="Status_Active" xml:space="preserve">
+    <value>Hoạt động</value>
+  </data>
+  <data name="Status_Inactive" xml:space="preserve">
+    <value>Ngưng hoạt động</value>
+  </data>
+  <data name="EmptyStateTitle.Text" xml:space="preserve">
+    <value>Không có dữ liệu</value>
+  </data>
+  <data name="EmptyStateDescription.Text" xml:space="preserve">
+    <value>Chưa có dữ liệu để hiển thị. Hãy thêm dữ liệu mới hoặc kiểm tra lại bộ lọc.</value>
+  </data>
+  <data name="ColCreatedAt.Text" xml:space="preserve">
+    <value>NGÀY TẠO</value>
+  </data>
+  <data name="FilterCreatedDateFrom.Text" xml:space="preserve">
+    <value>Ngày tạo từ</value>
+  </data>
+  <data name="FilterCreatedDateTo.Text" xml:space="preserve">
+    <value>Ngày tạo đến</value>
+  </data>
+  <data name="FilterNote.Text" xml:space="preserve">
+    <value>Ghi chú</value>
+  </data>
+  <data name="NameRequired/Text" xml:space="preserve">
+    <value>Tên là bắt buộc (tối thiểu 2 ký tự)</value>
+  </data>
+  <data name="InvalidPhone/Text" xml:space="preserve">
+    <value>Định dạng điện thoại không hợp lệ</value>
+  </data>
+  <data name="InvalidEmail/Text" xml:space="preserve">
+    <value>Định dạng email không hợp lệ</value>
+  </data>
+  <data name="InvalidTaxNumber/Text" xml:space="preserve">
+    <value>Mã số thuế không hợp lệ (10 hoặc 13 chữ số)</value>
+  </data>
+  <data name="UnexpectedError/Text&quot;" xml:space="preserve">
+    <value>Đã xảy ra lỗi không mong muốn:</value>
+  </data>
+  <data name="AddButton/Text" xml:space="preserve">
+    <value>Thêm</value>
+  </data>
+  <data name="UpdateButton/Text" xml:space="preserve">
+    <value>Cập nhật</value>
+  </data>
+  <data name="CloseButton/Text" xml:space="preserve">
+    <value>Đóng</value>
+  </data>
+  <data name="LoadError/Text" xml:space="preserve">
+    <value>Không thể tải dữ liệu</value>
+  </data>
+  <data name="AddressPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập địa chỉ (tùy chọn)</value>
+  </data>
+  <data name="TaxNumberPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập mã số thuế (tùy chọn)</value>
+  </data>
+  <data name="BtnConfirm" xml:space="preserve">
+    <value>Xác nhận</value>
+  </data>
+  <data name="BtnCancel" xml:space="preserve">
+    <value>Hủy</value>
+  </data>
+  <data name="BtnAddButton.Text" xml:space="preserve">
+    <value>Thêm</value>
+  </data>
+  <data name="InputCost.Header" xml:space="preserve">
+    <value>Giá</value>
+  </data>
+  <data name="InputQuantity.Header" xml:space="preserve">
+    <value>Số lượng</value>
+  </data>
+  <data name="TxtTotal.Text" xml:space="preserve">
+    <value>Tổng cộng</value>
+  </data>
+  <data name="Select" xml:space="preserve">
+    <value>Chọn</value>
+  </data>
+  <data name="TxtSubTotal.Text" xml:space="preserve">
+    <value>Tạm tính:</value>
+  </data>
+  <data name="TotalAmountLabel" xml:space="preserve">
+    <value>Tổng tiền</value>
+  </data>
+  <data name="CannotLoadData" xml:space="preserve">
+    <value>Không thể tải dữ liệu</value>
+  </data>
+  <data name="QuantityLabel.Text" xml:space="preserve">
+    <value>SL:</value>
+  </data>
+  <data name="UnitCostLabel.Text" xml:space="preserve">
+    <value>Đơn giá:</value>
+  </data>
+  <data name="ViewDeviceDetailsHeader.Text" xml:space="preserve">
+    <value>Xem chi tiết máy</value>
+  </data>
+  <data name="SubtotalLabel.Text" xml:space="preserve">
+    <value>Tạm tính:</value>
+  </data>
+  <data name="TotalLabel.Text" xml:space="preserve">
+    <value>Tổng cộng:</value>
+  </data>
+  <data name="ValidationErrorTitle" xml:space="preserve">
+    <value>Lỗi nhập liệu</value>
+  </data>
+  <data name="ValidationErrorInfoBar.Title" xml:space="preserve">
+    <value>Lỗi nhập liệu</value>
+  </data>
+  <data name="ValidationErrorInfoBar.Message" xml:space="preserve">
+    <value>Vui lòng nhập đầy đủ Số Serial và IMEI 1 cho tất cả các máy</value>
+  </data>
+  <data name="Dlg_PODetails_Title" xml:space="preserve">
+    <value>Chi tiết phiếu nhập</value>
+  </data>
+  <data name="Dlg_PODetails_OrderDetailsTitle" xml:space="preserve">
+    <value>Chi tiết đơn hàng</value>
+  </data>
+  <data name="Dlg_PODetails_CreatedByLabel" xml:space="preserve">
+    <value>Người tạo:</value>
+  </data>
+  <data name="Dlg_PODetails_TotalAmountLabel" xml:space="preserve">
+    <value>Tổng tiền:</value>
+  </data>
+  <data name="Dlg_PODetails_NoteLabel" xml:space="preserve">
+    <value>Ghi chú:</value>
+  </data>
+  <data name="Dlg_PODetails_OrderLinesTitle" xml:space="preserve">
+    <value>Chi tiết sản phẩm ({0})</value>
+  </data>
+  <data name="Dlg_PODetails_QtyLabel" xml:space="preserve">
+    <value>SL:</value>
+  </data>
+  <data name="Dlg_PODetails_UnitLabel" xml:space="preserve">
+    <value>Đơn giá:</value>
+  </data>
+  <data name="Dlg_PODetails_CloseButton" xml:space="preserve">
+    <value>Đóng</value>
+  </data>
+  <data name="Common_NA" xml:space="preserve">
+    <value>Không có</value>
+  </data>
+  <data name="Common_Unknown" xml:space="preserve">
+    <value>Không xác định</value>
+  </data>
+  <data name="Common_NoNotes" xml:space="preserve">
+    <value>Không có ghi chú</value>
+  </data>
+  <data name="Common_UserIdFormat" xml:space="preserve">
+    <value>Người dùng ID: {0}</value>
+  </data>
+  <data name="Common_POFormat" xml:space="preserve">
+    <value>PN #{0}</value>
+  </data>
+  <data name="Common_OpenFile" xml:space="preserve">
+    <value>Mở File</value>
+  </data>
+  <data name="Common/NotAvailable" xml:space="preserve">
+    <value>Chưa có</value>
+  </data>
+  <data name="Common/OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common/Cancel" xml:space="preserve">
+    <value>Hủy</value>
+  </data>
+  <data name="Common/Create" xml:space="preserve">
+    <value>Thêm</value>
+  </data>
+  <data name="Common/Save" xml:space="preserve">
+    <value>Lưu</value>
+  </data>
+  <data name="Common/Delete" xml:space="preserve">
+    <value>Xóa</value>
+  </data>
+  <data name="Common/Edit" xml:space="preserve">
+    <value>Sửa</value>
+  </data>
+  <data name="Common/PreviousPage" xml:space="preserve">
+    <value>Trang trước</value>
+  </data>
+  <data name="Common/NextPage" xml:space="preserve">
+    <value>Trang sau</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Đang tải...</value>
+  </data>
+  <data name="LoadingData" xml:space="preserve">
+    <value>Đang tải dữ liệu...</value>
+  </data>
+  <data name="Common/AccountManagement" xml:space="preserve">
+    <value>Quản lý tài khoản</value>
+  </data>
+  <data name="Common/Success" xml:space="preserve">
+    <value>Thành công</value>
+  </data>
+  <data name="Common/Close" xml:space="preserve">
+    <value>Đóng</value>
+  </data>
+  <data name="DialogAdd" xml:space="preserve">
+    <value>Thêm</value>
+  </data>
+  <data name="DialogUpdate" xml:space="preserve">
+    <value>Cập nhật</value>
+  </data>
+  <data name="DialogCancel" xml:space="preserve">
+    <value>Hủy</value>
+  </data>
+  <data name="DiscountAmountGreaterThanZeroError" xml:space="preserve">
+    <value>Số tiền giảm giá phải lớn hơn 0</value>
+  </data>
+  <data name="MinimumAmountNonNegativeError" xml:space="preserve">
+    <value>Số tiền tối thiểu không được âm</value>
+  </data>
+  <data name="FilterStatusLabel.Text" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="FilterOptionAll" xml:space="preserve">
+    <value>Tất cả</value>
+  </data>
+  <data name="UnknownCategoryLabel" xml:space="preserve">
+    <value>Chưa phân loại</value>
+  </data>
+  <data name="UnknownAttributeLabel" xml:space="preserve">
+    <value>Thuộc tính</value>
+  </data>
+  <data name="DialogCloseButton" xml:space="preserve">
+    <value>Đóng</value>
+  </data>
+  <data name="GenericDialogTitle" xml:space="preserve">
+    <value>Thông báo</value>
+  </data>
+</root>

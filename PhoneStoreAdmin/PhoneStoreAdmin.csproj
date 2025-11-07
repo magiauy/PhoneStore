@@ -111,8 +111,35 @@
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
   </PropertyGroup>
   <ItemGroup>
-	<PRIResource Update="Resources\Strings\en-US\Resources.resw">
-	    <Generator>PublicResXFileCodeGenerator</Generator>
+    <PRIResource Update="Resources\Strings\en-US\Resources.resw">
+      <Generator>PublicResXFileCodeGenerator</Generator>
     </PRIResource>
+    <PRIResource Update="Resources\Strings\en-US\Authentication.resw" />
+    <PRIResource Update="Resources\Strings\en-US\Navigation.resw" />
+    <PRIResource Update="Resources\Strings\en-US\Settings.resw" />
+    <PRIResource Update="Resources\Strings\en-US\Accounts.resw" />
+    <PRIResource Update="Resources\Strings\en-US\Roles.resw" />
+    <PRIResource Update="Resources\Strings\en-US\Products.resw" />
+    <PRIResource Update="Resources\Strings\en-US\Brands.resw" />
+    <PRIResource Update="Resources\Strings\en-US\Suppliers.resw" />
+    <PRIResource Update="Resources\Strings\en-US\Promotions.resw" />
+    <PRIResource Update="Resources\Strings\en-US\PurchaseOrders.resw" />
+    <PRIResource Update="Resources\Strings\en-US\Batches.resw" />
+    <PRIResource Update="Resources\Strings\en-US\Reports.resw" />
+    <PRIResource Update="Resources\Strings\en-US\Common.resw" />
+    <PRIResource Update="Resources\Strings\vi-VN\Resources.resw" />
+    <PRIResource Update="Resources\Strings\vi-VN\Authentication.resw" />
+    <PRIResource Update="Resources\Strings\vi-VN\Navigation.resw" />
+    <PRIResource Update="Resources\Strings\vi-VN\Settings.resw" />
+    <PRIResource Update="Resources\Strings\vi-VN\Accounts.resw" />
+    <PRIResource Update="Resources\Strings\vi-VN\Roles.resw" />
+    <PRIResource Update="Resources\Strings\vi-VN\Products.resw" />
+    <PRIResource Update="Resources\Strings\vi-VN\Brands.resw" />
+    <PRIResource Update="Resources\Strings\vi-VN\Suppliers.resw" />
+    <PRIResource Update="Resources\Strings\vi-VN\Promotions.resw" />
+    <PRIResource Update="Resources\Strings\vi-VN\PurchaseOrders.resw" />
+    <PRIResource Update="Resources\Strings\vi-VN\Batches.resw" />
+    <PRIResource Update="Resources\Strings\vi-VN\Reports.resw" />
+    <PRIResource Update="Resources\Strings\vi-VN\Common.resw" />
   </ItemGroup>
 </Project>

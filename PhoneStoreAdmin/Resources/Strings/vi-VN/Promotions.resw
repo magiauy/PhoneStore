@@ -1,0 +1,328 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:schema id="root">
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xs:element name="root" ns1:IsDataSet="true">
+      <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="metadata">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" />
+              </xs:sequence>
+              <xs:attribute name="name" use="required" type="xsd:string" />
+              <xs:attribute name="type" type="xsd:string" />
+              <xs:attribute name="mimetype" type="xsd:string" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="assembly">
+            <xs:complexType>
+              <xs:attribute name="alias" type="xsd:string" />
+              <xs:attribute name="name" type="xsd:string" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="data">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
+              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
+              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="resheader">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ColBatchCode.Text" xml:space="preserve">
+    <value>MÃ</value>
+  </data>
+  <data name="FilterPurchaseOrderCode.Text" xml:space="preserve">
+    <value>Mã</value>
+  </data>
+  <data name="FilterBatchCode.Text" xml:space="preserve">
+    <value>Mã</value>
+  </data>
+  <data name="SubHeaderUpdateTitlePromotion.Text" xml:space="preserve">
+    <value>Cập nhật thông tin khuyến mãi và quản lý mã khuyến mãi</value>
+  </data>
+  <data name="PromotionInfo.Text" xml:space="preserve">
+    <value>Thông tin khuyến mãi</value>
+  </data>
+  <data name="BtnNewPromotion.Text" xml:space="preserve">
+    <value>Thêm khuyến mãi</value>
+  </data>
+  <data name="BtnActionPromotion.Content" xml:space="preserve">
+    <value>Thao tác</value>
+  </data>
+  <data name="BtnEditPromotion.Text" xml:space="preserve">
+    <value>Chỉnh sửa</value>
+  </data>
+  <data name="BtnActivatePromotion.Text" xml:space="preserve">
+    <value>Kích hoạt</value>
+  </data>
+  <data name="BtnDeactivatePromotion.Text" xml:space="preserve">
+    <value>Vô hiệu hóa</value>
+  </data>
+  <data name="SearchPromotion.PlaceholderText" xml:space="preserve">
+    <value>Tìm kiếm theo tên khuyến mãi...</value>
+  </data>
+  <data name="FilterStatusBoxPromotion.Text" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="FilterStartDateBoxPromotion.Text" xml:space="preserve">
+    <value>Ngày bắt đầu</value>
+  </data>
+  <data name="FilterEndDateBoxPromotion.Text" xml:space="preserve">
+    <value>Ngày kết thúc</value>
+  </data>
+  <data name="ColIDPromotion.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="ColNamePromotion.Text" xml:space="preserve">
+    <value>TÊN KHUYẾN MÃI</value>
+  </data>
+  <data name="ColDescriptionPromotion.Text" xml:space="preserve">
+    <value>MÔ TẢ</value>
+  </data>
+  <data name="ColStartDatePromotion.Text" xml:space="preserve">
+    <value>NGÀY BẮT ĐẦU</value>
+  </data>
+  <data name="ColEndDatePromotion.Text" xml:space="preserve">
+    <value>NGÀY KẾT THÚC</value>
+  </data>
+  <data name="ColStatusPromotion.Text" xml:space="preserve">
+    <value>TRẠNG THÁI</value>
+  </data>
+  <data name="ColActionsPromotion.Text" xml:space="preserve">
+    <value>THAO TÁC</value>
+  </data>
+  <data name="ShowIngPromotion.Text" xml:space="preserve">
+    <value>Hiển thị</value>
+  </data>
+  <data name="Promotions.Text" xml:space="preserve">
+    <value>khuyến mãi</value>
+  </data>
+  <data name="PagePromotion.Text" xml:space="preserve">
+    <value>Trang</value>
+  </data>
+  <data name="EmptyStateTitlePromotion.Text" xml:space="preserve">
+    <value>Không tìm thấy khuyến mãi</value>
+  </data>
+  <data name="EmptyStateDescriptionPromotion.Text" xml:space="preserve">
+    <value>Không có khuyến mãi nào để hiển thị. Thêm khuyến mãi mới hoặc kiểm tra bộ lọc.</value>
+  </data>
+  <data name="ViewPromotionTitle" xml:space="preserve">
+    <value>Chi tiết khuyến mãi</value>
+  </data>
+  <data name="PromotionIdLabel.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="PromotionNameLabel.Text" xml:space="preserve">
+    <value>Tên</value>
+  </data>
+  <data name="PromotionDescriptionLabel.Text" xml:space="preserve">
+    <value>Mô tả</value>
+  </data>
+  <data name="PromotionStartDateLabel.Text" xml:space="preserve">
+    <value>Ngày bắt đầu</value>
+  </data>
+  <data name="PromotionEndDateLabel.Text" xml:space="preserve">
+    <value>Ngày kết thúc</value>
+  </data>
+  <data name="PromotionIsActiveLabel.Text" xml:space="preserve">
+    <value>Kích hoạt</value>
+  </data>
+  <data name="PromotionNamePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập tên khuyến mãi</value>
+  </data>
+  <data name="PromotionDescriptionPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập mô tả (tùy chọn)</value>
+  </data>
+  <data name="AddPromotionTitle" xml:space="preserve">
+    <value>Thêm khuyến mãi</value>
+  </data>
+  <data name="EditPromotionTitle.Text" xml:space="preserve">
+    <value>Chỉnh sửa khuyến mãi</value>
+  </data>
+  <data name="PromotionUpdateFailedMessage.Message" xml:space="preserve">
+    <value>Cập nhật khuyến mãi thất bại. Vui lòng thử lại.</value>
+  </data>
+  <data name="PromotionUpdateSuccessMessage.Message" xml:space="preserve">
+    <value>Cập nhật khuyến mãi thành công!</value>
+  </data>
+  <data name="ProcessingPromotionText.Text" xml:space="preserve">
+    <value>Đang xử lý...</value>
+  </data>
+  <data name="BtnNewPromotionCode.Text" xml:space="preserve">
+    <value>Thêm mã khuyến mãi</value>
+  </data>
+  <data name="BtnActionPromotionCode.Content" xml:space="preserve">
+    <value>Thao tác</value>
+  </data>
+  <data name="BtnEditPromotionCode.Text" xml:space="preserve">
+    <value>Chỉnh sửa</value>
+  </data>
+  <data name="BtnActivatePromotionCode.Text" xml:space="preserve">
+    <value>Kích hoạt</value>
+  </data>
+  <data name="BtnDeactivatePromotionCode.Text" xml:space="preserve">
+    <value>Vô hiệu hóa</value>
+  </data>
+  <data name="SearchPromotionCode.PlaceholderText" xml:space="preserve">
+    <value>Tìm kiếm theo mã...</value>
+  </data>
+  <data name="FilterPromotionBoxPromotionCode.Text" xml:space="preserve">
+    <value>Khuyến mãi</value>
+  </data>
+  <data name="FilterStatusBoxPromotionCode.Text" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="ColIDPromotionCode.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="ColCodePromotionCode.Text" xml:space="preserve">
+    <value>MÃ</value>
+  </data>
+  <data name="ColPromotionNamePromotionCode.Text" xml:space="preserve">
+    <value>KHUYẾN MÃI</value>
+  </data>
+  <data name="ColDiscountAmountPromotionCode.Text" xml:space="preserve">
+    <value>GIẢM GIÁ</value>
+  </data>
+  <data name="ColMinimumAmountPromotionCode.Text" xml:space="preserve">
+    <value>ĐƠN TỐI THIỂU</value>
+  </data>
+  <data name="ColUsageLimitPromotionCode.Text" xml:space="preserve">
+    <value>GIỚI HẠN SỬ DỤNG</value>
+  </data>
+  <data name="ColUsedCountPromotionCode.Text" xml:space="preserve">
+    <value>ĐÃ DÙNG</value>
+  </data>
+  <data name="ColStatusPromotionCode.Text" xml:space="preserve">
+    <value>TRẠNG THÁI</value>
+  </data>
+  <data name="ColActionsPromotionCode.Text" xml:space="preserve">
+    <value>THAO TÁC</value>
+  </data>
+  <data name="ShowIngPromotionCode.Text" xml:space="preserve">
+    <value>Hiển thị</value>
+  </data>
+  <data name="PromotionCodes.Text" xml:space="preserve">
+    <value>Mã khuyến mãi</value>
+  </data>
+  <data name="PagePromotionCode.Text" xml:space="preserve">
+    <value>Trang</value>
+  </data>
+  <data name="EmptyStateTitlePromotionCode.Text" xml:space="preserve">
+    <value>Không tìm thấy mã khuyến mãi</value>
+  </data>
+  <data name="EmptyStateDescriptionPromotionCode.Text" xml:space="preserve">
+    <value>Không có mã khuyến mãi nào để hiển thị. Thêm mã khuyến mãi mới hoặc kiểm tra bộ lọc.</value>
+  </data>
+  <data name="PromotionCodeIdLabel.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="PromotionCodeLabel.Text" xml:space="preserve">
+    <value>Mã</value>
+  </data>
+  <data name="PromotionCodePromotionLabel.Text" xml:space="preserve">
+    <value>Khuyến mãi</value>
+  </data>
+  <data name="PromotionCodeDiscountAmountLabel.Text" xml:space="preserve">
+    <value>Số tiền giảm</value>
+  </data>
+  <data name="PromotionCodeMinimumAmountLabel.Text" xml:space="preserve">
+    <value>Đơn tối thiểu</value>
+  </data>
+  <data name="PromotionCodeUsageLimitLabel.Text" xml:space="preserve">
+    <value>Giới hạn sử dụng</value>
+  </data>
+  <data name="PromotionCodeUsedCountLabel.Text" xml:space="preserve">
+    <value>Đã sử dụng</value>
+  </data>
+  <data name="PromotionCodeIsActiveLabel.Text" xml:space="preserve">
+    <value>Kích hoạt</value>
+  </data>
+  <data name="PromotionCodePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập mã khuyến mãi</value>
+  </data>
+  <data name="PromotionCodeDiscountAmountPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập số tiền giảm</value>
+  </data>
+  <data name="PromotionCodeMinimumAmountPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập đơn tối thiểu</value>
+  </data>
+  <data name="PromotionCodeUsageLimitPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Nhập giới hạn sử dụng (tùy chọn)</value>
+  </data>
+  <data name="PromotionCodeUsageLimitHint.Text" xml:space="preserve">
+    <value>Để trống nếu không giới hạn số lần sử dụng</value>
+  </data>
+  <data name="AddPromotionCodeTitle" xml:space="preserve">
+    <value>Thêm mã khuyến mãi</value>
+  </data>
+  <data name="EditPromotionCodeTitle" xml:space="preserve">
+    <value>Chỉnh sửa mã khuyến mãi</value>
+  </data>
+  <data name="PromotionCodeRequiredError" xml:space="preserve">
+    <value>Mã khuyến mãi không được để trống</value>
+  </data>
+  <data name="PromotionCodeMinLengthError" xml:space="preserve">
+    <value>Mã khuyến mãi phải có ít nhất 3 ký tự</value>
+  </data>
+  <data name="PromotionSelectionRequiredError" xml:space="preserve">
+    <value>Vui lòng chọn khuyến mãi</value>
+  </data>
+  <data name="LoadPromotionsError" xml:space="preserve">
+    <value>Không thể tải danh sách khuyến mãi</value>
+  </data>
+  <data name="LoadPromotionCodeError" xml:space="preserve">
+    <value>Không thể tải thông tin mã khuyến mãi</value>
+  </data>
+  <data name="PromotionSelectionError" xml:space="preserve">
+    <value>Có lỗi khi chọn khuyến mãi</value>
+  </data>
+  <data name="BtnFilterPromotion.Text" xml:space="preserve">
+    <value>Lọc</value>
+  </data>
+  <data name="UnlimitedPromotionCode" xml:space="preserve">
+    <value>Không giới hạn</value>
+  </data>
+  <data name="ConfirmActivateCodeTitle" xml:space="preserve">
+    <value>Kích hoạt mã</value>
+  </data>
+  <data name="ConfirmActivateCodeContent" xml:space="preserve">
+    <value>Bạn có chắc muốn kích hoạt mã này?</value>
+  </data>
+  <data name="ConfirmDeactivateCodeTitle" xml:space="preserve">
+    <value>Vô hiệu hóa mã</value>
+  </data>
+  <data name="ConfirmDeactivateCodeContent" xml:space="preserve">
+    <value>Bạn có chắc muốn vô hiệu hóa mã này?</value>
+  </data>
+</root>

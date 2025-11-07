@@ -1,0 +1,284 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:schema id="root">
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xs:element name="root" ns1:IsDataSet="true">
+      <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="metadata">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" />
+              </xs:sequence>
+              <xs:attribute name="name" use="required" type="xsd:string" />
+              <xs:attribute name="type" type="xsd:string" />
+              <xs:attribute name="mimetype" type="xsd:string" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="assembly">
+            <xs:complexType>
+              <xs:attribute name="alias" type="xsd:string" />
+              <xs:attribute name="name" type="xsd:string" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="data">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
+              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
+              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="resheader">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="SearchTextBoxProduct.PlaceholderText" xml:space="preserve">
+    <value>Search product</value>
+  </data>
+  <data name="CategoryComboBox.Header" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="CategoryComboBox.PlaceholderText" xml:space="preserve">
+    <value>All categories</value>
+  </data>
+  <data name="DeleteProduct.Content" xml:space="preserve">
+    <value>Delete product</value>
+  </data>
+  <data name="CategoryComboBoxAll" xml:space="preserve">
+    <value>All categories</value>
+  </data>
+  <data name="ProductListSectionTitle.Text" xml:space="preserve">
+    <value>Product List</value>
+  </data>
+  <data name="BtnAddProduct.Content" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="SelectedProductsTitle.Text" xml:space="preserve">
+    <value>Selected Products</value>
+  </data>
+  <data name="AddProductDialogTitle" xml:space="preserve">
+    <value>Add Product</value>
+  </data>
+  <data name="AddProductExistingMessage" xml:space="preserve">
+    <value>This product already has {0} device(s) in the order.
+How many devices do you want to add?</value>
+  </data>
+  <data name="AddProductQuantityLabel" xml:space="preserve">
+    <value>Quantity to add:</value>
+  </data>
+  <data name="AddProductButton" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="AddProductError" xml:space="preserve">
+    <value>Cannot add product</value>
+  </data>
+  <data name="ProductNotFoundError" xml:space="preserve">
+    <value>Product information not found</value>
+  </data>
+  <data name="Dlg_PODetails_ProductIdLabel" xml:space="preserve">
+    <value>Product ID:</value>
+  </data>
+  <data name="SearchSku.PlaceholderText" xml:space="preserve">
+    <value>Search by SKU</value>
+  </data>
+  <data name="SearchName.PlaceholderText" xml:space="preserve">
+    <value>Search by name</value>
+  </data>
+  <data name="RefreshProducts.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="ClearProductFilters.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Clear filters</value>
+  </data>
+  <data name="FilterCategoryLabel.Text" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="ColSkuProduct.Text" xml:space="preserve">
+    <value>SKU</value>
+  </data>
+  <data name="ColNameProduct.Text" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="ColCategoryProduct.Text" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="ColPriceProduct.Text" xml:space="preserve">
+    <value>Price</value>
+  </data>
+  <data name="ColStatusProduct.Text" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="EmptyStateTitleProduct.Text" xml:space="preserve">
+    <value>No products found</value>
+  </data>
+  <data name="EmptyStateDescriptionProduct.Text" xml:space="preserve">
+    <value>Try adjusting your filters or adding a new product to see it listed here.</value>
+  </data>
+  <data name="ShowingProducts.Text" xml:space="preserve">
+    <value>Showing </value>
+  </data>
+  <data name="PageProduct.Text" xml:space="preserve">
+    <value>Page </value>
+  </data>
+  <data name="PreviousPageProduct.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Previous page</value>
+  </data>
+  <data name="NextPageProduct.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Next page</value>
+  </data>
+  <data name="ProductSkuLabel.Text" xml:space="preserve">
+    <value>SKU</value>
+  </data>
+  <data name="ProductSkuPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter product SKU</value>
+  </data>
+  <data name="ProductNameLabel.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="ProductNamePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter product name</value>
+  </data>
+  <data name="ProductCategoryLabel.Text" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="ProductCategoryPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Select category</value>
+  </data>
+  <data name="ProductPriceLabel.Text" xml:space="preserve">
+    <value>Price</value>
+  </data>
+  <data name="ProductPricePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter price</value>
+  </data>
+  <data name="ProductCostLabel.Text" xml:space="preserve">
+    <value>Cost</value>
+  </data>
+  <data name="ProductCostPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter cost</value>
+  </data>
+  <data name="ProductWarrantyLabel.Text" xml:space="preserve">
+    <value>Warranty (months)</value>
+  </data>
+  <data name="ProductWarrantyPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter warranty months</value>
+  </data>
+  <data name="ProductStatusLabel.Text" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ProductUpdateFailedMessage.Message" xml:space="preserve">
+    <value>Failed to save product. Please try again.</value>
+  </data>
+  <data name="ProductUpdateSuccessMessage.Message" xml:space="preserve">
+    <value>Product saved successfully!</value>
+  </data>
+  <data name="ProcessingProductText.Text" xml:space="preserve">
+    <value>Processing product...</value>
+  </data>
+  <data name="ProductSaveSuccessMessage" xml:space="preserve">
+    <value>Product saved successfully!</value>
+  </data>
+  <data name="ProductSaveFailedMessage" xml:space="preserve">
+    <value>Unable to save product. Please review your input and try again.</value>
+  </data>
+  <data name="ProductValidationFailedMessage" xml:space="preserve">
+    <value>Please fix the highlighted errors before saving.</value>
+  </data>
+  <data name="ProductSkuRequiredError" xml:space="preserve">
+    <value>SKU is required.</value>
+  </data>
+  <data name="ProductNameRequiredError" xml:space="preserve">
+    <value>Name is required.</value>
+  </data>
+  <data name="ProductCategoryRequiredError" xml:space="preserve">
+    <value>Please select a category.</value>
+  </data>
+  <data name="ProductPriceInvalidError" xml:space="preserve">
+    <value>Price must be greater than or equal to 0.</value>
+  </data>
+  <data name="ProductCostInvalidError" xml:space="preserve">
+    <value>Cost must be greater than or equal to 0.</value>
+  </data>
+  <data name="ProductWarrantyInvalidError" xml:space="preserve">
+    <value>Warranty months must be a valid number.</value>
+  </data>
+  <data name="ProductStatusRequiredError" xml:space="preserve">
+    <value>Please select a product status.</value>
+  </data>
+  <data name="ProductAttributeRequiredError" xml:space="preserve">
+    <value>Please provide a value for {0}.</value>
+  </data>
+  <data name="ProductAttributeInvalidNumberError" xml:space="preserve">
+    <value>Enter a valid number.</value>
+  </data>
+  <data name="ProductReferenceDataErrorMessage" xml:space="preserve">
+    <value>Unable to load product data. Please refresh and try again.</value>
+  </data>
+  <data name="LoadProductsErrorTitle" xml:space="preserve">
+    <value>Unable to load products</value>
+  </data>
+  <data name="LoadProductsErrorMessage" xml:space="preserve">
+    <value>An error occurred while loading products: {0}</value>
+  </data>
+  <data name="LoadProductsUnavailableMessage" xml:space="preserve">
+    <value>No product data is available right now. Please try again later.</value>
+  </data>
+  <data name="ProductDetailErrorTitle" xml:space="preserve">
+    <value>Product details</value>
+  </data>
+  <data name="ProductDetailSku" xml:space="preserve">
+    <value>SKU: {0}</value>
+  </data>
+  <data name="ProductDetailName" xml:space="preserve">
+    <value>Name: {0}</value>
+  </data>
+  <data name="ProductDetailPrice" xml:space="preserve">
+    <value>Price: {0}</value>
+  </data>
+  <data name="ProductAttributesHeader" xml:space="preserve">
+    <value>Attributes</value>
+  </data>
+  <data name="ProductAttributeEmptyValue" xml:space="preserve">
+    <value>(No value)</value>
+  </data>
+  <data name="ProductAttributeFormat" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="ProductNoAttributes" xml:space="preserve">
+    <value>No attribute values available.</value>
+  </data>
+  <data name="ProductDetailDialogTitle" xml:space="preserve">
+    <value>Product details - {0}</value>
+  </data>
+  <data name="ProductDetailErrorMessage" xml:space="preserve">
+    <value>An unexpected error occurred while loading product details: {0}</value>
+  </data>
+  <data name="Product_Status_Discontinued" xml:space="preserve">
+    <value>Discontinued</value>
+  </data>
+</root>

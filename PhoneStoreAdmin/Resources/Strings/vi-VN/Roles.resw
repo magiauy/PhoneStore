@@ -58,4 +58,55 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Roles_PageTitle.Text" xml:space="preserve">
+    <value>Quản lý Vai trò</value>
+  </data>
+  <data name="Roles_PageDescription.Text" xml:space="preserve">
+    <value>Quản lý vai trò và phân quyền cho hệ thống</value>
+  </data>
+  <data name="Roles_RoleListTitle.Text" xml:space="preserve">
+    <value>Danh sách vai trò</value>
+  </data>
+  <data name="Roles_AddRoleButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Thêm vai trò mới</value>
+  </data>
+  <data name="Roles_AddRoleButtonText.Text" xml:space="preserve">
+    <value>Thêm</value>
+  </data>
+  <data name="Roles_RefreshButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Làm mới</value>
+  </data>
+  <data name="Roles_SearchBox.PlaceholderText" xml:space="preserve">
+    <value>Tìm kiếm vai trò...</value>
+  </data>
+  <data name="Roles_EmptyStateMessage.Text" xml:space="preserve">
+    <value>Không có vai trò nào</value>
+  </data>
+  <data name="Roles_NoRoleSelectedTitle.Text" xml:space="preserve">
+    <value>Chọn vai trò để xem quyền</value>
+  </data>
+  <data name="Roles_NoRoleSelectedMessage.Text" xml:space="preserve">
+    <value>Vui lòng chọn một vai trò từ danh sách bên trái để xem và chỉnh sửa quyền</value>
+  </data>
+  <data name="Roles_EditButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Chỉnh sửa vai trò</value>
+  </data>
+  <data name="Roles_EditButtonText.Text" xml:space="preserve">
+    <value>Sửa</value>
+  </data>
+  <data name="Roles_DeleteButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Xóa vai trò</value>
+  </data>
+  <data name="Roles_DeleteButtonText.Text" xml:space="preserve">
+    <value>Xóa</value>
+  </data>
+  <data name="Roles_SaveChangesInfo.Text" xml:space="preserve">
+    <value>Nhấn Lưu để cập nhật quyền cho vai trò</value>
+  </data>
+  <data name="Roles_SaveButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Lưu thay đổi quyền</value>
+  </data>
+  <data name="Roles_SaveButtonText.Text" xml:space="preserve">
+    <value>Lưu thay đổi</value>
+  </data>
 </root>
