@@ -71,8 +71,10 @@ namespace PhoneStoreAdmin.ViewModels
         public int Id { get; set; }
         public int InvoiceId { get; set; }
         public int ProductId { get; set; }
+
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
+        public decimal DiscountPct { get; set; }
         public decimal TotalPrice { get; set; }
 
         public InvoiceLineViewModel() { }
@@ -84,6 +86,7 @@ namespace PhoneStoreAdmin.ViewModels
             ProductId = line.ProductId;
             Quantity = line.Quantity;
             UnitPrice = line.UnitPrice;
+            DiscountPct = line.DiscountPct;
             TotalPrice = line.TotalPrice;
         }
     }

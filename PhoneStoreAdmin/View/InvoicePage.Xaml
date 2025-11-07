@@ -267,7 +267,7 @@
                     </Grid.ColumnDefinitions>
                     <AutoSuggestBox
                         x:Name="SearchBox"
-                        x:Uid="SearchSupplier"
+                        x:Uid="SearchName"
                         Grid.Column="0"
                         Margin="0,0,16,0"
                         Padding="16,10"
@@ -278,7 +278,8 @@
                         CornerRadius="8"
                         FontSize="15"
                         QueryIcon="Find"
-                        TextChanged="SearchBox_TextChanged" />
+                        TextChanged="SearchBox_TextChanged"
+                        QuerySubmitted="SearchBox_QuerySubmitted"/>
                     <StackPanel
                         Grid.Column="1"
                         Orientation="Horizontal"
@@ -622,7 +623,7 @@
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
                                             FontSize="14"
-                                            Foreground="{StaticResource BrushText}"
+                                            Foreground="{StaticResource BrushTextSecondary}"
                                             Text="{Binding InvoiceDate, Converter={StaticResource DateConverter}}" />
 
                                         <!-- Customer Name -->
@@ -648,11 +649,11 @@
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Center"
                                             FontSize="14"
-                                            Foreground="{StaticResource BrushTextSecondary}"
-                                            Text="{Binding CreatedBy}"
+                                            Foreground="{StaticResource BrushText}"
+                                            Text="{Binding CreatedByName}"
                                             TextTrimming="CharacterEllipsis">
                                             <ToolTipService.ToolTip>
-                                                <ToolTip Content="{Binding CreatedBy}" />
+                                                <ToolTip Content="{Binding CreatedByName}" />
                                             </ToolTipService.ToolTip>
                                         </TextBlock>
 
@@ -662,7 +663,7 @@
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
                                             FontSize="14"
-                                            Foreground="{StaticResource BrushText}"
+                                            Foreground="{StaticResource BrushTextSecondary}"
                                             Text="{Binding TotalAmount, Converter={StaticResource CurrencyConverter}}" />
 
                                         <!-- Final Amount -->
@@ -670,9 +671,8 @@
                                             Grid.Column="5"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
-                                            FontSize="14"
-                                            FontWeight="SemiBold"
-                                            Foreground="{StaticResource BrushPrimary}"
+                                            FontSize="14"                                 
+                                            Foreground="{StaticResource BrushText}"
                                             Text="{Binding FinalAmount, Converter={StaticResource CurrencyConverter}}" />
 
                                         <!-- Discount ID -->
@@ -682,7 +682,7 @@
                                             VerticalAlignment="Center"
                                             FontSize="14"
                                             Foreground="{StaticResource BrushTextSecondary}"
-                                            Text="{Binding DiscountAmount}" />
+                                            Text="{Binding DiscountAmount, Converter={StaticResource CurrencyConverter}}" />
 
                                         <!-- Status Badge -->
                                         <Border
@@ -722,7 +722,7 @@
                                             <FlyoutBase.AttachedFlyout>
                                                 <MenuFlyout>
                                                     <MenuFlyoutItem
-                                                        x:Uid="BtnDetailInvoice"
+                                                        x:Uid="BtnDetailPurchaseOrder"
                                                         Click="BtnDetail_Click"
                                                         Tag="{Binding}">
                                                         <MenuFlyoutItem.Icon>
@@ -730,19 +730,11 @@
                                                         </MenuFlyoutItem.Icon>
                                                     </MenuFlyoutItem>
                                                     <MenuFlyoutItem
-                                                        x:Uid="BtnEditInvoice"
+                                                        x:Uid="BtnEditPurchaseOrder"
                                                         Click="BtnEdit_Click"
-                                                        Tag="{Binding}">
+                                                        Tag="{Binding Id}">
                                                         <MenuFlyoutItem.Icon>
                                                             <FontIcon Glyph="&#xE104;" />
-                                                        </MenuFlyoutItem.Icon>
-                                                    </MenuFlyoutItem>
-                                                    <MenuFlyoutItem
-                                                        x:Uid="BtnCancelInvoice"
-                                                        Click="BtnCancel_Click"
-                                                        Tag="{Binding}">
-                                                        <MenuFlyoutItem.Icon>
-                                                            <FontIcon Glyph="&#xE711;" />
                                                         </MenuFlyoutItem.Icon>
                                                     </MenuFlyoutItem>
                                                 </MenuFlyout>

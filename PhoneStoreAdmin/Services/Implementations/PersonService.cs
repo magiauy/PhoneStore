@@ -3,6 +3,7 @@ using PhoneStoreAdmin.Repositories.Interfaces;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Utils;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace PhoneStoreAdmin.Services.Implementations
@@ -111,6 +112,10 @@ namespace PhoneStoreAdmin.Services.Implementations
                 Logger.Error($"Failed to update person: {person?.FullName}", ex);
                 return false;
             }
+        }
+        public async Task<IEnumerable<Person>> GetAllAsync()
+        {
+            return await Task.Run(() => _personRepository.GetAll());
         }
     }
 }

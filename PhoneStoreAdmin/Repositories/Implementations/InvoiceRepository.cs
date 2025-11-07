@@ -14,30 +14,86 @@ namespace PhoneStoreAdmin.Repositories.Implementations
     {
         private readonly DataSource _dataSource = dataSource;
 
-        public Invoice GetById(int id)
+        public Invoice? GetById(int id)
         {
             using var connection = _dataSource.GetConnection();
-            using var command = new MySqlCommand("SELECT * FROM invoices WHERE id = @id", connection);
+
+            // Lấy hóa đơn
+            using var command = new MySqlCommand(@"
+                SELECT 
+                    i.*, 
+                    p.full_name AS customer_name, 
+                    c.full_name AS creator_name,
+                    pr.code AS promotion_code
+                FROM invoices i
+                LEFT JOIN persons p ON i.person_id = p.id
+                LEFT JOIN persons c ON i.created_by = c.id
+                LEFT JOIN promotion_codes pr ON i.promotion_code_id = pr.id
+                WHERE i.id = @id", connection);
+
             command.Parameters.AddWithValue("@id", id);
 
             using var reader = command.ExecuteReader();
-            if (reader.Read())
+
+            if (!reader.Read())
+                return null;
+
+            var invoice = MapFromReader(reader);
+
+            reader.Close(); // Đóng reader cũ trước khi mở truy vấn mới
+
+            // Truy vấn các dòng chi tiết (invoice_lines)
+            using var lineCmd = new MySqlCommand(@"
+                SELECT 
+                    il.*
+                FROM invoice_lines il
+                WHERE il.invoice_id = @invoiceId", connection);
+
+            lineCmd.Parameters.AddWithValue("@invoiceId", id);
+
+            using var lineReader = lineCmd.ExecuteReader();
+            var lines = new List<InvoiceLine>();
+
+            while (lineReader.Read())
             {
-                return MapFromReader(reader);
+                lines.Add(new InvoiceLine
+                {
+                    Id = Convert.ToInt32(lineReader["id"]),
+                    ProductId = Convert.ToInt32(lineReader["product_id"]),                   
+                    Quantity = Convert.ToInt32(lineReader["quantity"]),
+                    UnitPrice = Convert.ToDecimal(lineReader["unit_price"]),
+                    DiscountPct = Convert.ToDecimal(lineReader["discount_pct"]),
+                    TotalPrice = Convert.ToDecimal(lineReader["total_price"])
+                });
             }
-            return null;
+
+            invoice.InvoiceLines = lines; // Gán vào hóa đơn
+
+            return invoice;
         }
+
+
+
 
         public IEnumerable<Invoice> GetAll()
         {
             var invoices = new List<Invoice>();
             using var connection = _dataSource.GetConnection();
             using var command = new MySqlCommand(@"
-                SELECT i.*, p.full_name AS person_name
+                SELECT 
+                    i.*, 
+                    p.full_name AS customer_name, 
+                    c.full_name AS creator_name
                 FROM invoices i
                 LEFT JOIN persons p ON i.person_id = p.id
-                ORDER BY i.id DESC", connection);
+                LEFT JOIN persons c ON i.created_by = c.id
+                ORDER BY i.id ASC", connection);
             using var reader = command.ExecuteReader();
+
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                Console.WriteLine(reader.GetName(i));
+            }
 
             while (reader.Read())
             {
@@ -81,6 +137,17 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         {
             throw new NotImplementedException();
         }
+        private static bool HasColumn(MySqlDataReader reader, string columnName)
+        {
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                if (reader.GetName(i).Equals(columnName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
+
+
         #region Helper
         private static Invoice MapFromReader(MySqlDataReader reader)
         {
@@ -110,7 +177,17 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                     invoice.PaymentMethod = PaymentMethod.CASH;
 
                 invoice.Note = reader.IsDBNull("note") ? null : reader.GetString("note");
-        
+                invoice.Customer = new Person { FullName = reader["customer_name"]?.ToString() ?? "Unknow" };
+                invoice.Creator = new Person { FullName = reader["creator_name"]?.ToString() ?? "System" };
+
+                if (HasColumn(reader, "promotion_code"))
+                {
+                    invoice.PromotionCode = new PromotionCode { Code = reader["promotion_code"]?.ToString() ?? "Không có" };
+                }
+                else
+                {
+                    invoice.PromotionCode = new PromotionCode { Code = "Không có" };
+                }
             }
             catch (Exception ex)
             {
@@ -136,9 +213,9 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             string joinClause = string.Empty;
 
             if (!string.IsNullOrWhiteSpace(customerName))
-            {
-                joinClause = "INNER JOIN persons p ON p.id = invoices.person_id";
-                conditions.Add("p.name LIKE @customerName");
+            { 
+                conditions.Add("(person_id IN (SELECT id FROM persons WHERE full_name LIKE @customerName) " +
+                   "OR created_by IN (SELECT id FROM persons WHERE full_name LIKE @customerName))");
                 parameters.Add(new MySqlParameter("@customerName", $"%{customerName}%"));
             }
 
@@ -205,8 +282,20 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                     BuildConditions(customerName, customerId, createdBy, status, fromDate, toDate, minAmount, maxAmount);
 
                 var offset = (page - 1) * pageSize;
-                var sql = $@"SELECT invoices.* FROM invoices {joinClause} {whereClause} 
-                         ORDER BY id DESC LIMIT @pageSize OFFSET @offset";
+                var sql = $@"
+                    SELECT 
+                        i.*, 
+                        p.full_name AS customer_name, 
+                        c.full_name AS creator_name
+                    FROM invoices i
+                    LEFT JOIN persons p ON i.person_id = p.id
+                    LEFT JOIN persons c ON i.created_by = c.id
+                    {joinClause}
+                    {whereClause}
+                    ORDER BY i.id DESC 
+                    LIMIT {pageSize} OFFSET {offset};;
+                ";
+                Debug.WriteLine($"[SQL PAGE TEST] Page={page}, Offset={offset}");
 
                 using var connection = _dataSource.GetConnection();
                 using var command = new MySqlCommand(sql, connection);

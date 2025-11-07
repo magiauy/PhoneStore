@@ -1243,4 +1243,52 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="POStatus_REFUNDED.Content" xml:space="preserve">
     <value>Đã hoàn tiền</value>
   </data>
+  <data name="SearchName.PlaceholderText" xml:space="preserve">
+    <value>Tìm kiếm theo tên.</value>
+  </data>
+  <data name="InvoicePaymentLabel.Text" xml:space="preserve">
+    <value>Phương thức thanh toán</value>
+  </data>
+  <data name="InvoiceFinalLabel.Text" xml:space="preserve">
+    <value>Tổng tiền </value>
+  </data>
+  <data name="InvoiceDiscountLabel.Text" xml:space="preserve">
+    <value>Số tiền đã giảm</value>
+  </data>
+  <data name="InvoiceStatusLabel.Text" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="InvoiceNoteLable.Text" xml:space="preserve">
+    <value>Ghi chú</value>
+  </data>
+  <data name="InvoiceTotalLabel.Text" xml:space="preserve">
+    <value>Tạm tính</value>
+  </data>
+  <data name="InvoiceDateLabel.Text" xml:space="preserve">
+    <value>Ngày tạo</value>
+  </data>
+  <data name="InvoiceCreatorLabel.Text" xml:space="preserve">
+    <value>Người khởi tạo</value>
+  </data>
+  <data name="InvoicePromoteCodeLabel.Text" xml:space="preserve">
+    <value>Mã giảm giá</value>
+  </data>
+  <data name="InvoiceCustomerLabel.Text" xml:space="preserve">
+    <value>Tên khách hàng</value>
+  </data>
+  <data name="InvoiceIdLabel.Text" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="DialogUpdateInvoice" xml:space="preserve">
+    <value>Sửa</value>
+  </data>
+  <data name="DialogCloseInvoice" xml:space="preserve">
+    <value>Đóng</value>
+  </data>
+  <data name="DialogCancelInvoice" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="DialogAddInvoice" xml:space="preserve">
+    <value>Thêm</value>
+  </data>
 </root>

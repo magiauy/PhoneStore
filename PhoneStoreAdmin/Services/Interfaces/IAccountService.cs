@@ -7,6 +7,11 @@ namespace PhoneStoreAdmin.Services.Interfaces
     public interface IAccountService
     {
         /// <summary>
+        /// Get all accounts
+        /// </summary>
+        /// <returns>List of accounts</returns>
+        Task<IEnumerable<Account>> GetAllAsync();
+        /// <summary>
         /// Get account by ID
         /// </summary>
         /// <param name="accountId">Account ID</param>

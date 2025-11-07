@@ -2,6 +2,7 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Models.Enums;
 using PhoneStoreAdmin.Repositories.Implementations;
@@ -30,9 +31,11 @@ namespace PhoneStoreAdmin.View
         public int TotalRecords { get; set; } = 0;
 
         private bool _isInitialized = false;
-
+        private ContentDialog? _currentDialog;
+        private readonly ResourceLoader _resourceLoader;
         public InvoicePage()
         {
+            this._resourceLoader = new ResourceLoader();
             this.InitializeComponent();
             this.Loaded += InvoicePage_Loaded;
         }
@@ -51,8 +54,11 @@ namespace PhoneStoreAdmin.View
             try
             {
                 Invoices.Clear();
-
                 // --- Lọc dữ liệu (tùy UI bạn có) ---
+                string? keyword = string.IsNullOrWhiteSpace(SearchBox?.Text)
+                    ? null
+                    : SearchBox.Text.Trim();
+
                 InvoiceStatus? status = null;
                 if (FilterStatusBoxInvoice?.SelectedItem is ComboBoxItem item && item.Tag is string tag && !string.IsNullOrEmpty(tag))
                 {
@@ -98,7 +104,7 @@ namespace PhoneStoreAdmin.View
                     PageSize        // int pageSize
                 );
                 System.Diagnostics.Debug.WriteLine($"SL hóa đơn lấy được: {result?.Invoices?.Count() ?? 0}");
-
+                Debug.WriteLine(CurrentPage);
                 if (result == null)
                 {
                     ShowErrorDialog("Error", "Failed to load invoices.");
@@ -149,7 +155,12 @@ namespace PhoneStoreAdmin.View
 
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
-            CurrentPage = 1;
+ 
+        }
+
+        private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+        {
+            // Tìm theo tên khách hàng hoặc người tạo
             LoadInvoice();
         }
 
@@ -206,29 +217,126 @@ namespace PhoneStoreAdmin.View
             await dialog.ShowAsync();
         }
 
-        private void BtnCreate_Click(object sender, RoutedEventArgs e)
+        private ContentDialog CreateContentDialog(ContentControl content, string title)
         {
-            
+            return new ContentDialog
+            {
+                Title = title,
+                Content = content,
+                XamlRoot = this.XamlRoot,
+                DefaultButton = ContentDialogButton.Primary
+            };
         }
 
-        private void BtnEdit_Click(object sender, RoutedEventArgs e)
+        private InvoiceDialog? _invoiceDialog;
+        private async void BtnCreate_Click(object sender, RoutedEventArgs e)
         {
-            
+            var invoiceDialog = new InvoiceDialog();
+            invoiceDialog.SetMode(InvoiceDialog.DialogMode.Add);
+
+            var dialog = CreateContentDialog(invoiceDialog, "Add Invoice");
+            dialog.PrimaryButtonText = _resourceLoader.GetString("DialogAddInvoice");
+            dialog.CloseButtonText = _resourceLoader.GetString("DialogCancelInvoice");
+
+            invoiceDialog.InvoiceSaved += (s, model) =>
+            {
+                if (model != null)
+                {
+                    LoadInvoice(); // Refresh list
+                }
+            };
+
+            dialog.PrimaryButtonClick += (s, args) =>
+            {
+                var ctrl = (InvoiceDialog)dialog.Content;
+                ctrl.Save();
+
+                if (!ctrl.IsValid())
+                    args.Cancel = true;
+            };
+
+            _currentDialog = dialog;
+            await dialog.ShowAsync();
+        }
+
+        private async void BtnEdit_Click(object sender, RoutedEventArgs e)
+        {   
+            var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
+            if (!int.TryParse(idStr, out int invoiceId)) return;
+
+            var invoice = InvoiceService.GetById(invoiceId);
+            if (invoice == null)
+            {
+                ShowErrorDialog("Error", "Invoice not found.");
+                return;
+            }
+
+            var viewModel = new InvoiceViewModel(invoice);
+            var invoiceDialog = new InvoiceDialog();
+            await invoiceDialog.SetMode(InvoiceDialog.DialogMode.Edit, viewModel);
+
+            var dialog = CreateContentDialog(invoiceDialog, "Edit Invoice");
+            dialog.PrimaryButtonText = _resourceLoader.GetString("DialogUpdateInvoice");
+            dialog.CloseButtonText = _resourceLoader.GetString("DialogCancelInvoice");
+
+            invoiceDialog.InvoiceSaved += (s, model) =>
+            {
+                if (model != null) LoadInvoice();
+            };
+
+            dialog.PrimaryButtonClick += (s, args) =>
+            {
+                var ctrl = (InvoiceDialog)dialog.Content;
+                ctrl.Save();
+                if (!ctrl.IsValid()) args.Cancel = true;
+            };
+
+            _currentDialog = dialog;
+            await dialog.ShowAsync();
         }
 
         private void BtnDetail_Click(object sender, RoutedEventArgs e)
         {
-            
-        }
+            if (sender is MenuFlyoutItem item && item.Tag is InvoiceViewModel poVM)
+            {
+                var po = InvoiceService.GetById(poVM.Id);
+                if (po != null)
+                {
+                    var poView = new InvoiceViewModel(po)
+                    {
+                        CustomerName = po.CustomerName,
+                        CreatedByName = po.CreatedByName,
+                        DiscountCode = po.DiscountCode
+                    };
+                    var details = $"ID: {po.Id}\n" +
+                                  $"Customer Name: {poView.CustomerName}\n" +
+                                  $"Created By: {poView.CreatedByName}\n" +
+                                  $"Promotion code: {poView.DiscountCode}\n" +
+                                  $"Invoice Date: {po.InvoiceDate}\n" +
+                                  $"Status: {po.Status}\n" +
+                                  $"Total amount: {po.TotalAmount}\n" +
+                                  $"Discount amount: {po.DiscountAmount}\n" +
+                                  $"Final amount: {po.FinalAmount}\n" +
+                                  $"Payment method: {po.PaymentMethod}\n" +
+                                  $"Note: {po.Note ?? "N/A"}\n\n" +
+                                  "Invoice Lines:\n";
 
-        private void BtnCancel_Click(object sender, RoutedEventArgs e)
-        {
-           
+                    foreach (var line in poView.InvoiceLines)
+                    {
+                        details += $" - Product ID: {line.Id}, Quantity: {line.Quantity}, Unit Cost: {line.UnitPrice}, Total Cost: {line.TotalPrice}\n";
+                    }
+
+                ShowErrorDialog("Invoice Details", details);
+                }
+            }
         }
 
         private void BtnActions_Click(object sender, RoutedEventArgs e)
         {
-            
+            if (sender is FrameworkElement element)
+            {
+                FlyoutBase.ShowAttachedFlyout(element);
+            }
         }
 
         private void BtnNextPage_Click(object sender, RoutedEventArgs e)
