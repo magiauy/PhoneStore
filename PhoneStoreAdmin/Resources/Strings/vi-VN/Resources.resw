@@ -2441,4 +2441,40 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="Product_Status_Discontinued" xml:space="preserve">
     <value>Ngừng bán</value>
   </data>
+  <data name="DialogSaveButton" xml:space="preserve">
+    <value>Lưu</value>
+  </data>
+  <data name="EditProductDialogTitle" xml:space="preserve">
+    <value>Chỉnh sửa sản phẩm</value>
+  </data>
+  <data name="ProductModelCreateTitle" xml:space="preserve">
+    <value>Tạo mẫu sản phẩm</value>
+  </data>
+  <data name="ProductModelEditTitle" xml:space="preserve">
+    <value>Chỉnh sửa mẫu: {0}</value>
+  </data>
+  <data name="ProductModelDuplicateTitle" xml:space="preserve">
+    <value>Nhân bản mẫu: {0}</value>
+  </data>
+  <data name="ProductModelValidationFailed" xml:space="preserve">
+    <value>Một số thông tin bắt buộc chưa hợp lệ.</value>
+  </data>
+  <data name="ProductModelNameRequired" xml:space="preserve">
+    <value>Yêu cầu nhập tên mẫu.</value>
+  </data>
+  <data name="ProductModelDescriptionTooLong" xml:space="preserve">
+    <value>Mô tả quá dài (tối đa 500 ký tự).</value>
+  </data>
+  <data name="ProductModelImageInvalid" xml:space="preserve">
+    <value>Vui lòng nhập URL hình ảnh hợp lệ.</value>
+  </data>
+  <data name="ProductModelSaveFailed" xml:space="preserve">
+    <value>Không thể lưu mẫu sản phẩm.</value>
+  </data>
+  <data name="ProductModelSaveFailedWithReason" xml:space="preserve">
+    <value>Không thể lưu mẫu sản phẩm: {0}</value>
+  </data>
+  <data name="ProductModelSaveSuccess" xml:space="preserve">
+    <value>Lưu mẫu sản phẩm thành công.</value>
+  </data>
 </root>
