@@ -2441,4 +2441,40 @@ How many devices do you want to add?</value>
   <data name="Product_Status_Discontinued" xml:space="preserve">
     <value>Discontinued</value>
   </data>
+  <data name="DialogSaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="EditProductDialogTitle" xml:space="preserve">
+    <value>Edit product</value>
+  </data>
+  <data name="ProductModelCreateTitle" xml:space="preserve">
+    <value>Create product model</value>
+  </data>
+  <data name="ProductModelEditTitle" xml:space="preserve">
+    <value>Edit model: {0}</value>
+  </data>
+  <data name="ProductModelDuplicateTitle" xml:space="preserve">
+    <value>Duplicate model: {0}</value>
+  </data>
+  <data name="ProductModelValidationFailed" xml:space="preserve">
+    <value>Some required information is missing or invalid.</value>
+  </data>
+  <data name="ProductModelNameRequired" xml:space="preserve">
+    <value>Model name is required.</value>
+  </data>
+  <data name="ProductModelDescriptionTooLong" xml:space="preserve">
+    <value>Description is too long (maximum 500 characters).</value>
+  </data>
+  <data name="ProductModelImageInvalid" xml:space="preserve">
+    <value>Please enter a valid image URL.</value>
+  </data>
+  <data name="ProductModelSaveFailed" xml:space="preserve">
+    <value>Unable to save product model.</value>
+  </data>
+  <data name="ProductModelSaveFailedWithReason" xml:space="preserve">
+    <value>Unable to save product model: {0}</value>
+  </data>
+  <data name="ProductModelSaveSuccess" xml:space="preserve">
+    <value>Product model saved successfully.</value>
+  </data>
 </root>
