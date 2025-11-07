@@ -1161,6 +1161,9 @@
   <data name="AddProductDialogTitle" xml:space="preserve">
     <value>Add Product</value>
   </data>
+  <data name="EditProductDialogTitle" xml:space="preserve">
+    <value>Edit Product</value>
+  </data>
   <data name="AddProductExistingMessage" xml:space="preserve">
     <value>This product already has {0} device(s) in the order.
 How many devices do you want to add?</value>
@@ -2216,6 +2219,12 @@ How many devices do you want to add?</value>
   <data name="SubHeaderTitleProduct.Text" xml:space="preserve">
     <value>Browse and manage your entire product catalog.</value>
   </data>
+  <data name="AddProductButton.Content" xml:space="preserve">
+    <value>Add product</value>
+  </data>
+  <data name="EditProductButton.Content" xml:space="preserve">
+    <value>Edit product</value>
+  </data>
   <data name="SearchSku.PlaceholderText" xml:space="preserve">
     <value>Search by SKU</value>
   </data>
@@ -2431,6 +2440,9 @@ How many devices do you want to add?</value>
   </data>
   <data name="DialogCloseButton" xml:space="preserve">
     <value>Close</value>
+  </data>
+  <data name="DialogSave" xml:space="preserve">
+    <value>Save</value>
   </data>
   <data name="ProductDetailErrorMessage" xml:space="preserve">
     <value>An unexpected error occurred while loading product details: {0}</value>

@@ -28,6 +28,63 @@
                 <Setter Property="CornerRadius" Value="12" />
             </Style>
 
+            <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="{StaticResource BrushPrimary}" />
+                <Setter Property="Foreground" Value="{StaticResource BrushOnPrimary}" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Padding" Value="20,14" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <Border
+                                    x:Name="RootBorder"
+                                    Background="{TemplateBinding Background}"
+                                    CornerRadius="{TemplateBinding CornerRadius}">
+                                    <ContentPresenter
+                                        Margin="{TemplateBinding Padding}"
+                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                        Content="{TemplateBinding Content}"
+                                        ContentTemplate="{TemplateBinding ContentTemplate}"
+                                        Foreground="{TemplateBinding Foreground}" />
+                                </Border>
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="PointerOver">
+                                            <Storyboard>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder" Storyboard.TargetProperty="Background">
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource BrushPrimaryHover}" />
+                                                </ObjectAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <Storyboard>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder" Storyboard.TargetProperty="Background">
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource BrushPrimaryPressed}" />
+                                                </ObjectAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="RootBorder"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="0.6"
+                                                    Duration="0:0:0" />
+                                            </Storyboard>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <Style x:Key="SecondaryButtonStyle" TargetType="Button">
                 <Setter Property="Background">
                     <Setter.Value>
@@ -144,6 +201,14 @@
                         FontSize="16"
                         Foreground="{StaticResource BrushTextSecondary}" />
                 </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="12">
+                    <Button
+                        x:Name="AddProductButton"
+                        x:Uid="AddProductButton"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Click="AddProductButton_Click" />
+                </StackPanel>
             </Grid>
         </Border>
 
@@ -184,6 +249,12 @@
                             TextChanged="SearchNameBox_TextChanged" />
 
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12">
+                            <Button
+                                x:Name="EditProductButton"
+                                x:Uid="EditProductButton"
+                                IsEnabled="False"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="EditProductButton_Click" />
                             <Button
                                 x:Name="RefreshButton"
                                 x:Uid="RefreshProducts"
@@ -295,7 +366,8 @@
                             x:Name="ProductsListView"
                             Background="Transparent"
                             ItemsSource="{x:Bind Products, Mode=OneWay}"
-                            SelectionMode="None">
+                            SelectionMode="Single"
+                            SelectionChanged="ProductsListView_SelectionChanged">
                             <ListView.ItemContainerStyle>
                                 <Style TargetType="ListViewItem">
                                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />

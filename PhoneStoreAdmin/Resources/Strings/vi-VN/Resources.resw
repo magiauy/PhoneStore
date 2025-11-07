@@ -1161,6 +1161,9 @@
   <data name="AddProductDialogTitle" xml:space="preserve">
     <value>Thêm sản phẩm</value>
   </data>
+  <data name="EditProductDialogTitle" xml:space="preserve">
+    <value>Chỉnh sửa sản phẩm</value>
+  </data>
   <data name="AddProductExistingMessage" xml:space="preserve">
     <value>Sản phẩm này đã có {0} máy trong phiếu.
 Bạn muốn thêm bao nhiêu máy?</value>
@@ -2216,6 +2219,12 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="SubHeaderTitleProduct.Text" xml:space="preserve">
     <value>Theo dõi và quản lý toàn bộ danh mục sản phẩm của bạn.</value>
   </data>
+  <data name="AddProductButton.Content" xml:space="preserve">
+    <value>Thêm sản phẩm</value>
+  </data>
+  <data name="EditProductButton.Content" xml:space="preserve">
+    <value>Sửa sản phẩm</value>
+  </data>
   <data name="SearchSku.PlaceholderText" xml:space="preserve">
     <value>Tìm theo mã SKU</value>
   </data>
@@ -2431,6 +2440,9 @@ Bạn muốn thêm bao nhiêu máy?</value>
   </data>
   <data name="DialogCloseButton" xml:space="preserve">
     <value>Đóng</value>
+  </data>
+  <data name="DialogSave" xml:space="preserve">
+    <value>Lưu</value>
   </data>
   <data name="ProductDetailErrorMessage" xml:space="preserve">
     <value>Có lỗi khi tải chi tiết sản phẩm: {0}</value>
