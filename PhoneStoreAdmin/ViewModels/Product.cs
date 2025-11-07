@@ -68,6 +68,52 @@ namespace PhoneStoreAdmin.ViewModels
         }
     }
 
+    public class ProductModelListItemViewModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string? DefaultImageUrl { get; set; }
+        public int VariantCount { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+
+        public string DescriptionPreview
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(Description))
+                {
+                    return string.Empty;
+                }
+
+                var trimmed = Description.Trim();
+                if (trimmed.Length <= 160)
+                {
+                    return trimmed;
+                }
+
+                return trimmed.Substring(0, 157) + "...";
+            }
+        }
+    }
+
+    public class ProductModelDetailViewModel
+    {
+        public ProductModelDetailViewModel(
+            ProductModelListItemViewModel model,
+            IEnumerable<ProductListItemViewModel> variants)
+        {
+            Model = model;
+            Variants = variants?.ToList() ?? new List<ProductListItemViewModel>();
+        }
+
+        public ProductModelListItemViewModel Model { get; }
+        public IReadOnlyList<ProductListItemViewModel> Variants { get; }
+
+        public bool HasVariants => Variants.Count > 0;
+    }
+
     public class ProductAttributeValueViewModel
     {
         public int AttributeId { get; set; }
@@ -192,5 +238,43 @@ namespace PhoneStoreAdmin.ViewModels
 
         public ProductAttribute Attribute { get; }
         public IReadOnlyList<ProductAttributeOption> Options { get; }
+    }
+
+    public class ProductAttributeSelectionViewModel
+    {
+        public ProductAttributeSelectionViewModel(ProductAttributeDefinition definition)
+        {
+            Definition = definition;
+            Attribute = definition.Attribute;
+            Options = definition.Options ?? Array.Empty<ProductAttributeOption>();
+        }
+
+        public ProductAttributeDefinition Definition { get; }
+        public ProductAttribute Attribute { get; }
+        public IReadOnlyList<ProductAttributeOption> Options { get; }
+
+        public bool IsSelected { get; set; }
+        public ProductAttributeOption? SelectedOption { get; set; }
+        public string? TextValue { get; set; }
+        public decimal? NumberValue { get; set; }
+        public DateTime? DateValue { get; set; }
+        public bool? BoolValue { get; set; }
+
+        public void Apply(ProductAttributeValueViewModel value)
+        {
+            if (value == null)
+            {
+                return;
+            }
+
+            IsSelected = true;
+            SelectedOption = value.OptionId.HasValue
+                ? Options.FirstOrDefault(o => o.Id == value.OptionId.Value)
+                : null;
+            TextValue = value.ValueText;
+            NumberValue = value.ValueNumber;
+            DateValue = value.ValueDate;
+            BoolValue = value.ValueBool;
+        }
     }
 }
