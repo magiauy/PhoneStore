@@ -5,6 +5,7 @@ using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.View.Controls;
 using PhoneStoreAdmin.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
@@ -34,6 +35,16 @@ namespace PhoneStoreAdmin.View
                 Bindings.Update();
             }
         }
+
+        public string SelectedModelName => SelectedModelDetail?.Model.Name ?? string.Empty;
+        
+        public string SelectedModelDescription => SelectedModelDetail?.Model.Description ?? string.Empty;
+        
+        public IReadOnlyList<ProductListItemViewModel>? SelectedModelVariants => SelectedModelDetail?.Variants;
+        
+        public bool HasSelectedModel => SelectedModelDetail != null;
+        
+        public bool SelectedModelHasNoVariants => SelectedModelDetail != null && !SelectedModelDetail.HasVariants;
 
         public string SelectedModelSummary
         {
