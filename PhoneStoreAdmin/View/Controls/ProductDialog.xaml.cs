@@ -35,7 +35,9 @@ namespace PhoneStoreAdmin.View.Controls
             public IReadOnlyList<ProductAttributeOption> Options => Definition.Options;
             public required FrameworkElement InputControl { get; init; }
             public required TextBlock ErrorTextBlock { get; init; }
+            public CheckBox? Toggle { get; init; }
             public bool IsRequired { get; init; }
+            public bool IsSelected { get; set; }
             public bool IsValid { get; set; }
         }
 
@@ -61,6 +63,8 @@ namespace PhoneStoreAdmin.View.Controls
         private bool _isCostValid;
         private bool _isWarrantyValid;
         private bool _isStatusValid;
+        private bool _inputsEnabled = true;
+        private int? _pendingModelSelection;
 
         private int _currentProductId;
         private int _currentSerialCount;
@@ -116,12 +120,12 @@ namespace PhoneStoreAdmin.View.Controls
             UpdateUIForMode();
         }
 
-        public void Save()
+        public bool Save()
         {
             if (_currentMode == DialogMode.View)
             {
                 DialogClosed?.Invoke(this, EventArgs.Empty);
-                return;
+                return true;
             }
 
             HideInfoBars();
@@ -131,7 +135,7 @@ namespace PhoneStoreAdmin.View.Controls
             {
                 ErrorInfoBar.Message = _resourceLoader.GetString("ProductValidationFailedMessage");
                 ErrorInfoBar.IsOpen = true;
-                return;
+                return false;
             }
 
             try
@@ -149,7 +153,7 @@ namespace PhoneStoreAdmin.View.Controls
                 {
                     ErrorInfoBar.Message = _resourceLoader.GetString("ProductSaveFailedMessage");
                     ErrorInfoBar.IsOpen = true;
-                    return;
+                    return false;
                 }
 
                 _currentProductId = product.Id;
@@ -170,16 +174,27 @@ namespace PhoneStoreAdmin.View.Controls
                 SuccessInfoBar.IsOpen = true;
 
                 DialogClosed?.Invoke(this, EventArgs.Empty);
+                return true;
             }
             catch (Exception ex)
             {
                 Logger.Error("Error saving product", ex);
                 ErrorInfoBar.Message = _resourceLoader.GetString("ProductSaveFailedMessage");
                 ErrorInfoBar.IsOpen = true;
+                return false;
             }
             finally
             {
                 ShowLoading(false);
+            }
+        }
+
+        public void SetPreselectedModel(int modelId)
+        {
+            _pendingModelSelection = modelId;
+            if (_referenceDataLoaded)
+            {
+                ApplyPendingModelSelection();
             }
         }
 
@@ -194,7 +209,7 @@ namespace PhoneStoreAdmin.View.Controls
                 && _isCostValid
                 && _isWarrantyValid
                 && _isStatusValid
-                && _attributeInputs.All(i => i.IsValid);
+                && _attributeInputs.All(i => (!i.IsRequired && !i.IsSelected) || i.IsValid);
         }
 
         public void Cancel()
@@ -414,6 +429,13 @@ namespace PhoneStoreAdmin.View.Controls
                 return;
             }
 
+            if (!state.IsRequired && !state.IsSelected)
+            {
+                state.IsValid = true;
+                HideError(state.ErrorTextBlock);
+                return;
+            }
+
             if (state.Options.Count > 0)
             {
                 ValidateOptionAttribute(state);
@@ -443,6 +465,13 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void ValidateOptionAttribute(AttributeInputState state)
         {
+            if (!state.IsRequired && !state.IsSelected)
+            {
+                state.IsValid = true;
+                HideError(state.ErrorTextBlock);
+                return;
+            }
+
             if (state.InputControl is ComboBox comboBox)
             {
                 var hasSelection = comboBox.SelectedItem is ProductAttributeOption;
@@ -473,6 +502,13 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void ValidateTextAttribute(AttributeInputState state)
         {
+            if (!state.IsRequired && !state.IsSelected)
+            {
+                state.IsValid = true;
+                HideError(state.ErrorTextBlock);
+                return;
+            }
+
             var textBox = state.InputControl as TextBox;
             var text = textBox?.Text?.Trim();
             var hasValue = !string.IsNullOrWhiteSpace(text);
@@ -490,6 +526,13 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void ValidateNumberAttribute(AttributeInputState state)
         {
+            if (!state.IsRequired && !state.IsSelected)
+            {
+                state.IsValid = true;
+                HideError(state.ErrorTextBlock);
+                return;
+            }
+
             var numberBox = state.InputControl as NumberBox;
             var text = numberBox?.Text?.Trim();
 
@@ -521,6 +564,13 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void ValidateDateAttribute(AttributeInputState state)
         {
+            if (!state.IsRequired && !state.IsSelected)
+            {
+                state.IsValid = true;
+                HideError(state.ErrorTextBlock);
+                return;
+            }
+
             var datePicker = state.InputControl as DatePicker;
             var hasValue = datePicker?.Date != null;
 
@@ -537,6 +587,13 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void ValidateBooleanAttribute(AttributeInputState state)
         {
+            if (!state.IsRequired && !state.IsSelected)
+            {
+                state.IsValid = true;
+                HideError(state.ErrorTextBlock);
+                return;
+            }
+
             // Boolean toggle always has a value; treat as valid even when required
             state.IsValid = true;
             HideError(state.ErrorTextBlock);
@@ -649,6 +706,7 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void SetInputsEnabled(bool enabled)
         {
+            _inputsEnabled = enabled;
             SkuTextBox.IsEnabled = enabled;
             NameTextBox.IsEnabled = enabled;
             ModelComboBox.IsEnabled = enabled;
@@ -664,10 +722,7 @@ namespace PhoneStoreAdmin.View.Controls
 
             foreach (var attribute in _attributeInputs)
             {
-                if (attribute.InputControl is Control control)
-                {
-                    control.IsEnabled = enabled;
-                }
+                UpdateAttributeInputEnabled(attribute);
             }
         }
 
@@ -700,7 +755,24 @@ namespace PhoneStoreAdmin.View.Controls
             {
                 var attribute = definition.Attribute;
                 var isRequired = IsAttributeRequired(definition);
-                var container = new StackPanel();
+                valueLookup.TryGetValue(attribute.Id, out var existingValue);
+                var row = new Grid
+                {
+                    ColumnDefinitions =
+                    {
+                        new ColumnDefinition { Width = GridLength.Auto },
+                        new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
+                    },
+                    Margin = new Thickness(0, 4, 0, 0)
+                };
+
+                var toggle = new CheckBox
+                {
+                    Margin = new Thickness(0, 12, 12, 0),
+                    VerticalAlignment = VerticalAlignment.Top,
+                    IsEnabled = !isRequired,
+                    IsChecked = isRequired || existingValue != null
+                };
 
                 var label = new TextBlock
                 {
@@ -708,34 +780,54 @@ namespace PhoneStoreAdmin.View.Controls
                     Text = BuildAttributeLabel(attribute.Name, isRequired)
                 };
 
-                container.Children.Add(label);
-
-                valueLookup.TryGetValue(attribute.Id, out var existingValue);
                 FrameworkElement inputControl = definition.Options.Count > 0
                     ? CreateAttributeOptionControl(definition, existingValue)
                     : CreateAttributeInputControl(attribute, existingValue);
-                container.Children.Add(inputControl);
 
                 var errorText = new TextBlock
                 {
                     Style = (Style)Resources["ValidationErrorStyle"]
                 };
-                container.Children.Add(errorText);
 
-                AttributesPanel.Children.Add(container);
+                var contentStack = new StackPanel { Spacing = 6 };
+                contentStack.Children.Add(label);
+                contentStack.Children.Add(inputControl);
+                contentStack.Children.Add(errorText);
+
+                Grid.SetColumn(toggle, 0);
+                Grid.SetColumn(contentStack, 1);
+                row.Children.Add(toggle);
+                row.Children.Add(contentStack);
+
+                AttributesPanel.Children.Add(row);
 
                 var state = new AttributeInputState
                 {
                     Definition = definition,
                     InputControl = inputControl,
                     ErrorTextBlock = errorText,
+                    Toggle = toggle,
                     IsRequired = isRequired,
-                    IsValid = !isRequired
+                    IsSelected = toggle.IsChecked ?? false,
+                    IsValid = existingValue != null || !isRequired
                 };
 
-                AttachAttributeValidationHandlers(state);
-                ValidateAttribute(state);
+                toggle.Checked += (_, _) => OnAttributeToggleChanged(state, true);
+                toggle.Unchecked += (_, _) => OnAttributeToggleChanged(state, false);
 
+                AttachAttributeValidationHandlers(state);
+
+                if (state.IsSelected || state.IsRequired)
+                {
+                    ValidateAttribute(state);
+                }
+                else
+                {
+                    HideError(state.ErrorTextBlock);
+                    state.IsValid = true;
+                }
+
+                UpdateAttributeInputEnabled(state);
                 _attributeInputs.Add(state);
             }
         }
@@ -861,6 +953,30 @@ namespace PhoneStoreAdmin.View.Controls
             }
         }
 
+        private void OnAttributeToggleChanged(AttributeInputState state, bool isChecked)
+        {
+            if (state.IsRequired)
+            {
+                state.IsSelected = true;
+                UpdateAttributeInputEnabled(state);
+                ValidateAttribute(state);
+                return;
+            }
+
+            state.IsSelected = isChecked;
+            UpdateAttributeInputEnabled(state);
+
+            if (!isChecked)
+            {
+                state.IsValid = true;
+                HideError(state.ErrorTextBlock);
+            }
+            else
+            {
+                ValidateAttribute(state);
+            }
+        }
+
         private string BuildAttributeLabel(string name, bool isRequired)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -919,6 +1035,7 @@ namespace PhoneStoreAdmin.View.Controls
             foreach (var attribute in _attributeInputs)
             {
                 attribute.IsValid = !attribute.IsRequired;
+                attribute.IsSelected = attribute.IsRequired;
             }
         }
 
@@ -1009,6 +1126,23 @@ namespace PhoneStoreAdmin.View.Controls
             ModelComboBox.ItemsSource = null;
             ModelComboBox.ItemsSource = _modelOptions;
             ModelComboBox.SelectedIndex = -1;
+            ApplyPendingModelSelection();
+        }
+
+        private void ApplyPendingModelSelection()
+        {
+            if (!_pendingModelSelection.HasValue)
+            {
+                return;
+            }
+
+            var option = _modelOptions.FirstOrDefault(m => m.Value == _pendingModelSelection.Value);
+            if (option != null)
+            {
+                ModelComboBox.SelectedValue = option.Value;
+            }
+
+            _pendingModelSelection = null;
         }
 
         private void LoadBrands()
@@ -1094,6 +1228,11 @@ namespace PhoneStoreAdmin.View.Controls
         {
             foreach (var state in _attributeInputs)
             {
+                if (!state.IsRequired && !state.IsSelected)
+                {
+                    continue;
+                }
+
                 var input = new ProductAttributeValueInput
                 {
                     AttributeId = state.Attribute.Id
@@ -1243,6 +1382,19 @@ namespace PhoneStoreAdmin.View.Controls
 
             var clamped = Math.Max(0, Math.Min(240, value));
             return Convert.ToInt32(Math.Round(clamped, MidpointRounding.AwayFromZero));
+        }
+
+        private void UpdateAttributeInputEnabled(AttributeInputState state)
+        {
+            if (state.Toggle != null)
+            {
+                state.Toggle.IsEnabled = _inputsEnabled && !state.IsRequired;
+            }
+
+            if (state.InputControl is Control control)
+            {
+                control.IsEnabled = _inputsEnabled && (state.IsRequired || state.IsSelected);
+            }
         }
 
         #endregion
