@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneStoreUserWebApp", "PhoneStoreUserWebApp\PhoneStoreUserWebApp\PhoneStoreUserWebApp.csproj", "{D6084630-3026-4AEB-9727-B777A384E15E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneStoreUser", "PhoneStoreUser\PhoneStoreUser.csproj", "{D6084630-3026-4AEB-9727-B777A384E15E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneStoreAdmin", "PhoneStoreAdmin\PhoneStoreAdmin.csproj", "{D41AA5F0-C3FC-4125-B958-5BB19D753BFD}"
 EndProject

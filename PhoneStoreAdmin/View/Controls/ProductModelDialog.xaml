@@ -23,8 +23,8 @@
         <Style x:Key="MultilineInputStyle" TargetType="TextBox" BasedOn="{StaticResource InputFieldStyle}">
             <Setter Property="Height" Value="120" />
             <Setter Property="AcceptsReturn" Value="True" />
-            <Setter Property="TextWrapping" Value="WrapWholeWords" />
-            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
         </Style>
 
         <Style x:Key="InputLabelStyle" TargetType="TextBlock">
