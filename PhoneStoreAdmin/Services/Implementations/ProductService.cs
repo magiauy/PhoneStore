@@ -79,6 +79,181 @@ namespace PhoneStoreAdmin.Services.Implementations
             }
         }
 
+        public IReadOnlyList<ProductModelListItemViewModel> GetProductModelSummaries()
+        {
+            try
+            {
+                var models = _productModelRepository.GetAll()?.ToList() ?? new List<ProductModel>();
+                var products = _productRepository.GetAll()?.ToList() ?? new List<Product>();
+                var variantLookup = products
+                    .GroupBy(p => p.ModelId)
+                    .ToDictionary(group => group.Key, group => group.Count());
+
+                var summaries = new List<ProductModelListItemViewModel>(models.Count);
+                foreach (var model in models)
+                {
+                    _modelNameCache[model.Id] = model.Name ?? string.Empty;
+                    variantLookup.TryGetValue(model.Id, out var variantCount);
+                    summaries.Add(new ProductModelListItemViewModel
+                    {
+                        Id = model.Id,
+                        Name = model.Name ?? string.Empty,
+                        Description = model.Description,
+                        DefaultImageUrl = model.DefaultImageUrl,
+                        VariantCount = variantCount,
+                        CreatedAt = model.CreatedAt,
+                        UpdatedAt = model.UpdatedAt
+                    });
+                }
+
+                return summaries
+                    .OrderByDescending(m => m.UpdatedAt)
+                    .ThenBy(m => m.Name)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to load product model summaries", ex);
+                return Array.Empty<ProductModelListItemViewModel>();
+            }
+        }
+
+        public ProductModelDetailViewModel? GetProductModelDetail(int modelId)
+        {
+            try
+            {
+                var model = _productModelRepository.GetById(modelId);
+                if (model == null)
+                {
+                    return null;
+                }
+
+                _modelNameCache[model.Id] = model.Name ?? string.Empty;
+
+                var variants = _productRepository.GetByModelId(modelId)?.ToList() ?? new List<Product>();
+                var categoryLookup = BuildCategoryLookup();
+                var brandLookup = BuildBrandLookup();
+                var serialLookup = variants.Count > 0
+                    ? _productSerialRepository.GetCountsByProductIds(variants.Select(v => v.Id).ToList())
+                    : new Dictionary<int, int>();
+
+                var variantViewModels = variants
+                    .Select(product =>
+                    {
+                        var categoryName = categoryLookup.TryGetValue(product.CategoryId, out var catName) ? catName : string.Empty;
+                        string? brandName = null;
+                        if (product.BrandId.HasValue && brandLookup.TryGetValue(product.BrandId.Value, out var bName))
+                        {
+                            brandName = bName;
+                        }
+
+                        var serialCount = serialLookup.TryGetValue(product.Id, out var count)
+                            ? count
+                            : 0;
+
+                        return new ProductListItemViewModel(product, categoryName, brandName, serialCount, model.Name);
+                    })
+                    .OrderByDescending(p => p.CreatedAt)
+                    .ToList();
+
+                var modelViewModel = new ProductModelListItemViewModel
+                {
+                    Id = model.Id,
+                    Name = model.Name ?? string.Empty,
+                    Description = model.Description,
+                    DefaultImageUrl = model.DefaultImageUrl,
+                    VariantCount = variantViewModels.Count,
+                    CreatedAt = model.CreatedAt,
+                    UpdatedAt = model.UpdatedAt
+                };
+
+                return new ProductModelDetailViewModel(modelViewModel, variantViewModels);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to load product model detail for {modelId}", ex);
+                return null;
+            }
+        }
+
+        public bool SaveProductModel(ProductModel model)
+        {
+            if (model == null)
+            {
+                Logger.Warning("Attempted to save null product model");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Name))
+            {
+                Logger.Warning("Product model name is required");
+                return false;
+            }
+
+            try
+            {
+                var now = DateTime.UtcNow;
+                var baseSlug = string.IsNullOrWhiteSpace(model.Slug) ? model.Name : model.Slug;
+                var normalizedSlug = GenerateSlug(baseSlug);
+                model.Slug = EnsureUniqueModelSlug(normalizedSlug, model.Id);
+                model.UpdatedAt = now;
+
+                if (model.Id <= 0)
+                {
+                    model.CreatedAt = now;
+                    _productModelRepository.Insert(model);
+                }
+                else
+                {
+                    _productModelRepository.Update(model);
+                }
+
+                _modelNameCache[model.Id] = model.Name ?? string.Empty;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to save product model", ex);
+                return false;
+            }
+        }
+
+        public ProductModel? DuplicateProductModel(int sourceModelId, string name, string? description, string? defaultImageUrl)
+        {
+            try
+            {
+                var source = _productModelRepository.GetById(sourceModelId);
+                if (source == null)
+                {
+                    Logger.Warning($"Source product model {sourceModelId} not found for duplication");
+                    return null;
+                }
+
+                var now = DateTime.UtcNow;
+                var duplicate = new ProductModel
+                {
+                    Name = string.IsNullOrWhiteSpace(name) ? $"{source.Name} Copy" : name,
+                    Description = string.IsNullOrWhiteSpace(description) ? source.Description : description,
+                    DefaultImageUrl = string.IsNullOrWhiteSpace(defaultImageUrl) ? source.DefaultImageUrl : defaultImageUrl,
+                    CreatedAt = now,
+                    UpdatedAt = now
+                };
+
+                var baseSlug = GenerateSlug(duplicate.Name);
+                duplicate.Slug = EnsureUniqueModelSlug(baseSlug, 0);
+
+                _productModelRepository.Insert(duplicate);
+                _modelNameCache[duplicate.Id] = duplicate.Name ?? string.Empty;
+
+                return duplicate;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to duplicate product model {sourceModelId}", ex);
+                return null;
+            }
+        }
+
         public IReadOnlyList<ProductAttributeDefinition> GetAttributeDefinitions()
         {
             try
@@ -1094,6 +1269,31 @@ namespace PhoneStoreAdmin.Services.Implementations
             }
 
             return slug.Trim('-');
+        }
+
+        private string EnsureUniqueModelSlug(string slug, int currentId)
+        {
+            if (string.IsNullOrWhiteSpace(slug))
+            {
+                slug = Guid.NewGuid().ToString("N");
+            }
+
+            var uniqueSlug = slug;
+            var counter = 1;
+
+            while (true)
+            {
+                var existing = _productModelRepository.FindBySlug(uniqueSlug);
+                if (existing == null || existing.Id == currentId)
+                {
+                    break;
+                }
+
+                uniqueSlug = $"{slug}-{counter}";
+                counter++;
+            }
+
+            return uniqueSlug;
         }
 
         private void SynchronizeSerialTracking(Product product, IEnumerable<ProductSerial>? serials)

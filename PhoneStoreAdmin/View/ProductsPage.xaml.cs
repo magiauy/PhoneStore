@@ -1,500 +1,286 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Text;
 using Microsoft.Windows.ApplicationModel.Resources;
-using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Models.Enums;
-using PhoneStoreAdmin.Repositories.Interfaces;
 using PhoneStoreAdmin.Services.Interfaces;
+using PhoneStoreAdmin.View.Controls;
 using PhoneStoreAdmin.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.UI.Text;
-using PhoneStoreAdmin.Utils;
 
 namespace PhoneStoreAdmin.View
 {
     public sealed partial class ProductsPage : Page
     {
-        public sealed class SelectionOption<T>
-        {
-            public SelectionOption(string displayName, T value)
-            {
-                DisplayName = displayName;
-                Value = value;
-            }
+        private readonly IProductService _productService;
+        private readonly ResourceLoader _resourceLoader;
+        private ContentDialog? _currentDialog;
+        private bool _isLoaded;
+        private ProductModelDetailViewModel? _selectedModelDetail;
+        private readonly NotifyCollectionChangedEventHandler _collectionChangedHandler;
 
-            public string DisplayName { get; }
-            public T Value { get; }
+        public ObservableCollection<ProductModelListItemViewModel> ProductModels { get; } = new();
+
+        public bool HasNoModels => ProductModels.Count == 0;
+
+        public ProductModelDetailViewModel? SelectedModelDetail
+        {
+            get => _selectedModelDetail;
+            private set
+            {
+                _selectedModelDetail = value;
+                Bindings.Update();
+            }
         }
 
-        private IProductService ProductService => App.GetService<IProductService>();
-        private IBrandService BrandService => App.GetService<IBrandService>();
-        private IProductCategoryRepository CategoryRepository => App.GetService<IProductCategoryRepository>();
+        public string SelectedModelName => SelectedModelDetail?.Model.Name ?? string.Empty;
+        
+        public string SelectedModelDescription => SelectedModelDetail?.Model.Description ?? string.Empty;
+        
+        public IReadOnlyList<ProductListItemViewModel>? SelectedModelVariants => SelectedModelDetail?.Variants;
+        
+        public bool HasSelectedModel => SelectedModelDetail != null;
+        
+        public bool SelectedModelHasNoVariants => SelectedModelDetail != null && !SelectedModelDetail.HasVariants;
 
-        private readonly ResourceLoader _resourceLoader;
-        private bool _isInitialized;
-        private bool _isUpdatingFilters;
-        private ContentDialog? _currentDialog;
+        public string SelectedModelSummary
+        {
+            get
+            {
+                if (SelectedModelDetail?.Model == null)
+                {
+                    return string.Empty;
+                }
 
-        public ObservableCollection<ProductListItemViewModel> Products { get; } = new();
-        public ObservableCollection<SelectionOption<int?>> BrandOptions { get; } = new();
-        public ObservableCollection<SelectionOption<int?>> CategoryOptions { get; } = new();
-        public ObservableCollection<SelectionOption<ProductStatus?>> StatusOptions { get; } = new();
-
-        public int CurrentPage { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
-        public int TotalPages { get; set; } = 1;
-        public int TotalRecords { get; set; } = 0;
+                var model = SelectedModelDetail.Model;
+                return string.Format("{0} variants • Updated {1:g}", model.VariantCount, model.UpdatedAt.ToLocalTime());
+            }
+        }
 
         public ProductsPage()
         {
             InitializeComponent();
+            _productService = App.GetService<IProductService>();
             _resourceLoader = new ResourceLoader();
+            _collectionChangedHandler = (_, _) => Bindings.Update();
             Loaded += ProductsPage_Loaded;
             Unloaded += ProductsPage_Unloaded;
+            ProductModels.CollectionChanged += _collectionChangedHandler;
         }
 
         private void ProductsPage_Loaded(object sender, RoutedEventArgs e)
         {
-            _isInitialized = true;
-            InitializeFilterOptions();
-            LoadProducts();
+            ProductModels.CollectionChanged -= _collectionChangedHandler;
+            ProductModels.CollectionChanged += _collectionChangedHandler;
+            _isLoaded = true;
+            LoadModels();
         }
 
         private void ProductsPage_Unloaded(object sender, RoutedEventArgs e)
         {
-            CleanupResources();
-        }
-
-        private void CleanupResources()
-        {
+            _isLoaded = false;
             _currentDialog = null;
-            _isInitialized = false;
+            ProductModels.CollectionChanged -= _collectionChangedHandler;
         }
 
-        private void InitializeFilterOptions()
+        private void LoadModels(int? selectedModelId = null)
         {
-            try
-            {
-                _isUpdatingFilters = true;
-                var allLabel = _resourceLoader.GetString("FilterOptionAll");
-
-                if (BrandOptions.Count == 0)
-                {
-                    BrandOptions.Clear();
-                    BrandOptions.Add(new SelectionOption<int?>(allLabel, null));
-
-                    var brands = BrandService.GetAll() ?? Enumerable.Empty<Brand>();
-                    foreach (var brand in brands.OrderBy(b => b.Name))
-                    {
-                        var displayName = string.IsNullOrWhiteSpace(brand.Name) ? _resourceLoader.GetString("UnknownBrandLabel") : brand.Name!;
-                        BrandOptions.Add(new SelectionOption<int?>(displayName, brand.Id));
-                    }
-
-                    if (BrandFilterCombo != null)
-                    {
-                        BrandFilterCombo.SelectedIndex = 0;
-                    }
-                }
-
-                if (CategoryOptions.Count == 0)
-                {
-                    CategoryOptions.Clear();
-                    CategoryOptions.Add(new SelectionOption<int?>(allLabel, null));
-
-                    var categories = CategoryRepository.GetAll() ?? Enumerable.Empty<ProductCategory>();
-                    foreach (var category in categories.OrderBy(c => c.Name))
-                    {
-                        var displayName = string.IsNullOrWhiteSpace(category.Name) ? _resourceLoader.GetString("UnknownCategoryLabel") : category.Name;
-                        CategoryOptions.Add(new SelectionOption<int?>(displayName, category.Id));
-                    }
-
-                    if (CategoryFilterCombo != null)
-                    {
-                        CategoryFilterCombo.SelectedIndex = 0;
-                    }
-                }
-
-                if (StatusOptions.Count == 0)
-                {
-                    StatusOptions.Clear();
-                    StatusOptions.Add(new SelectionOption<ProductStatus?>(allLabel, null));
-
-                    foreach (var status in Enum.GetValues(typeof(ProductStatus)).Cast<ProductStatus>())
-                    {
-                        var key = status switch
-                        {
-                            ProductStatus.ACTIVE => "Status_Active",
-                            ProductStatus.INACTIVE => "Status_Inactive",
-                            ProductStatus.DISCONTINUED => "Product_Status_Discontinued",
-                            _ => status.ToString()
-                        };
-                        var label = _resourceLoader.GetString(key);
-                        if (string.IsNullOrWhiteSpace(label))
-                        {
-                            label = status.ToString();
-                        }
-
-                        StatusOptions.Add(new SelectionOption<ProductStatus?>(label, status));
-                    }
-
-                    if (StatusFilterCombo != null)
-                    {
-                        StatusFilterCombo.SelectedIndex = 0;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ShowMessageDialog(
-                    _resourceLoader.GetString("LoadProductsErrorTitle"),
-                    string.Format(_resourceLoader.GetString("LoadProductsErrorMessage"), ex.Message));
-            }
-            finally
-            {
-                _isUpdatingFilters = false;
-            }
-        }
-
-        private void LoadProducts()
-        {
-            if (!_isInitialized || _isUpdatingFilters)
+            if (!_isLoaded)
             {
                 return;
             }
 
-            try
+            var summaries = _productService.GetProductModelSummaries();
+            ProductModels.Clear();
+            foreach (var model in summaries)
             {
-                Products.Clear();
-
-                var criteria = BuildCurrentFilter();
-                var result = ProductService.SearchProducts(criteria);
-                if (result == null)
-                {
-                    ShowMessageDialog(
-                        _resourceLoader.GetString("LoadProductsErrorTitle"),
-                        _resourceLoader.GetString("LoadProductsUnavailableMessage"));
-                    return;
-                }
-
-                TotalPages = result.Info.TotalPages;
-                TotalRecords = result.Info.TotalRecords;
-
-                if (TotalPages > 0 && CurrentPage > TotalPages)
-                {
-                    CurrentPage = TotalPages;
-                    LoadProducts();
-                    return;
-                }
-
-                if (TotalPages == 0)
-                {
-                    CurrentPage = 1;
-                }
-
-                foreach (var product in result.Products)
-                {
-                    Products.Add(product);
-                }
-
-                UpdatePaginationControls();
-                UpdateEmptyStateVisibility();
+                ProductModels.Add(model);
             }
-            catch (Exception ex)
+
+            ProductModelListItemViewModel? selected = null;
+            if (selectedModelId.HasValue)
             {
-                ShowMessageDialog(
-                    _resourceLoader.GetString("LoadProductsErrorTitle"),
-                    string.Format(_resourceLoader.GetString("LoadProductsErrorMessage"), ex.Message));
+                selected = ProductModels.FirstOrDefault(m => m.Id == selectedModelId.Value);
+            }
+
+            if (selected == null)
+            {
+                selected = ProductModels.FirstOrDefault();
+            }
+
+            if (selected != null)
+            {
+                LoadModelDetail(selected.Id);
+            }
+            else
+            {
+                SelectedModelDetail = null;
             }
         }
 
-        private ProductFilterCriteria BuildCurrentFilter()
+        private void LoadModelDetail(int modelId)
         {
-            var brandOption = BrandFilterCombo?.SelectedItem as SelectionOption<int?>;
-            var categoryOption = CategoryFilterCombo?.SelectedItem as SelectionOption<int?>;
-            var statusOption = StatusFilterCombo?.SelectedItem as SelectionOption<ProductStatus?>;
-
-            return new ProductFilterCriteria
-            {
-                Sku = SearchSkuBox?.Text,
-                Name = SearchNameBox?.Text,
-                BrandId = brandOption?.Value,
-                CategoryId = categoryOption?.Value,
-                Status = statusOption?.Value,
-                Page = CurrentPage,
-                PageSize = PageSize
-            };
+            var detail = _productService.GetProductModelDetail(modelId);
+            SelectedModelDetail = detail;
         }
 
-        private void UpdatePaginationControls()
+        private void RefreshModelsButton_Click(object sender, RoutedEventArgs e)
         {
-            if (PageInfoText != null)
-            {
-                PageInfoText.Text = TotalPages <= 0 ? "0 / 0" : $"{CurrentPage} / {TotalPages}";
-            }
+            var currentId = SelectedModelDetail?.Model.Id;
+            LoadModels(currentId);
+        }
 
-            if (RecordCountText != null)
+        private void ModelGridView_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            if (e.ClickedItem is ProductModelListItemViewModel model)
             {
-                RecordCountText.Text = $"{Products.Count} / {TotalRecords}";
-            }
-
-            if (PreviousPageButton != null)
-            {
-                PreviousPageButton.IsEnabled = CurrentPage > 1;
-            }
-
-            if (NextPageButton != null)
-            {
-                NextPageButton.IsEnabled = TotalPages > 0 && CurrentPage < TotalPages;
+                LoadModelDetail(model.Id);
             }
         }
 
-        private void UpdateEmptyStateVisibility()
+        private async void CreateModelButton_Click(object sender, RoutedEventArgs e)
         {
-            if (EmptyStatePanel != null)
-            {
-                EmptyStatePanel.Visibility = Products.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-            }
-
-            if (ProductsListView != null)
-            {
-                ProductsListView.Visibility = Products.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-            }
+            await ShowProductModelDialogAsync(ProductModelDialog.DialogMode.Create, null);
         }
 
-        private void SearchSkuBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        private async void EditModelButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!_isInitialized || _isUpdatingFilters)
+            if (SelectedModelDetail?.Model == null)
             {
                 return;
             }
 
-            if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
-            {
-                CurrentPage = 1;
-                LoadProducts();
-            }
+            await ShowProductModelDialogAsync(ProductModelDialog.DialogMode.Edit, SelectedModelDetail.Model);
         }
 
-        private void SearchNameBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        private async void DuplicateModelButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!_isInitialized || _isUpdatingFilters)
+            if (SelectedModelDetail?.Model == null)
             {
                 return;
             }
 
-            if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
-            {
-                CurrentPage = 1;
-                LoadProducts();
-            }
+            await ShowProductModelDialogAsync(ProductModelDialog.DialogMode.Duplicate, SelectedModelDetail.Model);
         }
 
-        private void BrandFilterCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async Task ShowProductModelDialogAsync(ProductModelDialog.DialogMode mode, ProductModelListItemViewModel? model)
         {
-            if (!_isInitialized || _isUpdatingFilters)
-            {
-                return;
-            }
+            var dialogContent = new ProductModelDialog();
+            dialogContent.SetMode(mode, model);
+            dialogContent.ModelSaved += ProductModelDialog_ModelSaved;
 
-            CurrentPage = 1;
-            LoadProducts();
-        }
-
-        private void CategoryFilterCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (!_isInitialized || _isUpdatingFilters)
-            {
-                return;
-            }
-
-            CurrentPage = 1;
-            LoadProducts();
-        }
-
-        private void StatusFilterCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (!_isInitialized || _isUpdatingFilters)
-            {
-                return;
-            }
-
-            CurrentPage = 1;
-            LoadProducts();
-        }
-
-        private void RefreshButton_Click(object sender, RoutedEventArgs e)
-        {
-            LoadProducts();
-        }
-
-        private void ClearFiltersButton_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                _isUpdatingFilters = true;
-
-                if (SearchSkuBox != null)
-                {
-                    SearchSkuBox.Text = string.Empty;
-                }
-
-                if (SearchNameBox != null)
-                {
-                    SearchNameBox.Text = string.Empty;
-                }
-
-                if (BrandFilterCombo != null)
-                {
-                    BrandFilterCombo.SelectedIndex = 0;
-                }
-
-                if (CategoryFilterCombo != null)
-                {
-                    CategoryFilterCombo.SelectedIndex = 0;
-                }
-
-                if (StatusFilterCombo != null)
-                {
-                    StatusFilterCombo.SelectedIndex = 0;
-                }
-            }
-            finally
-            {
-                _isUpdatingFilters = false;
-                CurrentPage = 1;
-                LoadProducts();
-            }
-        }
-
-        private void PreviousPageButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (CurrentPage > 1)
-            {
-                CurrentPage--;
-                LoadProducts();
-            }
-        }
-
-        private void NextPageButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (TotalPages > 0 && CurrentPage < TotalPages)
-            {
-                CurrentPage++;
-                LoadProducts();
-            }
-        }
-
-        private async void ProductItem_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-        {
-            if (sender is FrameworkElement element && element.DataContext is ProductListItemViewModel product)
-            {
-                Logger.Info($"Product item double-tapped: ID={product.Id}, Name={product.Name}");
-                await ShowProductDetailDialogAsync(product);
-            }
-        }
-
-        private async Task ShowProductDetailDialogAsync(ProductListItemViewModel product)
-        {
-            try
-            {
-                var detail = ProductService.GetProductDetail(product.Id);
-                if (detail == null)
-                {
-                    ShowMessageDialog(
-                        _resourceLoader.GetString("ProductDetailErrorTitle"),
-                        _resourceLoader.GetString("ProductNotFoundError"));
-                    return;
-                }
-
-                var panel = new StackPanel { Spacing = 12 };
-
-                panel.Children.Add(CreateDetailTextBlock(string.Format(_resourceLoader.GetString("ProductDetailSku"), detail.Product.Sku)));
-                panel.Children.Add(CreateDetailTextBlock(string.Format(_resourceLoader.GetString("ProductDetailName"), detail.Product.Name)));
-                panel.Children.Add(CreateDetailTextBlock(string.Format(_resourceLoader.GetString("ProductDetailPrice"), detail.Product.Price.ToString("C0", CultureInfo.CurrentCulture))));
-                panel.Children.Add(CreateDetailTextBlock(string.Format(_resourceLoader.GetString("ProductDetailSerialCount"), detail.Product.SerialCount)));
-
-                if (detail.AttributeValues.Count > 0)
-                {
-                    panel.Children.Add(new TextBlock
-                    {
-                        Text = _resourceLoader.GetString("ProductAttributesHeader"),
-                        FontWeight = FontWeights.SemiBold,
-                        FontSize = 14
-                    });
-
-                    var attributesPanel = new StackPanel { Spacing = 4 };
-                    foreach (var attribute in detail.AttributeValues)
-                    {
-                        var value = string.IsNullOrWhiteSpace(attribute.DisplayValue)
-                            ? _resourceLoader.GetString("ProductAttributeEmptyValue")
-                            : attribute.DisplayValue;
-                        attributesPanel.Children.Add(new TextBlock
-                        {
-                            Text = string.Format(_resourceLoader.GetString("ProductAttributeFormat"), attribute.AttributeName, value),
-                            TextWrapping = TextWrapping.WrapWholeWords,
-                            FontSize = 13
-                        });
-                    }
-
-                    panel.Children.Add(attributesPanel);
-                }
-                else
-                {
-                    panel.Children.Add(new TextBlock
-                    {
-                        Text = _resourceLoader.GetString("ProductNoAttributes"),
-                        FontStyle = FontStyle.Italic,
-                        FontSize = 13
-                    });
-                }
-
-                var dialog = new ContentDialog
-                {
-                    Title = string.Format(_resourceLoader.GetString("ProductDetailDialogTitle"), detail.Product.Name),
-                    Content = panel,
-                    CloseButtonText = _resourceLoader.GetString("DialogCloseButton"),
-                    XamlRoot = XamlRoot
-                };
-
-                _currentDialog = dialog;
-                dialog.Closed += (_, _) => _currentDialog = null;
-                await dialog.ShowAsync();
-            }
-            catch (Exception ex)
-            {
-                ShowMessageDialog(
-                    _resourceLoader.GetString("ProductDetailErrorTitle"),
-                    string.Format(_resourceLoader.GetString("ProductDetailErrorMessage"), ex.Message));
-            }
-        }
-
-        private static TextBlock CreateDetailTextBlock(string text)
-        {
-            return new TextBlock
-            {
-                Text = text,
-                FontSize = 14,
-                TextWrapping = TextWrapping.WrapWholeWords
-            };
-        }
-
-        private async void ShowMessageDialog(string title, string message)
-        {
             var dialog = new ContentDialog
             {
-                Title = string.IsNullOrWhiteSpace(title) ? _resourceLoader.GetString("GenericDialogTitle") : title,
-                Content = message,
+                Title = GetModelDialogTitle(mode, model?.Name),
+                PrimaryButtonText = _resourceLoader.GetString("DialogSaveButton"),
                 CloseButtonText = _resourceLoader.GetString("DialogCloseButton"),
+                Content = dialogContent,
                 XamlRoot = XamlRoot
             };
 
+            dialog.PrimaryButtonClick += (_, args) =>
+            {
+                if (!dialogContent.Save())
+                {
+                    args.Cancel = true;
+                }
+            };
+
+            dialog.Closed += (_, _) => dialogContent.Cancel();
+
+            _currentDialog = dialog;
             await dialog.ShowAsync();
+            _currentDialog = null;
+        }
+
+        private void ProductModelDialog_ModelSaved(object? sender, ProductModelListItemViewModel e)
+        {
+            LoadModels(e.Id);
+        }
+
+        private string GetModelDialogTitle(ProductModelDialog.DialogMode mode, string? modelName)
+        {
+            return mode switch
+            {
+                ProductModelDialog.DialogMode.Edit => string.Format(_resourceLoader.GetString("ProductModelEditTitle"), modelName ?? string.Empty),
+                ProductModelDialog.DialogMode.Duplicate => string.Format(_resourceLoader.GetString("ProductModelDuplicateTitle"), modelName ?? string.Empty),
+                _ => _resourceLoader.GetString("ProductModelCreateTitle")
+            };
+        }
+
+        private async void CreateProductButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (SelectedModelDetail?.Model == null)
+            {
+                return;
+            }
+
+            await ShowProductDialogAsync(ProductDialog.DialogMode.Add, SelectedModelDetail.Model.Id, null);
+        }
+
+        private async void EditProductButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is int productId)
+            {
+                await ShowProductDialogAsync(ProductDialog.DialogMode.Edit, SelectedModelDetail?.Model.Id, productId);
+            }
+        }
+
+        private async Task ShowProductDialogAsync(ProductDialog.DialogMode mode, int? modelId, int? productId)
+        {
+            var dialogContent = new ProductDialog();
+            ProductDetailViewModel? detail = null;
+            if (mode != ProductDialog.DialogMode.Add && productId.HasValue)
+            {
+                detail = _productService.GetProductDetail(productId.Value);
+            }
+
+            dialogContent.SetMode(mode, detail);
+            if (mode == ProductDialog.DialogMode.Add && modelId.HasValue)
+            {
+                dialogContent.SetPreselectedModel(modelId.Value);
+            }
+
+            dialogContent.ProductSaved += ProductDialog_ProductSaved;
+
+            var dialog = new ContentDialog
+            {
+                Title = mode == ProductDialog.DialogMode.Add
+                    ? _resourceLoader.GetString("AddProductDialogTitle")
+                    : _resourceLoader.GetString("EditProductDialogTitle"),
+                PrimaryButtonText = _resourceLoader.GetString("DialogSaveButton"),
+                CloseButtonText = _resourceLoader.GetString("DialogCloseButton"),
+                Content = dialogContent,
+                XamlRoot = XamlRoot
+            };
+
+            dialog.PrimaryButtonClick += (_, args) =>
+            {
+                if (!dialogContent.IsValid())
+                {
+                    args.Cancel = true;
+                    return;
+                }
+
+                if (!dialogContent.Save())
+                {
+                    args.Cancel = true;
+                }
+            };
+
+            dialog.Closed += (_, _) => dialogContent.Cancel();
+
+            _currentDialog = dialog;
+            await dialog.ShowAsync();
+            _currentDialog = null;
+        }
+
+        private void ProductDialog_ProductSaved(object? sender, ProductDetailViewModel e)
+        {
+            LoadModels(e.Product.ModelId);
         }
     }
 }
