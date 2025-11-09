@@ -9,5 +9,6 @@ namespace PhoneStoreAdmin.Repositories.Interfaces
         IEnumerable<Product> GetByCategoryId(int categoryId);
         IEnumerable<Product> GetByBrandId(int brandId);
         IEnumerable<Product> GetByStatus(PhoneStoreAdmin.Models.Enums.ProductStatus status);
+        IEnumerable<Product> GetByModelId(int modelId);
     }
 }

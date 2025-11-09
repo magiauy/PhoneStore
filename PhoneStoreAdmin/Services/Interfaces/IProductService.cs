@@ -38,6 +38,36 @@ namespace PhoneStoreAdmin.Services.Interfaces
         ProductSearchResult SearchProducts(ProductFilterCriteria criteria);
 
         /// <summary>
+        /// Retrieve all product models for selection lists.
+        /// </summary>
+        IReadOnlyList<ProductModel> GetAllModels();
+
+        /// <summary>
+        /// Retrieve summarized product model information for dashboard cards.
+        /// </summary>
+        IReadOnlyList<ProductModelListItemViewModel> GetProductModelSummaries();
+
+        /// <summary>
+        /// Retrieve product model details with variant list.
+        /// </summary>
+        ProductModelDetailViewModel? GetProductModelDetail(int modelId);
+
+        /// <summary>
+        /// Create or update product model metadata.
+        /// </summary>
+        bool SaveProductModel(ProductModel model);
+
+        /// <summary>
+        /// Duplicate product model metadata (without variants) into a new model entry.
+        /// </summary>
+        ProductModel? DuplicateProductModel(int sourceModelId, string name, string? description, string? defaultImageUrl);
+
+        /// <summary>
+        /// Retrieve product attribute definitions including available options.
+        /// </summary>
+        IReadOnlyList<ProductAttributeDefinition> GetAttributeDefinitions();
+
+        /// <summary>
         /// Retrieve product detail with attribute values and serials.
         /// </summary>
         /// <param name="productId">Product identifier.</param>
