@@ -68,6 +68,18 @@
                 </StackPanel>
 
                 <StackPanel>
+                    <TextBlock x:Uid="ProductModelLabel" Style="{StaticResource InputLabelStyle}" />
+                    <ComboBox
+                        x:Name="ModelComboBox"
+                        x:Uid="ProductModelPlaceholder"
+                        Style="{StaticResource ComboInputStyle}"
+                        DisplayMemberPath="DisplayName"
+                        SelectedValuePath="Value"
+                        SelectionChanged="ModelComboBox_SelectionChanged" />
+                    <TextBlock x:Name="ModelError" Style="{StaticResource ValidationErrorStyle}" />
+                </StackPanel>
+
+                <StackPanel>
                     <TextBlock x:Uid="ProductCategoryLabel" Style="{StaticResource InputLabelStyle}" />
                     <ComboBox
                         x:Name="CategoryComboBox"

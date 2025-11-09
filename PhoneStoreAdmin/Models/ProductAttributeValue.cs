@@ -9,6 +9,7 @@ namespace PhoneStoreAdmin.Models
         private int _id;
         private int _productId;
         private int _attributeId;
+        private int? _optionId;
         private string? _valueText;
         private decimal? _valueNumber;
         private DateTime? _valueDate;
@@ -33,6 +34,12 @@ namespace PhoneStoreAdmin.Models
         {
             get => _attributeId;
             set => _attributeId = value;
+        }
+
+        public int? OptionId
+        {
+            get => _optionId;
+            set => _optionId = value;
         }
 
         [MaxLength(255)]
@@ -66,6 +73,7 @@ namespace PhoneStoreAdmin.Models
             _id = 0;
             _productId = 0;
             _attributeId = 0;
+            _optionId = null;
             _valueText = null;
             _valueNumber = null;
             _valueDate = null;
@@ -77,6 +85,7 @@ namespace PhoneStoreAdmin.Models
             _id = 0;
             _productId = productId;
             _attributeId = attributeId;
+            _optionId = null;
             _valueText = null;
             _valueNumber = null;
             _valueDate = null;
