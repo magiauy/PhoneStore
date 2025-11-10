@@ -8,7 +8,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreAdmin.Helpers;
 using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Models.Enums;
@@ -25,7 +24,6 @@ namespace PhoneStoreAdmin.View
 
         private readonly IProductAttributeRepository _attributeRepository;
         private readonly IProductAttributeOptionService _optionService;
-        private readonly ResourceLoader _resourceLoader;
 
         private bool _isInitialized;
         private string _searchText = string.Empty;
@@ -108,12 +106,11 @@ namespace PhoneStoreAdmin.View
 
             _attributeRepository = App.GetService<IProductAttributeRepository>();
             _optionService = App.GetService<IProductAttributeOptionService>();
-            _resourceLoader = new ResourceLoader();
 
             var session = UserSession.Instance;
             CanManageAttributes = session.HasPermission("PRODUCT_ATTRIBUTE_MANAGE");
 
-            OptionsHeaderText = _resourceLoader.GetString("ProductAttributes_OptionsHeader.Text") ?? "Attribute options";
+            OptionsHeaderText = LocalizationHelper.GetString("ProductAttributes_OptionsHeader.Text", "Attribute options");
 
             InitializeDataTypeFilters();
 
@@ -131,7 +128,7 @@ namespace PhoneStoreAdmin.View
         {
             DataTypeFilters.Clear();
 
-            var allLabel = _resourceLoader.GetString("ProductAttributes_DataTypeFilter_All.Text") ?? "All types";
+            var allLabel = LocalizationHelper.GetString("ProductAttributes_DataTypeFilter_All.Text", "All types");
             DataTypeFilters.Add(new DataTypeFilterOption(null, allLabel));
 
             foreach (AttributeDataType dataType in Enum.GetValues(typeof(AttributeDataType)))
@@ -224,10 +221,9 @@ namespace PhoneStoreAdmin.View
             {
                 Logger.Error("Failed to load product attributes", ex);
                 _ = ShowErrorAsync(
-                    LocalizationHelper.GetString("ErrorTitle/Text") ?? "Error",
+                    LocalizationHelper.GetString("ErrorTitle/Text", "Error"),
                     string.Format(
-                        _resourceLoader.GetString("ProductAttributes_LoadError.Text") ??
-                        "We couldn't load product attributes. {0}",
+                        LocalizationHelper.GetString("ProductAttributes_LoadError.Text", "We couldn't load product attributes. {0}"),
                         ex.Message));
             }
             finally
@@ -281,7 +277,7 @@ namespace PhoneStoreAdmin.View
                 if (OptionRecordSummaryTextBlock != null)
                 {
                     OptionRecordSummaryTextBlock.Text = string.Format(
-                        _resourceLoader.GetString("ProductAttributes_OptionsRecordSummaryFormat.Text") ?? "{0} of {1} options",
+                        LocalizationHelper.GetString("ProductAttributes_OptionsRecordSummaryFormat.Text", "{0} of {1} options"),
                         AttributeOptions.Count,
                         AttributeOptions.Count);
                 }
@@ -301,10 +297,9 @@ namespace PhoneStoreAdmin.View
                 }
 
                 _ = ShowErrorAsync(
-                    LocalizationHelper.GetString("ErrorTitle/Text") ?? "Error",
+                    LocalizationHelper.GetString("ErrorTitle/Text", "Error"),
                     string.Format(
-                        _resourceLoader.GetString("ProductAttributes_OptionLoadError.Text") ??
-                        "Unable to load attribute options. {0}",
+                        LocalizationHelper.GetString("ProductAttributes_OptionLoadError.Text", "Unable to load attribute options. {0}"),
                         ex.Message));
             }
         }
@@ -315,7 +310,7 @@ namespace PhoneStoreAdmin.View
             {
                 Title = title,
                 Content = message,
-                CloseButtonText = _resourceLoader.GetString("DialogCloseButton") ?? "Close",
+                CloseButtonText = LocalizationHelper.GetString("DialogCloseButton", "Close"),
                 XamlRoot = this.XamlRoot
             };
 
@@ -324,10 +319,10 @@ namespace PhoneStoreAdmin.View
 
         private void UpdateOptionsHeader()
         {
-            var header = _resourceLoader.GetString("ProductAttributes_OptionsHeader.Text") ?? "Attribute options";
+            var header = LocalizationHelper.GetString("ProductAttributes_OptionsHeader.Text", "Attribute options");
             if (SelectedAttribute != null)
             {
-                var format = _resourceLoader.GetString("ProductAttributes_OptionsHeaderFormat.Text");
+                var format = LocalizationHelper.GetString("ProductAttributes_OptionsHeaderFormat.Text", string.Empty);
                 if (!string.IsNullOrWhiteSpace(format))
                 {
                     header = string.Format(format, SelectedAttribute.Name);
@@ -341,13 +336,13 @@ namespace PhoneStoreAdmin.View
         {
             if (PageInfoTextBlock != null)
             {
-                var pageFormat = _resourceLoader.GetString("ProductAttributes_PageInfoFormat.Text") ?? "Page {0} of {1}";
+                var pageFormat = LocalizationHelper.GetString("ProductAttributes_PageInfoFormat.Text", "Page {0} of {1}");
                 PageInfoTextBlock.Text = string.Format(pageFormat, CurrentPage, TotalPages);
             }
 
             if (RecordSummaryTextBlock != null)
             {
-                var summaryFormat = _resourceLoader.GetString("ProductAttributes_RecordSummaryFormat.Text") ?? "{0} of {1} attributes";
+                var summaryFormat = LocalizationHelper.GetString("ProductAttributes_RecordSummaryFormat.Text", "{0} of {1} attributes");
                 RecordSummaryTextBlock.Text = string.Format(summaryFormat, Attributes.Count, TotalRecords);
             }
 
@@ -386,7 +381,7 @@ namespace PhoneStoreAdmin.View
                 _ => "AttributeDataType_Text.Text"
             };
 
-            return LocalizationHelper.GetString(key) ?? dataType.ToString();
+            return LocalizationHelper.GetString(key, dataType.ToString());
         }
 
         private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
@@ -484,13 +479,12 @@ namespace PhoneStoreAdmin.View
 
             var dialog = new ContentDialog
             {
-                Title = _resourceLoader.GetString("ProductAttributes_DeleteConfirmTitle.Text") ?? "Delete attribute",
+                Title = LocalizationHelper.GetString("ProductAttributes_DeleteConfirmTitle.Text", "Delete attribute"),
                 Content = string.Format(
-                    _resourceLoader.GetString("ProductAttributes_DeleteConfirmMessage.Text") ??
-                    "Are you sure you want to delete the attribute \"{0}\"?",
+                    LocalizationHelper.GetString("ProductAttributes_DeleteConfirmMessage.Text", "Are you sure you want to delete the attribute \"{0}\"?"),
                     SelectedAttribute.Name),
-                PrimaryButtonText = _resourceLoader.GetString("DialogDelete") ?? "Delete",
-                CloseButtonText = _resourceLoader.GetString("DialogCancel") ?? "Cancel",
+                PrimaryButtonText = LocalizationHelper.GetString("DialogDelete", "Delete"),
+                CloseButtonText = LocalizationHelper.GetString("DialogCancel", "Cancel"),
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = this.XamlRoot
             };
@@ -515,10 +509,9 @@ namespace PhoneStoreAdmin.View
             catch (Exception ex)
             {
                 await ShowErrorAsync(
-                    LocalizationHelper.GetString("ErrorTitle/Text") ?? "Error",
+                    LocalizationHelper.GetString("ErrorTitle/Text", "Error"),
                     string.Format(
-                        _resourceLoader.GetString("ProductAttributes_DeleteError.Text") ??
-                        "Unable to delete the attribute. {0}",
+                        LocalizationHelper.GetString("ProductAttributes_DeleteError.Text", "Unable to delete the attribute. {0}"),
                         ex.Message));
             }
         }
@@ -529,12 +522,12 @@ namespace PhoneStoreAdmin.View
             var nameBox = new TextBox
             {
                 Text = existing?.Name ?? string.Empty,
-                Header = _resourceLoader.GetString("ProductAttributes_AttributeNameLabel.Text") ?? "Name"
+                Header = LocalizationHelper.GetString("ProductAttributes_AttributeNameLabel.Text", "Name")
             };
 
             var dataTypeCombo = new ComboBox
             {
-                Header = _resourceLoader.GetString("ProductAttributes_AttributeDataTypeLabel.Text") ?? "Data type",
+                Header = LocalizationHelper.GetString("ProductAttributes_AttributeDataTypeLabel.Text", "Data type"),
                 HorizontalAlignment = HorizontalAlignment.Stretch
             };
 
@@ -560,7 +553,7 @@ namespace PhoneStoreAdmin.View
             var noteBox = new TextBox
             {
                 Text = existing?.Note ?? string.Empty,
-                Header = _resourceLoader.GetString("ProductAttributes_AttributeNoteLabel.Text") ?? "Description",
+                Header = LocalizationHelper.GetString("ProductAttributes_AttributeNoteLabel.Text", "Description"),
                 AcceptsReturn = true,
                 TextWrapping = TextWrapping.Wrap
             };
@@ -584,12 +577,14 @@ namespace PhoneStoreAdmin.View
 
             var dialog = new ContentDialog
             {
-                Title = _resourceLoader.GetString(isEdit
-                    ? "ProductAttributes_EditDialogTitle.Text"
-                    : "ProductAttributes_CreateDialogTitle.Text") ?? (isEdit ? "Edit attribute" : "Create attribute"),
+                Title = LocalizationHelper.GetString(
+                    isEdit ? "ProductAttributes_EditDialogTitle.Text" : "ProductAttributes_CreateDialogTitle.Text",
+                    isEdit ? "Edit attribute" : "Create attribute"),
                 Content = panel,
-                PrimaryButtonText = _resourceLoader.GetString(isEdit ? "DialogUpdate" : "DialogAdd") ?? (isEdit ? "Save" : "Add"),
-                CloseButtonText = _resourceLoader.GetString("DialogCancel") ?? "Cancel",
+                PrimaryButtonText = LocalizationHelper.GetString(
+                    isEdit ? "DialogUpdate" : "DialogAdd",
+                    isEdit ? "Save" : "Add"),
+                CloseButtonText = LocalizationHelper.GetString("DialogCancel", "Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = this.XamlRoot
             };
@@ -602,7 +597,7 @@ namespace PhoneStoreAdmin.View
                 var trimmedName = nameBox.Text?.Trim();
                 if (string.IsNullOrWhiteSpace(trimmedName))
                 {
-                    errorText.Text = _resourceLoader.GetString("ProductAttributes_ValidationNameRequired.Text") ?? "Name is required.";
+                    errorText.Text = LocalizationHelper.GetString("ProductAttributes_ValidationNameRequired.Text", "Name is required.");
                     errorText.Visibility = Visibility.Visible;
                     args.Cancel = true;
                     return;
@@ -617,8 +612,9 @@ namespace PhoneStoreAdmin.View
                     var existingAttributes = _attributeRepository.GetByNames(new[] { trimmedName });
                     if (existingAttributes.TryGetValue(trimmedName, out var duplicate) && (!isEdit || duplicate.Id != existing?.Id))
                     {
-                        errorText.Text = _resourceLoader.GetString("ProductAttributes_ValidationDuplicateName.Text") ??
-                            "An attribute with this name already exists.";
+                        errorText.Text = LocalizationHelper.GetString(
+                            "ProductAttributes_ValidationDuplicateName.Text",
+                            "An attribute with this name already exists.");
                         errorText.Visibility = Visibility.Visible;
                         args.Cancel = true;
                         return;
@@ -649,8 +645,7 @@ namespace PhoneStoreAdmin.View
                 catch (Exception ex)
                 {
                     errorText.Text = string.Format(
-                        _resourceLoader.GetString("ProductAttributes_SaveError.Text") ??
-                        "Unable to save the attribute. {0}",
+                        LocalizationHelper.GetString("ProductAttributes_SaveError.Text", "Unable to save the attribute. {0}"),
                         ex.Message);
                     errorText.Visibility = Visibility.Visible;
                     args.Cancel = true;
@@ -704,13 +699,12 @@ namespace PhoneStoreAdmin.View
 
                 var dialog = new ContentDialog
                 {
-                    Title = _resourceLoader.GetString("ProductAttributes_DeleteOptionConfirmTitle.Text") ?? "Delete option",
+                    Title = LocalizationHelper.GetString("ProductAttributes_DeleteOptionConfirmTitle.Text", "Delete option"),
                     Content = string.Format(
-                        _resourceLoader.GetString("ProductAttributes_DeleteOptionConfirmMessage.Text") ??
-                        "Are you sure you want to delete the option \"{0}\"?",
+                        LocalizationHelper.GetString("ProductAttributes_DeleteOptionConfirmMessage.Text", "Are you sure you want to delete the option \"{0}\"?"),
                         option.DisplayValue),
-                    PrimaryButtonText = _resourceLoader.GetString("DialogDelete") ?? "Delete",
-                    CloseButtonText = _resourceLoader.GetString("DialogCancel") ?? "Cancel",
+                    PrimaryButtonText = LocalizationHelper.GetString("DialogDelete", "Delete"),
+                    CloseButtonText = LocalizationHelper.GetString("DialogCancel", "Cancel"),
                     DefaultButton = ContentDialogButton.Close,
                     XamlRoot = this.XamlRoot
                 };
@@ -729,10 +723,9 @@ namespace PhoneStoreAdmin.View
                 catch (Exception ex)
                 {
                     await ShowErrorAsync(
-                        LocalizationHelper.GetString("ErrorTitle/Text") ?? "Error",
+                        LocalizationHelper.GetString("ErrorTitle/Text", "Error"),
                         string.Format(
-                            _resourceLoader.GetString("ProductAttributes_OptionDeleteError.Text") ??
-                            "Unable to delete the option. {0}",
+                            LocalizationHelper.GetString("ProductAttributes_OptionDeleteError.Text", "Unable to delete the option. {0}"),
                             ex.Message));
                 }
             }
@@ -750,26 +743,26 @@ namespace PhoneStoreAdmin.View
             var displayBox = new TextBox
             {
                 Text = existing?.DisplayValue ?? string.Empty,
-                Header = _resourceLoader.GetString("ProductAttributes_OptionDisplayLabel.Text") ?? "Display value"
+                Header = LocalizationHelper.GetString("ProductAttributes_OptionDisplayLabel.Text", "Display value")
             };
 
             var normalizedBox = new TextBox
             {
                 Text = existing?.NormalizedValue ?? string.Empty,
-                Header = _resourceLoader.GetString("ProductAttributes_OptionNormalizedLabel.Text") ?? "Normalized value"
+                Header = LocalizationHelper.GetString("ProductAttributes_OptionNormalizedLabel.Text", "Normalized value")
             };
 
             var sortNumberBox = new NumberBox
             {
                 Value = existing?.SortOrder ?? 0,
-                Header = _resourceLoader.GetString("ProductAttributes_OptionSortLabel.Text") ?? "Sort order",
+                Header = LocalizationHelper.GetString("ProductAttributes_OptionSortLabel.Text", "Sort order"),
                 Minimum = 0,
                 SmallChange = 1
             };
 
             var activeSwitch = new ToggleSwitch
             {
-                Header = _resourceLoader.GetString("ProductAttributes_OptionIsActiveLabel.Text") ?? "Option is active",
+                Header = LocalizationHelper.GetString("ProductAttributes_OptionIsActiveLabel.Text", "Option is active"),
                 IsOn = existing?.IsActive ?? true
             };
 
@@ -793,12 +786,14 @@ namespace PhoneStoreAdmin.View
 
             var dialog = new ContentDialog
             {
-                Title = _resourceLoader.GetString(isEdit
-                    ? "ProductAttributes_OptionDialogTitleEdit.Text"
-                    : "ProductAttributes_OptionDialogTitleAdd.Text") ?? (isEdit ? "Edit option" : "Add option"),
+                Title = LocalizationHelper.GetString(
+                    isEdit ? "ProductAttributes_OptionDialogTitleEdit.Text" : "ProductAttributes_OptionDialogTitleAdd.Text",
+                    isEdit ? "Edit option" : "Add option"),
                 Content = panel,
-                PrimaryButtonText = _resourceLoader.GetString(isEdit ? "DialogUpdate" : "DialogAdd") ?? (isEdit ? "Save" : "Add"),
-                CloseButtonText = _resourceLoader.GetString("DialogCancel") ?? "Cancel",
+                PrimaryButtonText = LocalizationHelper.GetString(
+                    isEdit ? "DialogUpdate" : "DialogAdd",
+                    isEdit ? "Save" : "Add"),
+                CloseButtonText = LocalizationHelper.GetString("DialogCancel", "Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = this.XamlRoot
             };
@@ -811,8 +806,7 @@ namespace PhoneStoreAdmin.View
                 var displayValue = displayBox.Text?.Trim();
                 if (string.IsNullOrWhiteSpace(displayValue))
                 {
-                    errorText.Text = _resourceLoader.GetString("ProductAttributes_ValidationOptionValueRequired.Text") ??
-                        "Display value is required.";
+                    errorText.Text = LocalizationHelper.GetString("ProductAttributes_ValidationOptionValueRequired.Text", "Display value is required.");
                     errorText.Visibility = Visibility.Visible;
                     args.Cancel = true;
                     return;
@@ -858,8 +852,7 @@ namespace PhoneStoreAdmin.View
                 catch (Exception ex)
                 {
                     errorText.Text = string.Format(
-                        _resourceLoader.GetString("ProductAttributes_OptionSaveError.Text") ??
-                        "Unable to save the option. {0}",
+                        LocalizationHelper.GetString("ProductAttributes_OptionSaveError.Text", "Unable to save the option. {0}"),
                         ex.Message);
                     errorText.Visibility = Visibility.Visible;
                     args.Cancel = true;
