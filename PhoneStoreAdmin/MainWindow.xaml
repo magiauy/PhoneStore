@@ -36,6 +36,11 @@
                     Icon="Shop"
                     Tag="Products" />
                 <NavigationViewItem
+                    x:Name="ProductAttributesNavItem"
+                    x:Uid="MenuItemProductAttributes"
+                    Icon="Edit"
+                    Tag="ProductAttributes" />
+                <NavigationViewItem
                     x:Name="OrdersNavItem"
                     Content="Orders"
                     Icon="Mail"

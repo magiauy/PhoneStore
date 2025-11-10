@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.View;
 using System;
+using System.Linq;
 
 namespace PhoneStoreAdmin
 {
@@ -51,12 +52,13 @@ namespace PhoneStoreAdmin
             }
         }
 
-        private void NavigateToPage(string pageTag)
+        public void NavigateToPage(string pageTag)
         {
             Type pageType = pageTag switch
             {
                 "Dashboard" => typeof(DashboardPage),
                 "Products" => typeof(ProductsPage),
+                "ProductAttributes" => typeof(ProductAttributesPage),
                 "Suppliers" => typeof(SuppliersPage),
                 "Brands" => typeof(BrandPage),
                 "Promotions" => typeof(PromotionsPage),
@@ -72,10 +74,26 @@ namespace PhoneStoreAdmin
                 _ => typeof(DashboardPage)
             };
 
+            if (!string.Equals(pageTag, "Settings", StringComparison.OrdinalIgnoreCase))
+            {
+                var navItem = FindNavigationViewItem(pageTag);
+                if (navItem != null && !Equals(MainNavView.SelectedItem, navItem))
+                {
+                    MainNavView.SelectedItem = navItem;
+                }
+            }
+
             if (ContentFrame.CurrentSourcePageType != pageType)
             {
                 ContentFrame.Navigate(pageType);
             }
+        }
+
+        private NavigationViewItem? FindNavigationViewItem(string pageTag)
+        {
+            return MainNavView.MenuItems
+                .OfType<NavigationViewItem>()
+                .FirstOrDefault(item => string.Equals(item.Tag?.ToString(), pageTag, StringComparison.OrdinalIgnoreCase));
         }
 
         private async void NewButton_Click(object sender, RoutedEventArgs e)
