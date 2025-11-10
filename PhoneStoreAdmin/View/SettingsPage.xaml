@@ -322,6 +322,41 @@
                     <TextBlock x:Uid="SystemSection" Style="{StaticResource SectionHeaderStyle}"/>
                     <Border Style="{StaticResource SettingCardStyle}">
                         <StackPanel Spacing="16">
+                            <!-- Manage Product Attributes -->
+                            <Grid x:Name="ManageAttributesCard"
+                                  Style="{StaticResource SettingItemStyle}"
+                                  Visibility="Collapsed">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <FontIcon Grid.Column="0"
+                                          Glyph="&#xE70F;"
+                                          FontSize="20"
+                                          Foreground="{StaticResource BrushTextSecondary}"
+                                          VerticalAlignment="Center"/>
+
+                                <StackPanel Grid.Column="1"
+                                            Margin="16,0,0,0"
+                                            VerticalAlignment="Center">
+                                    <TextBlock x:Uid="ManageAttributesTitle"
+                                               FontSize="16"
+                                               Foreground="{StaticResource BrushText}"/>
+                                    <TextBlock x:Uid="ManageAttributesDescription"
+                                               FontSize="14"
+                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                </StackPanel>
+
+                                <Button Grid.Column="2"
+                                        x:Name="ManageAttributesButton"
+                                        x:Uid="ManageAttributesButton"
+                                        Style="{StaticResource SettingButtonStyle}"
+                                        Width="160"
+                                        Click="ManageAttributesButton_Click"/>
+                            </Grid>
+
                             <!-- About -->
                             <Grid Style="{StaticResource SettingItemStyle}">
                                 <Grid.ColumnDefinitions>
