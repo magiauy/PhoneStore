@@ -14,16 +14,25 @@ namespace PhoneStoreAdmin.Helpers
         /// </summary>
         public static string GetString(string key)
         {
+            return GetString(key, key);
+        }
+
+        public static string GetString(string key, string? defaultValue)
+        {
             try
             {
                 string value = _resourceLoader.GetString(key);
-                return string.IsNullOrEmpty(value) ? key : value;
+                if (!string.IsNullOrEmpty(value))
+                {
+                    return value;
+                }
             }
             catch (Exception ex)
             {
                 Logger.Error($"Missing localization key: {key}, ex: {ex.Message}");
-                return key;
             }
+
+            return defaultValue ?? key;
         }
 
         /// <summary>
