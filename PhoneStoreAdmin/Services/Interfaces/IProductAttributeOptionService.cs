@@ -10,5 +10,9 @@ namespace PhoneStoreAdmin.Services.Interfaces
         ProductAttributeOption? GetOptionById(int optionId);
         ProductAttributeOption? FindByDisplay(int attributeId, string displayValue);
         void EnsureOption(int attributeId, string displayValue, string? normalizedValue, int sortOrder, bool isActive = true);
+        IReadOnlyList<ProductAttributeOption> GetEditableOptionsForAttribute(int attributeId);
+        ProductAttributeOption CreateOption(ProductAttributeOption option);
+        void UpdateOption(ProductAttributeOption option);
+        void DeleteOption(int optionId);
     }
 }

@@ -225,5 +225,85 @@ namespace PhoneStoreAdmin.Services.Implementations
                 Logger.Error($"Failed to ensure option '{displayValue}' for attribute {attributeId}", ex);
             }
         }
+
+        public IReadOnlyList<ProductAttributeOption> GetEditableOptionsForAttribute(int attributeId)
+        {
+            if (attributeId <= 0)
+            {
+                return Array.Empty<ProductAttributeOption>();
+            }
+
+            try
+            {
+                return _repository.GetByAttributeId(attributeId)
+                    .OrderBy(option => option.SortOrder)
+                    .ThenBy(option => option.DisplayValue)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to load editable options for attribute {attributeId}", ex);
+                return Array.Empty<ProductAttributeOption>();
+            }
+        }
+
+        public ProductAttributeOption CreateOption(ProductAttributeOption option)
+        {
+            if (option == null)
+            {
+                throw new ArgumentNullException(nameof(option));
+            }
+
+            try
+            {
+                _repository.Insert(option);
+                _optionCache.TryRemove(option.AttributeId, out _);
+                return option;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to create option for attribute {option.AttributeId}", ex);
+                throw;
+            }
+        }
+
+        public void UpdateOption(ProductAttributeOption option)
+        {
+            if (option == null)
+            {
+                throw new ArgumentNullException(nameof(option));
+            }
+
+            try
+            {
+                _repository.Update(option);
+                _optionCache.TryRemove(option.AttributeId, out _);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to update option {option.Id}", ex);
+                throw;
+            }
+        }
+
+        public void DeleteOption(int optionId)
+        {
+            if (optionId <= 0)
+            {
+                return;
+            }
+
+            try
+            {
+                var option = _repository.GetById(optionId);
+                _repository.Delete(optionId);
+                _optionCache.TryRemove(option.AttributeId, out _);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to delete option {optionId}", ex);
+                throw;
+            }
+        }
     }
 }
