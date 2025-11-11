@@ -32,6 +32,12 @@
                 <Setter Property="FontWeight" Value="Medium" />
                 <Setter Property="Padding" Value="16,10" />
             </Style>
+
+            <Style x:Key="AttributeOptionListViewItemStyle" TargetType="ListViewItem">
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            </Style>
         </ResourceDictionary>
     </Page.Resources>
 
@@ -87,12 +93,12 @@
                 CornerRadius="12"
                 Padding="20">
                 <Grid RowSpacing="16">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
                     <AutoSuggestBox
                         x:Name="SearchBox"
@@ -349,8 +355,8 @@
 
                         <Grid Grid.Row="1" ColumnSpacing="12" Margin="0,0,0,4">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="300" />
+                                <ColumnDefinition Width="200" />
                                 <ColumnDefinition Width="120" />
                                 <ColumnDefinition Width="100" />
                                 <ColumnDefinition Width="Auto" />
@@ -381,15 +387,17 @@
                                 x:Name="AttributeOptionsListView"
                                 ItemsSource="{x:Bind AttributeOptions, Mode=OneWay}"
                                 SelectionMode="None"
+                                Padding="0"
+                                ItemContainerStyle="{StaticResource AttributeOptionListViewItemStyle}"
                                 Visibility="{x:Bind HasSelectedAttribute, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
                                 <ListView.ItemTemplate>
                                     <DataTemplate x:DataType="viewModels:ProductAttributeOptionViewModel">
                                         <Grid ColumnSpacing="12" Padding="0,6">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="120" />
-                                                <ColumnDefinition Width="100" />
+                                                <ColumnDefinition Width="350" />
+                                                <ColumnDefinition Width="140" />
+                                                <ColumnDefinition Width="80" />
+                                                <ColumnDefinition Width="140" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
 
@@ -403,11 +411,12 @@
                                             <TextBlock
                                                 Grid.Column="2"
                                                 Text="{x:Bind SortOrder}"
-                                                HorizontalAlignment="Right"
+                                                HorizontalTextAlignment="Center"
                                                 Foreground="{StaticResource BrushTextSecondary}" />
                                             <TextBlock
                                                 Grid.Column="3"
                                                 Text="{x:Bind StatusText}"
+                                                HorizontalTextAlignment="Center"
                                                 Foreground="{StaticResource BrushTextSecondary}" />
                                             <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6">
                                                 <Button

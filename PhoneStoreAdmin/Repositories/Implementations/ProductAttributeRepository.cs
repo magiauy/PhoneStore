@@ -6,6 +6,7 @@ using PhoneStoreAdmin.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using PhoneStoreAdmin.Utils;
 
 namespace PhoneStoreAdmin.Repositories.Implementations
 {
@@ -210,14 +211,22 @@ namespace PhoneStoreAdmin.Repositories.Implementations
 
         private static AttributeDataType MapStringToDataType(string dataType)
         {
-            return dataType.ToLower() switch
+            var normalizedType = dataType?.Trim().ToLower() ?? "text";
+            var result = normalizedType switch
             {
                 "text" => AttributeDataType.TEXT,
                 "number" => AttributeDataType.NUMBER,
                 "date" => AttributeDataType.DATE,
                 "bool" => AttributeDataType.BOOLEAN,
-                _ => AttributeDataType.TEXT,
+                _ => AttributeDataType.TEXT
             };
+
+            if (result == AttributeDataType.TEXT && normalizedType != "text")
+            {
+                Logger.Error($"Unknown data type from database: '{dataType}' (normalized: '{normalizedType}'). Defaulting to TEXT.");
+            }
+
+            return result;
         }
 
         private static string MapDataTypeToString(AttributeDataType dataType)
