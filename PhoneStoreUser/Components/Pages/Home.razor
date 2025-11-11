@@ -1,7 +1,85 @@
-﻿@page "/"
+@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Trang chủ</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="hero">
+    <div class="hero__content">
+        <img src="images/logo.svg" alt="PhoneStore Logo" class="hero__logo" />
+        <h1 class="hero__title">PhoneStore - Cửa hàng điện thoại đáng tin cậy của bạn</h1>
+        <p class="hero__subtitle">
+            Cung cấp các dòng smartphone chính hãng, bảo hành toàn diện và dịch vụ hậu mãi tận tâm.
+        </p>
+        <div class="hero__actions">
+            <a class="btn btn-cta" href="/products">Khám phá sản phẩm</a>
+            <a class="btn btn-outline" href="/support">Hỗ trợ khách hàng</a>
+        </div>
+    </div>
+    <div class="hero__illustration" aria-hidden="true">
+        <div class="phone-card">
+            <span class="phone-card__badge">Mới</span>
+            <div class="phone-card__screen">
+                <span class="phone-card__signal"></span>
+                <span class="phone-card__battery"></span>
+            </div>
+            <div class="phone-card__body">
+                <strong>PhoneStore Edge</strong>
+                <p>Chipset A15 • Màn hình 120Hz • Camera 50MP</p>
+            </div>
+        </div>
+    </div>
+</div>
 
-Welcome to your new app.
+<section class="section section--light">
+    <div class="section__inner">
+        <h2>Dịch vụ tận tâm</h2>
+        <p>
+            Từ tư vấn chọn máy, cài đặt phần mềm đến bảo hành sửa chữa, đội ngũ chuyên gia của PhoneStore luôn đồng hành cùng bạn.
+        </p>
+        <div class="service-grid">
+            <article class="service-card">
+                <h3>Giao hàng nhanh</h3>
+                <p>Nhận máy trong vòng 2 giờ tại nội thành, miễn phí vận chuyển toàn quốc.</p>
+            </article>
+            <article class="service-card">
+                <h3>Trả góp linh hoạt</h3>
+                <p>Lựa chọn kỳ hạn 0% lãi suất, duyệt hồ sơ online chỉ trong vài phút.</p>
+            </article>
+            <article class="service-card">
+                <h3>Chăm sóc 24/7</h3>
+                <p>Đội ngũ kỹ thuật viên sẵn sàng tư vấn và xử lý sự cố mọi lúc.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="section__inner highlight-grid">
+        <div class="highlight-card">
+            <h3>Hơn 5000+ khách hàng hài lòng</h3>
+            <p>Được bình chọn là cửa hàng điện thoại uy tín nhất tại TP.HCM trong 3 năm liên tiếp.</p>
+        </div>
+        <div class="highlight-card">
+            <h3>Bảo hành chính hãng</h3>
+            <p>Liên kết trực tiếp với Apple, Samsung, Xiaomi và nhiều thương hiệu hàng đầu.</p>
+        </div>
+        <div class="highlight-card">
+            <h3>Nâng cấp dễ dàng</h3>
+            <p>Chính sách thu cũ đổi mới với định giá minh bạch, hỗ trợ nâng cấp mỗi năm.</p>
+        </div>
+    </div>
+</section>
+
+<section class="section section--accent">
+    <div class="section__inner section__inner--split">
+        <div>
+            <h2>Trải nghiệm PhoneStore ngay hôm nay</h2>
+            <p>
+                Ghé thăm showroom hiện đại hoặc mua sắm online với nhiều ưu đãi độc quyền dành riêng cho thành viên PhoneStore+.
+            </p>
+        </div>
+        <div class="cta-group">
+            <a class="btn btn-cta" href="/membership">Đăng ký thành viên</a>
+            <a class="btn btn-outline" href="/stores">Tìm cửa hàng gần bạn</a>
+        </div>
+    </div>
+</section>
