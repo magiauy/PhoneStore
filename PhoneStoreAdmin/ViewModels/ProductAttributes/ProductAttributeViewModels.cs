@@ -59,11 +59,11 @@ namespace PhoneStoreAdmin.ViewModels.ProductAttributes
             {
                 var key = DataType switch
                 {
-                    AttributeDataType.TEXT => "AttributeDataType_Text.Text",
-                    AttributeDataType.NUMBER => "AttributeDataType_Number.Text",
-                    AttributeDataType.DATE => "AttributeDataType_Date.Text",
-                    AttributeDataType.BOOLEAN => "AttributeDataType_Boolean.Text",
-                    _ => "AttributeDataType_Text.Text"
+                    AttributeDataType.TEXT => "AttributeDataType_Text/Text",
+                    AttributeDataType.NUMBER => "AttributeDataType_Number/Text",
+                    AttributeDataType.DATE => "AttributeDataType_Date/Text",
+                    AttributeDataType.BOOLEAN => "AttributeDataType_Boolean/Text",
+                    _ => "AttributeDataType_Text/Text"
                 };
 
                 return LocalizationHelper.GetString(key) ?? DataType.ToString();

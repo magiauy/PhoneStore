@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11201.2 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneStoreUser", "PhoneStoreUser\PhoneStoreUser.csproj", "{D6084630-3026-4AEB-9727-B777A384E15E}"
 EndProject
@@ -22,6 +22,7 @@ Global
 		{D6084630-3026-4AEB-9727-B777A384E15E}.Debug|ARM64.ActiveCfg = Debug|ARM64
 		{D6084630-3026-4AEB-9727-B777A384E15E}.Debug|ARM64.Build.0 = Debug|ARM64
 		{D6084630-3026-4AEB-9727-B777A384E15E}.Debug|x64.ActiveCfg = Debug|x64
+		{D6084630-3026-4AEB-9727-B777A384E15E}.Debug|x64.Build.0 = Debug|x64
 		{D6084630-3026-4AEB-9727-B777A384E15E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6084630-3026-4AEB-9727-B777A384E15E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D6084630-3026-4AEB-9727-B777A384E15E}.Release|ARM64.ActiveCfg = Release|ARM64
