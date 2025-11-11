@@ -9,6 +9,7 @@ using Microsoft.Windows.AppLifecycle;
 using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Models;
+using PhoneStoreAdmin;
 using Windows.Globalization;
 using PhoneStoreAdmin.Helpers;
 using Windows.ApplicationModel.Core;
@@ -31,6 +32,7 @@ namespace PhoneStoreAdmin.View
             _localStorageService = ServiceContainer.GetService<ILocalStorageService>();
             LoadUserInfo();
             LoadSettings();
+            ConfigureManageAttributesAccess();
         }
 
         public bool IsDarkThemeEnabled
@@ -146,16 +148,18 @@ namespace PhoneStoreAdmin.View
                 // Error loading user info - set fallback values
                 if (UserNameTextBlock != null)
                     UserNameTextBlock.Text = LocalizationHelper.GetString("ErrorLoadingUser/Text") ?? "Error loading user info";
-                
+
                 if (UserEmailTextBlock != null)
                     UserEmailTextBlock.Text = "";
-                
+
                 if (UserRoleTextBlock != null)
                     UserRoleTextBlock.Text = "";
-                
+
                 if (UserPermissionsTextBlock != null)
                     UserPermissionsTextBlock.Text = "";
             }
+
+            ConfigureManageAttributesAccess();
         }
 
         /// <summary>
@@ -164,6 +168,29 @@ namespace PhoneStoreAdmin.View
         public void RefreshUserInfo()
         {
             LoadUserInfo();
+        }
+
+        private void ConfigureManageAttributesAccess()
+        {
+            try
+            {
+                var session = UserSession.Instance;
+                var hasAccess = session.HasAnyPermission(
+                    "PRODUCT_ATTRIBUTE_MANAGE",
+                    "PRODUCT_ATTRIBUTE_VIEW");
+
+                if (ManageAttributesCard != null)
+                {
+                    ManageAttributesCard.Visibility = hasAccess ? Visibility.Visible : Visibility.Collapsed;
+                }
+            }
+            catch (Exception)
+            {
+                if (ManageAttributesCard != null)
+                {
+                    ManageAttributesCard.Visibility = Visibility.Collapsed;
+                }
+            }
         }
 
         private async void LoadSettings()
@@ -571,6 +598,36 @@ namespace PhoneStoreAdmin.View
                 XamlRoot = this.XamlRoot
             };
             await dialog.ShowAsync();
+        }
+
+        private async void ManageAttributesButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var session = UserSession.Instance;
+                if (!session.HasAnyPermission("PRODUCT_ATTRIBUTE_MANAGE", "PRODUCT_ATTRIBUTE_VIEW"))
+                {
+                    await ShowErrorDialogAsync(
+                        LocalizationHelper.GetString("ErrorTitle/Text") ?? "Error",
+                        LocalizationHelper.GetString("ProductAttributes_NoPermissionMessage.Text") ??
+                        "You don't have permission to manage product attributes.");
+                    return;
+                }
+
+                if ((Application.Current as App)?.CurrentWindow is MainWindow mainWindow)
+                {
+                    mainWindow.NavigateToPage("ProductAttributes");
+                }
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorDialogAsync(
+                    LocalizationHelper.GetString("ErrorTitle/Text") ?? "Error",
+                    string.Format(
+                        LocalizationHelper.GetString("ProductAttributes_LoadError.Text") ??
+                        "Unable to open product attribute management. {0}",
+                        ex.Message));
+            }
         }
 
         private async void LogoutButton_Click(object sender, RoutedEventArgs e)

@@ -4,6 +4,7 @@ using PhoneStoreAdmin.Models;
 using PhoneStoreAdmin.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace PhoneStoreAdmin.Repositories.Implementations
@@ -46,16 +47,14 @@ namespace PhoneStoreAdmin.Repositories.Implementations
         {
             using var connection = _dataSource.GetConnection();
             using var command = new MySqlCommand(@"INSERT INTO product_attribute_options
-                    (attribute_id, display_value, normalized_value, sort_order, is_active, created_at, updated_at)
-                    VALUES (@attributeId, @displayValue, @normalizedValue, @sortOrder, @isActive, @createdAt, @updatedAt)", connection);
+                    (attribute_id, display_value, normalized_value, sort_order, is_active)
+                    VALUES (@attributeId, @displayValue, @normalizedValue, @sortOrder, @isActive)", connection);
 
             command.Parameters.AddWithValue("@attributeId", entity.AttributeId);
             command.Parameters.AddWithValue("@displayValue", entity.DisplayValue);
             command.Parameters.AddWithValue("@normalizedValue", entity.NormalizedValue ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@sortOrder", entity.SortOrder);
             command.Parameters.AddWithValue("@isActive", entity.IsActive);
-            command.Parameters.AddWithValue("@createdAt", entity.CreatedAt);
-            command.Parameters.AddWithValue("@updatedAt", entity.UpdatedAt);
 
             command.ExecuteNonQuery();
             entity.Id = GetLastInsertedId(connection);
@@ -69,9 +68,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
                         display_value = @displayValue,
                         normalized_value = @normalizedValue,
                         sort_order = @sortOrder,
-                        is_active = @isActive,
-                        created_at = @createdAt,
-                        updated_at = @updatedAt
+                        is_active = @isActive
                     WHERE id = @id", connection);
 
             command.Parameters.AddWithValue("@id", entity.Id);
@@ -80,8 +77,6 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             command.Parameters.AddWithValue("@normalizedValue", entity.NormalizedValue ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@sortOrder", entity.SortOrder);
             command.Parameters.AddWithValue("@isActive", entity.IsActive);
-            command.Parameters.AddWithValue("@createdAt", entity.CreatedAt);
-            command.Parameters.AddWithValue("@updatedAt", entity.UpdatedAt);
 
             var rows = command.ExecuteNonQuery();
             if (rows == 0)
@@ -183,12 +178,26 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             {
                 Id = reader.GetInt32("id"),
                 AttributeId = reader.GetInt32("attribute_id"),
-                DisplayValue = reader.GetString("display_value"),
-                NormalizedValue = reader.IsDBNull(reader.GetOrdinal("normalized_value")) ? null : reader.GetString("normalized_value"),
+                DisplayValue = GetStringValue(reader, "display_value") ?? string.Empty,
+                NormalizedValue = GetStringValue(reader, "normalized_value"),
                 SortOrder = reader.IsDBNull(reader.GetOrdinal("sort_order")) ? 0 : reader.GetInt32("sort_order"),
-                IsActive = reader.IsDBNull(reader.GetOrdinal("is_active")) ? true : reader.GetBoolean("is_active"),
-                CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? DateTime.UtcNow : reader.GetDateTime("created_at"),
-                UpdatedAt = reader.IsDBNull(reader.GetOrdinal("updated_at")) ? DateTime.UtcNow : reader.GetDateTime("updated_at")
+                IsActive = reader.IsDBNull(reader.GetOrdinal("is_active")) ? true : reader.GetBoolean("is_active")
+            };
+        }
+
+        private static string? GetStringValue(MySqlDataReader reader, string column)
+        {
+            var ordinal = reader.GetOrdinal(column);
+            if (reader.IsDBNull(ordinal))
+            {
+                return null;
+            }
+
+            var value = reader.GetValue(ordinal);
+            return value switch
+            {
+                string s => s,
+                _ => Convert.ToString(value, CultureInfo.InvariantCulture)
             };
         }
 
