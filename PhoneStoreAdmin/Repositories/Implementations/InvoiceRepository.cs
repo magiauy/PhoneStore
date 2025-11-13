@@ -72,9 +72,6 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             return invoice;
         }
 
-
-
-
         public IEnumerable<Invoice> GetAll()
         {
             var invoices = new List<Invoice>();
@@ -105,12 +102,59 @@ namespace PhoneStoreAdmin.Repositories.Implementations
 
         public void Insert(Invoice entity)
         {
-            throw new NotImplementedException();
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand(@"
+                INSERT INTO invoices 
+                (person_id, promotion_code_id, created_by, invoice_date, total_amount, discount_amount, final_amount, payment_method, status, note)
+                VALUES
+                (@personId, @promoId, @createdBy, @invoiceDate, @total, @discount, @final, @paymentMethod, @status, @note);
+                SELECT LAST_INSERT_ID();", connection);
+
+            command.Parameters.AddWithValue("@personId", entity.PersonId);
+            command.Parameters.AddWithValue("@promoId", entity.PromotionCodeId ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@createdBy", entity.CreatedBy);
+            command.Parameters.AddWithValue("@invoiceDate", entity.InvoiceDate);
+            command.Parameters.AddWithValue("@total", entity.TotalAmount);
+            command.Parameters.AddWithValue("@discount", entity.DiscountAmount);
+            command.Parameters.AddWithValue("@final", entity.FinalAmount);
+            command.Parameters.AddWithValue("@paymentMethod", entity.PaymentMethod.ToString());
+            command.Parameters.AddWithValue("@status", entity.Status.ToString());
+            command.Parameters.AddWithValue("@note", entity.Note ?? string.Empty);
+
+            var id = Convert.ToInt32(command.ExecuteScalar());
+            entity.Id = id; // gán lại ID mới tạo
         }
 
         public void Update(Invoice entity)
         {
-            throw new NotImplementedException();
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand(@"
+                UPDATE invoices SET
+                    person_id=@personId,
+                    promotion_code_id=@promoId,
+                    created_by=@createdBy,
+                    invoice_date=@invoiceDate,
+                    total_amount=@total,
+                    discount_amount=@discount,
+                    final_amount=@final,
+                    payment_method=@paymentMethod,
+                    status=@status,
+                    note=@note
+                WHERE id=@id", connection);
+
+            command.Parameters.AddWithValue("@personId", entity.PersonId);
+            command.Parameters.AddWithValue("@promoId", entity.PromotionCodeId ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@createdBy", entity.CreatedBy);
+            command.Parameters.AddWithValue("@invoiceDate", entity.InvoiceDate);
+            command.Parameters.AddWithValue("@total", entity.TotalAmount);
+            command.Parameters.AddWithValue("@discount", entity.DiscountAmount);
+            command.Parameters.AddWithValue("@final", entity.FinalAmount);
+            command.Parameters.AddWithValue("@paymentMethod", entity.PaymentMethod.ToString());
+            command.Parameters.AddWithValue("@status", entity.Status.ToString());
+            command.Parameters.AddWithValue("@note", entity.Note ?? string.Empty);
+            command.Parameters.AddWithValue("@id", entity.Id);
+
+            command.ExecuteNonQuery();
         }
 
         public void Delete(int id)

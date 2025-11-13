@@ -49,7 +49,14 @@
                     <ComboBox x:Name="PersonComboBox"
                               Width="450"
                               PlaceholderText="Select customer"
-                              HorizontalAlignment="Center"/>
+                              HorizontalAlignment="Center"
+							  DisplayMemberPath="FullName"
+							  SelectedValuePath="Id"
+							  SelectionChanged="PersonComboBox_SelectionChanged"/>
+					<TextBlock x:Name="PersonError"
+                       Foreground="Red"
+                       Visibility="Collapsed"
+                       Text="Please select person" />
 
                     <!-- Promotion -->
                     <TextBlock x:Uid="InvoicePromoteCodeLabel" Style="{StaticResource InputLabelStyle}" />
@@ -65,7 +72,14 @@
                     <ComboBox x:Name="CreatedByComboBox"
                               Width="450"
                               PlaceholderText="Select staff"
-                              HorizontalAlignment="Center"/>
+                              HorizontalAlignment="Center"
+							  DisplayMemberPath="FullName"
+							  SelectedValuePath="Id"
+							  SelectionChanged="CreatedByComboBox_SelectionChanged"/>
+					<TextBlock x:Name="CreatedByError"
+                       Foreground="Red"
+                       Visibility="Collapsed"
+                       Text="Please select Creator" />
 
                     <!-- Invoice Date -->
                     <TextBlock x:Uid="InvoiceDateLabel" Style="{StaticResource InputLabelStyle}" />
@@ -76,11 +90,16 @@
                     <ComboBox x:Name="StatusComboBox"
                               Width="450"
                               HorizontalAlignment="Center"
-                              PlaceholderText="Select status">
+                              PlaceholderText="Select status"
+							  SelectionChanged="StatusComboBox_SelectionChanged">
                         <ComboBoxItem Content="Pending"/>
                         <ComboBoxItem Content="Paid"/>
                         <ComboBoxItem Content="Cancelled"/>
                     </ComboBox>
+					<TextBlock x:Name="StatusError"
+                       Foreground="Red"
+                       Visibility="Collapsed"
+                       Text="Please select status" />
 
                     <!-- Total Amount -->
                     <TextBlock x:Uid="InvoiceTotalLabel" Style="{StaticResource InputLabelStyle}" />
@@ -90,7 +109,7 @@
                              TextChanged="TotalAmountTextBox_TextChanged"/>
 					<TextBlock x:Name="TotalAmountError"
                            Foreground="Red"
-                           FontSize="12"
+                       
                            Visibility="Collapsed"
                            Text="Please enter a valid total amount" />
 					
@@ -110,11 +129,9 @@
                     <ComboBox x:Name="PaymentMethodComboBox"
                               Width="450"
                               HorizontalAlignment="Center"
-                              PlaceholderText="Select method">
-                        <ComboBoxItem Content="Cash"/>
-                        <ComboBoxItem Content="Card"/>
-                        <ComboBoxItem Content="Transfer"/>
-                    </ComboBox>
+                              PlaceholderText="Select method"
+							  SelectionChanged="PaymentMethodComboBox_SelectionChanged"/>
+				
 					<TextBlock x:Name="PaymentMethodError"
                        Foreground="Red"
                        Visibility="Collapsed"
