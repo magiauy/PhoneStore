@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PhoneStoreAdmin.View
@@ -231,32 +232,24 @@ namespace PhoneStoreAdmin.View
         private InvoiceDialog? _invoiceDialog;
         private async void BtnCreate_Click(object sender, RoutedEventArgs e)
         {
-            var invoiceDialog = new InvoiceDialog();
-            invoiceDialog.SetMode(InvoiceDialog.DialogMode.Add);
-
-            var dialog = CreateContentDialog(invoiceDialog, "Add Invoice");
-            dialog.PrimaryButtonText = _resourceLoader.GetString("DialogAddInvoice");
-            dialog.CloseButtonText = _resourceLoader.GetString("DialogCancelInvoice");
-
-            invoiceDialog.InvoiceSaved += (s, model) =>
+            try
             {
-                if (model != null)
-                {
-                    LoadInvoice(); // Refresh list
-                }
-            };
+                Debug.WriteLine("BtnCreate_Click: start. ThreadId=" + Thread.CurrentThread.ManagedThreadId);
 
-            dialog.PrimaryButtonClick += (s, args) =>
+                var invoiceDialog = new InvoiceDialog();
+                await invoiceDialog.SetMode(InvoiceDialog.DialogMode.Add); // nếu SetMode async
+
+                // Nếu cần gán XamlRoot (thường không cần nếu gọi từ UI thread)
+                invoiceDialog.XamlRoot = this.XamlRoot;
+
+                Debug.WriteLine("About to ShowAsync invoiceDialog");
+                await invoiceDialog.ShowAsync(); // HIỂN THỊ TRỰC TIẾP
+                Debug.WriteLine("invoiceDialog ShowAsync completed");
+            }
+            catch (Exception ex)
             {
-                var ctrl = (InvoiceDialog)dialog.Content;
-                ctrl.Save();
-
-                if (!ctrl.IsValid())
-                    args.Cancel = true;
-            };
-
-            _currentDialog = dialog;
-            await dialog.ShowAsync();
+                Debug.WriteLine("BtnCreate_Click ERROR: " + ex);
+            }
         }
 
         private async void BtnEdit_Click(object sender, RoutedEventArgs e)

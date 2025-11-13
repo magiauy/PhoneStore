@@ -9,6 +9,7 @@ using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -23,6 +24,9 @@ namespace PhoneStoreAdmin.View.Controls
        
         private bool _isTotalValid = false;
         private bool _isPaymentValid = false;
+        private bool _isPersonValid = false;
+        private bool _isCreatedByValid = false;
+        private bool _isStatusValid = false;
 
         public event EventHandler<InvoiceViewModel>? InvoiceSaved;
         public event EventHandler? DialogClosed;
@@ -32,20 +36,71 @@ namespace PhoneStoreAdmin.View.Controls
 
         public InvoiceDialog()
         {
-            this.InitializeComponent();
+            InitializeComponent();
             _invoiceService = ServiceContainer.GetService<IInvoiceService>();
             _personService = ServiceContainer.GetService<IPersonService>();
             _promotionService = ServiceContainer.GetService<IPromotionCodeService>();
             _resourceLoader = new ResourceLoader();
-            InitializeDialog();
+
+            // Hiển thị nút Save / Cancel
+            this.PrimaryButtonText = _resourceLoader.GetString("DialogAddInvoice") ?? "Save";
+            this.CloseButtonText = _resourceLoader.GetString("DialogCancelInvoice") ?? "Cancel";
+            this.IsPrimaryButtonEnabled = false; // ban đầu disabled, sẽ bật khi validate
+            this.SecondaryButtonText = "Reset";
+
+            // Xử lý event
+            this.PrimaryButtonClick += (s, e) => Save();
+            this.CloseButtonClick += (s, e) => Cancel();
+            this.SecondaryButtonClick += (s, e) =>
+            {
+                Reset();     // đặt lại tất cả giá trị
+                e.Cancel = true;  // giữ dialog mở
+            };
+
+            this.Loaded += InvoiceDialog_Loaded;
         }
 
-        private void InitializeDialog()
+        private async void InvoiceDialog_Loaded(object? sender, RoutedEventArgs e)
+        {
+            // Gỡ handler để đảm bảo chỉ chạy 1 lần
+            this.Loaded -= InvoiceDialog_Loaded;
+
+            try
+            {
+                await InitializeDialogAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"InitializeDialogAsync failed: {ex}");
+                ErrorInfoBar.Message = $"Lỗi khi khởi tạo dialog: {ex.Message}";
+                ErrorInfoBar.IsOpen = true;
+            }
+        }
+
+        private async Task InitializeDialogAsync()
         {
             ResetValidationStates();
             HideAllErrors();
-            LoadComboBoxData();
-            UpdateValidationUI();
+
+            ShowLoading(true);
+            try
+            {
+                await LoadComboBoxData();
+                // Validate ngay sau khi dữ liệu load xong
+                ValidateTotalAmount();
+                ValidatePaymentMethod();
+                ValidateCreator();
+                ValidatePerson();
+            }
+            catch (Exception ex)
+            {
+                ErrorInfoBar.Message = $"Error initializing dialog: {ex.Message}";
+                ErrorInfoBar.IsOpen = true;
+            }
+            finally
+            {
+                ShowLoading(false);
+            }
         }
 
         private async Task LoadComboBoxData()
@@ -54,17 +109,21 @@ namespace PhoneStoreAdmin.View.Controls
             {
                 var persons = await _personService.GetAllAsync();
                 var promos = await _promotionService.GetAllPromotionCodesAsync();
-                
-                PersonComboBox.ItemsSource = persons;
-                PromotionComboBox.ItemsSource = promos;
-              
-                PaymentMethodComboBox.ItemsSource = new List<string>
+                void SetItems()
                 {
-                    "CASH", "CARD", "BANK", "EWALLET"
-                };
+                    PersonComboBox.ItemsSource = persons;
+                    PromotionComboBox.ItemsSource = promos;
+                    CreatedByComboBox.ItemsSource = persons;
+                    PaymentMethodComboBox.ItemsSource = new List<string> { "CASH", "CARD", "BANK", "EWALLET" };
+                }
+                if (!this.DispatcherQueue.HasThreadAccess)
+                    this.DispatcherQueue.TryEnqueue(SetItems);
+                else
+                    SetItems();
             }
             catch (Exception ex)
             {
+                Debug.WriteLine(ex);
                 ErrorInfoBar.Message = $"Error loading data: {ex.Message}";
                 ErrorInfoBar.IsOpen = true;
             }
@@ -91,19 +150,66 @@ namespace PhoneStoreAdmin.View.Controls
         {
             if (decimal.TryParse(TotalAmountTextBox.Text, out decimal total))
             {
-                _isTotalValid = total >= 0;
-
                 decimal discount = 0;
                 if (decimal.TryParse(DiscountAmountTextBox.Text, out decimal disc))
                     discount = disc;
 
                 FinalAmountTextBox.Text = Math.Max(total - discount, 0).ToString("0.00");
             }
-            else
+
+            ValidateTotalAmount(); // gọi hàm validate mới
+        }
+
+        private void PaymentMethodComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ValidatePaymentMethod();
+        }
+
+        private void PersonComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ValidatePerson();
+        }
+
+        private void CreatedByComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ValidateCreator();
+        }
+
+        private void StatusComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ValidateStatus();
+        }
+
+        private void ValidateTotalAmount()
+        {
+            decimal total = 0;
+            decimal discount = 0;
+
+            // Lấy giá trị TotalAmount
+            if (!decimal.TryParse(TotalAmountTextBox.Text, out total))
+            {
+                _isTotalValid = false;
+                return;
+            }
+
+            // Lấy giá trị DiscountAmount
+            if (!decimal.TryParse(DiscountAmountTextBox.Text, out discount))
+            {
+                discount = 0;
+            }
+
+            // Kiểm tra Total >= Discount
+            if (total < discount)
             {
                 _isTotalValid = false;
             }
+            else
+            {
+                _isTotalValid = true;
+                HideError(TotalAmountError);
+            }
 
+            // Cập nhật nút Save
             UpdateValidationUI();
         }
 
@@ -119,11 +225,74 @@ namespace PhoneStoreAdmin.View.Controls
             {
                 HideError(PaymentMethodError);
             }
+
+            // Cập nhật trạng thái nút Save
+            UpdateValidationUI();
+        }
+
+        private void ValidatePerson()
+        {
+            if (PersonComboBox.SelectedItem == null)
+            {
+                _isPersonValid = false;
+            }
+            else
+            {
+                _isPersonValid = true;
+                HideError(PersonError);
+            }
+            UpdateValidationUI();
+        }
+
+        private void ValidateCreator()
+        {
+            if (CreatedByComboBox.SelectedItem == null)
+            {
+                _isCreatedByValid = false;
+            }
+            else
+            {
+                _isCreatedByValid = true;
+                HideError(CreatedByError);
+            }
+            UpdateValidationUI();
+        }
+
+        private void ValidateStatus()
+        {
+            if (StatusComboBox.SelectedItem == null)
+            {
+                _isStatusValid = false;
+                ShowError(CreatedByError, "Please select the creator");
+            }
+            else
+            {
+                _isStatusValid = true;
+                HideError(StatusError);
+            }
+            UpdateValidationUI();
+        }
+
+        public bool IsValid()
+        {
+            ValidateAllFields();
+            return _isPaymentValid;
+        }
+
+        private void ValidateAllFields()
+        {
+            ValidatePaymentMethod();
+            ValidateTotalAmount();
+            ValidatePerson();
+            ValidateCreator();
+            ValidateStatus();
         }
 
         private void UpdateValidationUI()
         {
-            bool isFormValid = _isTotalValid && _isPaymentValid;
+            bool isFormValid = _isTotalValid && _isPaymentValid && _isCreatedByValid && _isPersonValid &&_isStatusValid;
+            // Nếu InvoiceDialog kế thừa ContentDialog, có thuộc tính IsPrimaryButtonEnabled
+            this.IsPrimaryButtonEnabled = isFormValid;
         }
 
         private void ShowError(TextBlock error, string message)
@@ -162,10 +331,30 @@ namespace PhoneStoreAdmin.View.Controls
 
         public void Reset()
         {
-            SetMode(DialogMode.Add);
+            // Đặt lại chế độ Add
+            _currentMode = DialogMode.Add;
+
+            // Reset các flag validate
             ResetValidationStates();
+
+            // Ẩn tất cả lỗi
             HideAllErrors();
+
+            // Đặt lại các giá trị trong UI
+            PersonComboBox.SelectedIndex = -1;
+            PromotionComboBox.SelectedIndex = -1;
+            CreatedByComboBox.SelectedIndex = -1;
+            PaymentMethodComboBox.SelectedIndex = -1;
+
+            TotalAmountTextBox.Text = "";
+            DiscountAmountTextBox.Text = "0.00";
+            FinalAmountTextBox.Text = "0.00";
+            NoteTextBox.Text = "";
+
+            // Update trạng thái nút Save
             UpdateValidationUI();
+
+            // Nếu có overlay loading, tắt nó
             ShowLoading(false);
         }
 
@@ -223,10 +412,11 @@ namespace PhoneStoreAdmin.View.Controls
 
                 var viewModel = new InvoiceViewModel(invoice);
 
-                SetMode(DialogMode.Edit, viewModel);
+                await SetMode(DialogMode.Edit, viewModel);
             }
             catch (Exception ex)
             {
+                Debug.WriteLine(ex);
                 ErrorInfoBar.Message = $"Lỗi khi tải dữ liệu hóa đơn: {ex.Message}";
                 ErrorInfoBar.IsOpen = true;
             }
@@ -247,7 +437,7 @@ namespace PhoneStoreAdmin.View.Controls
             NoteTextBox.IsReadOnly = !editable;
         }
 
-        public async void Save()
+        public void Save()
         {
             if (_currentMode == DialogMode.View)
             {
@@ -274,17 +464,19 @@ namespace PhoneStoreAdmin.View.Controls
                     TotalAmount = decimal.Parse(TotalAmountTextBox.Text),
                     DiscountAmount = decimal.Parse(DiscountAmountTextBox.Text),
                     FinalAmount = decimal.Parse(FinalAmountTextBox.Text),
-                    PaymentMethod = Enum.TryParse<PaymentMethod>(
-                        (PaymentMethodComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString(),
-                        out var method)
-                        ? method
-                        : PaymentMethod.CASH,
-                    Status = Enum.TryParse<InvoiceStatus>("Pending", out var status)
-                        ? status
-                        : InvoiceStatus.PAID, // hoặc giá trị mặc định
-
                     Note = NoteTextBox.Text
                 };
+
+                // PaymentMethod: SelectedItem là string (CASH, CARD, ...)
+                if (PaymentMethodComboBox.SelectedItem is string pmString &&
+                    Enum.TryParse<PaymentMethod>(pmString, out var pm))
+                {
+                    invoice.PaymentMethod = pm;
+                }
+                else
+                {
+                    invoice.PaymentMethod = PaymentMethod.CASH;
+                }
 
                 if (_currentMode == DialogMode.Add)
                     _invoiceService.Insert(invoice); // Remove await
@@ -313,16 +505,5 @@ namespace PhoneStoreAdmin.View.Controls
             DialogClosed?.Invoke(this, EventArgs.Empty);
         }
 
-        public bool IsValid()
-        {
-            ValidateAllFields();
-            return _isPaymentValid;
-        }
-
-        private void ValidateAllFields()
-        {
-            ValidatePaymentMethod();
-        }
-       
     }
 }
