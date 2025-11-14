@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.Windows.ApplicationModel.Resources;
-using PhoneStoreAdmin.Utils;
+using PhoneStoreRepository.Utils;
 
 namespace PhoneStoreAdmin.Helpers
 {

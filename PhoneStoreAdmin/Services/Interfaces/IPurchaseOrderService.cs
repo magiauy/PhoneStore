@@ -1,6 +1,6 @@
-using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Models.Enums;
-using PhoneStoreAdmin.Repositories.Implementations;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
+using PhoneStoreRepository.Repositories.Implementations;
 using PhoneStoreAdmin.ViewModels;
 using System;
 

@@ -1,8 +1,10 @@
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Models.Enums;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
+using PhoneStoreRepository.Utils;
+using PhoneStoreRepository.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -31,7 +33,7 @@ namespace PhoneStoreAdmin.Utils
             var productNames = new Dictionary<int, string>();
             try
             {
-                var productRepo = App.GetService<Repositories.Interfaces.IProductRepository>();
+                var productRepo = App.GetService<IProductRepository>();
                 if (productRepo != null)
                 {
                     foreach (var line in purchaseOrder.PurchaseOrderLines)

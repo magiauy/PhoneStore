@@ -1,7 +1,7 @@
-using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Repositories.Interfaces;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Repositories.Interfaces;
 using PhoneStoreAdmin.Services.Interfaces;
-using PhoneStoreAdmin.Utils;
+using PhoneStoreRepository.Utils;
 using System;
 using System.Threading.Tasks;
 

@@ -9,7 +9,7 @@ Nó **ẩn toàn bộ logic SQL, transaction, và connection management**, giúp
 
 ## 🧱 2. Cấu trúc thư mục
 ```
-PhoneStoreAdmin/
+PhoneStoreRepository/
 ├── Data/
 │   └── DataSource.cs
 ├── Models/

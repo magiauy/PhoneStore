@@ -13,7 +13,7 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreAdmin.Helpers;
 using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
-using PhoneStoreAdmin.Utils;
+using PhoneStoreRepository.Utils;
 
 namespace PhoneStoreAdmin
 {

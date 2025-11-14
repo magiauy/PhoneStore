@@ -1,11 +1,11 @@
-﻿using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Models.Enums;
-using PhoneStoreAdmin.Repositories.Implementations;
-using PhoneStoreAdmin.Repositories.Interfaces;
+﻿using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
+using PhoneStoreRepository.Repositories.Implementations;
+using PhoneStoreRepository.Repositories.Interfaces;
 using PhoneStoreAdmin.Services.Interfaces;
-using PhoneStoreAdmin.Utils;
+using PhoneStoreRepository.Utils;
 using PhoneStoreAdmin.ViewModels;
-using PhoneStoreAdmin.Data;
+using PhoneStoreRepository.Data;
 using MySqlConnector;
 using System;
 using System.Collections.Generic;
