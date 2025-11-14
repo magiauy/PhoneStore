@@ -2,8 +2,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreRepository.Models;
-using PhoneStoreAdmin.Services.Interfaces;
-using PhoneStoreAdmin.ViewModels;
+using PhoneStore.Services.Interfaces;
+using PhoneStore.Services.ViewModels;
 using System;
 
 namespace PhoneStoreAdmin.View.Controls

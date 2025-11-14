@@ -10,11 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Models.Enums;
-using PhoneStoreAdmin.Services;
-using PhoneStoreAdmin.Services.Interfaces;
+using PhoneStore.Services;
+using PhoneStore.Services.Interfaces;
 using PhoneStoreRepository.Utils;
 using Microsoft.Windows.ApplicationModel.Resources;
-using PhoneStoreAdmin.Helpers;
+using PhoneStore.Services.Helpers;
 
 namespace PhoneStoreAdmin.View
 {

@@ -10,9 +10,9 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Shapes;
 using Microsoft.Windows.ApplicationModel.Resources;
-using PhoneStoreAdmin.Helpers;
-using PhoneStoreAdmin.Services;
-using PhoneStoreAdmin.Services.Interfaces;
+using PhoneStore.Services.Helpers;
+using PhoneStore.Services;
+using PhoneStore.Services.Interfaces;
 using PhoneStoreRepository.Utils;
 
 namespace PhoneStoreAdmin
