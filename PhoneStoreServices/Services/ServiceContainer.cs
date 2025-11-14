@@ -88,6 +88,7 @@ namespace PhoneStore.Services
                 GetService<IBatchesRepository>(),
                 GetService<IBatchProductRepository>(),
                 GetService<IProductRepository>(),
+                GetService<IProductSerialRepository>(),
                 GetService<DataSource>()));
             RegisterSingleton<IBatchesService>(() => new BatchesService(
                 GetService<IBatchesRepository>(), 
@@ -103,10 +104,10 @@ namespace PhoneStore.Services
 
             // Register SessionService (depends on other services and UserSession)
             RegisterSingleton<ISessionService>(() => new SessionService(
-                GetService<IAuthService>(),
-                GetService<IAccountService>(),
-                GetService<IPersonService>(),
-                GetService<UserSession>()));
+  GetService<IAuthService>(),
+      GetService<IAccountService>(),
+      GetService<IPersonService>(),
+  GetService<UserSession>()));
 
             _isInitialized = true;
         }

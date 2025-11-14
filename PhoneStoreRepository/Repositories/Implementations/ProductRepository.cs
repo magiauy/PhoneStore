@@ -210,7 +210,7 @@ namespace PhoneStoreRepository.Repositories.Implementations
                 Name = reader.GetString("name"),
                 Price = reader.GetDecimal("price"),
                 CategoryId = reader.GetInt32("category_id"),
-                ModelId = reader.IsDBNull(reader.GetOrdinal("model_id")) ? 0 : reader.GetInt32("model_id"),
+                //ModelId = reader.IsDBNull(reader.GetOrdinal("model_id")) ? 0 : reader.GetInt32("model_id"),
                 BrandId = reader.IsDBNull(reader.GetOrdinal("brand_id")) ? null : reader.GetInt32("brand_id"),
                 Status = statusEnum,
                 CreatedAt = reader.GetDateTime("created_at"),
