@@ -142,6 +142,11 @@
                         Content="Create Product Model"
                         Click="CreateModelButton_Click"
                         Style="{StaticResource PrimaryButtonStyle}" />
+                    <Button
+                        x:Name="ManageProductsButton"
+                        Content="Quản lý sản phẩm"
+                        Click="ManageProductsButton_Click"
+                        Style="{StaticResource SecondaryButtonStyle}" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -284,7 +289,6 @@
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Button Content="Create Product" Click="CreateProductButton_Click" Style="{StaticResource PrimaryButtonStyle}" />
                             <Button Content="Edit Model" Click="EditModelButton_Click" Style="{StaticResource SecondaryButtonStyle}" />
                             <Button Content="Duplicate Model" Click="DuplicateModelButton_Click" Style="{StaticResource SecondaryButtonStyle}" />
                         </StackPanel>
@@ -351,10 +355,9 @@
                                                 </StackPanel>
 
                                                 <StackPanel Grid.Column="2" Spacing="8" VerticalAlignment="Center">
-                                                    <Button Content="Edit" Tag="{x:Bind Id}" Click="EditProductButton_Click" Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Right"/>
-                                                    <Border 
-                                                        Background="{StaticResource BrushPrimaryLight}" 
-                                                        CornerRadius="12" 
+                                                    <Border
+                                                        Background="{StaticResource BrushPrimaryLight}"
+                                                        CornerRadius="12"
                                                         Padding="12,4"
                                                         HorizontalAlignment="Right">
                                                         <TextBlock Text="{x:Bind StatusText}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushPrimary}" />

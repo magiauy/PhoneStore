@@ -16,6 +16,8 @@ namespace PhoneStoreAdmin.View
 {
     public sealed partial class ProductsPage : Page
     {
+        private const string ProductManagementPageTag = "ProductManagement";
+
         private readonly IProductService _productService;
         private readonly ResourceLoader _resourceLoader;
         private ContentDialog? _currentDialog;
@@ -217,76 +219,12 @@ namespace PhoneStoreAdmin.View
             };
         }
 
-        private async void CreateProductButton_Click(object sender, RoutedEventArgs e)
+        private void ManageProductsButton_Click(object sender, RoutedEventArgs e)
         {
-            if (SelectedModelDetail?.Model == null)
+            if (App.CurrentWindow is PhoneStoreAdmin.MainWindow mainWindow)
             {
-                return;
+                mainWindow.NavigateToPage(ProductManagementPageTag);
             }
-
-            await ShowProductDialogAsync(ProductDialog.DialogMode.Add, SelectedModelDetail.Model.Id, null);
-        }
-
-        private async void EditProductButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button button && button.Tag is int productId)
-            {
-                await ShowProductDialogAsync(ProductDialog.DialogMode.Edit, SelectedModelDetail?.Model.Id, productId);
-            }
-        }
-
-        private async Task ShowProductDialogAsync(ProductDialog.DialogMode mode, int? modelId, int? productId)
-        {
-            var dialogContent = new ProductDialog();
-            ProductDetailViewModel? detail = null;
-            if (mode != ProductDialog.DialogMode.Add && productId.HasValue)
-            {
-                detail = _productService.GetProductDetail(productId.Value);
-            }
-
-            dialogContent.SetMode(mode, detail);
-            if (mode == ProductDialog.DialogMode.Add && modelId.HasValue)
-            {
-                dialogContent.SetPreselectedModel(modelId.Value);
-            }
-
-            dialogContent.ProductSaved += ProductDialog_ProductSaved;
-
-            var dialog = new ContentDialog
-            {
-                Title = mode == ProductDialog.DialogMode.Add
-                    ? _resourceLoader.GetString("AddProductDialogTitle")
-                    : _resourceLoader.GetString("EditProductDialogTitle"),
-                PrimaryButtonText = _resourceLoader.GetString("DialogSaveButton"),
-                CloseButtonText = _resourceLoader.GetString("DialogCloseButton"),
-                Content = dialogContent,
-                XamlRoot = XamlRoot
-            };
-
-            dialog.PrimaryButtonClick += (_, args) =>
-            {
-                if (!dialogContent.IsValid())
-                {
-                    args.Cancel = true;
-                    return;
-                }
-
-                if (!dialogContent.Save())
-                {
-                    args.Cancel = true;
-                }
-            };
-
-            dialog.Closed += (_, _) => dialogContent.Cancel();
-
-            _currentDialog = dialog;
-            await dialog.ShowAsync();
-            _currentDialog = null;
-        }
-
-        private void ProductDialog_ProductSaved(object? sender, ProductDetailViewModel e)
-        {
-            LoadModels(e.Product.ModelId);
         }
     }
 }
