@@ -4,8 +4,9 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:controls="using:PhoneStoreAdmin.View.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Width="480"
+    Width="720"
     mc:Ignorable="d">
     <ContentControl.Resources>
         <Style x:Key="InputFieldStyle" TargetType="Control">
@@ -44,37 +45,73 @@
     </ContentControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="8" Padding="16">
-            <StackPanel>
-                <TextBlock Text="Model name" Style="{StaticResource InputLabelStyle}" />
-                <TextBox x:Name="NameTextBox" Style="{StaticResource TextInputStyle}" TextChanged="NameTextBox_TextChanged" />
-                <TextBlock x:Name="NameErrorText" Style="{StaticResource ValidationErrorStyle}" />
+        <Grid Padding="16" ColumnDefinitions="*,1.1*" ColumnSpacing="24">
+            <StackPanel Grid.Column="0" Spacing="8">
+                <StackPanel>
+                    <TextBlock Text="Model name" Style="{StaticResource InputLabelStyle}" />
+                    <TextBox x:Name="NameTextBox" Style="{StaticResource TextInputStyle}" TextChanged="NameTextBox_TextChanged" />
+                    <TextBlock x:Name="NameErrorText" Style="{StaticResource ValidationErrorStyle}" />
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Text="Description" Style="{StaticResource InputLabelStyle}" />
+                    <TextBox x:Name="DescriptionTextBox" Style="{StaticResource MultilineInputStyle}" TextChanged="DescriptionTextBox_TextChanged" />
+                    <TextBlock x:Name="DescriptionErrorText" Style="{StaticResource ValidationErrorStyle}" />
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Text="Default image URL" Style="{StaticResource InputLabelStyle}" />
+                    <TextBox x:Name="ImageUrlTextBox" Style="{StaticResource TextInputStyle}" TextChanged="ImageUrlTextBox_TextChanged" />
+                    <TextBlock x:Name="ImageUrlErrorText" Style="{StaticResource ValidationErrorStyle}" />
+                </StackPanel>
+
+                <InfoBar
+                    x:Name="ErrorInfoBar"
+                    IsOpen="False"
+                    Severity="Error"
+                    Margin="0,12,0,0"
+                    Title="Unable to save model" />
+                <InfoBar
+                    x:Name="SuccessInfoBar"
+                    IsOpen="False"
+                    Severity="Success"
+                    Margin="0,8,0,0"
+                    Title="Model updated" />
             </StackPanel>
 
-            <StackPanel>
-                <TextBlock Text="Description" Style="{StaticResource InputLabelStyle}" />
-                <TextBox x:Name="DescriptionTextBox" Style="{StaticResource MultilineInputStyle}" TextChanged="DescriptionTextBox_TextChanged" />
-                <TextBlock x:Name="DescriptionErrorText" Style="{StaticResource ValidationErrorStyle}" />
+            <StackPanel Grid.Column="1" Spacing="8">
+                <TextBlock Text="Attributes" Style="{StaticResource InputLabelStyle}" />
+                <TextBlock
+                    x:Name="EmptyAttributesText"
+                    Text="No attributes available. Create product attributes first."
+                    Style="{StaticResource ValidationErrorStyle}"
+                    Margin="0,0,0,8" />
+                <ScrollViewer MaxHeight="360" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{x:Bind AttributeSelections, Mode=OneWay}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical" Spacing="8" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="controls:ProductModelDialog.ModelAttributeSelection">
+                                <Border Background="{StaticResource BrushSurface}" CornerRadius="8" Padding="12">
+                                    <StackPanel Spacing="4">
+                                        <CheckBox Content="{x:Bind DisplayName}" IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
+                                        <TextBlock Text="{x:Bind DataTypeLabel}" Foreground="{StaticResource BrushSecondaryText}" FontSize="12" />
+                                        <TextBlock
+                                            Text="{x:Bind Description}"
+                                            Visibility="{x:Bind DescriptionVisibility}"
+                                            Foreground="{StaticResource BrushSecondaryText}"
+                                            FontSize="12"
+                                            TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
             </StackPanel>
-
-            <StackPanel>
-                <TextBlock Text="Default image URL" Style="{StaticResource InputLabelStyle}" />
-                <TextBox x:Name="ImageUrlTextBox" Style="{StaticResource TextInputStyle}" TextChanged="ImageUrlTextBox_TextChanged" />
-                <TextBlock x:Name="ImageUrlErrorText" Style="{StaticResource ValidationErrorStyle}" />
-            </StackPanel>
-
-            <InfoBar
-                x:Name="ErrorInfoBar"
-                IsOpen="False"
-                Severity="Error"
-                Margin="0,12,0,0"
-                Title="Unable to save model" />
-            <InfoBar
-                x:Name="SuccessInfoBar"
-                IsOpen="False"
-                Severity="Success"
-                Margin="0,8,0,0"
-                Title="Model updated" />
-        </StackPanel>
+        </Grid>
     </ScrollViewer>
 </ContentControl>

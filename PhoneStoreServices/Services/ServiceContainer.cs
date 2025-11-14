@@ -53,6 +53,7 @@ namespace PhoneStore.Services
             RegisterSingleton<IProductAttributeOptionRepository>(() => new ProductAttributeOptionRepository(GetService<DataSource>()));
             RegisterSingleton<IProductAttributeValueRepository>(() => new ProductAttributeValueRepository(GetService<DataSource>()));
             RegisterSingleton<IProductModelRepository>(() => new ProductModelRepository(GetService<DataSource>()));
+            RegisterSingleton<IProductModelAttributeRepository>(() => new ProductModelAttributeRepository(GetService<DataSource>()));
             RegisterSingleton<IPromotionRepository>(() => new PromotionRepository(GetService<DataSource>()));
             RegisterSingleton<IPromotionCodeRepository>(() => new PromotionCodeRepository(GetService<DataSource>()));
             RegisterSingleton<IProductRepository>(() => new ProductRepository(GetService<DataSource>()));
@@ -77,6 +78,7 @@ namespace PhoneStore.Services
                 GetService<IProductAttributeValueRepository>(),
                 GetService<IProductSerialRepository>(),
                 GetService<IProductModelRepository>(),
+                GetService<IProductModelAttributeRepository>(),
                 GetService<IProductAttributeOptionService>()));
             RegisterSingleton<IPromotionService>(() => new PromotionService(GetService<IPromotionRepository>()));
             RegisterSingleton<IPromotionCodeService>(() => new PromotionCodeService(GetService<IPromotionCodeRepository>(), GetService<IPromotionRepository>()));

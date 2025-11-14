@@ -315,6 +315,18 @@ CREATE TABLE IF NOT EXISTS `product_models` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table bandienthoai.product_model_attributes
+CREATE TABLE IF NOT EXISTS `product_model_attributes` (
+  `model_id` int(11) NOT NULL,
+  `attribute_id` int(11) NOT NULL,
+  PRIMARY KEY (`model_id`,`attribute_id`),
+  KEY `idx_product_model_attributes_attribute` (`attribute_id`),
+  CONSTRAINT `product_model_attributes_ibfk_1` FOREIGN KEY (`model_id`) REFERENCES `product_models` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `product_model_attributes_ibfk_2` FOREIGN KEY (`attribute_id`) REFERENCES `product_attributes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table bandienthoai.product_serials
 CREATE TABLE IF NOT EXISTS `product_serials` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

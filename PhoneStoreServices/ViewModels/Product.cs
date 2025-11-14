@@ -102,16 +102,20 @@ namespace PhoneStore.Services.ViewModels
     {
         public ProductModelDetailViewModel(
             ProductModelListItemViewModel model,
-            IEnumerable<ProductListItemViewModel> variants)
+            IEnumerable<ProductListItemViewModel> variants,
+            IEnumerable<ProductAttribute> attributes)
         {
             Model = model;
             Variants = variants?.ToList() ?? new List<ProductListItemViewModel>();
+            Attributes = attributes?.ToList() ?? new List<ProductAttribute>();
         }
 
         public ProductModelListItemViewModel Model { get; }
         public IReadOnlyList<ProductListItemViewModel> Variants { get; }
+        public IReadOnlyList<ProductAttribute> Attributes { get; }
 
         public bool HasVariants => Variants.Count > 0;
+        public bool HasAttributes => Attributes.Count > 0;
     }
 
     public class ProductAttributeValueViewModel

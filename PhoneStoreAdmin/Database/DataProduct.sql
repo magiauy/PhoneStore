@@ -6,6 +6,7 @@ TRUNCATE TABLE `product_serials`;
 TRUNCATE TABLE `product_attribute_values`;
 TRUNCATE TABLE `product_attribute_options`;
 TRUNCATE TABLE `products`;
+TRUNCATE TABLE `product_model_attributes`;
 TRUNCATE TABLE `product_models`;
 TRUNCATE TABLE `product_attributes`;
 TRUNCATE TABLE `product_categories`;
@@ -35,6 +36,19 @@ INSERT INTO `product_models` (`id`, `name`, `slug`, `description`, `default_imag
   (2, 'Samsung Galaxy S24', 'samsung-galaxy-s24', 'Samsung premium Android flagship', 'https://cdn.example.com/galaxys24.png', '2024-01-25 10:30:00', '2024-01-25 10:30:00'),
   (3, 'Xiaomi Redmi Buds 4 Pro', 'xiaomi-redmi-buds-4-pro', 'True wireless noise-cancelling earbuds', 'https://cdn.example.com/redmi-buds4pro.png', '2023-08-20 08:15:00', '2023-08-20 08:15:00'),
   (4, '65W GaN Fast Charger', '65w-gan-fast-charger', 'Compact USB-C PD fast charger', 'https://cdn.example.com/gan65w.png', '2023-05-10 14:45:00', '2023-05-10 14:45:00');
+
+INSERT INTO `product_model_attributes` (`model_id`, `attribute_id`) VALUES
+  (1, 1),
+  (1, 2),
+  (1, 3),
+  (1, 4),
+  (2, 1),
+  (2, 2),
+  (2, 3),
+  (2, 4),
+  (3, 1),
+  (3, 4),
+  (4, 1);
 
 INSERT INTO `products` (
   `sku`, `name`, `category_id`, `brand_id`, `model_id`, `price`, `cost`,

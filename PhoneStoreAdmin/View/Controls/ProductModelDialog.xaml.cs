@@ -2,9 +2,14 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
 using PhoneStore.Services.Interfaces;
 using PhoneStore.Services.ViewModels;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
 
 namespace PhoneStoreAdmin.View.Controls
 {
@@ -15,6 +20,55 @@ namespace PhoneStoreAdmin.View.Controls
             Create,
             Edit,
             Duplicate
+        }
+
+        public sealed class ModelAttributeSelection : INotifyPropertyChanged
+        {
+            private bool _isSelected;
+
+            public ModelAttributeSelection(ProductAttributeDefinition definition)
+            {
+                Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+            }
+
+            public event PropertyChangedEventHandler? PropertyChanged;
+
+            public ProductAttributeDefinition Definition { get; }
+            public ProductAttribute Attribute => Definition.Attribute;
+            public int AttributeId => Attribute.Id;
+            public string DisplayName => Attribute.Name ?? string.Empty;
+            public string Description => Attribute.Note ?? string.Empty;
+            public Visibility DescriptionVisibility => string.IsNullOrWhiteSpace(Description) ? Visibility.Collapsed : Visibility.Visible;
+            public string DataTypeLabel => string.Format("Type: {0}", GetDataTypeDisplay(Attribute.DataType));
+
+            public bool IsSelected
+            {
+                get => _isSelected;
+                set
+                {
+                    if (_isSelected != value)
+                    {
+                        _isSelected = value;
+                        OnPropertyChanged(nameof(IsSelected));
+                    }
+                }
+            }
+
+            private static string GetDataTypeDisplay(AttributeDataType dataType)
+            {
+                return dataType switch
+                {
+                    AttributeDataType.NUMBER => "Number",
+                    AttributeDataType.DATE => "Date",
+                    AttributeDataType.BOOLEAN => "Yes/No",
+                    _ => "Text"
+                };
+            }
+
+            private void OnPropertyChanged(string propertyName)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
 
         private readonly IProductService _productService;
@@ -29,6 +83,10 @@ namespace PhoneStoreAdmin.View.Controls
         private bool _isDescriptionValid = true;
         private bool _isImageValid = true;
 
+        private IReadOnlyList<ProductAttributeDefinition> _attributeDefinitions = Array.Empty<ProductAttributeDefinition>();
+
+        public ObservableCollection<ModelAttributeSelection> AttributeSelections { get; } = new();
+
         public event EventHandler<ProductModelListItemViewModel>? ModelSaved;
 
         public ProductModelDialog()
@@ -36,6 +94,7 @@ namespace PhoneStoreAdmin.View.Controls
             InitializeComponent();
             _productService = App.GetService<IProductService>();
             _resourceLoader = new ResourceLoader();
+            LoadAttributeDefinitions();
         }
 
         public void SetMode(DialogMode mode, ProductModelListItemViewModel? model)
@@ -56,7 +115,58 @@ namespace PhoneStoreAdmin.View.Controls
 
             HideInfoBars();
             HideAllErrors();
+            UpdateAttributeSelectionsForModel(mode == DialogMode.Duplicate ? _sourceModelId : _currentModelId);
             ValidateAll();
+        }
+
+        private void LoadAttributeDefinitions()
+        {
+            _attributeDefinitions = _productService.GetAttributeDefinitions() ?? Array.Empty<ProductAttributeDefinition>();
+
+            AttributeSelections.Clear();
+            foreach (var definition in _attributeDefinitions.OrderBy(d => d.Attribute?.Name ?? string.Empty))
+            {
+                AttributeSelections.Add(new ModelAttributeSelection(definition));
+            }
+
+            ApplyAttributeAssignments(Array.Empty<int>());
+            UpdateAttributePlaceholder();
+        }
+
+        private void UpdateAttributePlaceholder()
+        {
+            if (EmptyAttributesText != null)
+            {
+                EmptyAttributesText.Visibility = AttributeSelections.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        private void UpdateAttributeSelectionsForModel(int modelId)
+        {
+            if (AttributeSelections.Count == 0)
+            {
+                return;
+            }
+
+            IReadOnlyList<int> assignedIds = Array.Empty<int>();
+            if (modelId > 0)
+            {
+                assignedIds = _productService.GetModelAttributeIds(modelId) ?? Array.Empty<int>();
+            }
+
+            ApplyAttributeAssignments(assignedIds);
+        }
+
+        private void ApplyAttributeAssignments(IReadOnlyCollection<int> attributeIds)
+        {
+            var lookup = attributeIds != null
+                ? new HashSet<int>(attributeIds)
+                : new HashSet<int>();
+
+            foreach (var selection in AttributeSelections)
+            {
+                selection.IsSelected = lookup.Contains(selection.AttributeId);
+            }
         }
 
         public bool Save()
@@ -74,11 +184,15 @@ namespace PhoneStoreAdmin.View.Controls
                 var name = (NameTextBox.Text ?? string.Empty).Trim();
                 var description = NormalizeOptional(DescriptionTextBox.Text);
                 var imageUrl = NormalizeOptional(ImageUrlTextBox.Text);
+                var selectedAttributeIds = AttributeSelections
+                    .Where(selection => selection.IsSelected)
+                    .Select(selection => selection.AttributeId)
+                    .ToList();
 
                 ProductModel? model;
                 if (_mode == DialogMode.Duplicate && _sourceModelId > 0)
                 {
-                    model = _productService.DuplicateProductModel(_sourceModelId, name, description, imageUrl);
+                    model = _productService.DuplicateProductModel(_sourceModelId, name, description, imageUrl, selectedAttributeIds);
                 }
                 else
                 {
@@ -92,7 +206,7 @@ namespace PhoneStoreAdmin.View.Controls
                         UpdatedAt = DateTime.UtcNow
                     };
 
-                    if (!_productService.SaveProductModel(model))
+                    if (!_productService.SaveProductModel(model, selectedAttributeIds))
                     {
                         model = null;
                     }
@@ -117,6 +231,7 @@ namespace PhoneStoreAdmin.View.Controls
                     UpdatedAt = model.UpdatedAt
                 };
 
+                UpdateAttributeSelectionsForModel(model.Id);
                 ModelSaved?.Invoke(this, viewModel);
                 SuccessInfoBar.Message = _resourceLoader.GetString("ProductModelSaveSuccess") ?? "Model saved successfully.";
                 SuccessInfoBar.IsOpen = true;
