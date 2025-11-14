@@ -20,6 +20,7 @@ using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Globalization;
+using OfficeOpenXml; // Add EPPlus reference
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -60,6 +61,9 @@ namespace PhoneStoreAdmin
         {
             this.InitializeComponent();
 
+            // Set EPPlus license context ONCE at application startup
+            // This prevents the LicenseContextPropertyObsoleteException
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
             // Initialize DI container
             ServiceContainer.Initialize();

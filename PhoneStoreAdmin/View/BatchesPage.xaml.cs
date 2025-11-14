@@ -278,11 +278,17 @@ namespace PhoneStoreAdmin.View
                     // Batch Products
                     foreach (var product in batch.BatchProducts)
                     {
+                        // Get product name from repository
+                        var productRepo = App.GetService<IProductRepository>();
+                        var productInfo = productRepo.GetById(product.ProductId);
+                        var productName = productInfo?.Name ?? $"{_resourceLoader.GetString("Dlg_BatchDetails_ProductIdLabel")} {product.ProductId}";
+
                         var productStack = new StackPanel { Spacing = 4, Margin = new Thickness(0, 8, 0, 0) };
                         productStack.Children.Add(new TextBlock
                         {
-                            Text = $"{_resourceLoader.GetString("Dlg_BatchDetails_ProductIdLabel")} {product.ProductId}",
-                            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+                            Text = productName,
+                            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                            FontSize = 15
                         });
                         productStack.Children.Add(new TextBlock { 
                             Text = $"{_resourceLoader.GetString("Dlg_BatchDetails_QuantityLabel")} {product.Quantity}" 

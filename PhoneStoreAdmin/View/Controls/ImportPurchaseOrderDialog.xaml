@@ -1,0 +1,177 @@
+<ContentDialog
+    x:Class="PhoneStoreAdmin.View.Controls.ImportPurchaseOrderDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Import Purchase Order from Excel"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
+    PrimaryButtonText="Import"
+    mc:Ignorable="d">
+
+    <Grid Width="900" Height="600">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!--  File Selection  -->
+        <StackPanel
+            Grid.Row="0"
+            Margin="0,0,0,16"
+            Spacing="12">
+            <TextBlock FontWeight="SemiBold" Text="Select Excel file:" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox
+                    x:Name="FilePathTextBox"
+                    Grid.Column="0"
+                    IsReadOnly="True"
+                    PlaceholderText="No file selected..." />
+                <Button
+                    Grid.Column="1"
+                    Margin="8,0,0,0"
+                    Click="BrowseFile_Click"
+                    Content="Browse..." />
+            </Grid>
+        </StackPanel>
+
+        <!--  Template Download  -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,16">
+            <HyperlinkButton
+                x:Name="DownloadTemplateButton"
+                Click="DownloadTemplate_Click"
+                Content="Download Excel Template" />
+            <TextBlock
+                Foreground="Gray"
+                Text="Template format: Product ID | Serial Number | IMEI1 | IMEI2"
+                TextWrapping="Wrap" />
+        </StackPanel>
+
+        <!--  Data Preview with Errors  -->
+        <Border
+            Grid.Row="2"
+            BorderBrush="Gray"
+            BorderThickness="1"
+            CornerRadius="4">
+            <Grid>
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <ListView x:Name="PreviewListView" SelectionMode="None">
+                        <ListView.Header>
+                            <Grid Padding="8" Background="LightGray">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="50" />
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="*" MinWidth="200" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Row" FontWeight="Bold" />
+                                <TextBlock Grid.Column="1" Text="Product ID *" FontWeight="Bold" />
+                                <TextBlock Grid.Column="2" Text="Serial *" FontWeight="Bold" />
+                                <TextBlock Grid.Column="3" Text="IMEI1 *" FontWeight="Bold" />
+                                <TextBlock Grid.Column="4" Text="IMEI2" FontWeight="Bold" />
+                                <TextBlock Grid.Column="5" Text="Error" FontWeight="Bold" />
+                            </Grid>
+                        </ListView.Header>
+
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="50" />
+                                        <ColumnDefinition Width="100" />
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" MinWidth="200" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding RowNumber}" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Text="{Binding Sku}"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        Text="{Binding SerialNumber}"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <TextBlock
+                                        Grid.Column="3"
+                                        Text="{Binding Imei1}"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <TextBlock
+                                        Grid.Column="4"
+                                        Text="{Binding Imei2}"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <TextBlock
+                                        Grid.Column="5"
+                                        FontWeight="SemiBold"
+                                        Foreground="Red"
+                                        Text="{Binding ErrorMessage}"
+                                        TextWrapping="Wrap" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </ScrollViewer>
+
+                <!--  Empty State  -->
+                <StackPanel
+                    x:Name="EmptyStatePanel"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Visibility="Visible">
+                    <FontIcon
+                        FontSize="48"
+                        Foreground="Gray"
+                        Glyph="&#xE8A5;" />
+                    <TextBlock
+                        Margin="0,16,0,0"
+                        FontSize="16"
+                        Foreground="Gray"
+                        Text="No data available"
+                        TextAlignment="Center" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!--  Status Bar  -->
+        <Grid Grid.Row="3" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel
+                Grid.Column="0"
+                Orientation="Horizontal"
+                Spacing="16">
+                <TextBlock x:Name="TotalRowsText" Text="Total: 0 rows" />
+                <TextBlock
+                    x:Name="ValidRowsText"
+                    Foreground="Green"
+                    Text="Valid: 0" />
+                <TextBlock
+                    x:Name="ErrorRowsText"
+                    Foreground="Red"
+                    Text="Errors: 0" />
+            </StackPanel>
+
+            <InfoBar
+                x:Name="ValidationInfoBar"
+                Title="Validation Errors"
+                Grid.Column="1"
+                IsClosable="False"
+                IsOpen="False"
+                Severity="Error" />
+        </Grid>
+    </Grid>
+</ContentDialog>
