@@ -6,7 +6,7 @@
     xmlns:converters="using:PhoneStoreAdmin.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:PhoneStoreAdmin.View"
-    xmlns:viewModels="using:PhoneStoreAdmin.ViewModels"
+    xmlns:viewModels="using:PhoneStore.Services.ViewModels"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Background="{StaticResource BrushBackground}"
     mc:Ignorable="d">
@@ -221,7 +221,7 @@
                                 </Style>
                             </GridView.ItemContainerStyle>
                             <GridView.ItemTemplate>
-                                <DataTemplate x:DataType="viewModels:ProductModelListItemViewModel" xmlns:viewModels="using:PhoneStoreAdmin.ViewModels">
+                                <DataTemplate x:DataType="viewModels:ProductModelListItemViewModel" xmlns:viewModels="using:PhoneStore.Services.ViewModels">
                                     <Border Style="{StaticResource CardBorderStyle}" Padding="16" Shadow="{StaticResource SharedShadow}" MinHeight="180" HorizontalAlignment="Stretch">
                                         <StackPanel Spacing="12">
                                             <StackPanel Orientation="Horizontal" Spacing="12">
@@ -304,7 +304,7 @@
                                     </Style>
                                 </ListView.ItemContainerStyle>
                                 <ListView.ItemTemplate>
-                                    <DataTemplate x:DataType="viewModels:ProductListItemViewModel" xmlns:viewModels="using:PhoneStoreAdmin.ViewModels">
+                                    <DataTemplate x:DataType="viewModels:ProductListItemViewModel" xmlns:viewModels="using:PhoneStore.Services.ViewModels">
                                         <Border 
                                             Style="{StaticResource CardBorderStyle}"
                                             Padding= "10"

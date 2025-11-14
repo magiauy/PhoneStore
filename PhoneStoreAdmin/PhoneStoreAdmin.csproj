@@ -63,6 +63,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PhoneStoreRepository\PhoneStoreRepository.csproj" />
+    <ProjectReference Include="..\PhoneStoreServices\PhoneStoreServices.csproj" />
   </ItemGroup>
 
 	<ItemGroup>

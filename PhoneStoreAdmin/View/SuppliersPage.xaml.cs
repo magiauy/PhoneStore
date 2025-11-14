@@ -4,12 +4,12 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Repositories.Interfaces;
-using PhoneStoreAdmin.Services.Interfaces;
+using PhoneStore.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using PhoneStoreAdmin.ViewModels;
+using PhoneStore.Services.ViewModels;
 using PhoneStoreAdmin.View.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 

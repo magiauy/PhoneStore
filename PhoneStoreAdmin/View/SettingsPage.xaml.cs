@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.AppLifecycle;
-using PhoneStoreAdmin.Services;
-using PhoneStoreAdmin.Services.Interfaces;
+using PhoneStore.Services;
+using PhoneStore.Services.Interfaces;
 using PhoneStoreRepository.Models;
 using PhoneStoreAdmin;
 using Windows.Globalization;
-using PhoneStoreAdmin.Helpers;
+using PhoneStore.Services.Helpers;
 using Windows.ApplicationModel.Core;
 using PhoneStoreRepository.Utils;
 

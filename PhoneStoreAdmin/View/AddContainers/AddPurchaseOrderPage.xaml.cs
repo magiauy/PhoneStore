@@ -5,7 +5,7 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Models.Enums;
 using PhoneStoreRepository.Repositories.Interfaces;
-using PhoneStoreAdmin.Services.Interfaces;
+using PhoneStore.Services.Interfaces;
 using PhoneStoreRepository.Utils;
 using PhoneStoreAdmin.View.Controls;
 using System;

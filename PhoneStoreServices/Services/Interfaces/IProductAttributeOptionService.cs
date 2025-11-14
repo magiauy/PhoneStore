@@ -1,0 +1,18 @@
+using System.Collections.Generic;
+using PhoneStoreRepository.Models;
+
+namespace PhoneStore.Services.Interfaces
+{
+    public interface IProductAttributeOptionService
+    {
+        IReadOnlyList<ProductAttributeOption> GetOptionsForAttribute(int attributeId);
+        IDictionary<int, IReadOnlyList<ProductAttributeOption>> GetOptionsForAttributes(IEnumerable<int> attributeIds);
+        ProductAttributeOption? GetOptionById(int optionId);
+        ProductAttributeOption? FindByDisplay(int attributeId, string displayValue);
+        void EnsureOption(int attributeId, string displayValue, string? normalizedValue, int sortOrder, bool isActive = true);
+        IReadOnlyList<ProductAttributeOption> GetEditableOptionsForAttribute(int attributeId);
+        ProductAttributeOption CreateOption(ProductAttributeOption option);
+        void UpdateOption(ProductAttributeOption option);
+        void DeleteOption(int optionId);
+    }
+}
