@@ -63,6 +63,34 @@ namespace PhoneStoreRepository.Repositories.Implementations
             entity.Id = GetLastInsertedId(connection);
         }
 
+        /// <summary>
+        /// Insert a product serial using an existing transaction
+        /// </summary>
+        public void Insert(ProductSerial entity, MySqlConnection connection, MySqlTransaction transaction)
+        {
+            var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = @"INSERT INTO product_serials (product_id, serial_number, imei1, imei2, batch_id, status, purchase_order_line_id, note) 
+      VALUES (@productId, @serialNumber, @imei1, @imei2, @batchId, @status, @purchaseOrderLineId, @note)";
+            
+            command.Parameters.AddWithValue("@productId", entity.ProductId);
+            command.Parameters.AddWithValue("@serialNumber", entity.SerialNumber ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@imei1", entity.Imei1 ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@imei2", entity.Imei2 ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@batchId", entity.BatchId ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@status", entity.Status.ToString().ToLower());
+            command.Parameters.AddWithValue("@purchaseOrderLineId", entity.PurchaseOrderLineId ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@note", entity.Note ?? (object)DBNull.Value);
+            command.ExecuteNonQuery();
+  
+            // Get last inserted ID using the same connection and transaction
+            command.CommandText = "SELECT LAST_INSERT_ID()";
+            command.Parameters.Clear();
+            entity.Id = Convert.ToInt32(command.ExecuteScalar());
+            
+            command.Dispose();
+        }
+
         public void Update(ProductSerial entity)
         {
             using var connection = _dataSource.GetConnection();
@@ -109,6 +137,29 @@ namespace PhoneStoreRepository.Repositories.Implementations
             throw new InvalidOperationException($"ProductSerial with SerialNumber {serialNumber} not found.");
         }
 
+        /// <summary>
+        /// Try to get a product serial by serial number. Returns null if not found instead of throwing exception.
+        /// </summary>
+        public ProductSerial? TryGetBySerialNumber(string serialNumber)
+        {
+            try
+            {
+                using var connection = _dataSource.GetConnection();
+                using var command = new MySqlCommand("SELECT * FROM product_serials WHERE serial_number = @serialNumber", connection);
+                command.Parameters.AddWithValue("@serialNumber", serialNumber);
+                using var reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    return MapFromReader(reader);
+                }
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         public ProductSerial GetByImei1(string imei1)
         {
             using var connection = _dataSource.GetConnection();
@@ -122,6 +173,29 @@ namespace PhoneStoreRepository.Repositories.Implementations
             throw new InvalidOperationException($"ProductSerial with IMEI1 {imei1} not found.");
         }
 
+        /// <summary>
+        /// Try to get a product serial by IMEI1. Returns null if not found instead of throwing exception.
+        /// </summary>
+        public ProductSerial? TryGetByImei1(string imei1)
+        {
+            try
+            {
+                using var connection = _dataSource.GetConnection();
+                using var command = new MySqlCommand("SELECT * FROM product_serials WHERE imei1 = @imei1", connection);
+                command.Parameters.AddWithValue("@imei1", imei1);
+                using var reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    return MapFromReader(reader);
+                }
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         public ProductSerial GetByImei2(string imei2)
         {
             using var connection = _dataSource.GetConnection();
@@ -133,6 +207,29 @@ namespace PhoneStoreRepository.Repositories.Implementations
                 return MapFromReader(reader);
             }
             throw new InvalidOperationException($"ProductSerial with IMEI2 {imei2} not found.");
+        }
+
+        /// <summary>
+        /// Try to get a product serial by IMEI2. Returns null if not found instead of throwing exception.
+        /// </summary>
+        public ProductSerial? TryGetByImei2(string imei2)
+        {
+            try
+            {
+                using var connection = _dataSource.GetConnection();
+                using var command = new MySqlCommand("SELECT * FROM product_serials WHERE imei2 = @imei2", connection);
+                command.Parameters.AddWithValue("@imei2", imei2);
+                using var reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    return MapFromReader(reader);
+                }
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         public IEnumerable<ProductSerial> GetByProductId(int productId)
@@ -173,35 +270,72 @@ namespace PhoneStoreRepository.Repositories.Implementations
 
             var ids = productIds.Distinct().ToList();
             if (ids.Count == 0)
-            {
-                return counts;
-            }
+ {
+       return counts;
+  }
 
-            using var connection = _dataSource.GetConnection();
+     using var connection = _dataSource.GetConnection();
             var parameterNames = ids.Select((_, index) => $"@id{index}").ToList();
             var query = $"SELECT product_id, COUNT(*) AS serial_count FROM product_serials WHERE product_id IN ({string.Join(",", parameterNames)}) GROUP BY product_id";
 
-            using var command = new MySqlCommand(query, connection);
-            for (var i = 0; i < ids.Count; i++)
-            {
-                command.Parameters.AddWithValue(parameterNames[i], ids[i]);
+     using var command = new MySqlCommand(query, connection);
+  for (var i = 0; i < ids.Count; i++)
+ {
+      command.Parameters.AddWithValue(parameterNames[i], ids[i]);
             }
 
             using var reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                var productId = reader.GetInt32("product_id");
-                var count = reader.GetInt32("serial_count");
-                counts[productId] = count;
+        while (reader.Read())
+        {
+            var productId = reader.GetInt32("product_id");
+        var count = reader.GetInt32("serial_count");
+     counts[productId] = count;
             }
 
-            return counts;
+   return counts;
         }
 
-        private int GetLastInsertedId(MySqlConnection connection)
+        /// <summary>
+        /// Delete all product serials associated with a purchase order
+        /// </summary>
+        public void DeleteByPurchaseOrderId(int purchaseOrderId, MySqlConnection connection, MySqlTransaction transaction)
+   {
+            var command = connection.CreateCommand();
+      command.Transaction = transaction;
+        command.CommandText = @"DELETE ps FROM product_serials ps
+      INNER JOIN purchase_order_lines pol ON ps.purchase_order_line_id = pol.id
+   WHERE pol.purchase_order_id = @poId";
+     
+            command.Parameters.AddWithValue("@poId", purchaseOrderId);
+         command.ExecuteNonQuery();
+            command.Dispose();
+        }
+
+        /// <summary>
+        /// Update product serials status and batch for a purchase order line
+        /// </summary>
+        public void UpdateStatusAndBatchByLine(int lineId, SerialStatus oldStatus, SerialStatus newStatus, int batchId, string note, MySqlConnection connection, MySqlTransaction transaction)
         {
-            using var command = new MySqlCommand("SELECT LAST_INSERT_ID()", connection);
-            return Convert.ToInt32(command.ExecuteScalar());
+        var command = connection.CreateCommand();
+      command.Transaction = transaction;
+  command.CommandText = @"UPDATE product_serials 
+       SET status = @newStatus, batch_id = @batchId, note = @note
+          WHERE purchase_order_line_id = @lineId AND status = @oldStatus";
+        
+      command.Parameters.AddWithValue("@newStatus", newStatus.ToString().ToLower());
+          command.Parameters.AddWithValue("@batchId", batchId);
+    command.Parameters.AddWithValue("@note", note);
+       command.Parameters.AddWithValue("@lineId", lineId);
+            command.Parameters.AddWithValue("@oldStatus", oldStatus.ToString().ToLower());
+        
+      command.ExecuteNonQuery();
+       command.Dispose();
+    }
+
+      private int GetLastInsertedId(MySqlConnection connection)
+        {
+         using var command = new MySqlCommand("SELECT LAST_INSERT_ID()", connection);
+         return Convert.ToInt32(command.ExecuteScalar());
         }
 
         private static ProductSerial MapFromReader(MySqlDataReader reader)

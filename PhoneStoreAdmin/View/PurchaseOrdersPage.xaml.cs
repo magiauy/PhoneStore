@@ -410,6 +410,11 @@ namespace PhoneStoreAdmin.View
 
                     foreach (var line in po.PurchaseOrderLines)
                     {
+                        // Get product name from repository
+                        var productRepo = App.GetService<IProductRepository>();
+                        var productInfo = productRepo.GetById(line.ProductId);
+                        var productName = productInfo?.Name ?? $"{_resourceLoader.GetString("Dlg_PODetails_ProductIdLabel")} {line.ProductId}";
+
                         var lineItemBorder = new Border
                         {
                             Background = new SolidColorBrush(Microsoft.UI.Colors.White),
@@ -423,7 +428,7 @@ namespace PhoneStoreAdmin.View
                         var lineStack = new StackPanel { Spacing = 6 };
                         lineStack.Children.Add(new TextBlock
                         {
-                            Text = $"{_resourceLoader.GetString("Dlg_PODetails_ProductIdLabel")} {line.ProductId}",
+                            Text = productName,
                             FontSize = 14,
                             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
                         });
@@ -627,7 +632,7 @@ namespace PhoneStoreAdmin.View
                         // RECEIVED: Can only cancel
                         if (editMenuItem != null) editMenuItem.Visibility = Visibility.Collapsed;
                         if (receiveMenuItem != null) receiveMenuItem.Visibility = Visibility.Collapsed;
-                        if (cancelMenuItem != null) cancelMenuItem.Visibility = Visibility.Collapsed;
+                        if (cancelMenuItem != null) cancelMenuItem.Visibility = Visibility.Visible;
                         break;
 
                     case PoStatus.CANCELLED:
