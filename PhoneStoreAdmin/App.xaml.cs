@@ -6,7 +6,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
-using PhoneStoreAdmin.Data;
+using PhoneStoreRepository.Data;
 using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
 using System;

@@ -8,10 +8,10 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PhoneStoreAdmin.Models;
+using PhoneStoreRepository.Models;
 using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
-using PhoneStoreAdmin.Utils;
+using PhoneStoreRepository.Utils;
 using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreAdmin.Helpers;
 

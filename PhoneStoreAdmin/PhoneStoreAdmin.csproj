@@ -61,6 +61,10 @@
     <PackageReference Include="SkiaSharp" Version="3.119.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\PhoneStoreRepository\PhoneStoreRepository.csproj" />
+  </ItemGroup>
+
 	<ItemGroup>
 	  <Page Update="Theme\Colors.xaml">
 	    <Generator>MSBuild:Compile</Generator>

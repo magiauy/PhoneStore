@@ -4,9 +4,9 @@ using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using PhoneStoreAdmin.Services.Interfaces;
-using PhoneStoreAdmin.Models;
+using PhoneStoreRepository.Models;
 using PhoneStoreAdmin.ViewModels;
-using PhoneStoreAdmin.Utils;
+using PhoneStoreRepository.Utils;
 using Microsoft.Windows.ApplicationModel.Resources;
 
 namespace PhoneStoreAdmin.View.Controls

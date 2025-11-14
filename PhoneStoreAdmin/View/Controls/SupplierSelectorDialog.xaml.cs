@@ -9,9 +9,9 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
-using PhoneStoreAdmin.Models;
+using PhoneStoreRepository.Models;
 using PhoneStoreAdmin.Services.Interfaces;
-using PhoneStoreAdmin.Utils;
+using PhoneStoreRepository.Utils;
 
 namespace PhoneStoreAdmin.View.Controls
 {

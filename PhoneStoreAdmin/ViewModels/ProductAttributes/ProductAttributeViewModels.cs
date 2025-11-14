@@ -2,8 +2,8 @@ using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using PhoneStoreAdmin.Helpers;
-using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Models.Enums;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
 
 namespace PhoneStoreAdmin.ViewModels.ProductAttributes
 {

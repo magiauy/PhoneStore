@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using PhoneStoreAdmin.Models;
+using PhoneStoreRepository.Models;
 
 namespace PhoneStoreAdmin.Services.Interfaces
 {

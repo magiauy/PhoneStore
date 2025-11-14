@@ -9,11 +9,11 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using PhoneStoreAdmin.Helpers;
-using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Models.Enums;
-using PhoneStoreAdmin.Repositories.Interfaces;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
+using PhoneStoreRepository.Repositories.Interfaces;
 using PhoneStoreAdmin.Services.Interfaces;
-using PhoneStoreAdmin.Utils;
+using PhoneStoreRepository.Utils;
 using PhoneStoreAdmin.ViewModels.ProductAttributes;
 
 namespace PhoneStoreAdmin.View

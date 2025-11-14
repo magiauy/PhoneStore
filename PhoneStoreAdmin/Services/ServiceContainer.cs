@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreAdmin.Services.Implementations;
-using PhoneStoreAdmin.Repositories.Interfaces;
-using PhoneStoreAdmin.Repositories.Implementations;
-using PhoneStoreAdmin.Data;
-using PhoneStoreAdmin.Models;
+using PhoneStoreRepository.Repositories.Interfaces;
+using PhoneStoreRepository.Repositories.Implementations;
+using PhoneStoreRepository.Data;
+using PhoneStoreRepository.Models;
 
 namespace PhoneStoreAdmin.Services
 {
