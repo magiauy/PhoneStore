@@ -230,7 +230,7 @@
                                                             MinRowSpacing="16" />
                                 </ItemsRepeater.Layout>
                                 <ItemsRepeater.ItemTemplate>
-                                    <DataTemplate x:DataType="viewModels:PromotionCodeViewModel" xmlns:viewModels="using:PhoneStoreAdmin.ViewModels">
+                                    <DataTemplate x:DataType="viewModels:PromotionCodeViewModel" xmlns:viewModels="using:PhoneStore.Services.ViewModels">
                                         <Border Background="{StaticResource BrushSurface}"
                                                 BorderBrush="{StaticResource BrushBorder}"
                                                 BorderThickness="1"

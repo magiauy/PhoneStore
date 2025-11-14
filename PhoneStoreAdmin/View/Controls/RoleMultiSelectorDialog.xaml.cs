@@ -2,7 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using PhoneStoreRepository.Models;
-using PhoneStoreAdmin.Services.Interfaces;
+using PhoneStore.Services.Interfaces;
 using PhoneStoreRepository.Utils;
 using System;
 using System.Collections.Generic;

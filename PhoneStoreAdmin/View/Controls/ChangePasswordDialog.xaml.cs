@@ -5,8 +5,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.ApplicationModel.Resources;
-using PhoneStoreAdmin.Services;
-using PhoneStoreAdmin.Services.Interfaces;
+using PhoneStore.Services;
+using PhoneStore.Services.Interfaces;
 using PhoneStoreRepository.Models;
 
 namespace PhoneStoreAdmin.View.Controls

@@ -3,10 +3,10 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
-using PhoneStoreAdmin.Services.Interfaces;
+using PhoneStore.Services.Interfaces;
 using System;
 using System.Collections.ObjectModel;
-using PhoneStoreAdmin.ViewModels;
+using PhoneStore.Services.ViewModels;
 using PhoneStoreAdmin.View.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 

@@ -1,8 +1,8 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-using PhoneStoreAdmin.Services.Interfaces;
-using PhoneStoreAdmin.ViewModels;
+using PhoneStore.Services.Interfaces;
+using PhoneStore.Services.ViewModels;
 using PhoneStoreAdmin.View.Controls;
 using System.Collections.ObjectModel;
 using System;
