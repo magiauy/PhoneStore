@@ -20,6 +20,7 @@ namespace PhoneStore.Services.Implementations
         private readonly IProductAttributeValueRepository _productAttributeValueRepository;
         private readonly IProductSerialRepository _productSerialRepository;
         private readonly IProductModelRepository _productModelRepository;
+        private readonly IProductModelAttributeRepository _productModelAttributeRepository;
         private readonly IProductAttributeOptionService _productAttributeOptionService;
 
         private readonly Dictionary<int, string> _modelNameCache = new();
@@ -34,6 +35,7 @@ namespace PhoneStore.Services.Implementations
             IProductAttributeValueRepository productAttributeValueRepository,
             IProductSerialRepository productSerialRepository,
             IProductModelRepository productModelRepository,
+            IProductModelAttributeRepository productModelAttributeRepository,
             IProductAttributeOptionService productAttributeOptionService)
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
@@ -43,6 +45,7 @@ namespace PhoneStore.Services.Implementations
             _productAttributeValueRepository = productAttributeValueRepository ?? throw new ArgumentNullException(nameof(productAttributeValueRepository));
             _productSerialRepository = productSerialRepository ?? throw new ArgumentNullException(nameof(productSerialRepository));
             _productModelRepository = productModelRepository ?? throw new ArgumentNullException(nameof(productModelRepository));
+            _productModelAttributeRepository = productModelAttributeRepository ?? throw new ArgumentNullException(nameof(productModelAttributeRepository));
             _productAttributeOptionService = productAttributeOptionService ?? throw new ArgumentNullException(nameof(productAttributeOptionService));
 
             EnsureSeedData();
@@ -167,7 +170,28 @@ namespace PhoneStore.Services.Implementations
                     UpdatedAt = model.UpdatedAt
                 };
 
-                return new ProductModelDetailViewModel(modelViewModel, variantViewModels);
+                var attributeIds = _productModelAttributeRepository.GetAttributeIdsByModel(modelId)?.ToList()
+                    ?? new List<int>();
+                var assignedAttributes = new List<ProductAttribute>();
+                if (attributeIds.Count > 0)
+                {
+                    var attributeLookup = _productAttributeRepository.GetAll()
+                        ?.GroupBy(a => a.Id)
+                        .ToDictionary(group => group.Key, group => group.First());
+
+                    if (attributeLookup != null)
+                    {
+                        foreach (var attributeId in attributeIds)
+                        {
+                            if (attributeLookup.TryGetValue(attributeId, out var attribute))
+                            {
+                                assignedAttributes.Add(attribute);
+                            }
+                        }
+                    }
+                }
+
+                return new ProductModelDetailViewModel(modelViewModel, variantViewModels, assignedAttributes);
             }
             catch (Exception ex)
             {
@@ -176,7 +200,26 @@ namespace PhoneStore.Services.Implementations
             }
         }
 
-        public bool SaveProductModel(ProductModel model)
+        public IReadOnlyList<int> GetModelAttributeIds(int modelId)
+        {
+            try
+            {
+                if (modelId <= 0)
+                {
+                    return Array.Empty<int>();
+                }
+
+                return _productModelAttributeRepository.GetAttributeIdsByModel(modelId)?.ToList()
+                    ?? new List<int>();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to load attributes for product model {modelId}", ex);
+                return Array.Empty<int>();
+            }
+        }
+
+        public bool SaveProductModel(ProductModel model, IEnumerable<int> attributeIds)
         {
             if (model == null)
             {
@@ -198,6 +241,9 @@ namespace PhoneStore.Services.Implementations
                 model.Slug = EnsureUniqueModelSlug(normalizedSlug, model.Id);
                 model.UpdatedAt = now;
 
+                var attributeIdList = attributeIds?.Where(id => id > 0).Distinct().ToList()
+                    ?? new List<int>();
+
                 if (model.Id <= 0)
                 {
                     model.CreatedAt = now;
@@ -208,6 +254,7 @@ namespace PhoneStore.Services.Implementations
                     _productModelRepository.Update(model);
                 }
 
+                _productModelAttributeRepository.ReplaceAttributesForModel(model.Id, attributeIdList);
                 _modelNameCache[model.Id] = model.Name ?? string.Empty;
                 return true;
             }
@@ -218,7 +265,7 @@ namespace PhoneStore.Services.Implementations
             }
         }
 
-        public ProductModel? DuplicateProductModel(int sourceModelId, string name, string? description, string? defaultImageUrl)
+        public ProductModel? DuplicateProductModel(int sourceModelId, string name, string? description, string? defaultImageUrl, IEnumerable<int> attributeIds)
         {
             try
             {
@@ -243,6 +290,14 @@ namespace PhoneStore.Services.Implementations
                 duplicate.Slug = EnsureUniqueModelSlug(baseSlug, 0);
 
                 _productModelRepository.Insert(duplicate);
+                var attributeIdList = attributeIds?.Where(id => id > 0).Distinct().ToList();
+                if (attributeIdList == null || attributeIdList.Count == 0)
+                {
+                    attributeIdList = _productModelAttributeRepository.GetAttributeIdsByModel(sourceModelId)?.ToList()
+                        ?? new List<int>();
+                }
+
+                _productModelAttributeRepository.ReplaceAttributesForModel(duplicate.Id, attributeIdList);
                 _modelNameCache[duplicate.Id] = duplicate.Name ?? string.Empty;
 
                 return duplicate;
