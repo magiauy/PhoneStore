@@ -142,11 +142,6 @@
                         Content="Create Product Model"
                         Click="CreateModelButton_Click"
                         Style="{StaticResource PrimaryButtonStyle}" />
-                    <Button
-                        x:Name="ManageProductsButton"
-                        Content="Quản lý sản phẩm"
-                        Click="ManageProductsButton_Click"
-                        Style="{StaticResource SecondaryButtonStyle}" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -291,6 +286,11 @@
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Button Content="Edit Model" Click="EditModelButton_Click" Style="{StaticResource SecondaryButtonStyle}" />
                             <Button Content="Duplicate Model" Click="DuplicateModelButton_Click" Style="{StaticResource SecondaryButtonStyle}" />
+                            <Button
+                                x:Name="ManageProductsButton"
+                                Content="Quản lý sản phẩm"
+                                Click="ManageProductsButton_Click"
+                                Style="{StaticResource SecondaryButtonStyle}" />
                         </StackPanel>
 
                         <StackPanel Spacing="8" >
