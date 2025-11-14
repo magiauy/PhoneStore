@@ -221,7 +221,7 @@ namespace PhoneStoreAdmin.View
 
         private void ManageProductsButton_Click(object sender, RoutedEventArgs e)
         {
-            if (App.CurrentWindow is PhoneStoreAdmin.MainWindow mainWindow)
+            if (App.Current is App app && app.CurrentWindow is PhoneStoreAdmin.MainWindow mainWindow)
             {
                 mainWindow.NavigateToPage(ProductManagementPageTag);
             }
