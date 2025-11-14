@@ -10,65 +10,17 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace PhoneStoreAdmin.View.Controls
 {
-    public sealed partial class ProductModelDialog : ContentControl
+    public sealed partial class ProductModelDialog : ContentDialog
     {
         public enum DialogMode
         {
             Create,
             Edit,
             Duplicate
-        }
-
-        public sealed class ModelAttributeSelection : INotifyPropertyChanged
-        {
-            private bool _isSelected;
-
-            public ModelAttributeSelection(ProductAttributeDefinition definition)
-            {
-                Definition = definition ?? throw new ArgumentNullException(nameof(definition));
-            }
-
-            public event PropertyChangedEventHandler? PropertyChanged;
-
-            public ProductAttributeDefinition Definition { get; }
-            public ProductAttribute Attribute => Definition.Attribute;
-            public int AttributeId => Attribute.Id;
-            public string DisplayName => Attribute.Name ?? string.Empty;
-            public string Description => Attribute.Note ?? string.Empty;
-            public Visibility DescriptionVisibility => string.IsNullOrWhiteSpace(Description) ? Visibility.Collapsed : Visibility.Visible;
-            public string DataTypeLabel => string.Format("Type: {0}", GetDataTypeDisplay(Attribute.DataType));
-
-            public bool IsSelected
-            {
-                get => _isSelected;
-                set
-                {
-                    if (_isSelected != value)
-                    {
-                        _isSelected = value;
-                        OnPropertyChanged(nameof(IsSelected));
-                    }
-                }
-            }
-
-            private static string GetDataTypeDisplay(AttributeDataType dataType)
-            {
-                return dataType switch
-                {
-                    AttributeDataType.NUMBER => "Number",
-                    AttributeDataType.DATE => "Date",
-                    AttributeDataType.BOOLEAN => "Yes/No",
-                    _ => "Text"
-                };
-            }
-
-            private void OnPropertyChanged(string propertyName)
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            }
         }
 
         private readonly IProductService _productService;
@@ -84,6 +36,8 @@ namespace PhoneStoreAdmin.View.Controls
         private bool _isImageValid = true;
 
         private IReadOnlyList<ProductAttributeDefinition> _attributeDefinitions = Array.Empty<ProductAttributeDefinition>();
+        private bool _attributesLoaded = false;
+        private int _pendingModelIdForAttributeSelection = 0;
 
         public ObservableCollection<ModelAttributeSelection> AttributeSelections { get; } = new();
 
@@ -94,7 +48,9 @@ namespace PhoneStoreAdmin.View.Controls
             InitializeComponent();
             _productService = App.GetService<IProductService>();
             _resourceLoader = new ResourceLoader();
-            LoadAttributeDefinitions();
+            
+            // Tải dữ liệu attributes asynchronously để tránh UI bị treo
+            _ = LoadAttributeDefinitionsAsync();
         }
 
         public void SetMode(DialogMode mode, ProductModelListItemViewModel? model)
@@ -117,6 +73,47 @@ namespace PhoneStoreAdmin.View.Controls
             HideAllErrors();
             UpdateAttributeSelectionsForModel(mode == DialogMode.Duplicate ? _sourceModelId : _currentModelId);
             ValidateAll();
+        }
+
+        private async Task LoadAttributeDefinitionsAsync()
+        {
+            try
+            {
+                // Chạy trên thread pool để tránh block UI thread
+                await Task.Run(() =>
+                {
+                    _attributeDefinitions = _productService.GetAttributeDefinitions() ?? Array.Empty<ProductAttributeDefinition>();
+                });
+
+                // Cập nhật UI trên UI thread
+                DispatcherQueue?.TryEnqueue(() =>
+                {
+                    AttributeSelections.Clear();
+                    foreach (var definition in _attributeDefinitions.OrderBy(d => d.Attribute?.Name ?? string.Empty))
+                    {
+                        AttributeSelections.Add(new ModelAttributeSelection(definition));
+                    }
+
+                    _attributesLoaded = true;
+                    UpdateAttributePlaceholder();
+                    
+                    // Nếu có pending model ID, apply selections ngay
+                    if (_pendingModelIdForAttributeSelection > 0)
+                    {
+                        var pendingId = _pendingModelIdForAttributeSelection;
+                        _pendingModelIdForAttributeSelection = 0;
+                        UpdateAttributeSelectionsForModel(pendingId);
+                    }
+                    else
+                    {
+                        ApplyAttributeAssignments(Array.Empty<int>());
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading attributes: {ex.Message}");
+            }
         }
 
         private void LoadAttributeDefinitions()
@@ -143,8 +140,10 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void UpdateAttributeSelectionsForModel(int modelId)
         {
-            if (AttributeSelections.Count == 0)
+            // Nếu attributes chưa load xong, lưu lại modelId để apply sau
+            if (!_attributesLoaded || AttributeSelections.Count == 0)
             {
+                _pendingModelIdForAttributeSelection = modelId;
                 return;
             }
 
