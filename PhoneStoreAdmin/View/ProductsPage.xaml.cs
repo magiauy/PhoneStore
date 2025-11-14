@@ -4,6 +4,7 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStore.Services.Interfaces;
 using PhoneStoreAdmin.View.Controls;
 using PhoneStore.Services.ViewModels;
+using PhoneStoreRepository.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -168,32 +169,37 @@ namespace PhoneStoreAdmin.View
 
         private async Task ShowProductModelDialogAsync(ProductModelDialog.DialogMode mode, ProductModelListItemViewModel? model)
         {
-            var dialogContent = new ProductModelDialog();
-            dialogContent.SetMode(mode, model);
-            dialogContent.ModelSaved += ProductModelDialog_ModelSaved;
-
-            var dialog = new ContentDialog
+            try
             {
-                Title = GetModelDialogTitle(mode, model?.Name),
-                PrimaryButtonText = _resourceLoader.GetString("DialogSaveButton"),
-                CloseButtonText = _resourceLoader.GetString("DialogCloseButton"),
-                Content = dialogContent,
-                XamlRoot = XamlRoot
-            };
-
-            dialog.PrimaryButtonClick += (_, args) =>
-            {
-                if (!dialogContent.Save())
+                var dialog = new ProductModelDialog
                 {
-                    args.Cancel = true;
-                }
-            };
+                    Title = GetModelDialogTitle(mode, model?.Name),
+                    PrimaryButtonText = _resourceLoader.GetString("DialogSaveButton"),
+                    CloseButtonText = _resourceLoader.GetString("DialogCloseButton"),
+                    XamlRoot = XamlRoot
+                };
+                
+                dialog.SetMode(mode, model);
+                dialog.ModelSaved += ProductModelDialog_ModelSaved;
 
-            dialog.Closed += (_, _) => dialogContent.Cancel();
+                dialog.PrimaryButtonClick += (_, args) =>
+                {
+                    if (!dialog.Save())
+                    {
+                        args.Cancel = true;
+                    }
+                };
 
-            _currentDialog = dialog;
-            await dialog.ShowAsync();
-            _currentDialog = null;
+                dialog.Closed += (_, _) => dialog.Cancel();
+
+                _currentDialog = dialog;
+                await dialog.ShowAsync();
+                _currentDialog = null;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error opening product model dialog: {ex.Message}", ex);
+            }
         }
 
         private void ProductModelDialog_ModelSaved(object? sender, ProductModelListItemViewModel e)

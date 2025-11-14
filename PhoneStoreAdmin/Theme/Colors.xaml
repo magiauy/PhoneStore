@@ -25,6 +25,9 @@
     <Color x:Key="ColorOnSecondary">#FF1E1E2F</Color>
     <SolidColorBrush x:Key="BrushSecondary" Color="{StaticResource ColorSecondary}" />
     <SolidColorBrush x:Key="BrushOnSecondary" Color="{StaticResource ColorOnSecondary}" />
+    <!-- BrushSecondaryText -->
+    <SolidColorBrush x:Key="BrushSecondaryText" Color="{StaticResource ColorOnSecondary}" />
+    
 
     <!--  Accent  -->
     <Color x:Key="ColorAccent">#FF5CE1E6</Color>
