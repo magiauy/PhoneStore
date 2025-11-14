@@ -53,14 +53,19 @@ namespace PhoneStore.Services.Interfaces
         ProductModelDetailViewModel? GetProductModelDetail(int modelId);
 
         /// <summary>
-        /// Create or update product model metadata.
+        /// Retrieve attribute identifiers linked to a product model.
         /// </summary>
-        bool SaveProductModel(ProductModel model);
+        IReadOnlyList<int> GetModelAttributeIds(int modelId);
+
+        /// <summary>
+        /// Create or update product model metadata together with attribute assignments.
+        /// </summary>
+        bool SaveProductModel(ProductModel model, IEnumerable<int> attributeIds);
 
         /// <summary>
         /// Duplicate product model metadata (without variants) into a new model entry.
         /// </summary>
-        ProductModel? DuplicateProductModel(int sourceModelId, string name, string? description, string? defaultImageUrl);
+        ProductModel? DuplicateProductModel(int sourceModelId, string name, string? description, string? defaultImageUrl, IEnumerable<int> attributeIds);
 
         /// <summary>
         /// Retrieve product attribute definitions including available options.
