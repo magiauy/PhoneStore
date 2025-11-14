@@ -2,11 +2,11 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Windows.ApplicationModel.Resources;
-using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Models.Enums;
-using PhoneStoreAdmin.Repositories.Interfaces;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
+using PhoneStoreRepository.Repositories.Interfaces;
 using PhoneStoreAdmin.Services.Interfaces;
-using PhoneStoreAdmin.Utils;
+using PhoneStoreRepository.Utils;
 using PhoneStoreAdmin.View.Controls;
 using System;
 using System.Collections.Generic;

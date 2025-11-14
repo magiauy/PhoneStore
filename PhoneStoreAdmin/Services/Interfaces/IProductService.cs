@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Models.Enums;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
 using PhoneStoreAdmin.ViewModels;
 
 namespace PhoneStoreAdmin.Services.Interfaces

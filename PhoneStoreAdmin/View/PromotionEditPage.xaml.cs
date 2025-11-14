@@ -7,7 +7,7 @@ using PhoneStoreAdmin.View.Controls;
 using System.Collections.ObjectModel;
 using System;
 using Microsoft.Windows.ApplicationModel.Resources;
-using PhoneStoreAdmin.Utils;
+using PhoneStoreRepository.Utils;
 
 namespace PhoneStoreAdmin.View
 {
@@ -221,7 +221,7 @@ namespace PhoneStoreAdmin.View
             var name = PromotionNameTextBox.Text?.Trim() ?? string.Empty;
             if (string.IsNullOrEmpty(name)) return;
 
-            var updated = new PhoneStoreAdmin.Models.Promotion
+            var updated = new PhoneStoreRepository.Models.Promotion
             {
                 Id = _currentPromotion.Id,
                 Name = name,

@@ -1,6 +1,6 @@
-using PhoneStoreAdmin.Models;
+using PhoneStoreRepository.Models;
 using PhoneStoreAdmin.Services.Interfaces;
-using PhoneStoreAdmin.Utils;
+using PhoneStoreRepository.Utils;
 using System;
 using System.Linq;
 using System.Threading.Tasks;

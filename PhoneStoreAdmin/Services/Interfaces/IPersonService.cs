@@ -1,4 +1,4 @@
-using PhoneStoreAdmin.Models;
+using PhoneStoreRepository.Models;
 using System.Threading.Tasks;
 
 namespace PhoneStoreAdmin.Services.Interfaces

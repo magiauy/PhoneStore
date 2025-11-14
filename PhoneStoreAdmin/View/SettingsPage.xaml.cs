@@ -8,12 +8,12 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.AppLifecycle;
 using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
-using PhoneStoreAdmin.Models;
+using PhoneStoreRepository.Models;
 using PhoneStoreAdmin;
 using Windows.Globalization;
 using PhoneStoreAdmin.Helpers;
 using Windows.ApplicationModel.Core;
-using PhoneStoreAdmin.Utils;
+using PhoneStoreRepository.Utils;
 
 
 namespace PhoneStoreAdmin.View

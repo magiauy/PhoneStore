@@ -1,6 +1,6 @@
 using PhoneStoreAdmin.Helpers;
-using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Models.Enums;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
