@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
 using PhoneStoreAdmin.Services;
 using PhoneStoreAdmin.Services.Interfaces;
 using PhoneStoreRepository.Utils;
@@ -587,7 +588,7 @@ namespace PhoneStoreAdmin.View
                 Id = account.Id,
                 Username = account.Username,
                 FullName = account.Person?.FullName ?? _resourceLoader.GetString("Common/NotAvailable"),
-                PersonType = account.Person?.PersonType == Models.Enums.PersonType.EMPLOYEE 
+                PersonType = account.Person?.PersonType == PersonType.EMPLOYEE 
                     ? LocalizationHelper.GetString("Accounts_Type_Employee")
                     : LocalizationHelper.GetString("Accounts_Type_Customer"),
                 IsActive = account.IsActive,

@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:PhoneStoreAdmin.View.Controls"
-    xmlns:models="using:PhoneStoreAdmin.Models"
+    xmlns:models="using:PhoneStoreRepository.Models"
     Title="Select Supplier"
     Width="1000"
     Height="640"
