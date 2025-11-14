@@ -83,7 +83,7 @@ namespace PhoneStoreAdmin.View
 
         public bool IsEditMode => _editingPurchaseOrderId.HasValue;
 
-        public string SaveButtonText => IsEditMode 
+        public string SaveButtonText => IsEditMode
             ? _resourceLoader.GetString("UpdatePurchaseOrderButton")
             : _resourceLoader.GetString("CreatePurchaseOrderButton");
 
@@ -102,7 +102,8 @@ namespace PhoneStoreAdmin.View
 
             PurchaseOrderIdLabel.Text = _resourceLoader.GetString("PurchaseOrderIdLabel") + (PurchaseOrderService.CountAll() + 1).ToString();
             // Subscribe to collection changes
-            PurchaseOrderItems.CollectionChanged += (s, e) => {
+            PurchaseOrderItems.CollectionChanged += (s, e) =>
+            {
                 CalculatePurchaseOrderTotal();
                 OnPropertyChanged(nameof(HasPurchaseOrderItems));
             };
@@ -111,14 +112,14 @@ namespace PhoneStoreAdmin.View
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            
+
             // Check if navigated with a purchase order ID for editing
             if (e.Parameter is int purchaseOrderId)
             {
                 _editingPurchaseOrderId = purchaseOrderId;
                 LoadPurchaseOrderForEdit();
             }
-            
+
             LoadData();
         }
 
@@ -149,7 +150,7 @@ namespace PhoneStoreAdmin.View
 
                 // Update UI title
                 PurchaseOrderIdLabel.Text = $"Edit {_resourceLoader.GetString("PurchaseOrderIdLabel")} #{_originalPurchaseOrder.Id}";
-                
+
                 // Load supplier
                 _selectedSupplier = SupplierService.GetSupplierById(_originalPurchaseOrder.SupplierId);
                 if (_selectedSupplier != null)
@@ -167,11 +168,7 @@ namespace PhoneStoreAdmin.View
 
                 // Load purchase order lines
                 PurchaseOrderItems.Clear();
-                
-                // Get the batch for this purchase order to load serials
-                var batches = BatchesRepository.GetByPurchaseOrderId(_originalPurchaseOrder.Id);
-                var batch = batches.FirstOrDefault();
-                
+
                 foreach (var line in _originalPurchaseOrder.PurchaseOrderLines)
                 {
                     var product = ProductRepository.GetById(line.ProductId);
@@ -187,22 +184,23 @@ namespace PhoneStoreAdmin.View
                             ParentPage = this
                         };
 
-                        // Load serial entries if product is serial tracked and batch exists
-                        if (product.IsSerialTracked && batch != null)
+                        // Load serial entries if product is serial tracked
+                        if (product.IsSerialTracked)
                         {
-                            // Get all serials for this product in this batch
+                            // Get serials by purchase_order_line_id (for DRAFT status with batch_id = NULL)
                             var allProductSerials = ProductSerialRepository.GetByProductId(line.ProductId);
-                            // Filter by batch ID
-                            var serials = allProductSerials.Where(s => s.BatchId == batch.id).ToList();
-                            
+                            var serials = allProductSerials
+                                .Where(s => s.PurchaseOrderLineId == line.Id)
+                                .ToList();
+
                             int index = 1;
                             foreach (var serial in serials)
                             {
                                 var serialEntry = new Controls.SerialEntry
                                 {
                                     Index = index++,
-                                    SerialNumber = serial.SerialNumber,
-                                    Imei1 = serial.Imei1,
+                                    SerialNumber = serial.SerialNumber ?? string.Empty,
+                                    Imei1 = serial.Imei1 ?? string.Empty,
                                     Imei2 = serial.Imei2 ?? string.Empty
                                 };
                                 item.SerialEntries.Add(serialEntry);
@@ -214,23 +212,6 @@ namespace PhoneStoreAdmin.View
                 }
 
                 CalculatePurchaseOrderTotal();
-                
-                // Show info message after page is fully loaded and has XamlRoot
-                // Schedule it to run after the page is loaded
-                this.Loaded += async (s, e) =>
-                {
-                    // Show info message if this is a DRAFT PO with serial-tracked products
-                    if (_originalPurchaseOrder != null && _originalPurchaseOrder.Status == PoStatus.DRAFT)
-                    {
-                        var hasSerialTrackedProducts = PurchaseOrderItems.Any(i => i.IsSerialTracked);
-                        if (hasSerialTrackedProducts && batch == null)
-                        {
-                            await ShowMessageDialog(
-                                _resourceLoader.GetString("AddPO_InfoTitle"),
-                                _resourceLoader.GetString("AddPO_DraftSerialMessage"));
-                        }
-                    }
-                };
             }
             catch (Exception ex)
             {
@@ -281,7 +262,7 @@ namespace PhoneStoreAdmin.View
             catch (Exception ex)
             {
                 await ShowMessageDialog(
-                    _resourceLoader.GetString("PurchaseOrderErrorTitle"), 
+                    _resourceLoader.GetString("PurchaseOrderErrorTitle"),
                     $"{_resourceLoader.GetString("ErrorSelectSupplier")}: {ex.Message}");
             }
         }
@@ -291,7 +272,7 @@ namespace PhoneStoreAdmin.View
             if (!HasPurchaseOrderItems)
             {
                 await ShowMessageDialog(
-                    _resourceLoader.GetString("NotificationTitle"), 
+                    _resourceLoader.GetString("NotificationTitle"),
                     _resourceLoader.GetString("PleaseSelectSupplierAndProducts"));
                 return;
             }
@@ -299,7 +280,7 @@ namespace PhoneStoreAdmin.View
             if (SelectedSupplier == null)
             {
                 await ShowMessageDialog(
-                    _resourceLoader.GetString("NotificationTitle"), 
+                    _resourceLoader.GetString("NotificationTitle"),
                     _resourceLoader.GetString("PleaseSelectSupplier"));
                 return;
             }
@@ -316,8 +297,8 @@ namespace PhoneStoreAdmin.View
                 }
 
                 // Check if all serial entries have complete information (Serial Number and IMEI1)
-                var missingInfo = item.SerialEntries.Where(s => 
-                    string.IsNullOrWhiteSpace(s.SerialNumber) || 
+                var missingInfo = item.SerialEntries.Where(s =>
+                    string.IsNullOrWhiteSpace(s.SerialNumber) ||
                     string.IsNullOrWhiteSpace(s.Imei1)).ToList();
 
                 if (missingInfo.Any())
@@ -329,11 +310,11 @@ namespace PhoneStoreAdmin.View
             // If there are incomplete serial items, show error and don't save
             if (incompleteSerialItems.Any())
             {
-                var errorMessage = "Vui lòng nhập thông tin Serial Number và IMEI cho các sản phẩm sau:\n\n" + 
+                var errorMessage = "Vui lòng nhập thông tin Serial Number và IMEI cho các sản phẩm sau:\n\n" +
                     string.Join("\n", incompleteSerialItems);
-                
+
                 await ShowMessageDialog(
-                    "Thông tin chưa đầy đủ", 
+                    "Thông tin chưa đầy đủ",
                     errorMessage);
                 return;
             }
@@ -389,67 +370,74 @@ namespace PhoneStoreAdmin.View
                     purchaseOrder.PurchaseOrderLines.Add(line);
                 }
 
-                // Save or Update to database
-                if (_editingPurchaseOrderId.HasValue)
+                // Prepare serials dictionary (lineIndex -> serials list)
+                var serialsByLineIndex = new Dictionary<int, List<ProductSerial>>();
+                for (int i = 0; i < PurchaseOrderItems.Count; i++)
                 {
-                    PurchaseOrderService.Update(purchaseOrder);
-                }
-                else
-                {
-                    PurchaseOrderService.Insert(purchaseOrder);
-                }
-
-                // Only save serial numbers if purchase order has batches (status = RECEIVED)
-                // For DRAFT purchase orders, serials will be saved when marking as RECEIVED
-                var batches = BatchesRepository.GetByPurchaseOrderId(purchaseOrder.Id);
-                var batch = batches.FirstOrDefault();
-
-                if (batch != null)
-                {
-                    foreach (var item in PurchaseOrderItems.Where(i => i.IsSerialTracked))
+                    var item = PurchaseOrderItems[i];
+                    if (item.IsSerialTracked && item.SerialEntries.Count > 0)
                     {
-                        // Delete existing serials for this batch and product (in case of update)
-                        var existingSerials = ProductSerialRepository.GetByProductId(item.ProductId)
-                            .Where(s => s.BatchId == batch.id).ToList();
-                        foreach (var existingSerial in existingSerials)
+                        var serials = new List<ProductSerial>();
+                        foreach (var entry in item.SerialEntries)
                         {
-                            ProductSerialRepository.Delete(existingSerial.Id);
-                        }
-                        
-                        // Save new serial numbers
-                        foreach (var serialEntry in item.SerialEntries)
-                        {
-                            var productSerial = new ProductSerial
+                            var serial = new ProductSerial
                             {
                                 ProductId = item.ProductId,
-                                SerialNumber = serialEntry.SerialNumber,
-                                Imei1 = serialEntry.Imei1,
-                                Imei2 = string.IsNullOrWhiteSpace(serialEntry.Imei2) ? null : serialEntry.Imei2,
-                                BatchId = batch.id,
-                                Status = SerialStatus.IN_STOCK,
-                                PurchaseOrderLineId = purchaseOrder.PurchaseOrderLines
-                                    .FirstOrDefault(l => l.ProductId == item.ProductId)?.Id,
+                                SerialNumber = entry.SerialNumber,
+                                Imei1 = entry.Imei1,
+                                Imei2 = string.IsNullOrWhiteSpace(entry.Imei2) ? null : entry.Imei2,
+                                Status = SerialStatus.RESERVED, // Will be set by service
                                 Note = null
                             };
+                            serials.Add(serial);
+                        }
+                        serialsByLineIndex[i] = serials;
+                    }
+                }
 
-                            ProductSerialRepository.Insert(productSerial);
+                // Save or Update to database WITH SERIALS
+                if (_editingPurchaseOrderId.HasValue)
+                {
+                    // For update, delete old serials first
+                    var existingSerials = ProductSerialRepository.GetAll()
+                         .Where(s => s.PurchaseOrderLineId.HasValue &&
+                        purchaseOrder.PurchaseOrderLines.Any(l => l.Id == s.PurchaseOrderLineId.Value))
+                          .ToList();
+                    foreach (var serial in existingSerials)
+                    {
+                        ProductSerialRepository.Delete(serial.Id);
+                    }
+
+                    PurchaseOrderService.Update(purchaseOrder);
+
+                    // Add new serials after update
+                    foreach (var kvp in serialsByLineIndex)
+                    {
+                        var lineIndex = kvp.Key;
+                        var line = purchaseOrder.PurchaseOrderLines.ElementAtOrDefault(lineIndex);
+                        if (line != null)
+                        {
+                            PurchaseOrderService.AddProductSerials(purchaseOrder.Id, line.Id, kvp.Value);
                         }
                     }
                 }
                 else
                 {
-                    // Log that serials will be saved later when marked as RECEIVED
-                    Logger.Info($"Purchase order {purchaseOrder.Id} is in DRAFT status. Serial numbers will be saved when marked as RECEIVED.");
+                    // For new PO, pass serials directly to Insert
+                    PurchaseOrderService.Insert(purchaseOrder, serialsByLineIndex);
                 }
 
+                // Remove the old batch-dependent serial saving logic
+                // Serial numbers are now saved in Insert() with status = RESERVED
+
                 var successMessage = _editingPurchaseOrderId.HasValue
-                    ? _resourceLoader.GetString("AddPO_UpdateSuccessMessage")
-                    : _resourceLoader.GetString("PurchaseOrderCreatedSuccessfully");
+                         ? _resourceLoader.GetString("AddPO_UpdateSuccessMessage")
+                 : _resourceLoader.GetString("PurchaseOrderCreatedSuccessfully");
 
                 await ShowMessageDialog(
-                    _resourceLoader.GetString("PurchaseOrderSuccessTitle"), 
+          _resourceLoader.GetString("PurchaseOrderSuccessTitle"),
                     $"{successMessage}. {_resourceLoader.GetString("TotalAmountLabel")}: {FormatPrice(TotalAmount)}");
-                
+
                 // Navigate back or clear form
                 if (_editingPurchaseOrderId.HasValue)
                 {
@@ -467,7 +455,7 @@ namespace PhoneStoreAdmin.View
                     : _resourceLoader.GetString("CannotCreatePurchaseOrder");
 
                 await ShowMessageDialog(
-                    _resourceLoader.GetString("PurchaseOrderErrorTitle"), 
+                    _resourceLoader.GetString("PurchaseOrderErrorTitle"),
                     $"{errorMessage}: {ex.Message}");
             }
         }
@@ -519,8 +507,8 @@ namespace PhoneStoreAdmin.View
                 {
                     Id = _editingPurchaseOrderId ?? 0,
                     SupplierId = SelectedSupplier.Id,
-                    CreatedBy = _editingPurchaseOrderId.HasValue && _originalPurchaseOrder != null 
-                        ? _originalPurchaseOrder.CreatedBy 
+                    CreatedBy = _editingPurchaseOrderId.HasValue && _originalPurchaseOrder != null
+                        ? _originalPurchaseOrder.CreatedBy
                         : 1,
                     OrderDate = OrderDate,
                     Status = PoStatus.DRAFT,
@@ -556,7 +544,7 @@ namespace PhoneStoreAdmin.View
 
                 // Open file save dialog
                 var savePicker = new Windows.Storage.Pickers.FileSavePicker();
-                
+
                 // Get window handle - use a simpler approach
                 var window = GetWindowForElement(this);
                 if (window == null)
@@ -564,7 +552,7 @@ namespace PhoneStoreAdmin.View
                     Logger.Error("Could not find window for file picker");
                     throw new InvalidOperationException("Could not find window");
                 }
-                
+
                 var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
                 WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
 
@@ -658,12 +646,12 @@ namespace PhoneStoreAdmin.View
                 AllProducts.Clear();
                 FilteredProducts.Clear();
                 var products = ProductRepository.GetAll();
-                
+
                 foreach (var product in products.Where(p => p.Status == ProductStatus.ACTIVE))
                 {
                     var category = CategoryRepository.GetById(product.CategoryId);
                     var brand = product.BrandId.HasValue ? BrandRepository.GetById(product.BrandId.Value) : null;
-                    
+
                     var item = new PurchaseOrderProductItem
                     {
                         ProductId = product.Id,
@@ -674,7 +662,7 @@ namespace PhoneStoreAdmin.View
                         CurrentCost = product.Cost,
                         ParentPage = this
                     };
-                    
+
                     AllProducts.Add(item);
                     FilteredProducts.Add(item);
                 }
@@ -682,7 +670,7 @@ namespace PhoneStoreAdmin.View
             catch (Exception ex)
             {
                 _ = ShowMessageDialog(
-                    _resourceLoader.GetString("PurchaseOrderErrorTitle"), 
+                    _resourceLoader.GetString("PurchaseOrderErrorTitle"),
                     $"{_resourceLoader.GetString("CannotLoadData")}: {ex.Message}");
             }
         }
@@ -696,7 +684,7 @@ namespace PhoneStoreAdmin.View
             // Filter by search text
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
-                filteredItems = filteredItems.Where(p => 
+                filteredItems = filteredItems.Where(p =>
                     p.ProductName.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
                     p.Sku.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
                     p.BrandName.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
@@ -770,7 +758,7 @@ namespace PhoneStoreAdmin.View
             {
                 // Get the product from repository to check if it's serial tracked
                 var fullProduct = ProductRepository.GetById(product.ProductId);
-                
+
                 if (fullProduct == null)
                 {
                     await ShowMessageDialog(
@@ -780,13 +768,13 @@ namespace PhoneStoreAdmin.View
                 }
 
                 var existingItem = PurchaseOrderItems.FirstOrDefault(item => item.ProductId == product.ProductId);
-                
+
                 // If product is serial tracked, show dialog to enter serial numbers
                 if (fullProduct.IsSerialTracked)
                 {
                     // Ask for quantity first if it's a new item
                     int quantityToAdd = 1;
-                    
+
                     if (existingItem != null)
                     {
                         // For existing items, ask if they want to add more
@@ -831,9 +819,58 @@ namespace PhoneStoreAdmin.View
                     };
 
                     var dialogResult = await serialDialog.ShowAsync();
-                    
+
                     if (dialogResult == ContentDialogResult.Primary)
                     {
+                        // VALIDATE: Check for duplicates with existing serials in the purchase order
+                        var allExistingSerials = PurchaseOrderItems
+                            .SelectMany(i => i.SerialEntries)
+                            .Select(e => e.SerialNumber?.Trim()?.ToLower())
+                            .Where(s => !string.IsNullOrWhiteSpace(s))
+                            .ToHashSet();
+
+                        var newSerials = serialDialog.SerialEntries
+                            .Select(e => e.SerialNumber?.Trim()?.ToLower())
+                            .Where(s => !string.IsNullOrWhiteSpace(s))
+                            .ToList();
+
+                        var duplicatesWithExisting = newSerials
+                            .Where(s => allExistingSerials.Contains(s))
+                            .ToList();
+
+                        if (duplicatesWithExisting.Any())
+                        {
+                            await ShowMessageDialog(
+                                "Serial bị trùng",
+                                $"Các serial sau đã tồn tại trong phiếu nhập:\n\n{string.Join(", ", duplicatesWithExisting.Select(s => s.ToUpper()))}\n\nVui lòng nhập serial khác.");
+                            return;
+                        }
+
+                        // VALIDATE: Check for duplicates with existing serials in database
+                        try
+                        {
+                            var productSerialRepository = ProductSerialRepository;
+                            foreach (var newSerial in newSerials.Distinct())
+                            {
+                                // Use TryGet instead of Get to avoid exception
+                                var existingSerial = productSerialRepository.TryGetBySerialNumber(newSerial);
+                                if (existingSerial != null)
+                                {
+                                    await ShowMessageDialog(
+                                        "Serial đã tồn tại",
+                                        $"Serial '{newSerial.ToUpper()}' đã tồn tại trong hệ thống.\n\nVui lòng nhập serial khác.");
+                                    return;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            await ShowMessageDialog(
+                                "Lỗi kiểm tra serial",
+                                $"Không thể kiểm tra serial trong hệ thống: {ex.Message}");
+                            return;
+                        }
+
                         if (existingItem != null)
                         {
                             // Add to existing item
@@ -901,6 +938,81 @@ namespace PhoneStoreAdmin.View
             }
         }
 
+        public async void OnImportFromExcel(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var dialog = new ImportPurchaseOrderDialog
+                {
+                    XamlRoot = this.XamlRoot
+                };
+
+                var result = await dialog.ShowAsync();
+
+                if (result == ContentDialogResult.Primary && dialog.ValidatedProducts.Any())
+                {
+                    // Add imported products to purchase order
+                    foreach (var (product, quantity, serials) in dialog.ValidatedProducts)
+                    {
+                        var existingItem = PurchaseOrderItems.FirstOrDefault(item => item.ProductId == product.Id);
+
+                        if (existingItem != null && product.IsSerialTracked)
+                        {
+                            // For serial-tracked products, add new serials
+                            existingItem.Quantity += quantity;
+
+                            int startIndex = existingItem.SerialEntries.Count + 1;
+                            for (int i = 0; i < serials.Count; i++)
+                            {
+                                var entry = serials[i];
+                                entry.Index = startIndex + i;
+                                existingItem.SerialEntries.Add(entry);
+                            }
+                        }
+                        else if (existingItem != null)
+                        {
+                            // For non-serial tracked, just add quantity
+                            existingItem.Quantity += quantity;
+                        }
+                        else
+                        {
+                            // Create new item
+                            var newItem = new PurchaseOrderLineItem
+                            {
+                                ProductId = product.Id,
+                                ProductName = product.Name,
+                                UnitCost = product.Cost,
+                                Quantity = quantity,
+                                IsSerialTracked = product.IsSerialTracked,
+                                ParentPage = this
+                            };
+
+                            // Add serials if serial-tracked
+                            if (product.IsSerialTracked)
+                            {
+                                foreach (var entry in serials)
+                                {
+                                    newItem.SerialEntries.Add(entry);
+                                }
+                            }
+
+                            PurchaseOrderItems.Add(newItem);
+                        }
+                    }
+
+                    await ShowMessageDialog(
+                        "Import thành công",
+                        $"Đã import {dialog.ValidatedProducts.Count} sản phẩm với tổng {dialog.ValidatedProducts.Sum(p => p.quantity)} items.");
+                }
+            }
+            catch (Exception ex)
+            {
+                await ShowMessageDialog(
+                    "Import Error",
+                    $"Failed to import Excel: {ex.Message}");
+            }
+        }
+
         private async System.Threading.Tasks.Task ShowMessageDialog(string title, string content)
         {
             ContentDialog dialog = new ContentDialog()
@@ -920,14 +1032,14 @@ namespace PhoneStoreAdmin.View
             // Simple approach: get MainWindow from App
             var app = Application.Current as App;
             var currentWindow = app?.CurrentWindow;
-            
+
             // If current window is LoginWindow, it might have been replaced by MainWindow
             // Try to find the window that contains this element
             if (currentWindow != null && currentWindow is MainWindow)
             {
                 return currentWindow;
             }
-            
+
             // Fallback: return current window anyway
             return currentWindow;
         }
@@ -1039,7 +1151,7 @@ namespace PhoneStoreAdmin.View
         }
 
         public Visibility SerialExpanderVisibility => IsSerialTracked && SerialEntries.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        
+
         public Visibility EditSerialsButtonVisibility => IsSerialTracked ? Visibility.Visible : Visibility.Collapsed;
 
         public decimal TotalCost => UnitCost * Quantity;
