@@ -181,6 +181,19 @@
                             ItemsSource="{x:Bind Brands}"
                             SelectedIndex="0"
                             SelectionChanged="{x:Bind OnBrandSelectionChanged}" />
+
+                        <!--  Import from Excel Button  -->
+                        <Button
+                            x:Name="ImportExcelButton"
+                            VerticalAlignment="Bottom"
+                            Click="{x:Bind OnImportFromExcel}"
+                            Style="{StaticResource AccentButtonStyle}"
+                            ToolTipService.ToolTip="Import products with serial/IMEI from Excel file">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon FontSize="16" Glyph="&#xE8B5;" />
+                                <TextBlock Text="Import Excel" />
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
 
                     <!--  Products List  -->
