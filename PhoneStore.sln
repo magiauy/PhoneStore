@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11201.2 d18.0
+VisualStudioVersion = 18.0.11201.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneStoreUser", "PhoneStoreUser\PhoneStoreUser.csproj", "{D6084630-3026-4AEB-9727-B777A384E15E}"
 EndProject
@@ -46,22 +46,22 @@ Global
 		{D41AA5F0-C3FC-4125-B958-5BB19D753BFD}.Release|ARM64.ActiveCfg = Release|ARM64
 		{D41AA5F0-C3FC-4125-B958-5BB19D753BFD}.Release|ARM64.Build.0 = Release|ARM64
 		{D41AA5F0-C3FC-4125-B958-5BB19D753BFD}.Release|ARM64.Deploy.0 = Release|ARM64
-                {D41AA5F0-C3FC-4125-B958-5BB19D753BFD}.Release|x64.ActiveCfg = Release|x64
-                {D41AA5F0-C3FC-4125-B958-5BB19D753BFD}.Release|x64.Build.0 = Release|x64
-                {D41AA5F0-C3FC-4125-B958-5BB19D753BFD}.Release|x64.Deploy.0 = Release|x64
-                {5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-                {5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-                {5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Debug|ARM64.ActiveCfg = Debug|Any CPU
-                {5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Debug|ARM64.Build.0 = Debug|Any CPU
-                {5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Debug|x64.ActiveCfg = Debug|Any CPU
-                {5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Debug|x64.Build.0 = Debug|Any CPU
-                {5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-                {5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Release|Any CPU.Build.0 = Release|Any CPU
-                {5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Release|ARM64.ActiveCfg = Release|Any CPU
-                {5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Release|ARM64.Build.0 = Release|Any CPU
-                {5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Release|x64.ActiveCfg = Release|Any CPU
-                {5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Release|x64.Build.0 = Release|Any CPU
-        EndGlobalSection
+		{D41AA5F0-C3FC-4125-B958-5BB19D753BFD}.Release|x64.ActiveCfg = Release|x64
+		{D41AA5F0-C3FC-4125-B958-5BB19D753BFD}.Release|x64.Build.0 = Release|x64
+		{D41AA5F0-C3FC-4125-B958-5BB19D753BFD}.Release|x64.Deploy.0 = Release|x64
+		{5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Debug|x64.Build.0 = Debug|Any CPU
+		{5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Release|ARM64.Build.0 = Release|Any CPU
+		{5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Release|x64.ActiveCfg = Release|Any CPU
+		{5E9B50FE-711E-498E-8900-04EBACC8E7B8}.Release|x64.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
