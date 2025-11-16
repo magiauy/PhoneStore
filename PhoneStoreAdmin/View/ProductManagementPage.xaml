@@ -242,7 +242,9 @@
                 Style="{StaticResource CardBorderStyle}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <Grid>
-                        <Grid x:Load="{x:Bind HasSelectedProduct, Mode=OneWay}">
+                        <Grid
+                            x:Name="SelectedProductDetailsGrid"
+                            x:Load="{x:Bind HasSelectedProduct, Mode=OneWay}">
                             <StackPanel Spacing="20">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -398,6 +400,7 @@
                         </Grid>
 
                         <StackPanel
+                            x:Name="NoSelectionPlaceholder"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             Spacing="8"
