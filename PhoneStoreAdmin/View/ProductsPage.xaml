@@ -6,6 +6,7 @@
     xmlns:converters="using:PhoneStoreAdmin.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:PhoneStoreAdmin.View"
+    xmlns:models="using:PhoneStoreRepository.Models"
     xmlns:viewModels="using:PhoneStore.Services.ViewModels"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Background="{StaticResource BrushBackground}"
@@ -294,8 +295,115 @@
                                 Style="{StaticResource SecondaryButtonStyle}" />
                         </StackPanel>
 
-                        <StackPanel Spacing="8" >
-                            <TextBlock Text="Variants" FontSize="20" FontWeight="SemiBold"/>
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Model attributes" FontSize="20" FontWeight="SemiBold" />
+                            <TextBlock
+                                Text="No attributes configured for this model."
+                                Foreground="{StaticResource BrushTextSecondary}"
+                                Visibility="{x:Bind SelectedModelHasNoAttributes, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
+                            <ItemsControl
+                                ItemsSource="{x:Bind SelectedModelAttributes, Mode=OneWay}"
+                                Visibility="{x:Bind SelectedModelHasAttributes, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Spacing="8" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:ProductAttribute">
+                                        <Border
+                                            Background="{StaticResource BrushSurface}"
+                                            BorderBrush="{StaticResource BrushBorder}"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            Padding="12">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="{x:Bind Name}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                                <TextBlock
+                                                    Text="{x:Bind DataType}"
+                                                    FontSize="12"
+                                                    Foreground="{StaticResource BrushTextSecondary}" />
+                                                <TextBlock
+                                                    Text="{x:Bind Note}"
+                                                    FontSize="12"
+                                                    Foreground="{StaticResource BrushTextSecondary}"
+                                                    TextWrapping="WrapWholeWords" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <Grid ColumnSpacing="24">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="8">
+                                <TextBlock Text="Brands" FontSize="18" FontWeight="SemiBold" />
+                                <TextBlock
+                                    Text="No brand information available."
+                                    Foreground="{StaticResource BrushTextSecondary}"
+                                    Visibility="{x:Bind SelectedModelHasNoBrands, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
+                                <ItemsControl
+                                    ItemsSource="{x:Bind SelectedModelBrandNames, Mode=OneWay}"
+                                    Visibility="{x:Bind SelectedModelHasBrands, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapGrid Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="x:String">
+                                            <Border
+                                                Background="{StaticResource BrushSurface}"
+                                                BorderBrush="{StaticResource BrushBorder}"
+                                                BorderThickness="1"
+                                                CornerRadius="16"
+                                                Margin="0,0,8,8"
+                                                Padding="12,6">
+                                                <TextBlock Text="{x:Bind}" FontSize="13" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="8">
+                                <TextBlock Text="Catalogs" FontSize="18" FontWeight="SemiBold" />
+                                <TextBlock
+                                    Text="No catalog information available."
+                                    Foreground="{StaticResource BrushTextSecondary}"
+                                    Visibility="{x:Bind SelectedModelHasNoCategories, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
+                                <ItemsControl
+                                    ItemsSource="{x:Bind SelectedModelCategoryNames, Mode=OneWay}"
+                                    Visibility="{x:Bind SelectedModelHasCategories, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapGrid Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="x:String">
+                                            <Border
+                                                Background="{StaticResource BrushSurface}"
+                                                BorderBrush="{StaticResource BrushBorder}"
+                                                BorderThickness="1"
+                                                CornerRadius="16"
+                                                Margin="0,0,8,8"
+                                                Padding="12,6">
+                                                <TextBlock Text="{x:Bind}" FontSize="13" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Variants" FontSize="20" FontWeight="SemiBold" />
                             <ListView
                                 x:Name="VariantsListView"
                                 ItemsSource="{x:Bind SelectedModelVariants, Mode=OneWay}"
