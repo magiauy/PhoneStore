@@ -168,7 +168,7 @@
                             FontSize="22"
                             FontWeight="SemiBold" />
                         <TextBlock
-                            Text="{x:Bind Products.Count, Mode=OneWay, StringFormat='({0})'}"
+                            Text="{x:Bind ProductCountLabel, Mode=OneWay}"
                             FontSize="14"
                             Foreground="{StaticResource BrushTextTertiary}" />
                     </StackPanel>
@@ -260,17 +260,17 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="20">
                         <StackPanel
-                            Visibility="{x:Bind SelectedProductDetail != null, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                            Visibility="{x:Bind HasSelectedProductDetail, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                             Spacing="16">
                             <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
                                 <Border Width="72" Height="72" Background="{StaticResource BrushPrimaryLight}" CornerRadius="20">
                                     <FontIcon Glyph="&#xE7F8;" FontSize="32" Foreground="{StaticResource BrushPrimary}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel Spacing="6">
-                                    <TextBlock Text="{x:Bind SelectedProductDetail.Product.Name, Mode=OneWay}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" />
-                                    <TextBlock Text="{x:Bind SelectedProductDetail.Product.Sku, Mode=OneWay}" FontSize="14" Foreground="{StaticResource BrushTextSecondary}" />
+                                    <TextBlock Text="{x:Bind SelectedProductName, Mode=OneWay}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                    <TextBlock Text="{x:Bind SelectedProductSku, Mode=OneWay}" FontSize="14" Foreground="{StaticResource BrushTextSecondary}" />
                                     <TextBlock
-                                        Text="{x:Bind SelectedProductDetail.Product.StatusText, Mode=OneWay}"
+                                        Text="{x:Bind SelectedProductStatusText, Mode=OneWay}"
                                         FontSize="12"
                                         Foreground="{StaticResource BrushTextTertiary}" />
                                 </StackPanel>
@@ -303,7 +303,7 @@
                                                 FontSize="12"
                                                 Foreground="{StaticResource BrushTextTertiary}" />
                                             <TextBlock
-                                                Text="{x:Bind SelectedProductDetail.TotalQuantity, Mode=OneWay}"
+                                                Text="{x:Bind SelectedProductTotalQuantity, Mode=OneWay}"
                                                 FontSize="20"
                                                 FontWeight="SemiBold" />
                                         </StackPanel>
@@ -316,7 +316,7 @@
                                                 FontSize="12"
                                                 Foreground="{StaticResource BrushTextTertiary}" />
                                             <TextBlock
-                                                Text="{x:Bind SelectedProductDetail.AverageCostPrice, Mode=OneWay, Converter={StaticResource CurrencyConverter}}"
+                                                Text="{x:Bind SelectedProductAverageCostPrice, Mode=OneWay, Converter={StaticResource CurrencyConverter}}"
                                                 FontSize="20"
                                                 FontWeight="SemiBold" />
                                         </StackPanel>
@@ -329,7 +329,7 @@
                                                 FontSize="12"
                                                 Foreground="{StaticResource BrushTextTertiary}" />
                                             <TextBlock
-                                                Text="{x:Bind SelectedProductDetail.AverageSellingPrice, Mode=OneWay, Converter={StaticResource CurrencyConverter}}"
+                                                Text="{x:Bind SelectedProductAverageSellingPrice, Mode=OneWay, Converter={StaticResource CurrencyConverter}}"
                                                 FontSize="20"
                                                 FontWeight="SemiBold" />
                                         </StackPanel>
@@ -343,7 +343,7 @@
                                     FontSize="20"
                                     FontWeight="SemiBold" />
 
-                                <ItemsControl ItemsSource="{x:Bind SelectedProductDetail.Batches, Mode=OneWay}">
+                                <ItemsControl ItemsSource="{x:Bind SelectedProductBatches, Mode=OneWay}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="viewModels:ProductBatchDetailViewModel">
                                             <Expander IsExpanded="False" Margin="0,0,0,12">
@@ -386,7 +386,7 @@
                                                         x:Uid="ProductManagement_NoSerials"
                                                         FontSize="13"
                                                         Foreground="{StaticResource BrushTextSecondary}"
-                                                        Visibility="{x:Bind !HasSerials, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                        Visibility="{x:Bind HasNoSerials, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
                                                     <ListView
                                                         ItemsSource="{x:Bind Serials, Mode=OneWay}"
                                                         SelectionMode="None"
@@ -437,7 +437,7 @@
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     Spacing="8"
-                                    Visibility="{x:Bind !(SelectedProductDetail?.HasBatches ?? false), Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    Visibility="{x:Bind HasNoSelectedProductBatches, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                                     <FontIcon Glyph="&#xE737;" FontSize="32" Foreground="{StaticResource BrushTextSecondary}" />
                                     <TextBlock
                                         x:Uid="ProductManagement_NoBatches"
@@ -448,7 +448,7 @@
                         </StackPanel>
 
                         <StackPanel
-                            Visibility="{x:Bind SelectedProductDetail == null, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                            Visibility="{x:Bind HasNoSelectedProductDetail, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             Spacing="12">

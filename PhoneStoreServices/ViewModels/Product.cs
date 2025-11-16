@@ -236,6 +236,7 @@ namespace PhoneStore.Services.ViewModels
         }
 
         public bool HasSerials => SerialCount > 0;
+        public bool HasNoSerials => !HasSerials;
     }
 
     public class ProductManagementDetailViewModel

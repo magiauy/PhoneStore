@@ -6,6 +6,7 @@ using PhoneStore.Services.ViewModels;
 using PhoneStoreAdmin.View.Controls;
 using PhoneStoreRepository.Utils;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
@@ -25,6 +26,8 @@ namespace PhoneStoreAdmin.View
         private ContentDialog? _activeDialog;
 
         public ObservableCollection<ProductListItemViewModel> Products { get; } = new();
+
+        public string ProductCountLabel => $"({Products.Count})";
 
         public ProductListItemViewModel? SelectedProduct
         {
@@ -57,6 +60,21 @@ namespace PhoneStoreAdmin.View
                 Bindings.Update();
             }
         }
+
+        public bool HasSelectedProductDetail => SelectedProductDetail != null;
+        public bool HasNoSelectedProductDetail => !HasSelectedProductDetail;
+
+        public string SelectedProductName => SelectedProductDetail?.Product.Name ?? string.Empty;
+        public string SelectedProductSku => SelectedProductDetail?.Product.Sku ?? string.Empty;
+        public string SelectedProductStatusText => SelectedProductDetail?.Product.StatusText ?? string.Empty;
+
+        public int SelectedProductTotalQuantity => SelectedProductDetail?.TotalQuantity ?? 0;
+        public decimal SelectedProductAverageCostPrice => SelectedProductDetail?.AverageCostPrice ?? 0m;
+        public decimal SelectedProductAverageSellingPrice => SelectedProductDetail?.AverageSellingPrice ?? 0m;
+
+        public IReadOnlyList<ProductBatchDetailViewModel> SelectedProductBatches => SelectedProductDetail?.Batches ?? Array.Empty<ProductBatchDetailViewModel>();
+        public bool HasSelectedProductBatches => SelectedProductDetail?.HasBatches ?? false;
+        public bool HasNoSelectedProductBatches => !HasSelectedProductBatches;
 
         public bool HasProducts => Products.Count > 0;
         public bool HasNoProducts => !HasProducts;
