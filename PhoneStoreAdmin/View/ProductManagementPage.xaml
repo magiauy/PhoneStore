@@ -325,7 +325,7 @@
                                                         </Grid.ColumnDefinitions>
                                                         <StackPanel>
                                                             <TextBlock x:Uid="Dlg_BatchDetails_BatchIdLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
-                                                            <TextBlock Text="{x:Bind FormatBatchId(BatchId), Mode=OneWay}" FontSize="16" FontWeight="SemiBold" />
+                                                            <TextBlock Text="{x:Bind BatchIdDisplay, Mode=OneWay}" FontSize="16" FontWeight="SemiBold" />
                                                         </StackPanel>
                                                         <StackPanel Grid.Column="1">
                                                             <TextBlock x:Uid="Dlg_BatchDetails_QuantityLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />

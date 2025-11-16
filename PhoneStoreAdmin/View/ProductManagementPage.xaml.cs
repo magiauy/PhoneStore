@@ -322,15 +322,5 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        public string FormatBatchId(int batchId)
-        {
-            var format = _resourceLoader.GetString("Common_BatchIdFormat");
-            if (string.IsNullOrWhiteSpace(format))
-            {
-                format = "#{0}";
-            }
-
-            return string.Format(format, batchId);
-        }
     }
 }
