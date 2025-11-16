@@ -79,7 +79,8 @@ namespace PhoneStore.Services
                 GetService<IProductSerialRepository>(),
                 GetService<IProductModelRepository>(),
                 GetService<IProductModelAttributeRepository>(),
-                GetService<IProductAttributeOptionService>()));
+                GetService<IProductAttributeOptionService>(),
+                GetService<IBatchProductRepository>()));
             RegisterSingleton<IPromotionService>(() => new PromotionService(GetService<IPromotionRepository>()));
             RegisterSingleton<IPromotionCodeService>(() => new PromotionCodeService(GetService<IPromotionCodeRepository>(), GetService<IPromotionRepository>()));
             RegisterSingleton<IPurchaseOrderService>(() => new PurchaseOrderService(

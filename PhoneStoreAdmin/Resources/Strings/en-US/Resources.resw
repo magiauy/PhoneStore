@@ -2625,4 +2625,109 @@ How many devices do you want to add?</value>
   <data name="ProductAttributes_OptionLoadError.Text" xml:space="preserve">
     <value>Unable to load attribute options. {0}</value>
   </data>
+  <data name="MenuItemProductManagement.Content" xml:space="preserve">
+    <value>Product management</value>
+  </data>
+  <data name="ProductsPage_ManageProductsButton.Content" xml:space="preserve">
+    <value>Manage products</value>
+  </data>
+  <data name="ProductManagement_HeaderTitle.Text" xml:space="preserve">
+    <value>Product management</value>
+  </data>
+  <data name="ProductManagement_HeaderSubtitle.Text" xml:space="preserve">
+    <value>Review inventory batches and serial numbers for each product.</value>
+  </data>
+  <data name="ProductManagement_RefreshButton.Content" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="ProductManagement_AddButton.Content" xml:space="preserve">
+    <value>Add product</value>
+  </data>
+  <data name="ProductManagement_ProductListTitle.Text" xml:space="preserve">
+    <value>All products</value>
+  </data>
+  <data name="ProductManagement_NoProducts.Text" xml:space="preserve">
+    <value>No products available yet. Create a product to get started.</value>
+  </data>
+  <data name="ProductManagement_EditButton.Content" xml:space="preserve">
+    <value>Edit product</value>
+  </data>
+  <data name="ProductManagement_BatchSummaryTitle.Text" xml:space="preserve">
+    <value>Batch statistics</value>
+  </data>
+  <data name="ProductManagement_TotalQuantityLabel.Text" xml:space="preserve">
+    <value>Total quantity</value>
+  </data>
+  <data name="ProductManagement_AverageCostLabel.Text" xml:space="preserve">
+    <value>Average cost</value>
+  </data>
+  <data name="ProductManagement_AveragePriceLabel.Text" xml:space="preserve">
+    <value>Average selling price</value>
+  </data>
+  <data name="ProductManagement_SerialsSectionTitle.Text" xml:space="preserve">
+    <value>Serial numbers</value>
+  </data>
+  <data name="ProductManagement_SerialsHeader.Text" xml:space="preserve">
+    <value>Serial details</value>
+  </data>
+  <data name="ProductManagement_NoSerials.Text" xml:space="preserve">
+    <value>No serial numbers recorded for this batch.</value>
+  </data>
+  <data name="ProductManagement_SerialNumberHeader.Text" xml:space="preserve">
+    <value>Serial number</value>
+  </data>
+  <data name="ProductManagement_Imei1Header.Text" xml:space="preserve">
+    <value>IMEI 1</value>
+  </data>
+  <data name="ProductManagement_Imei2Header.Text" xml:space="preserve">
+    <value>IMEI 2</value>
+  </data>
+  <data name="ProductManagement_StatusHeader.Text" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ProductManagement_NoteHeader.Text" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="ProductManagement_NoBatches.Text" xml:space="preserve">
+    <value>No batch records available for this product.</value>
+  </data>
+  <data name="ProductManagement_SelectPrompt.Text" xml:space="preserve">
+    <value>Select a product to see batch information.</value>
+  </data>
+  <data name="ProductManagement_BatchDisplayName" xml:space="preserve">
+    <value>Batch #{0}</value>
+  </data>
+  <data name="ProductManagement_UnassignedBatchName" xml:space="preserve">
+    <value>Unassigned serials</value>
+  </data>
+  <data name="SerialStatus_IN_STOCK" xml:space="preserve">
+    <value>In stock</value>
+  </data>
+  <data name="SerialStatus_RESERVED" xml:space="preserve">
+    <value>Reserved</value>
+  </data>
+  <data name="SerialStatus_SOLD" xml:space="preserve">
+    <value>Sold</value>
+  </data>
+  <data name="SerialStatus_RETURNED" xml:space="preserve">
+    <value>Returned</value>
+  </data>
+  <data name="SerialStatus_DEFECTIVE" xml:space="preserve">
+    <value>Defective</value>
+  </data>
+  <data name="SerialStatus_RMA" xml:space="preserve">
+    <value>RMA</value>
+  </data>
+  <data name="ProductManagement_QuantityLabel.Text" xml:space="preserve">
+    <value>Qty: </value>
+  </data>
+  <data name="ProductManagement_CostLabel.Text" xml:space="preserve">
+    <value>Cost: </value>
+  </data>
+  <data name="ProductManagement_PriceLabel.Text" xml:space="preserve">
+    <value>Price: </value>
+  </data>
+  <data name="ProductManagement_SerialLabel.Text" xml:space="preserve">
+    <value>Serials: </value>
+  </data>
 </root>

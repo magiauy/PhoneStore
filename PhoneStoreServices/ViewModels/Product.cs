@@ -163,6 +163,15 @@ namespace PhoneStore.Services.ViewModels
         public SerialStatus Status { get; set; }
         public int? PurchaseOrderLineId { get; set; }
         public string? Note { get; set; }
+
+        public string StatusText
+        {
+            get
+            {
+                var key = $"SerialStatus_{Status}";
+                return LocalizationHelper.GetString(key);
+            }
+        }
     }
 
     public class ProductDetailViewModel
@@ -180,6 +189,90 @@ namespace PhoneStore.Services.ViewModels
             AttributeValues = attributes?.ToList() ?? new List<ProductAttributeValueViewModel>();
             Serials = serials?.ToList() ?? new List<ProductSerialViewModel>();
         }
+    }
+
+    public class ProductBatchDetailViewModel
+    {
+        public ProductBatchDetailViewModel(
+            int batchProductId,
+            int? batchId,
+            int quantity,
+            decimal costPrice,
+            decimal sellingPrice,
+            IEnumerable<ProductSerialViewModel>? serials,
+            bool isVirtualBatch = false)
+        {
+            BatchProductId = batchProductId;
+            BatchId = batchId;
+            Quantity = quantity;
+            CostPrice = costPrice;
+            SellingPrice = sellingPrice;
+            Serials = serials?.ToList() ?? new List<ProductSerialViewModel>();
+            IsVirtualBatch = isVirtualBatch;
+        }
+
+        public int BatchProductId { get; }
+        public int? BatchId { get; }
+        public int Quantity { get; }
+        public decimal CostPrice { get; }
+        public decimal SellingPrice { get; }
+        public IReadOnlyList<ProductSerialViewModel> Serials { get; }
+        public bool IsVirtualBatch { get; }
+
+        public int SerialCount => Serials.Count;
+
+        public string DisplayName
+        {
+            get
+            {
+                if (IsVirtualBatch)
+                {
+                    return LocalizationHelper.GetString("ProductManagement_UnassignedBatchName");
+                }
+
+                var format = LocalizationHelper.GetString("ProductManagement_BatchDisplayName");
+                return string.Format(CultureInfo.CurrentCulture, format, BatchId);
+            }
+        }
+
+        public bool HasSerials => SerialCount > 0;
+    }
+
+    public class ProductManagementDetailViewModel
+    {
+        public ProductManagementDetailViewModel(
+            ProductListItemViewModel product,
+            IEnumerable<ProductBatchDetailViewModel>? batches,
+            IEnumerable<ProductSerialViewModel>? unassignedSerials)
+        {
+            Product = product;
+
+            var batchList = batches?.ToList() ?? new List<ProductBatchDetailViewModel>();
+            var unassignedList = unassignedSerials?.ToList() ?? new List<ProductSerialViewModel>();
+
+            Batches = batchList;
+            UnassignedSerials = unassignedList;
+            AllSerials = batchList.SelectMany(b => b.Serials).Concat(unassignedList).ToList();
+
+            var actualBatches = batchList.Where(b => !b.IsVirtualBatch).ToList();
+            TotalQuantity = actualBatches.Sum(b => b.Quantity);
+            AverageCostPrice = actualBatches.Count > 0 ? actualBatches.Average(b => b.CostPrice) : 0m;
+            AverageSellingPrice = actualBatches.Count > 0 ? actualBatches.Average(b => b.SellingPrice) : 0m;
+            TotalSerials = AllSerials.Count;
+        }
+
+        public ProductListItemViewModel Product { get; }
+        public IReadOnlyList<ProductBatchDetailViewModel> Batches { get; }
+        public IReadOnlyList<ProductSerialViewModel> UnassignedSerials { get; }
+        public IReadOnlyList<ProductSerialViewModel> AllSerials { get; }
+
+        public int TotalQuantity { get; }
+        public decimal AverageCostPrice { get; }
+        public decimal AverageSellingPrice { get; }
+        public int TotalSerials { get; }
+
+        public bool HasBatches => Batches.Any(b => !b.IsVirtualBatch);
+        public bool HasSerials => TotalSerials > 0;
     }
 
     public class ProductFilterCriteria

@@ -288,7 +288,7 @@
                             <Button Content="Duplicate Model" Click="DuplicateModelButton_Click" Style="{StaticResource SecondaryButtonStyle}" />
                             <Button
                                 x:Name="ManageProductsButton"
-                                Content="Quản lý sản phẩm"
+                                x:Uid="ProductsPage_ManageProductsButton"
                                 Click="ManageProductsButton_Click"
                                 Style="{StaticResource SecondaryButtonStyle}" />
                         </StackPanel>

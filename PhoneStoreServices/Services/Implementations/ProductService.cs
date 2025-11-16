@@ -22,6 +22,7 @@ namespace PhoneStore.Services.Implementations
         private readonly IProductModelRepository _productModelRepository;
         private readonly IProductModelAttributeRepository _productModelAttributeRepository;
         private readonly IProductAttributeOptionService _productAttributeOptionService;
+        private readonly IBatchProductRepository _batchProductRepository;
 
         private readonly Dictionary<int, string> _modelNameCache = new();
         private readonly Dictionary<int, IReadOnlyList<ProductAttributeOption>> _attributeOptionCache = new();
@@ -36,7 +37,8 @@ namespace PhoneStore.Services.Implementations
             IProductSerialRepository productSerialRepository,
             IProductModelRepository productModelRepository,
             IProductModelAttributeRepository productModelAttributeRepository,
-            IProductAttributeOptionService productAttributeOptionService)
+            IProductAttributeOptionService productAttributeOptionService,
+            IBatchProductRepository batchProductRepository)
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
             _brandRepository = brandRepository ?? throw new ArgumentNullException(nameof(brandRepository));
@@ -47,6 +49,7 @@ namespace PhoneStore.Services.Implementations
             _productModelRepository = productModelRepository ?? throw new ArgumentNullException(nameof(productModelRepository));
             _productModelAttributeRepository = productModelAttributeRepository ?? throw new ArgumentNullException(nameof(productModelAttributeRepository));
             _productAttributeOptionService = productAttributeOptionService ?? throw new ArgumentNullException(nameof(productAttributeOptionService));
+            _batchProductRepository = batchProductRepository ?? throw new ArgumentNullException(nameof(batchProductRepository));
 
             EnsureSeedData();
         }
@@ -450,6 +453,113 @@ namespace PhoneStore.Services.Implementations
             catch (Exception ex)
             {
                 Logger.Error($"Failed to get product detail for {productId}", ex);
+                return null;
+            }
+        }
+
+        public IReadOnlyList<ProductListItemViewModel> GetProductCatalog()
+        {
+            try
+            {
+                var products = _productRepository.GetAll()?.ToList() ?? new List<Product>();
+                if (products.Count == 0)
+                {
+                    return Array.Empty<ProductListItemViewModel>();
+                }
+
+                var categoryLookup = BuildCategoryLookup();
+                var brandLookup = BuildBrandLookup();
+                var modelLookup = BuildModelLookup();
+
+                var productIds = products.Select(p => p.Id).ToList();
+                var serialCounts = productIds.Count > 0
+                    ? _productSerialRepository.GetCountsByProductIds(productIds)
+                    : new Dictionary<int, int>();
+
+                return products
+                    .Select(product =>
+                    {
+                        var categoryName = categoryLookup.TryGetValue(product.CategoryId, out var catName) ? catName : string.Empty;
+                        string? brandName = null;
+                        if (product.BrandId.HasValue && brandLookup.TryGetValue(product.BrandId.Value, out var brand))
+                        {
+                            brandName = brand;
+                        }
+
+                        var serialCount = serialCounts.TryGetValue(product.Id, out var count) ? count : 0;
+                        var modelName = modelLookup.TryGetValue(product.ModelId, out var mName) ? mName : string.Empty;
+
+                        return new ProductListItemViewModel(product, categoryName, brandName, serialCount, modelName);
+                    })
+                    .OrderBy(p => p.Name)
+                    .ThenBy(p => p.Sku)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to load product catalog", ex);
+                return Array.Empty<ProductListItemViewModel>();
+            }
+        }
+
+        public ProductManagementDetailViewModel? GetProductManagementDetail(int productId)
+        {
+            try
+            {
+                var detail = GetProductDetail(productId);
+                if (detail == null)
+                {
+                    return null;
+                }
+
+                var batches = _batchProductRepository.GetBatchProductsFiltered(
+                    batchId: null,
+                    productId: productId,
+                    minQuantity: null,
+                    maxQuantity: null,
+                    minCostPrice: null,
+                    maxCostPrice: null,
+                    minSellingPrice: null,
+                    maxSellingPrice: null,
+                    page: 1,
+                    pageSize: 1000).ToList();
+
+                var serialLookup = detail.Serials
+                    .Where(serial => serial.BatchId.HasValue)
+                    .GroupBy(serial => serial.BatchId!.Value)
+                    .ToDictionary(group => group.Key, group => (IReadOnlyList<ProductSerialViewModel>)group.ToList());
+
+                var batchViewModels = new List<ProductBatchDetailViewModel>(batches.Count);
+                foreach (var batchProduct in batches)
+                {
+                    serialLookup.TryGetValue(batchProduct.BatchId, out var serialsForBatch);
+                    batchViewModels.Add(new ProductBatchDetailViewModel(
+                        batchProduct.Id,
+                        batchProduct.BatchId,
+                        batchProduct.Quantity,
+                        batchProduct.CostPrice,
+                        batchProduct.SellingPrice,
+                        serialsForBatch));
+                }
+
+                var unassignedSerials = detail.Serials.Where(serial => !serial.BatchId.HasValue).ToList();
+                if (unassignedSerials.Count > 0)
+                {
+                    batchViewModels.Add(new ProductBatchDetailViewModel(
+                        batchProductId: 0,
+                        batchId: null,
+                        quantity: unassignedSerials.Count,
+                        costPrice: 0m,
+                        sellingPrice: 0m,
+                        serials: unassignedSerials,
+                        isVirtualBatch: true));
+                }
+
+                return new ProductManagementDetailViewModel(detail.Product, batchViewModels, Array.Empty<ProductSerialViewModel>());
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to load product management detail for {productId}", ex);
                 return null;
             }
         }

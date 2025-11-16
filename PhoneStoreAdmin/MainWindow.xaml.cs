@@ -58,6 +58,7 @@ namespace PhoneStoreAdmin
             {
                 "Dashboard" => typeof(DashboardPage),
                 "Products" => typeof(ProductsPage),
+                "ProductManagement" => typeof(ProductManagementPage),
                 "ProductAttributes" => typeof(ProductAttributesPage),
                 "Suppliers" => typeof(SuppliersPage),
                 "Brands" => typeof(BrandPage),

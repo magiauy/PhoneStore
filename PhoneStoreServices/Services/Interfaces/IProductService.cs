@@ -80,6 +80,17 @@ namespace PhoneStore.Services.Interfaces
         ProductDetailViewModel? GetProductDetail(int productId);
 
         /// <summary>
+        /// Retrieve a catalog of products for management scenarios.
+        /// </summary>
+        IReadOnlyList<ProductListItemViewModel> GetProductCatalog();
+
+        /// <summary>
+        /// Retrieve an extended detail view model with batch statistics and serial information.
+        /// </summary>
+        /// <param name="productId">Product identifier.</param>
+        ProductManagementDetailViewModel? GetProductManagementDetail(int productId);
+
+        /// <summary>
         /// Create a new product and optionally persist dynamic attribute values.
         /// </summary>
         /// <param name="product">Product entity to create.</param>
