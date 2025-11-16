@@ -3,6 +3,7 @@ using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Models.Enums;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 
@@ -42,6 +43,8 @@ namespace PhoneStore.Services.ViewModels
                 return LocalizationHelper.GetString(key);
             }
         }
+
+        public string SerialBadgeText => $"{SerialCount} serials";
 
         public ProductListItemViewModel()
         {
@@ -165,6 +168,25 @@ namespace PhoneStore.Services.ViewModels
         public string? Note { get; set; }
 
         public string StatusText => LocalizationHelper.GetString($"SerialStatus_{Status}", Status.ToString());
+
+        public string BatchReferenceText
+        {
+            get
+            {
+                if (!BatchId.HasValue)
+                {
+                    return LocalizationHelper.GetString("SerialWithoutBatchLabel", "Không thuộc lô");
+                }
+
+                var format = LocalizationHelper.GetString("SerialBatchReferenceFormat", "Thuộc lô: {0}");
+                if (string.IsNullOrWhiteSpace(format))
+                {
+                    format = "Thuộc lô: {0}";
+                }
+
+                return string.Format(format, $"BATCH-{BatchId.Value:D3}");
+            }
+        }
     }
 
     public class ProductDetailViewModel
@@ -186,11 +208,15 @@ namespace PhoneStore.Services.ViewModels
 
     public class ProductBatchSummaryViewModel
     {
+        private readonly ObservableCollection<ProductSerialViewModel> _serialItems = new();
+
         public int Id { get; set; }
         public int BatchId { get; set; }
         public int Quantity { get; set; }
         public decimal CostPrice { get; set; }
         public decimal SellingPrice { get; set; }
+
+        public ObservableCollection<ProductSerialViewModel> SerialItems => _serialItems;
 
         public decimal TotalCost => Math.Round(CostPrice * Quantity, 2, MidpointRounding.AwayFromZero);
         public decimal TotalRevenue => Math.Round(SellingPrice * Quantity, 2, MidpointRounding.AwayFromZero);
@@ -206,6 +232,43 @@ namespace PhoneStore.Services.ViewModels
                 }
 
                 return string.Format(format, BatchId);
+            }
+        }
+
+        public string BatchReferenceCode
+        {
+            get
+            {
+                var format = LocalizationHelper.GetString("ProductManagementBatchCodeFormat", "BATCH-{0:D4}");
+                if (string.IsNullOrWhiteSpace(format))
+                {
+                    format = "BATCH-{0:D4}";
+                }
+
+                return string.Format(format, BatchId);
+            }
+        }
+
+        public string ImportDateDisplay
+        {
+            get
+            {
+                var placeholder = LocalizationHelper.GetString("ProductManagementBatchImportPlaceholder", "Import date: đang cập nhật");
+                return string.IsNullOrWhiteSpace(placeholder) ? "Import date: đang cập nhật" : placeholder;
+            }
+        }
+
+        public string ItemCountDisplay
+        {
+            get
+            {
+                var format = LocalizationHelper.GetString("ProductManagementBatchItemCountFormat", "{0} items");
+                if (string.IsNullOrWhiteSpace(format))
+                {
+                    format = "{0} items";
+                }
+
+                return string.Format(format, Quantity.ToString("N0", CultureInfo.InvariantCulture));
             }
         }
     }
