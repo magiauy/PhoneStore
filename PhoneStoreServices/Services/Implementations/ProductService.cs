@@ -307,6 +307,102 @@ namespace PhoneStore.Services.Implementations
             }
         }
 
+        public PagedResult<ProductBatchSummaryViewModel> GetProductBatchHistory(int productId, int page, int pageSize)
+        {
+            if (productId <= 0)
+            {
+                return PagedResult<ProductBatchSummaryViewModel>.CreateEmpty();
+            }
+
+            if (page <= 0)
+            {
+                page = 1;
+            }
+
+            if (pageSize <= 0)
+            {
+                pageSize = 20;
+            }
+
+            try
+            {
+                var totalRecords = _batchProductRepository.GetTotalRecords(null, productId, null, null, null, null, null, null);
+                if (totalRecords == 0)
+                {
+                    return PagedResult<ProductBatchSummaryViewModel>.CreateEmpty();
+                }
+
+                var batches = _batchProductRepository
+                    .GetBatchProductsFiltered(null, productId, null, null, null, null, null, null, page, pageSize)
+                    ?.ToList() ?? new List<BatchProduct>();
+
+                var batchViewModels = batches
+                    .Select(batch => new ProductBatchSummaryViewModel
+                    {
+                        Id = batch.Id,
+                        BatchId = batch.BatchId,
+                        Quantity = batch.Quantity,
+                        CostPrice = batch.CostPrice,
+                        SellingPrice = batch.SellingPrice
+                    })
+                    .OrderByDescending(b => b.Id)
+                    .ToList();
+
+                return new PagedResult<ProductBatchSummaryViewModel>(batchViewModels, totalRecords);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to load batch history for product {productId}", ex);
+                return PagedResult<ProductBatchSummaryViewModel>.CreateEmpty();
+            }
+        }
+
+        public PagedResult<ProductSerialViewModel> GetProductSerials(int productId, int page, int pageSize, int? batchId = null)
+        {
+            if (productId <= 0)
+            {
+                return PagedResult<ProductSerialViewModel>.CreateEmpty();
+            }
+
+            if (page <= 0)
+            {
+                page = 1;
+            }
+
+            if (pageSize <= 0)
+            {
+                pageSize = 20;
+            }
+
+            try
+            {
+                var serials = _productSerialRepository.GetPagedByProductId(productId, page, pageSize, out var totalRecords, batchId);
+                if (totalRecords == 0)
+                {
+                    return PagedResult<ProductSerialViewModel>.CreateEmpty();
+                }
+
+                var serialViewModels = serials.Select(serial => new ProductSerialViewModel
+                {
+                    Id = serial.Id,
+                    SerialNumber = serial.SerialNumber,
+                    Imei1 = serial.Imei1,
+                    Imei2 = serial.Imei2,
+                    BatchId = serial.BatchId,
+                    Status = serial.Status,
+                    PurchaseOrderLineId = serial.PurchaseOrderLineId,
+                    Note = serial.Note
+                }).ToList();
+
+                return new PagedResult<ProductSerialViewModel>(serialViewModels, totalRecords);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to load serials for product {productId}", ex);
+                return PagedResult<ProductSerialViewModel>.CreateEmpty();
+            }
+        }
+
         public IReadOnlyList<int> GetModelAttributeIds(int modelId)
         {
             try

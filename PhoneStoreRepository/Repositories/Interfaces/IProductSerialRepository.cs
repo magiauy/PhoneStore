@@ -11,6 +11,7 @@ namespace PhoneStoreRepository.Repositories.Interfaces
         ProductSerial GetByImei1(string imei1);
         ProductSerial GetByImei2(string imei2);
         IEnumerable<ProductSerial> GetByProductId(int productId);
+        IEnumerable<ProductSerial> GetPagedByProductId(int productId, int page, int pageSize, out int totalCount, int? batchId = null);
         IEnumerable<ProductSerial> GetByStatus(SerialStatus status);
         IDictionary<int, int> GetCountsByProductIds(IEnumerable<int> productIds);
         

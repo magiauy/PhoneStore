@@ -63,6 +63,16 @@ namespace PhoneStore.Services.Interfaces
         ProductManagementDetailViewModel? GetProductManagementDetail(int productId);
 
         /// <summary>
+        /// Retrieve paged batch history for a product.
+        /// </summary>
+        PagedResult<ProductBatchSummaryViewModel> GetProductBatchHistory(int productId, int page, int pageSize);
+
+        /// <summary>
+        /// Retrieve paged serials for a product with optional batch filtering.
+        /// </summary>
+        PagedResult<ProductSerialViewModel> GetProductSerials(int productId, int page, int pageSize, int? batchId = null);
+
+        /// <summary>
         /// Retrieve attribute identifiers linked to a product model.
         /// </summary>
         IReadOnlyList<int> GetModelAttributeIds(int modelId);

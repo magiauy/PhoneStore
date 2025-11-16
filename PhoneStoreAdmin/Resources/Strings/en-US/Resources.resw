@@ -2703,4 +2703,25 @@ How many devices do you want to add?</value>
   <data name="SerialStatus_RMA" xml:space="preserve">
     <value>RMA</value>
   </data>
+  <data name="ProductManagementBatchHistoryTab.Header" xml:space="preserve">
+    <value>Batch history</value>
+  </data>
+  <data name="ProductManagementSerialsTab.Header" xml:space="preserve">
+    <value>Serial numbers</value>
+  </data>
+  <data name="ProductManagementBatchListTitle.Text" xml:space="preserve">
+    <value>Batch list</value>
+  </data>
+  <data name="ProductManagementBatchSerialsTitle.Text" xml:space="preserve">
+    <value>Serials in batch</value>
+  </data>
+  <data name="ProductManagementSelectBatchMessage.Text" xml:space="preserve">
+    <value>Select a batch to view its serial numbers.</value>
+  </data>
+  <data name="ProductManagementNoBatchSerialsMessage.Text" xml:space="preserve">
+    <value>This batch has no serial numbers yet.</value>
+  </data>
+  <data name="ProductManagementBatchSerialHeaderFormat" xml:space="preserve">
+    <value>Serials in batch {0}</value>
+  </data>
 </root>
