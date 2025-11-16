@@ -2323,6 +2323,9 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="ProductReferenceDataErrorMessage" xml:space="preserve">
     <value>Không thể tải dữ liệu sản phẩm. Vui lòng thử lại.</value>
   </data>
+  <data name="ProductReferenceDataPartialDetail" xml:space="preserve">
+    <value>Không thể tải: {0}. Một số lựa chọn có thể không khả dụng.</value>
+  </data>
   <data name="ProductSerialSummaryFormat" xml:space="preserve">
     <value>Tổng serial còn trong kho: {0}</value>
   </data>
