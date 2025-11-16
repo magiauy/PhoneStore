@@ -194,6 +194,20 @@ namespace PhoneStore.Services.ViewModels
 
         public decimal TotalCost => Math.Round(CostPrice * Quantity, 2, MidpointRounding.AwayFromZero);
         public decimal TotalRevenue => Math.Round(SellingPrice * Quantity, 2, MidpointRounding.AwayFromZero);
+
+        public string BatchIdDisplay
+        {
+            get
+            {
+                var format = LocalizationHelper.GetString("Common_BatchIdFormat", "#{0}");
+                if (string.IsNullOrWhiteSpace(format))
+                {
+                    format = "#{0}";
+                }
+
+                return string.Format(format, BatchId);
+            }
+        }
     }
 
     public class ProductManagementDetailViewModel
