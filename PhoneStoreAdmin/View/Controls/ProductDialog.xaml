@@ -181,6 +181,11 @@
                 <StackPanel>
                     <TextBlock x:Uid="ProductAttributesHeader" Style="{StaticResource InputLabelStyle}" />
                     <StackPanel x:Name="AttributesPanel" Spacing="12" />
+                    <TextBlock
+                        x:Name="NoAttributesTextBlock"
+                        Style="{StaticResource ValidationErrorStyle}"
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
                 </StackPanel>
 
                 <StackPanel x:Name="MessagePanel" Spacing="8">

@@ -2368,6 +2368,9 @@ How many devices do you want to add?</value>
   <data name="ProductNoAttributes" xml:space="preserve">
     <value>No attribute values available.</value>
   </data>
+  <data name="ProductModelNoAttributesConfigured" xml:space="preserve">
+    <value>This model does not have any attributes configured yet. Attribute inputs will appear after attributes are assigned.</value>
+  </data>
   <data name="ProductDetailDialogTitle" xml:space="preserve">
     <value>Product details - {0}</value>
   </data>
