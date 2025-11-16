@@ -2323,6 +2323,9 @@ How many devices do you want to add?</value>
   <data name="ProductReferenceDataErrorMessage" xml:space="preserve">
     <value>Unable to load product data. Please refresh and try again.</value>
   </data>
+  <data name="ProductReferenceDataPartialDetail" xml:space="preserve">
+    <value>Missing data: {0}. Some selections may be unavailable.</value>
+  </data>
   <data name="ProductSerialSummaryFormat" xml:space="preserve">
     <value>Serials available in stock: {0}</value>
   </data>

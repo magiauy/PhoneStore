@@ -1274,21 +1274,67 @@ namespace PhoneStoreAdmin.View.Controls
                 return;
             }
 
+            var failedContexts = new List<string>();
+
+            bool hasErrors = false;
+            hasErrors |= !TryLoadReferenceData(LoadModels, "ProductModelLabel", failedContexts);
+            hasErrors |= !TryLoadReferenceData(LoadCategories, "ProductCategoryLabel", failedContexts);
+            hasErrors |= !TryLoadReferenceData(LoadBrands, "ProductBrandLabel", failedContexts);
+            hasErrors |= !TryLoadReferenceData(LoadStatuses, "ProductStatusLabel", failedContexts);
+            hasErrors |= !TryLoadReferenceData(LoadAttributes, "ProductAttributesHeader", failedContexts);
+
+            _referenceDataLoaded = true;
+
+            if (hasErrors)
+            {
+                var baseMessage = _resourceLoader.GetString("ProductReferenceDataErrorMessage");
+                var detailTemplate = _resourceLoader.GetString("ProductReferenceDataPartialDetail");
+                if (string.IsNullOrWhiteSpace(detailTemplate))
+                {
+                    detailTemplate = "Missing data: {0}.";
+                }
+
+                var failedList = failedContexts.Count > 0
+                    ? string.Join(", ", failedContexts)
+                    : string.Empty;
+
+                var detailMessage = string.IsNullOrWhiteSpace(failedList)
+                    ? string.Empty
+                    : string.Format(CultureInfo.CurrentCulture, detailTemplate, failedList);
+
+                if (string.IsNullOrWhiteSpace(baseMessage))
+                {
+                    baseMessage = detailMessage;
+                }
+                else if (!string.IsNullOrWhiteSpace(detailMessage))
+                {
+                    baseMessage = $"{baseMessage} {detailMessage}";
+                }
+
+                ErrorInfoBar.Message = baseMessage;
+                ErrorInfoBar.IsOpen = true;
+            }
+        }
+
+        private bool TryLoadReferenceData(Action loader, string contextResourceKey, IList<string> failedContexts)
+        {
             try
             {
-                LoadModels();
-                LoadCategories();
-                LoadBrands();
-                LoadStatuses();
-                LoadAttributes();
-
-                _referenceDataLoaded = true;
+                loader();
+                return true;
             }
             catch (Exception ex)
             {
-                Logger.Error("Failed to load reference data for ProductDialog", ex);
-                ErrorInfoBar.Message = _resourceLoader.GetString("ProductReferenceDataErrorMessage");
-                ErrorInfoBar.IsOpen = true;
+                Logger.Error($"Failed to load {contextResourceKey} for ProductDialog", ex);
+
+                var context = _resourceLoader.GetString(contextResourceKey);
+                if (string.IsNullOrWhiteSpace(context))
+                {
+                    context = contextResourceKey;
+                }
+
+                failedContexts.Add(context);
+                return false;
             }
         }
 
