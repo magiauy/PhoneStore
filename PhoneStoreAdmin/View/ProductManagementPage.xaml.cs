@@ -26,6 +26,7 @@ namespace PhoneStoreAdmin.View
         private readonly NotifyCollectionChangedEventHandler _detailCollectionChangedHandler;
         private ContentDialog? _currentDialog;
         private bool _isLoaded;
+        private DetailSectionTab _activeDetailTab = DetailSectionTab.BatchHistory;
 
         public ObservableCollection<ProductListItemViewModel> Products { get; } = new();
 
@@ -44,6 +45,7 @@ namespace PhoneStoreAdmin.View
             {
                 _currentModel = value;
                 Bindings.Update();
+                EnsureActiveTabIsValid();
             }
         }
 
@@ -76,17 +78,20 @@ namespace PhoneStoreAdmin.View
             get => _selectedProductDetail;
             private set
             {
+                if (_selectedProductDetail == value)
+                {
+                    return;
+                }
+
                 _selectedProductDetail = value;
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] SelectedProductDetail: Set to {(value != null ? value.Product.Name : "null")}, HasSelectedProduct will be {(value != null)}");
+                
                 if (value == null)
                 {
                     SelectedBatch = null;
                     BatchHistorySource = null;
                     ProductSerialSource = null;
                     BatchSerialSource = null;
-                }
-                else
-                {
-                    InitializeIncrementalSources(value.Product.Id);
                 }
 
                 Bindings.Update();
@@ -101,6 +106,8 @@ namespace PhoneStoreAdmin.View
         public bool NoBatchHistory => !HasBatchHistory;
         public bool HasSerials => SelectedProductDetail?.HasSerials ?? false;
         public bool NoSerials => !HasSerials;
+        public bool IsBatchTabActive => _activeDetailTab == DetailSectionTab.BatchHistory;
+        public bool IsSerialTabActive => _activeDetailTab == DetailSectionTab.SerialList;
 
         public IncrementalCollection<ProductBatchSummaryViewModel>? BatchHistorySource
         {
@@ -196,6 +203,10 @@ namespace PhoneStoreAdmin.View
             }
         }
 
+        public string HeaderDescriptionText => string.IsNullOrWhiteSpace(HeaderSubtitle)
+            ? "Subtitle hiển thị ở đây"
+            : HeaderSubtitle;
+
         public string SelectedProductSummary
         {
             get
@@ -209,6 +220,53 @@ namespace PhoneStoreAdmin.View
                 return $"{product.Sku} • {product.CategoryName}";
             }
         }
+
+        public string SelectedVariationInfo
+        {
+            get
+            {
+                var product = SelectedProductDetail?.Product;
+                if (product == null)
+                {
+                    return "128GB - Black";
+                }
+
+                var parts = new List<string>();
+                if (!string.IsNullOrWhiteSpace(product.ModelName))
+                {
+                    parts.Add(product.ModelName);
+                }
+
+                if (!string.IsNullOrWhiteSpace(product.CategoryName))
+                {
+                    parts.Add(product.CategoryName);
+                }
+
+                if (!string.IsNullOrWhiteSpace(product.Sku))
+                {
+                    parts.Add(product.Sku);
+                }
+
+                return parts.Count == 0 ? "128GB - Black" : string.Join(" • ", parts);
+            }
+        }
+
+        public string SelectedStatusText => SelectedProductDetail?.Product?.StatusText ?? "Đang bán";
+
+        public string SerialCountStat
+        {
+            get
+            {
+                var count = SelectedProductDetail?.SerialCount ?? 0;
+                return count.ToString("N0");
+            }
+        }
+
+        public string SelectedProductName => SelectedProductDetail?.Product?.Name ?? string.Empty;
+        public string SelectedProductSku => SelectedProductDetail?.Product?.Sku ?? string.Empty;
+        public string SelectedProductBrand => SelectedProductDetail?.Product?.BrandName ?? string.Empty;
+        public IReadOnlyList<ProductBatchSummaryViewModel>? SelectedProductBatches => SelectedProductDetail?.Batches;
+        public IReadOnlyList<ProductSerialViewModel>? SelectedProductSerials => SelectedProductDetail?.Serials;
 
         public string SerialHeader
         {
@@ -234,7 +292,7 @@ namespace PhoneStoreAdmin.View
             {
                 if (SelectedBatch == null)
                 {
-                    return _resourceLoader.GetString("ProductManagementBatchSerialsTitle.Text") ?? string.Empty;
+                    return _resourceLoader.GetString("ProductManagementBatchSerialsTitle/Text") ?? string.Empty;
                 }
 
                 var format = _resourceLoader.GetString("ProductManagementBatchSerialHeaderFormat");
@@ -292,6 +350,7 @@ namespace PhoneStoreAdmin.View
             Products.CollectionChanged += _collectionChangedHandler;
             _isLoaded = true;
             LoadProducts();
+            UpdateDetailTabVisualState();
         }
 
         private void ProductManagementPage_Unloaded(object sender, RoutedEventArgs e)
@@ -309,12 +368,15 @@ namespace PhoneStoreAdmin.View
         {
             if (!_isLoaded || CurrentModel == null)
             {
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] LoadProducts: Early exit - _isLoaded={_isLoaded}, CurrentModel={CurrentModel?.Name ?? "null"}");
                 return;
             }
 
             try
             {
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] LoadProducts: Loading products for model {CurrentModel.Id}");
                 var items = _productService.GetProductsByModel(CurrentModel.Id) ?? Array.Empty<ProductListItemViewModel>();
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] LoadProducts: Found {items.Count} products");
                 Products.Clear();
                 foreach (var item in items)
                 {
@@ -328,10 +390,12 @@ namespace PhoneStoreAdmin.View
                 }
 
                 selection ??= Products.FirstOrDefault();
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] LoadProducts: Setting SelectedProduct to {selection?.Name ?? "null"}");
                 SelectedProduct = selection;
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] LoadProducts: Exception - {ex.Message}");
                 Logger.Error("Failed to load products for product management page", ex);
             }
         }
@@ -340,11 +404,18 @@ namespace PhoneStoreAdmin.View
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] LoadProductDetail: Loading detail for productId={productId}");
                 var detail = _productService.GetProductManagementDetail(productId);
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] LoadProductDetail: Detail loaded - {(detail != null ? "Success" : "Null")}");
+                if (detail != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[DEBUG] LoadProductDetail: Product={detail.Product.Name}, Batches={detail.Batches.Count}, Serials={detail.Serials.Count}");
+                }
                 SelectedProductDetail = detail;
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] LoadProductDetail: Exception - {ex.Message}");
                 Logger.Error($"Failed to load product detail for {productId}", ex);
                 SelectedProductDetail = null;
             }
@@ -428,6 +499,82 @@ namespace PhoneStoreAdmin.View
             await dialog.ShowAsync();
         }
 
+        private void SetActiveDetailTab(DetailSectionTab tab)
+        {
+            if (_activeDetailTab == tab)
+            {
+                UpdateDetailTabVisualState();
+                return;
+            }
+
+            _activeDetailTab = tab;
+            Bindings.Update();
+            UpdateDetailTabVisualState();
+        }
+
+        private void EnsureActiveTabIsValid()
+        {
+            if (!HasSelectedProduct)
+            {
+                SetActiveDetailTab(DetailSectionTab.BatchHistory);
+                return;
+            }
+
+            if (_activeDetailTab == DetailSectionTab.BatchHistory && !HasBatchHistory && HasSerials)
+            {
+                SetActiveDetailTab(DetailSectionTab.SerialList);
+            }
+            else if (_activeDetailTab == DetailSectionTab.SerialList && !HasSerials && HasBatchHistory)
+            {
+                SetActiveDetailTab(DetailSectionTab.BatchHistory);
+            }
+            else
+            {
+                UpdateDetailTabVisualState();
+            }
+        }
+
+        private void UpdateDetailTabVisualState()
+        {
+            if (BatchTabButton == null || SerialTabButton == null)
+            {
+                return;
+            }
+
+            ApplyTabButtonState(BatchTabButton, _activeDetailTab == DetailSectionTab.BatchHistory, true);
+            ApplyTabButtonState(SerialTabButton, _activeDetailTab == DetailSectionTab.SerialList, false);
+        }
+
+        private static void ApplyTabButtonState(Button button, bool isActive, bool isFirstTab)
+        {
+            button.IsEnabled = !isActive;
+            button.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                isActive
+                    ? Windows.UI.Color.FromArgb(255, 219, 234, 254)
+                    : Windows.UI.Color.FromArgb(0, 0, 0, 0));
+            button.CornerRadius = isFirstTab ? new CornerRadius(12, 0, 0, 12) : new CornerRadius(0, 12, 12, 0);
+
+            if (button.Content is TextBlock textBlock)
+            {
+                textBlock.FontWeight = isActive
+                    ? Microsoft.UI.Text.FontWeights.SemiBold
+                    : Microsoft.UI.Text.FontWeights.Normal;
+                textBlock.Foreground = isActive
+                    ? (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BrushPrimary"]
+                    : (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BrushTextSecondary"];
+            }
+        }
+
+        private void BatchTabButton_Click(object sender, RoutedEventArgs e)
+        {
+            SetActiveDetailTab(DetailSectionTab.BatchHistory);
+        }
+
+        private void SerialTabButton_Click(object sender, RoutedEventArgs e)
+        {
+            SetActiveDetailTab(DetailSectionTab.SerialList);
+        }
+
         private void ProductDialog_ProductSaved(object? sender, ProductDetailViewModel e)
         {
             LoadProducts(e.Product.Id);
@@ -478,7 +625,7 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private sealed class IncrementalCollection<T> : ObservableCollection<T>, ISupportIncrementalLoading
+        public sealed class IncrementalCollection<T> : ObservableCollection<T>, ISupportIncrementalLoading
         {
             private readonly Func<int, int, PagedResult<T>> _loader;
             private readonly int _pageSize;
@@ -541,6 +688,12 @@ namespace PhoneStoreAdmin.View
                     }
                 });
             }
+        }
+
+        private enum DetailSectionTab
+        {
+            BatchHistory,
+            SerialList
         }
 
     }
