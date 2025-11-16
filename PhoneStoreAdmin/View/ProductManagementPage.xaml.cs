@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStore.Services.Interfaces;
@@ -7,10 +8,13 @@ using PhoneStore.Services.ViewModels;
 using PhoneStoreAdmin.View.Controls;
 using PhoneStoreRepository.Utils;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Foundation;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace PhoneStoreAdmin.View
 {
@@ -19,6 +23,7 @@ namespace PhoneStoreAdmin.View
         private readonly IProductService _productService;
         private readonly ResourceLoader _resourceLoader;
         private readonly NotifyCollectionChangedEventHandler _collectionChangedHandler;
+        private readonly NotifyCollectionChangedEventHandler _detailCollectionChangedHandler;
         private ContentDialog? _currentDialog;
         private bool _isLoaded;
 
@@ -27,6 +32,10 @@ namespace PhoneStoreAdmin.View
         private ProductModelListItemViewModel? _currentModel;
         private ProductListItemViewModel? _selectedProduct;
         private ProductManagementDetailViewModel? _selectedProductDetail;
+        private ProductBatchSummaryViewModel? _selectedBatch;
+        private IncrementalCollection<ProductBatchSummaryViewModel>? _batchHistorySource;
+        private IncrementalCollection<ProductSerialViewModel>? _productSerialSource;
+        private IncrementalCollection<ProductSerialViewModel>? _batchSerialSource;
 
         public ProductModelListItemViewModel? CurrentModel
         {
@@ -68,6 +77,18 @@ namespace PhoneStoreAdmin.View
             private set
             {
                 _selectedProductDetail = value;
+                if (value == null)
+                {
+                    SelectedBatch = null;
+                    BatchHistorySource = null;
+                    ProductSerialSource = null;
+                    BatchSerialSource = null;
+                }
+                else
+                {
+                    InitializeIncrementalSources(value.Product.Id);
+                }
+
                 Bindings.Update();
             }
         }
@@ -80,6 +101,80 @@ namespace PhoneStoreAdmin.View
         public bool NoBatchHistory => !HasBatchHistory;
         public bool HasSerials => SelectedProductDetail?.HasSerials ?? false;
         public bool NoSerials => !HasSerials;
+
+        public IncrementalCollection<ProductBatchSummaryViewModel>? BatchHistorySource
+        {
+            get => _batchHistorySource;
+            private set
+            {
+                if (_batchHistorySource == value)
+                {
+                    return;
+                }
+
+                UpdateCollectionSubscription(_batchHistorySource, value);
+                _batchHistorySource = value;
+                Bindings.Update();
+            }
+        }
+
+        public IncrementalCollection<ProductSerialViewModel>? ProductSerialSource
+        {
+            get => _productSerialSource;
+            private set
+            {
+                if (_productSerialSource == value)
+                {
+                    return;
+                }
+
+                UpdateCollectionSubscription(_productSerialSource, value);
+                _productSerialSource = value;
+                Bindings.Update();
+            }
+        }
+
+        public IncrementalCollection<ProductSerialViewModel>? BatchSerialSource
+        {
+            get => _batchSerialSource;
+            private set
+            {
+                if (_batchSerialSource == value)
+                {
+                    return;
+                }
+
+                UpdateCollectionSubscription(_batchSerialSource, value);
+                _batchSerialSource = value;
+                Bindings.Update();
+            }
+        }
+
+        public ProductBatchSummaryViewModel? SelectedBatch
+        {
+            get => _selectedBatch;
+            set
+            {
+                if (_selectedBatch == value)
+                {
+                    return;
+                }
+
+                _selectedBatch = value;
+                BatchSerialSource?.Refresh();
+                if (value != null)
+                {
+                    _ = BatchSerialSource?.PrimeAsync();
+                }
+
+                Bindings.Update();
+            }
+        }
+
+        public bool HasSelectedBatch => SelectedBatch != null;
+        public bool NoBatchSelected => !HasSelectedBatch;
+        public bool HasBatchSerials => (BatchSerialSource?.Count ?? 0) > 0;
+        public bool NoBatchSerials => HasSelectedBatch && !HasBatchSerials;
 
         public string CurrentModelName => CurrentModel?.Name ?? string.Empty;
         public string HeaderSubtitle
@@ -133,6 +228,25 @@ namespace PhoneStoreAdmin.View
             }
         }
 
+        public string SelectedBatchSerialHeader
+        {
+            get
+            {
+                if (SelectedBatch == null)
+                {
+                    return _resourceLoader.GetString("ProductManagementBatchSerialsTitle.Text") ?? string.Empty;
+                }
+
+                var format = _resourceLoader.GetString("ProductManagementBatchSerialHeaderFormat");
+                if (string.IsNullOrWhiteSpace(format))
+                {
+                    format = "Serials in batch {0}";
+                }
+
+                return string.Format(format, SelectedBatch.BatchIdDisplay);
+            }
+        }
+
         public string TotalQuantityDisplay
         {
             get
@@ -148,6 +262,7 @@ namespace PhoneStoreAdmin.View
             _productService = App.GetService<IProductService>();
             _resourceLoader = new ResourceLoader();
             _collectionChangedHandler = (_, _) => Bindings.Update();
+            _detailCollectionChangedHandler = (_, _) => Bindings.Update();
             Products.CollectionChanged += _collectionChangedHandler;
             Loaded += ProductManagementPage_Loaded;
             Unloaded += ProductManagementPage_Unloaded;
@@ -184,6 +299,10 @@ namespace PhoneStoreAdmin.View
             _isLoaded = false;
             Products.CollectionChanged -= _collectionChangedHandler;
             _currentDialog = null;
+            BatchHistorySource = null;
+            ProductSerialSource = null;
+            BatchSerialSource = null;
+            _selectedBatch = null;
         }
 
         private void LoadProducts(int? selectedProductId = null)
@@ -319,6 +438,108 @@ namespace PhoneStoreAdmin.View
             if (App.Current is App app && app.CurrentWindow is MainWindow mainWindow)
             {
                 mainWindow.NavigateToPage("Products");
+            }
+        }
+
+        private void InitializeIncrementalSources(int productId)
+        {
+            BatchHistorySource = new IncrementalCollection<ProductBatchSummaryViewModel>((page, pageSize) =>
+                _productService.GetProductBatchHistory(productId, page, pageSize));
+
+            ProductSerialSource = new IncrementalCollection<ProductSerialViewModel>((page, pageSize) =>
+                _productService.GetProductSerials(productId, page, pageSize));
+
+            BatchSerialSource = new IncrementalCollection<ProductSerialViewModel>((page, pageSize) =>
+            {
+                if (SelectedBatch == null)
+                {
+                    return PagedResult<ProductSerialViewModel>.CreateEmpty();
+                }
+
+                return _productService.GetProductSerials(productId, page, pageSize, SelectedBatch.BatchId);
+            });
+
+            SelectedBatch = null;
+
+            _ = BatchHistorySource?.PrimeAsync();
+            _ = ProductSerialSource?.PrimeAsync();
+        }
+
+        private void UpdateCollectionSubscription(INotifyCollectionChanged? oldValue, INotifyCollectionChanged? newValue)
+        {
+            if (oldValue != null)
+            {
+                oldValue.CollectionChanged -= _detailCollectionChangedHandler;
+            }
+
+            if (newValue != null)
+            {
+                newValue.CollectionChanged += _detailCollectionChangedHandler;
+            }
+        }
+
+        private sealed class IncrementalCollection<T> : ObservableCollection<T>, ISupportIncrementalLoading
+        {
+            private readonly Func<int, int, PagedResult<T>> _loader;
+            private readonly int _pageSize;
+            private int _currentPage;
+            private bool _isLoading;
+
+            public bool HasMoreItems { get; private set; } = true;
+
+            public IncrementalCollection(Func<int, int, PagedResult<T>> loader, int pageSize = 20)
+            {
+                _loader = loader ?? throw new ArgumentNullException(nameof(loader));
+                _pageSize = pageSize <= 0 ? 20 : pageSize;
+            }
+
+            public void Refresh()
+            {
+                Clear();
+                _currentPage = 0;
+                HasMoreItems = true;
+            }
+
+            public Task PrimeAsync()
+            {
+                if (_isLoading || !HasMoreItems || Count > 0)
+                {
+                    return Task.CompletedTask;
+                }
+
+                return LoadMoreItemsAsync((uint)_pageSize).AsTask();
+            }
+
+            public IAsyncOperation<LoadMoreItemsResult> LoadMoreItemsAsync(uint count)
+            {
+                return AsyncInfo.Run(async cancellationToken =>
+                {
+                    if (_isLoading || !HasMoreItems)
+                    {
+                        return new LoadMoreItemsResult { Count = 0 };
+                    }
+
+                    _isLoading = true;
+                    try
+                    {
+                        var nextPage = _currentPage + 1;
+                        var result = await Task.Run(() => _loader(nextPage, _pageSize), cancellationToken);
+                        var items = (result?.Items ?? Array.Empty<T>()).ToList();
+                        foreach (var item in items)
+                        {
+                            Add(item);
+                        }
+
+                        _currentPage = nextPage;
+                        var totalRecords = result?.TotalRecords ?? Count;
+                        HasMoreItems = Count < totalRecords;
+                        return new LoadMoreItemsResult { Count = (uint)items.Count };
+                    }
+                    finally
+                    {
+                        _isLoading = false;
+                    }
+                });
             }
         }
 
