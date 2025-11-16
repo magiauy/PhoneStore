@@ -53,6 +53,7 @@ namespace PhoneStoreAdmin.View.Controls
         private readonly List<SelectionOption<ProductStatus>> _statusOptions = new();
         private readonly List<AttributeInputState> _attributeInputs = new();
         private IReadOnlyList<ProductAttributeDefinition> _attributeDefinitions = new List<ProductAttributeDefinition>();
+        private readonly Dictionary<int, ProductAttributeValueViewModel> _attributeValueState = new();
 
         private bool _referenceDataLoaded;
         private bool _isSkuValid;
@@ -65,6 +66,7 @@ namespace PhoneStoreAdmin.View.Controls
         private bool _isStatusValid;
         private bool _inputsEnabled = true;
         private int? _pendingModelSelection;
+        private bool _suppressModelSelectionChanged;
 
         private int _currentProductId;
         private int _currentSerialCount;
@@ -195,6 +197,7 @@ namespace PhoneStoreAdmin.View.Controls
             if (_referenceDataLoaded)
             {
                 ApplyPendingModelSelection();
+                RefreshAttributeInputs(false);
             }
         }
 
@@ -237,6 +240,13 @@ namespace PhoneStoreAdmin.View.Controls
         private void ModelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ValidateModel();
+
+            if (_suppressModelSelectionChanged)
+            {
+                return;
+            }
+
+            RefreshAttributeInputs(true);
         }
 
         private void CategoryComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -621,10 +631,11 @@ namespace PhoneStoreAdmin.View.Controls
                 _currentProductId = 0;
                 _currentSerialCount = 0;
                 _currentCreatedAt = DateTime.UtcNow;
+                SetAttributeValueState(null);
 
                 SkuTextBox.Text = string.Empty;
                 NameTextBox.Text = string.Empty;
-                ModelComboBox.SelectedIndex = -1;
+                SetModelSelection(null);
                 CategoryComboBox.SelectedIndex = -1;
                 BrandComboBox.SelectedIndex = -1;
                 PriceNumberBox.Value = 0;
@@ -633,7 +644,7 @@ namespace PhoneStoreAdmin.View.Controls
                 SerialTrackedToggle.IsOn = false;
                 StatusComboBox.SelectedValue = ProductStatus.ACTIVE;
 
-                RenderAttributeInputs(null);
+                RefreshAttributeInputs(false);
                 SerialSummaryPanel.Visibility = Visibility.Collapsed;
                 return;
             }
@@ -642,10 +653,11 @@ namespace PhoneStoreAdmin.View.Controls
             _currentProductId = product.Id;
             _currentSerialCount = detail.Serials?.Count ?? 0;
             _currentCreatedAt = product.CreatedAt;
+            SetAttributeValueState(detail.AttributeValues);
 
             SkuTextBox.Text = product.Sku;
             NameTextBox.Text = product.Name;
-            ModelComboBox.SelectedValue = product.ModelId;
+            SetModelSelection(product.ModelId);
             CategoryComboBox.SelectedValue = product.CategoryId;
             if (product.BrandId.HasValue)
             {
@@ -661,7 +673,7 @@ namespace PhoneStoreAdmin.View.Controls
             SerialTrackedToggle.IsOn = product.IsSerialTracked;
             StatusComboBox.SelectedValue = product.Status;
 
-            RenderAttributeInputs(detail.AttributeValues);
+            RefreshAttributeInputs(false);
             UpdateSerialSummaryVisibility();
 
             ValidateAllFields();
@@ -744,16 +756,77 @@ namespace PhoneStoreAdmin.View.Controls
             SuccessInfoBar.IsOpen = false;
         }
 
-        private void RenderAttributeInputs(IEnumerable<ProductAttributeValueViewModel>? values)
+        private void RefreshAttributeInputs(bool persistExistingValues)
+        {
+            if (!_referenceDataLoaded)
+            {
+                return;
+            }
+
+            if (persistExistingValues)
+            {
+                PersistAttributeInputValues();
+            }
+
+            var definitions = GetDefinitionsForCurrentModel();
+            RenderAttributeInputs(definitions, _attributeValueState.Values);
+        }
+
+        private IReadOnlyList<ProductAttributeDefinition> GetDefinitionsForCurrentModel()
+        {
+            var definitions = _attributeDefinitions?.ToList() ?? new List<ProductAttributeDefinition>();
+            var modelId = ModelComboBox.SelectedValue is int value ? value : (int?)null;
+
+            if (!modelId.HasValue || modelId.Value <= 0)
+            {
+                return definitions;
+            }
+
+            IReadOnlyList<int> assignedIds = Array.Empty<int>();
+
+            try
+            {
+                assignedIds = _productService.GetModelAttributeIds(modelId.Value) ?? Array.Empty<int>();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to load attribute assignments for model {modelId.Value}", ex);
+                return definitions;
+            }
+
+            if (assignedIds.Count == 0)
+            {
+                return definitions;
+            }
+
+            var idSet = new HashSet<int>(assignedIds);
+            return definitions.Where(def => def.Attribute != null && idSet.Contains(def.Attribute.Id)).ToList();
+        }
+
+        private void RenderAttributeInputs(IEnumerable<ProductAttributeDefinition> definitions, IEnumerable<ProductAttributeValueViewModel>? values)
         {
             AttributesPanel.Children.Clear();
             _attributeInputs.Clear();
 
+            var definitionList = definitions?.ToList() ?? new List<ProductAttributeDefinition>();
+
+            if (definitionList.Count == 0)
+            {
+                ShowNoAttributesMessage();
+                return;
+            }
+
+            HideNoAttributesMessage();
+
             var valueLookup = values?.ToDictionary(v => v.AttributeId) ?? new Dictionary<int, ProductAttributeValueViewModel>();
 
-            foreach (var definition in _attributeDefinitions)
+            foreach (var definition in definitionList)
             {
                 var attribute = definition.Attribute;
+                if (attribute == null)
+                {
+                    continue;
+                }
                 var isRequired = IsAttributeRequired(definition);
                 valueLookup.TryGetValue(attribute.Id, out var existingValue);
                 var row = new Grid
@@ -830,6 +903,137 @@ namespace PhoneStoreAdmin.View.Controls
                 UpdateAttributeInputEnabled(state);
                 _attributeInputs.Add(state);
             }
+        }
+
+        private void PersistAttributeInputValues()
+        {
+            foreach (var state in _attributeInputs)
+            {
+                var attribute = state.Attribute;
+                if (attribute == null)
+                {
+                    continue;
+                }
+
+                if (!state.IsRequired && !state.IsSelected)
+                {
+                    _attributeValueState.Remove(attribute.Id);
+                    continue;
+                }
+
+                var viewModel = new ProductAttributeValueViewModel
+                {
+                    AttributeId = attribute.Id,
+                    AttributeName = attribute.Name ?? string.Empty,
+                    DataType = attribute.DataType
+                };
+
+                if (state.Options.Count > 0)
+                {
+                    if (state.InputControl is ComboBox comboBox && comboBox.SelectedItem is ProductAttributeOption option)
+                    {
+                        viewModel.OptionId = option.Id;
+                        viewModel.OptionDisplayValue = option.DisplayValue;
+                        viewModel.ValueText = option.DisplayValue;
+                        _attributeValueState[attribute.Id] = viewModel;
+                    }
+                    else
+                    {
+                        _attributeValueState.Remove(attribute.Id);
+                    }
+
+                    continue;
+                }
+
+                switch (attribute.DataType)
+                {
+                    case AttributeDataType.TEXT:
+                        var text = (state.InputControl as TextBox)?.Text?.Trim();
+                        viewModel.ValueText = string.IsNullOrWhiteSpace(text) ? null : text;
+                        break;
+                    case AttributeDataType.NUMBER:
+                        if (state.InputControl is NumberBox numberBox)
+                        {
+                            var numberText = numberBox.Text?.Trim();
+                            if (!string.IsNullOrWhiteSpace(numberText)
+                                && decimal.TryParse(numberText, NumberStyles.Any, CultureInfo.InvariantCulture, out var numberValue))
+                            {
+                                viewModel.ValueNumber = numberValue;
+                            }
+
+                            viewModel.ValueText = string.IsNullOrWhiteSpace(numberText) ? null : numberText;
+                        }
+                        break;
+                    case AttributeDataType.DATE:
+                        if (state.InputControl is DatePicker datePicker)
+                        {
+                            viewModel.ValueDate = datePicker.Date?.DateTime;
+                        }
+                        break;
+                    case AttributeDataType.BOOLEAN:
+                        if (state.InputControl is ToggleSwitch toggleSwitch)
+                        {
+                            viewModel.ValueBool = toggleSwitch.IsOn;
+                        }
+                        break;
+                }
+
+                _attributeValueState[attribute.Id] = viewModel;
+            }
+        }
+
+        private void SetAttributeValueState(IEnumerable<ProductAttributeValueViewModel>? values)
+        {
+            _attributeValueState.Clear();
+
+            if (values == null)
+            {
+                return;
+            }
+
+            foreach (var value in values)
+            {
+                if (value == null)
+                {
+                    continue;
+                }
+
+                _attributeValueState[value.AttributeId] = new ProductAttributeValueViewModel
+                {
+                    AttributeId = value.AttributeId,
+                    AttributeName = value.AttributeName,
+                    DataType = value.DataType,
+                    ValueText = value.ValueText,
+                    ValueNumber = value.ValueNumber,
+                    ValueDate = value.ValueDate,
+                    ValueBool = value.ValueBool,
+                    OptionId = value.OptionId,
+                    OptionDisplayValue = value.OptionDisplayValue
+                };
+            }
+        }
+
+        private void ShowNoAttributesMessage()
+        {
+            var message = _resourceLoader.GetString("ProductModelNoAttributesConfigured");
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                message = _resourceLoader.GetString("ProductNoAttributes");
+            }
+
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                message = "No attributes are configured for this model.";
+            }
+
+            NoAttributesTextBlock.Text = message;
+            NoAttributesTextBlock.Visibility = Visibility.Visible;
+        }
+
+        private void HideNoAttributesMessage()
+        {
+            NoAttributesTextBlock.Visibility = Visibility.Collapsed;
+            NoAttributesTextBlock.Text = string.Empty;
         }
 
         private FrameworkElement CreateAttributeOptionControl(ProductAttributeDefinition definition, ProductAttributeValueViewModel? existing)
@@ -1125,7 +1329,7 @@ namespace PhoneStoreAdmin.View.Controls
 
             ModelComboBox.ItemsSource = null;
             ModelComboBox.ItemsSource = _modelOptions;
-            ModelComboBox.SelectedIndex = -1;
+            SetModelSelection(null);
             ApplyPendingModelSelection();
         }
 
@@ -1139,10 +1343,31 @@ namespace PhoneStoreAdmin.View.Controls
             var option = _modelOptions.FirstOrDefault(m => m.Value == _pendingModelSelection.Value);
             if (option != null)
             {
-                ModelComboBox.SelectedValue = option.Value;
+                SetModelSelection(option.Value);
             }
 
             _pendingModelSelection = null;
+        }
+
+        private void SetModelSelection(int? modelId)
+        {
+            _suppressModelSelectionChanged = true;
+
+            try
+            {
+                if (modelId.HasValue && modelId.Value > 0)
+                {
+                    ModelComboBox.SelectedValue = modelId.Value;
+                }
+                else
+                {
+                    ModelComboBox.SelectedIndex = -1;
+                }
+            }
+            finally
+            {
+                _suppressModelSelectionChanged = false;
+            }
         }
 
         private void LoadBrands()
