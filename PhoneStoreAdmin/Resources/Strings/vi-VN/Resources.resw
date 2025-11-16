@@ -2368,6 +2368,9 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="ProductNoAttributes" xml:space="preserve">
     <value>Không có thuộc tính nào.</value>
   </data>
+  <data name="ProductModelNoAttributesConfigured" xml:space="preserve">
+    <value>Mẫu sản phẩm này chưa được cấu hình thuộc tính. Các trường thuộc tính sẽ xuất hiện khi bạn gán thuộc tính.</value>
+  </data>
   <data name="ProductDetailDialogTitle" xml:space="preserve">
     <value>Chi tiết sản phẩm - {0}</value>
   </data>
