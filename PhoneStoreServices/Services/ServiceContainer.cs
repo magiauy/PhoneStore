@@ -77,6 +77,7 @@ namespace PhoneStore.Services
                 GetService<IProductAttributeRepository>(),
                 GetService<IProductAttributeValueRepository>(),
                 GetService<IProductSerialRepository>(),
+                GetService<IBatchProductRepository>(),
                 GetService<IProductModelRepository>(),
                 GetService<IProductModelAttributeRepository>(),
                 GetService<IProductAttributeOptionService>()));

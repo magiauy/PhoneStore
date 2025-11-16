@@ -53,6 +53,16 @@ namespace PhoneStore.Services.Interfaces
         ProductModelDetailViewModel? GetProductModelDetail(int modelId);
 
         /// <summary>
+        /// Retrieve all products that belong to a product model.
+        /// </summary>
+        IReadOnlyList<ProductListItemViewModel> GetProductsByModel(int modelId);
+
+        /// <summary>
+        /// Retrieve product detail together with batch summaries and serials for management view.
+        /// </summary>
+        ProductManagementDetailViewModel? GetProductManagementDetail(int productId);
+
+        /// <summary>
         /// Retrieve attribute identifiers linked to a product model.
         /// </summary>
         IReadOnlyList<int> GetModelAttributeIds(int modelId);

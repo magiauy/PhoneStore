@@ -19,6 +19,7 @@ namespace PhoneStore.Services.Implementations
         private readonly IProductAttributeRepository _productAttributeRepository;
         private readonly IProductAttributeValueRepository _productAttributeValueRepository;
         private readonly IProductSerialRepository _productSerialRepository;
+        private readonly IBatchProductRepository _batchProductRepository;
         private readonly IProductModelRepository _productModelRepository;
         private readonly IProductModelAttributeRepository _productModelAttributeRepository;
         private readonly IProductAttributeOptionService _productAttributeOptionService;
@@ -34,6 +35,7 @@ namespace PhoneStore.Services.Implementations
             IProductAttributeRepository productAttributeRepository,
             IProductAttributeValueRepository productAttributeValueRepository,
             IProductSerialRepository productSerialRepository,
+            IBatchProductRepository batchProductRepository,
             IProductModelRepository productModelRepository,
             IProductModelAttributeRepository productModelAttributeRepository,
             IProductAttributeOptionService productAttributeOptionService)
@@ -44,6 +46,7 @@ namespace PhoneStore.Services.Implementations
             _productAttributeRepository = productAttributeRepository ?? throw new ArgumentNullException(nameof(productAttributeRepository));
             _productAttributeValueRepository = productAttributeValueRepository ?? throw new ArgumentNullException(nameof(productAttributeValueRepository));
             _productSerialRepository = productSerialRepository ?? throw new ArgumentNullException(nameof(productSerialRepository));
+            _batchProductRepository = batchProductRepository ?? throw new ArgumentNullException(nameof(batchProductRepository));
             _productModelRepository = productModelRepository ?? throw new ArgumentNullException(nameof(productModelRepository));
             _productModelAttributeRepository = productModelAttributeRepository ?? throw new ArgumentNullException(nameof(productModelAttributeRepository));
             _productAttributeOptionService = productAttributeOptionService ?? throw new ArgumentNullException(nameof(productAttributeOptionService));
@@ -196,6 +199,110 @@ namespace PhoneStore.Services.Implementations
             catch (Exception ex)
             {
                 Logger.Error($"Failed to load product model detail for {modelId}", ex);
+                return null;
+            }
+        }
+
+        public IReadOnlyList<ProductListItemViewModel> GetProductsByModel(int modelId)
+        {
+            if (modelId <= 0)
+            {
+                return Array.Empty<ProductListItemViewModel>();
+            }
+
+            try
+            {
+                var variants = _productRepository.GetByModelId(modelId)?.ToList() ?? new List<Product>();
+                if (variants.Count == 0)
+                {
+                    return Array.Empty<ProductListItemViewModel>();
+                }
+
+                var categoryLookup = BuildCategoryLookup();
+                var brandLookup = BuildBrandLookup();
+                var productIds = variants.Select(v => v.Id).ToList();
+                var serialLookup = productIds.Count > 0
+                    ? _productSerialRepository.GetCountsByProductIds(productIds)
+                    : new Dictionary<int, int>();
+                var modelName = TryGetModelName(modelId);
+
+                return variants
+                    .OrderByDescending(v => v.CreatedAt)
+                    .Select(product =>
+                    {
+                        var categoryName = categoryLookup.TryGetValue(product.CategoryId, out var catName)
+                            ? catName
+                            : string.Empty;
+                        string? brandName = null;
+                        if (product.BrandId.HasValue && brandLookup.TryGetValue(product.BrandId.Value, out var bName))
+                        {
+                            brandName = bName;
+                        }
+
+                        var serialCount = serialLookup.TryGetValue(product.Id, out var count) ? count : 0;
+                        return new ProductListItemViewModel(product, categoryName, brandName, serialCount, modelName);
+                    })
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to load products for model {modelId}", ex);
+                return Array.Empty<ProductListItemViewModel>();
+            }
+        }
+
+        public ProductManagementDetailViewModel? GetProductManagementDetail(int productId)
+        {
+            try
+            {
+                var product = _productRepository.GetById(productId);
+                if (product == null)
+                {
+                    Logger.Warning($"Product {productId} not found for management detail view.");
+                    return null;
+                }
+
+                var categoryName = TryGetCategoryName(product.CategoryId);
+                var brandName = product.BrandId.HasValue ? TryGetBrandName(product.BrandId.Value) : null;
+                var modelName = TryGetModelName(product.ModelId);
+
+                var serials = _productSerialRepository.GetByProductId(productId)?.ToList() ?? new List<ProductSerial>();
+                SynchronizeSerialTracking(product, serials);
+
+                var serialViewModels = serials.Select(serial => new ProductSerialViewModel
+                {
+                    Id = serial.Id,
+                    SerialNumber = serial.SerialNumber,
+                    Imei1 = serial.Imei1,
+                    Imei2 = serial.Imei2,
+                    BatchId = serial.BatchId,
+                    Status = serial.Status,
+                    PurchaseOrderLineId = serial.PurchaseOrderLineId,
+                    Note = serial.Note
+                }).ToList();
+
+                var batches = _batchProductRepository
+                    .GetBatchProductsFiltered(null, productId, null, null, null, null, null, null, 1, int.MaxValue)
+                    ?.ToList() ?? new List<BatchProduct>();
+
+                var batchViewModels = batches
+                    .Select(batch => new ProductBatchSummaryViewModel
+                    {
+                        Id = batch.Id,
+                        BatchId = batch.BatchId,
+                        Quantity = batch.Quantity,
+                        CostPrice = batch.CostPrice,
+                        SellingPrice = batch.SellingPrice
+                    })
+                    .OrderByDescending(b => b.Id)
+                    .ToList();
+
+                var productViewModel = new ProductListItemViewModel(product, categoryName, brandName, serialViewModels.Count, modelName);
+                return new ProductManagementDetailViewModel(productViewModel, batchViewModels, serialViewModels);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to load management detail for product {productId}", ex);
                 return null;
             }
         }

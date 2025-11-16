@@ -163,6 +163,8 @@ namespace PhoneStore.Services.ViewModels
         public SerialStatus Status { get; set; }
         public int? PurchaseOrderLineId { get; set; }
         public string? Note { get; set; }
+
+        public string StatusText => LocalizationHelper.GetString($"SerialStatus_{Status}", Status.ToString());
     }
 
     public class ProductDetailViewModel
@@ -180,6 +182,47 @@ namespace PhoneStore.Services.ViewModels
             AttributeValues = attributes?.ToList() ?? new List<ProductAttributeValueViewModel>();
             Serials = serials?.ToList() ?? new List<ProductSerialViewModel>();
         }
+    }
+
+    public class ProductBatchSummaryViewModel
+    {
+        public int Id { get; set; }
+        public int BatchId { get; set; }
+        public int Quantity { get; set; }
+        public decimal CostPrice { get; set; }
+        public decimal SellingPrice { get; set; }
+
+        public decimal TotalCost => Math.Round(CostPrice * Quantity, 2, MidpointRounding.AwayFromZero);
+        public decimal TotalRevenue => Math.Round(SellingPrice * Quantity, 2, MidpointRounding.AwayFromZero);
+    }
+
+    public class ProductManagementDetailViewModel
+    {
+        public ProductManagementDetailViewModel(
+            ProductListItemViewModel product,
+            IEnumerable<ProductBatchSummaryViewModel>? batches,
+            IEnumerable<ProductSerialViewModel>? serials)
+        {
+            Product = product;
+            Batches = batches?.ToList() ?? new List<ProductBatchSummaryViewModel>();
+            Serials = serials?.ToList() ?? new List<ProductSerialViewModel>();
+        }
+
+        public ProductListItemViewModel Product { get; }
+        public IReadOnlyList<ProductBatchSummaryViewModel> Batches { get; }
+        public IReadOnlyList<ProductSerialViewModel> Serials { get; }
+
+        public int TotalQuantity => Batches.Sum(b => b.Quantity);
+        public decimal AverageCost => Batches.Count == 0
+            ? 0m
+            : Math.Round(Batches.Average(b => b.CostPrice), 2, MidpointRounding.AwayFromZero);
+        public decimal AverageSellingPrice => Batches.Count == 0
+            ? 0m
+            : Math.Round(Batches.Average(b => b.SellingPrice), 2, MidpointRounding.AwayFromZero);
+
+        public int SerialCount => Serials.Count;
+        public bool HasBatches => Batches.Count > 0;
+        public bool HasSerials => Serials.Count > 0;
     }
 
     public class ProductFilterCriteria

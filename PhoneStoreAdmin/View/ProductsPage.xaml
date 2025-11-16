@@ -288,8 +288,9 @@
                             <Button Content="Duplicate Model" Click="DuplicateModelButton_Click" Style="{StaticResource SecondaryButtonStyle}" />
                             <Button
                                 x:Name="ManageProductsButton"
-                                Content="Quản lý sản phẩm"
+                                x:Uid="ProductsPageManageButton"
                                 Click="ManageProductsButton_Click"
+                                IsEnabled="{x:Bind HasSelectedModel, Mode=OneWay}"
                                 Style="{StaticResource SecondaryButtonStyle}" />
                         </StackPanel>
 
