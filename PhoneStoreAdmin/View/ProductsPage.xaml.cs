@@ -4,6 +4,7 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStore.Services.Interfaces;
 using PhoneStoreAdmin.View.Controls;
 using PhoneStore.Services.ViewModels;
+using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Utils;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,8 @@ namespace PhoneStoreAdmin.View
         private ContentDialog? _currentDialog;
         private bool _isLoaded;
         private ProductModelDetailViewModel? _selectedModelDetail;
+        private readonly List<string> _selectedBrandNames = new();
+        private readonly List<string> _selectedCategoryNames = new();
         private readonly NotifyCollectionChangedEventHandler _collectionChangedHandler;
 
         public ObservableCollection<ProductModelListItemViewModel> ProductModels { get; } = new();
@@ -34,7 +37,13 @@ namespace PhoneStoreAdmin.View
             get => _selectedModelDetail;
             private set
             {
+                if (_selectedModelDetail == value)
+                {
+                    return;
+                }
+
                 _selectedModelDetail = value;
+                UpdateVariantMetadataSummaries();
                 Bindings.Update();
             }
         }
@@ -44,9 +53,9 @@ namespace PhoneStoreAdmin.View
         public string SelectedModelDescription => SelectedModelDetail?.Model.Description ?? string.Empty;
         
         public IReadOnlyList<ProductListItemViewModel>? SelectedModelVariants => SelectedModelDetail?.Variants;
-        
+
         public bool HasSelectedModel => SelectedModelDetail != null;
-        
+
         public bool SelectedModelHasNoVariants => SelectedModelDetail != null && !SelectedModelDetail.HasVariants;
 
         public string SelectedModelSummary
@@ -62,6 +71,18 @@ namespace PhoneStoreAdmin.View
                 return string.Format("{0} variants • Updated {1:g}", model.VariantCount, model.UpdatedAt.ToLocalTime());
             }
         }
+
+        public IReadOnlyList<ProductAttribute> SelectedModelAttributes => SelectedModelDetail?.Attributes ?? Array.Empty<ProductAttribute>();
+        public bool SelectedModelHasAttributes => SelectedModelDetail?.HasAttributes ?? false;
+        public bool SelectedModelHasNoAttributes => !SelectedModelHasAttributes;
+
+        public IReadOnlyList<string> SelectedModelBrandNames => _selectedBrandNames;
+        public bool SelectedModelHasBrands => _selectedBrandNames.Count > 0;
+        public bool SelectedModelHasNoBrands => !SelectedModelHasBrands;
+
+        public IReadOnlyList<string> SelectedModelCategoryNames => _selectedCategoryNames;
+        public bool SelectedModelHasCategories => _selectedCategoryNames.Count > 0;
+        public bool SelectedModelHasNoCategories => !SelectedModelHasCategories;
 
         public ProductsPage()
         {
@@ -128,6 +149,36 @@ namespace PhoneStoreAdmin.View
         {
             var detail = _productService.GetProductModelDetail(modelId);
             SelectedModelDetail = detail;
+        }
+
+        private void UpdateVariantMetadataSummaries()
+        {
+            _selectedBrandNames.Clear();
+            _selectedCategoryNames.Clear();
+
+            if (_selectedModelDetail?.Variants == null)
+            {
+                return;
+            }
+
+            var brandSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var categorySet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var variant in _selectedModelDetail.Variants)
+            {
+                if (!string.IsNullOrWhiteSpace(variant.BrandName) && brandSet.Add(variant.BrandName!))
+                {
+                    _selectedBrandNames.Add(variant.BrandName!);
+                }
+
+                if (!string.IsNullOrWhiteSpace(variant.CategoryName) && categorySet.Add(variant.CategoryName))
+                {
+                    _selectedCategoryNames.Add(variant.CategoryName);
+                }
+            }
+
+            _selectedBrandNames.Sort(StringComparer.OrdinalIgnoreCase);
+            _selectedCategoryNames.Sort(StringComparer.OrdinalIgnoreCase);
         }
 
         private void RefreshModelsButton_Click(object sender, RoutedEventArgs e)
