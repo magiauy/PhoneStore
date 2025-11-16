@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="PhoneStoreAdmin.View.ProductManagementPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:PhoneStoreAdmin.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:PhoneStoreAdmin.View"
+    xmlns:viewModels="using:PhoneStore.Services.ViewModels"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Background="{StaticResource BrushBackground}"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Theme/Colors.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <ThemeShadow x:Key="SharedShadow" />
+            <converters:BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <local:CurrencyConverter x:Key="CurrencyConverter" />
+
+            <Style x:Key="CardBorderStyle" TargetType="Border">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <SolidColorBrush Opacity="0.95" Color="{StaticResource ColorSurface}" />
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Padding" Value="14" />
+            </Style>
+
+            <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="{StaticResource BrushPrimary}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="CornerRadius" Value="10" />
+                <Setter Property="Padding" Value="18,12" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+
+            <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="{StaticResource BrushSurface}" />
+                <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="10" />
+                <Setter Property="Padding" Value="16,10" />
+                <Setter Property="FontWeight" Value="Medium" />
+            </Style>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.RowSpan="2">
+            <Rectangle>
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Offset="0" Color="{StaticResource ColorBackground}" />
+                        <GradientStop Offset="0.5" Color="#FFF0F2FF" />
+                        <GradientStop Offset="1" Color="#FFE8ECFF" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+            <Grid>
+                <Ellipse
+                    Width="420"
+                    Height="420"
+                    Margin="-220,-120,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Opacity="0.08">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Offset="0" Color="{StaticResource ColorPrimary}" />
+                            <GradientStop Offset="1" Color="{StaticResource ColorPrimaryLight}" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+                <Ellipse
+                    Width="320"
+                    Height="320"
+                    Margin="0,0,-160,-160"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Opacity="0.08">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Offset="0" Color="{StaticResource ColorAccent}" />
+                            <GradientStop Offset="1" Color="Transparent" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+            </Grid>
+        </Grid>
+
+        <Border
+            Grid.Row="0"
+            Margin="32,32,32,24"
+            Padding="32,24"
+            Shadow="{StaticResource SharedShadow}"
+            Style="{StaticResource CardBorderStyle}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Vertical" Spacing="8">
+                    <TextBlock
+                        Text="{x:Bind CurrentModelName, Mode=OneWay}"
+                        FontSize="34"
+                        FontWeight="Bold"
+                        TextWrapping="WrapWholeWords" />
+                    <TextBlock
+                        x:Uid="ProductManagementTitle"
+                        FontSize="16"
+                        Foreground="{StaticResource BrushTextSecondary}" />
+                    <TextBlock
+                        Text="{x:Bind HeaderSubtitle, Mode=OneWay}"
+                        FontSize="14"
+                        Foreground="{StaticResource BrushTextTertiary}"
+                        TextWrapping="WrapWholeWords" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <Button
+                        x:Uid="ProductManagementBackButton"
+                        Click="BackButton_Click"
+                        Style="{StaticResource SecondaryButtonStyle}" />
+                    <Button
+                        x:Uid="ProductManagementCreateButton"
+                        Click="CreateProductButton_Click"
+                        Style="{StaticResource PrimaryButtonStyle}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" Margin="32,0,32,32">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.8*" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+
+            <Border
+                Grid.Column="0"
+                Margin="0,0,16,0"
+                Padding="24"
+                Shadow="{StaticResource SharedShadow}"
+                Style="{StaticResource CardBorderStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock
+                        Grid.Row="0"
+                        x:Uid="ProductManagementVariantsLabel"
+                        FontSize="20"
+                        FontWeight="SemiBold"
+                        Margin="0,0,0,12" />
+
+                    <Grid Grid.Row="1" Visibility="{x:Bind HasProducts, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <GridView
+                            ItemsSource="{x:Bind Products, Mode=OneWay}"
+                            SelectedItem="{x:Bind SelectedProduct, Mode=TwoWay}"
+                            SelectionMode="Single"
+                            IsItemClickEnabled="False"
+                            Margin="0"
+                            Padding="0">
+                            <GridView.ItemContainerStyle>
+                                <Style TargetType="GridViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                                    <Setter Property="Margin" Value="0,0,16,16" />
+                                </Style>
+                            </GridView.ItemContainerStyle>
+                            <GridView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsWrapGrid Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </GridView.ItemsPanel>
+                            <GridView.ItemTemplate>
+                                <DataTemplate x:DataType="viewModels:ProductListItemViewModel">
+                                    <Border Style="{StaticResource CardBorderStyle}" Padding="16" Shadow="{StaticResource SharedShadow}">
+                                        <StackPanel Spacing="8">
+                                            <TextBlock Text="{x:Bind Name}" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                            <TextBlock Text="{x:Bind Sku}" FontSize="13" Foreground="{StaticResource BrushTextSecondary}" />
+                                            <TextBlock Text="{x:Bind BrandName, Mode=OneWay}" FontSize="13" Foreground="{StaticResource BrushTextSecondary}" />
+                                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                                <TextBlock Text="{x:Bind CategoryName}" FontSize="13" />
+                                                <TextBlock Text="{x:Bind ModelName}" FontSize="13" Foreground="{StaticResource BrushTextSecondary}" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                                <TextBlock Text="{x:Bind Price, Converter={StaticResource CurrencyConverter}}" FontWeight="SemiBold" />
+                                                <TextBlock Text="{x:Bind Cost, Converter={StaticResource CurrencyConverter}}" Foreground="{StaticResource BrushTextSecondary}" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                                <InfoBadge Value="{x:Bind SerialCount}" />
+                                                <TextBlock Text="{x:Bind StatusText}" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </GridView.ItemTemplate>
+                        </GridView>
+                    </Grid>
+
+                    <StackPanel
+                        Grid.Row="1"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="8"
+                        Visibility="{x:Bind NoProducts, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <FontIcon Glyph="&#xE71D;" FontSize="48" Foreground="{StaticResource BrushPrimary}" />
+                        <TextBlock x:Uid="ProductManagementEmptyStateTitle" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                        <TextBlock
+                            x:Uid="ProductManagementEmptyStateMessage"
+                            FontSize="14"
+                            Width="280"
+                            TextAlignment="Center"
+                            TextWrapping="Wrap"
+                            Foreground="{StaticResource BrushTextSecondary}" />
+                        <Button
+                            x:Uid="ProductManagementCreateButton"
+                            Click="CreateProductButton_Click"
+                            Style="{StaticResource PrimaryButtonStyle}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border
+                Grid.Column="1"
+                Padding="24"
+                Shadow="{StaticResource SharedShadow}"
+                Style="{StaticResource CardBorderStyle}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid>
+                        <Grid x:Load="{x:Bind HasSelectedProduct, Mode=OneWay}">
+                            <StackPanel Spacing="20">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="{x:Bind SelectedProductDetail.Product.Name, Mode=OneWay}" FontSize="24" FontWeight="SemiBold" TextWrapping="WrapWholeWords" />
+                                        <TextBlock Text="{x:Bind SelectedProductSummary, Mode=OneWay}" FontSize="14" Foreground="{StaticResource BrushTextSecondary}" />
+                                        <TextBlock Text="{x:Bind SelectedProductDetail.Product.StatusText, Mode=OneWay}" FontSize="13" Foreground="{StaticResource BrushTextTertiary}" />
+                                        <StackPanel Orientation="Horizontal" Spacing="16">
+                                            <StackPanel>
+                                                <TextBlock x:Uid="ProductPriceLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                <TextBlock Text="{x:Bind SelectedProductDetail.Product.Price, Converter={StaticResource CurrencyConverter}}" FontSize="16" FontWeight="SemiBold" />
+                                            </StackPanel>
+                                            <StackPanel>
+                                                <TextBlock x:Uid="ProductCostLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                <TextBlock Text="{x:Bind SelectedProductDetail.Product.Cost, Converter={StaticResource CurrencyConverter}}" FontSize="16" FontWeight="SemiBold" />
+                                            </StackPanel>
+                                            <StackPanel>
+                                                <TextBlock x:Uid="ProductIsSerialTrackedLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                <TextBlock Text="{x:Bind SelectedProductDetail.Product.SerialCount}" FontSize="16" FontWeight="SemiBold" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <Button
+                                        Grid.Column="1"
+                                        x:Uid="ProductManagementEditButton"
+                                        Click="EditProductButton_Click"
+                                        IsEnabled="{x:Bind HasSelectedProduct, Mode=OneWay}"
+                                        Style="{StaticResource SecondaryButtonStyle}" />
+                                </Grid>
+
+                                <StackPanel>
+                                    <TextBlock x:Uid="ProductManagementBatchStatsLabel" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,8" />
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Grid.Column="0" Style="{StaticResource CardBorderStyle}">
+                                            <StackPanel>
+                                                <TextBlock x:Uid="ProductManagementQuantityLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                <TextBlock Text="{x:Bind TotalQuantityDisplay, Mode=OneWay}" FontSize="22" FontWeight="SemiBold" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
+                                            <StackPanel>
+                                                <TextBlock x:Uid="ProductManagementAvgCostLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                <TextBlock Text="{x:Bind SelectedProductDetail.AverageCost, Converter={StaticResource CurrencyConverter}}" FontSize="22" FontWeight="SemiBold" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Grid.Column="2" Style="{StaticResource CardBorderStyle}">
+                                            <StackPanel>
+                                                <TextBlock x:Uid="ProductManagementAvgPriceLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                <TextBlock Text="{x:Bind SelectedProductDetail.AverageSellingPrice, Converter={StaticResource CurrencyConverter}}" FontSize="22" FontWeight="SemiBold" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </StackPanel>
+
+                                <StackPanel>
+                                    <TextBlock x:Uid="ProductManagementBatchHistoryLabel" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,8" />
+                                    <ListView
+                                        ItemsSource="{x:Bind SelectedProductDetail.Batches, Mode=OneWay}"
+                                        SelectionMode="None"
+                                        Visibility="{x:Bind HasBatchHistory, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate x:DataType="viewModels:ProductBatchSummaryViewModel">
+                                                <Border Style="{StaticResource CardBorderStyle}" Padding="16">
+                                                    <Grid ColumnSpacing="16">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel>
+                                                            <TextBlock x:Uid="Dlg_BatchDetails_BatchIdLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                            <TextBlock Text="{x:Bind FormatBatchId(BatchId), Mode=OneWay}" FontSize="16" FontWeight="SemiBold" />
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="1">
+                                                            <TextBlock x:Uid="Dlg_BatchDetails_QuantityLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                            <TextBlock Text="{x:Bind Quantity}" FontSize="16" FontWeight="SemiBold" />
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="2" Spacing="4">
+                                                            <StackPanel>
+                                                                <TextBlock x:Uid="Dlg_BatchDetails_CostPriceLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                                <TextBlock Text="{x:Bind CostPrice, Converter={StaticResource CurrencyConverter}}" FontSize="16" FontWeight="SemiBold" />
+                                                            </StackPanel>
+                                                            <StackPanel>
+                                                                <TextBlock x:Uid="Dlg_BatchDetails_SellingPriceLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                                <TextBlock Text="{x:Bind SellingPrice, Converter={StaticResource CurrencyConverter}}" FontSize="16" FontWeight="SemiBold" />
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                    <TextBlock
+                                        x:Uid="ProductManagementNoBatchesMessage"
+                                        FontSize="14"
+                                        Foreground="{StaticResource BrushTextSecondary}"
+                                        Visibility="{x:Bind NoBatchHistory, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                </StackPanel>
+
+                                <StackPanel>
+                                    <TextBlock Text="{x:Bind SerialHeader, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,8" />
+                                    <Expander
+                                        IsExpanded="False"
+                                        Visibility="{x:Bind HasSerials, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <ListView ItemsSource="{x:Bind SelectedProductDetail.Serials, Mode=OneWay}" SelectionMode="None">
+                                            <ListView.ItemTemplate>
+                                                <DataTemplate x:DataType="viewModels:ProductSerialViewModel">
+                                                    <Border Style="{StaticResource CardBorderStyle}" Padding="12">
+                                                        <Grid ColumnSpacing="12">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <StackPanel>
+                                                                <TextBlock x:Uid="SerialNumberTextBox.Header" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                                <TextBlock Text="{x:Bind SerialNumber}" FontSize="16" FontWeight="SemiBold" />
+                                                            </StackPanel>
+                                                            <StackPanel Grid.Column="1">
+                                                                <TextBlock x:Uid="ProductManagementImei1Label" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                                <TextBlock Text="{x:Bind Imei1}" FontSize="14" />
+                                                                <TextBlock x:Uid="ProductManagementImei2Label" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" Margin="0,8,0,0" />
+                                                                <TextBlock Text="{x:Bind Imei2}" FontSize="14" />
+                                                            </StackPanel>
+                                                            <StackPanel Grid.Column="2" HorizontalAlignment="Right" Spacing="4">
+                                                                <TextBlock Text="{x:Bind StatusText}" FontSize="13" Foreground="{StaticResource BrushTextSecondary}" />
+                                                                <TextBlock Text="{x:Bind Note}" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" TextWrapping="Wrap" Width="160" />
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListView.ItemTemplate>
+                                        </ListView>
+                                    </Expander>
+                                    <TextBlock
+                                        x:Uid="ProductManagementNoSerialsMessage"
+                                        FontSize="14"
+                                        Foreground="{StaticResource BrushTextSecondary}"
+                                        Visibility="{x:Bind NoSerials, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="8"
+                            x:Load="{x:Bind NoProductSelected, Mode=OneWay}">
+                            <FontIcon Glyph="&#xE8E5;" FontSize="48" Foreground="{StaticResource BrushPrimary}" />
+                            <TextBlock x:Uid="ProductManagementNoSelectionMessage" FontSize="16" FontWeight="SemiBold" TextAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</Page>

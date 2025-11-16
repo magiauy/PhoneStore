@@ -2625,4 +2625,82 @@ How many devices do you want to add?</value>
   <data name="ProductAttributes_OptionLoadError.Text" xml:space="preserve">
     <value>Unable to load attribute options. {0}</value>
   </data>
+  <data name="ProductManagementTitle.Text" xml:space="preserve">
+    <value>Product management</value>
+  </data>
+  <data name="ProductManagementVariantsLabel.Text" xml:space="preserve">
+    <value>Product variants</value>
+  </data>
+  <data name="ProductManagementEmptyStateTitle.Text" xml:space="preserve">
+    <value>No products yet</value>
+  </data>
+  <data name="ProductManagementEmptyStateMessage.Text" xml:space="preserve">
+    <value>Create your first product variant for this model.</value>
+  </data>
+  <data name="ProductManagementCreateButton.Content" xml:space="preserve">
+    <value>Create product</value>
+  </data>
+  <data name="ProductManagementBackButton.Content" xml:space="preserve">
+    <value>Back to models</value>
+  </data>
+  <data name="ProductManagementEditButton.Content" xml:space="preserve">
+    <value>Edit product</value>
+  </data>
+  <data name="ProductManagementBatchStatsLabel.Text" xml:space="preserve">
+    <value>Batch statistics</value>
+  </data>
+  <data name="ProductManagementBatchHistoryLabel.Text" xml:space="preserve">
+    <value>Batch history</value>
+  </data>
+  <data name="ProductManagementNoBatchesMessage.Text" xml:space="preserve">
+    <value>No batch history for this product.</value>
+  </data>
+  <data name="ProductManagementSerialsLabel.Text" xml:space="preserve">
+    <value>Serial numbers</value>
+  </data>
+  <data name="ProductManagementNoSerialsMessage.Text" xml:space="preserve">
+    <value>This product has no tracked serial numbers.</value>
+  </data>
+  <data name="ProductManagementNoSelectionMessage.Text" xml:space="preserve">
+    <value>Select a product to view its details.</value>
+  </data>
+  <data name="ProductManagementQuantityLabel.Text" xml:space="preserve">
+    <value>Total quantity</value>
+  </data>
+  <data name="ProductManagementAvgCostLabel.Text" xml:space="preserve">
+    <value>Average cost</value>
+  </data>
+  <data name="ProductManagementAvgPriceLabel.Text" xml:space="preserve">
+    <value>Average selling price</value>
+  </data>
+  <data name="ProductManagementSubtitleFormat" xml:space="preserve">
+    <value>Variants belonging to {0}</value>
+  </data>
+  <data name="ProductManagementImei1Label.Text" xml:space="preserve">
+    <value>IMEI 1</value>
+  </data>
+  <data name="ProductManagementImei2Label.Text" xml:space="preserve">
+    <value>IMEI 2</value>
+  </data>
+  <data name="ProductsPageManageButton.Content" xml:space="preserve">
+    <value>Manage products</value>
+  </data>
+  <data name="SerialStatus_IN_STOCK" xml:space="preserve">
+    <value>In stock</value>
+  </data>
+  <data name="SerialStatus_RESERVED" xml:space="preserve">
+    <value>Reserved</value>
+  </data>
+  <data name="SerialStatus_SOLD" xml:space="preserve">
+    <value>Sold</value>
+  </data>
+  <data name="SerialStatus_RETURNED" xml:space="preserve">
+    <value>Returned</value>
+  </data>
+  <data name="SerialStatus_DEFECTIVE" xml:space="preserve">
+    <value>Defective</value>
+  </data>
+  <data name="SerialStatus_RMA" xml:space="preserve">
+    <value>RMA</value>
+  </data>
 </root>

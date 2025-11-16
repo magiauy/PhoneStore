@@ -221,9 +221,14 @@ namespace PhoneStoreAdmin.View
 
         private void ManageProductsButton_Click(object sender, RoutedEventArgs e)
         {
+            if (SelectedModelDetail == null)
+            {
+                return;
+            }
+
             if (App.Current is App app && app.CurrentWindow is PhoneStoreAdmin.MainWindow mainWindow)
             {
-                mainWindow.NavigateToPage(ProductManagementPageTag);
+                mainWindow.NavigateToPage(ProductManagementPageTag, SelectedModelDetail);
             }
         }
     }

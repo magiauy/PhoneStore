@@ -48,17 +48,18 @@ namespace PhoneStoreAdmin
             if (args.SelectedItem is NavigationViewItem item && item.Tag != null)
             {
                 string tag = item.Tag.ToString() ?? "Dashboard";
-                NavigateToPage(tag);
+                NavigateToPage(tag, null);
             }
         }
 
-        public void NavigateToPage(string pageTag)
+        public void NavigateToPage(string pageTag, object? parameter = null)
         {
             Type pageType = pageTag switch
             {
                 "Dashboard" => typeof(DashboardPage),
                 "Products" => typeof(ProductsPage),
                 "ProductAttributes" => typeof(ProductAttributesPage),
+                "ProductManagement" => typeof(ProductManagementPage),
                 "Suppliers" => typeof(SuppliersPage),
                 "Brands" => typeof(BrandPage),
                 "Promotions" => typeof(PromotionsPage),
@@ -85,7 +86,7 @@ namespace PhoneStoreAdmin
 
             if (ContentFrame.CurrentSourcePageType != pageType)
             {
-                ContentFrame.Navigate(pageType);
+                ContentFrame.Navigate(pageType, parameter);
             }
         }
 
