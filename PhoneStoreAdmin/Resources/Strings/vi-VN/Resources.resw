@@ -2497,4 +2497,25 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="SerialStatus_RMA" xml:space="preserve">
     <value>Bảo hành</value>
   </data>
+  <data name="ProductManagementBatchHistoryTab.Header" xml:space="preserve">
+    <value>Lịch sử lô hàng</value>
+  </data>
+  <data name="ProductManagementSerialsTab.Header" xml:space="preserve">
+    <value>Số serial</value>
+  </data>
+  <data name="ProductManagementBatchListTitle.Text" xml:space="preserve">
+    <value>Danh sách lô hàng</value>
+  </data>
+  <data name="ProductManagementBatchSerialsTitle.Text" xml:space="preserve">
+    <value>Serial trong lô</value>
+  </data>
+  <data name="ProductManagementSelectBatchMessage.Text" xml:space="preserve">
+    <value>Chọn một lô để xem serial.</value>
+  </data>
+  <data name="ProductManagementNoBatchSerialsMessage.Text" xml:space="preserve">
+    <value>Lô này chưa có serial.</value>
+  </data>
+  <data name="ProductManagementBatchSerialHeaderFormat" xml:space="preserve">
+    <value>Serial trong lô {0}</value>
+  </data>
 </root>

@@ -48,6 +48,32 @@
                 <Setter Property="Padding" Value="16,10" />
                 <Setter Property="FontWeight" Value="Medium" />
             </Style>
+
+            <DataTemplate x:Key="ProductSerialCardTemplate" x:DataType="viewModels:ProductSerialViewModel">
+                <Border Style="{StaticResource CardBorderStyle}" Padding="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock x:Uid="SerialNumberTextBox.Header" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                            <TextBlock Text="{x:Bind SerialNumber}" FontSize="16" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock x:Uid="ProductManagementImei1Label" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                            <TextBlock Text="{x:Bind Imei1}" FontSize="14" />
+                            <TextBlock x:Uid="ProductManagementImei2Label" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" Margin="0,8,0,0" />
+                            <TextBlock Text="{x:Bind Imei2}" FontSize="14" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" HorizontalAlignment="Right" Spacing="4">
+                            <TextBlock Text="{x:Bind StatusText}" FontSize="13" Foreground="{StaticResource BrushTextSecondary}" />
+                            <TextBlock Text="{x:Bind Note}" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" TextWrapping="Wrap" Width="160" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </DataTemplate>
         </ResourceDictionary>
     </Page.Resources>
 
@@ -310,92 +336,111 @@
                                     </Grid>
                                 </StackPanel>
 
-                                <StackPanel>
-                                    <TextBlock x:Uid="ProductManagementBatchHistoryLabel" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,8" />
-                                    <ListView
-                                        ItemsSource="{x:Bind SelectedProductDetail.Batches, Mode=OneWay}"
-                                        SelectionMode="None"
-                                        Visibility="{x:Bind HasBatchHistory, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <ListView.ItemTemplate>
-                                            <DataTemplate x:DataType="viewModels:ProductBatchSummaryViewModel">
-                                                <Border Style="{StaticResource CardBorderStyle}" Padding="16">
-                                                    <Grid ColumnSpacing="16">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*" />
-                                                            <ColumnDefinition Width="*" />
-                                                            <ColumnDefinition Width="*" />
-                                                        </Grid.ColumnDefinitions>
-                                                        <StackPanel>
-                                                            <TextBlock x:Uid="Dlg_BatchDetails_BatchIdLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
-                                                            <TextBlock Text="{x:Bind BatchIdDisplay, Mode=OneWay}" FontSize="16" FontWeight="SemiBold" />
-                                                        </StackPanel>
-                                                        <StackPanel Grid.Column="1">
-                                                            <TextBlock x:Uid="Dlg_BatchDetails_QuantityLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
-                                                            <TextBlock Text="{x:Bind Quantity}" FontSize="16" FontWeight="SemiBold" />
-                                                        </StackPanel>
-                                                        <StackPanel Grid.Column="2" Spacing="4">
-                                                            <StackPanel>
-                                                                <TextBlock x:Uid="Dlg_BatchDetails_CostPriceLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
-                                                                <TextBlock Text="{x:Bind CostPrice, Converter={StaticResource CurrencyConverter}}" FontSize="16" FontWeight="SemiBold" />
-                                                            </StackPanel>
-                                                            <StackPanel>
-                                                                <TextBlock x:Uid="Dlg_BatchDetails_SellingPriceLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
-                                                                <TextBlock Text="{x:Bind SellingPrice, Converter={StaticResource CurrencyConverter}}" FontSize="16" FontWeight="SemiBold" />
-                                                            </StackPanel>
-                                                        </StackPanel>
-                                                    </Grid>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ListView.ItemTemplate>
-                                    </ListView>
-                                    <TextBlock
-                                        x:Uid="ProductManagementNoBatchesMessage"
-                                        FontSize="14"
-                                        Foreground="{StaticResource BrushTextSecondary}"
-                                        Visibility="{x:Bind NoBatchHistory, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                </StackPanel>
+                                <TabView
+                                    Margin="0,16,0,0"
+                                    CanDragTabs="False"
+                                    IsAddTabButtonVisible="False"
+                                    TabWidthMode="Equal">
+                                    <TabViewItem x:Uid="ProductManagementBatchHistoryTab">
+                                        <Grid ColumnSpacing="16" RowSpacing="16">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="1.2*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
 
-                                <StackPanel>
-                                    <TextBlock Text="{x:Bind SerialHeader, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,8" />
-                                    <Expander
-                                        IsExpanded="False"
-                                        Visibility="{x:Bind HasSerials, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <ListView ItemsSource="{x:Bind SelectedProductDetail.Serials, Mode=OneWay}" SelectionMode="None">
-                                            <ListView.ItemTemplate>
-                                                <DataTemplate x:DataType="viewModels:ProductSerialViewModel">
-                                                    <Border Style="{StaticResource CardBorderStyle}" Padding="12">
-                                                        <Grid ColumnSpacing="12">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="Auto" />
-                                                            </Grid.ColumnDefinitions>
-                                                            <StackPanel>
-                                                                <TextBlock x:Uid="SerialNumberTextBox.Header" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
-                                                                <TextBlock Text="{x:Bind SerialNumber}" FontSize="16" FontWeight="SemiBold" />
-                                                            </StackPanel>
-                                                            <StackPanel Grid.Column="1">
-                                                                <TextBlock x:Uid="ProductManagementImei1Label" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
-                                                                <TextBlock Text="{x:Bind Imei1}" FontSize="14" />
-                                                                <TextBlock x:Uid="ProductManagementImei2Label" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" Margin="0,8,0,0" />
-                                                                <TextBlock Text="{x:Bind Imei2}" FontSize="14" />
-                                                            </StackPanel>
-                                                            <StackPanel Grid.Column="2" HorizontalAlignment="Right" Spacing="4">
-                                                                <TextBlock Text="{x:Bind StatusText}" FontSize="13" Foreground="{StaticResource BrushTextSecondary}" />
-                                                                <TextBlock Text="{x:Bind Note}" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" TextWrapping="Wrap" Width="160" />
-                                                            </StackPanel>
-                                                        </Grid>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ListView.ItemTemplate>
-                                        </ListView>
-                                    </Expander>
-                                    <TextBlock
-                                        x:Uid="ProductManagementNoSerialsMessage"
-                                        FontSize="14"
-                                        Foreground="{StaticResource BrushTextSecondary}"
-                                        Visibility="{x:Bind NoSerials, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                </StackPanel>
+                                            <StackPanel Grid.Column="0" Spacing="8">
+                                                <TextBlock x:Uid="ProductManagementBatchListTitle" FontSize="18" FontWeight="SemiBold" />
+                                                <ListView
+                                                    ItemsSource="{x:Bind BatchHistorySource, Mode=OneWay}"
+                                                    SelectedItem="{x:Bind SelectedBatch, Mode=TwoWay}"
+                                                    SelectionMode="Single"
+                                                    IncrementalLoadingTrigger="Edge"
+                                                    IncrementalLoadingThreshold="3"
+                                                    Visibility="{x:Bind HasBatchHistory, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                    <ListView.ItemTemplate>
+                                                        <DataTemplate x:DataType="viewModels:ProductBatchSummaryViewModel">
+                                                            <Border Style="{StaticResource CardBorderStyle}" Padding="16">
+                                                                <Grid ColumnSpacing="16">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="*" />
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <StackPanel>
+                                                                        <TextBlock x:Uid="Dlg_BatchDetails_BatchIdLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                                        <TextBlock Text="{x:Bind BatchIdDisplay, Mode=OneWay}" FontSize="16" FontWeight="SemiBold" />
+                                                                    </StackPanel>
+                                                                    <StackPanel Grid.Column="1">
+                                                                        <TextBlock x:Uid="Dlg_BatchDetails_QuantityLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                                        <TextBlock Text="{x:Bind Quantity}" FontSize="16" FontWeight="SemiBold" />
+                                                                    </StackPanel>
+                                                                    <StackPanel Grid.Column="2" Spacing="4">
+                                                                        <StackPanel>
+                                                                            <TextBlock x:Uid="Dlg_BatchDetails_CostPriceLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                                            <TextBlock Text="{x:Bind CostPrice, Converter={StaticResource CurrencyConverter}}" FontSize="16" FontWeight="SemiBold" />
+                                                                        </StackPanel>
+                                                                        <StackPanel>
+                                                                            <TextBlock x:Uid="Dlg_BatchDetails_SellingPriceLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                                            <TextBlock Text="{x:Bind SellingPrice, Converter={StaticResource CurrencyConverter}}" FontSize="16" FontWeight="SemiBold" />
+                                                                        </StackPanel>
+                                                                    </StackPanel>
+                                                                </Grid>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ListView.ItemTemplate>
+                                                </ListView>
+                                                <TextBlock
+                                                    x:Uid="ProductManagementNoBatchesMessage"
+                                                    FontSize="14"
+                                                    Foreground="{StaticResource BrushTextSecondary}"
+                                                    Visibility="{x:Bind NoBatchHistory, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="1" Spacing="8">
+                                                <TextBlock x:Uid="ProductManagementBatchSerialsTitle" FontSize="18" FontWeight="SemiBold" />
+                                                <TextBlock
+                                                    Text="{x:Bind SelectedBatchSerialHeader, Mode=OneWay}"
+                                                    FontSize="14"
+                                                    Foreground="{StaticResource BrushTextSecondary}" />
+                                                <ListView
+                                                    ItemsSource="{x:Bind BatchSerialSource, Mode=OneWay}"
+                                                    ItemTemplate="{StaticResource ProductSerialCardTemplate}"
+                                                    SelectionMode="None"
+                                                    IncrementalLoadingTrigger="Edge"
+                                                    IncrementalLoadingThreshold="3"
+                                                    Visibility="{x:Bind HasSelectedBatch, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                <TextBlock
+                                                    x:Uid="ProductManagementSelectBatchMessage"
+                                                    FontSize="14"
+                                                    Foreground="{StaticResource BrushTextSecondary}"
+                                                    Visibility="{x:Bind NoBatchSelected, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                <TextBlock
+                                                    x:Uid="ProductManagementNoBatchSerialsMessage"
+                                                    FontSize="14"
+                                                    Foreground="{StaticResource BrushTextSecondary}"
+                                                    Visibility="{x:Bind NoBatchSerials, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </TabViewItem>
+
+                                    <TabViewItem x:Uid="ProductManagementSerialsTab">
+                                        <StackPanel Spacing="8">
+                                            <TextBlock Text="{x:Bind SerialHeader, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" />
+                                            <ListView
+                                                ItemsSource="{x:Bind ProductSerialSource, Mode=OneWay}"
+                                                ItemTemplate="{StaticResource ProductSerialCardTemplate}"
+                                                SelectionMode="None"
+                                                IncrementalLoadingTrigger="Edge"
+                                                IncrementalLoadingThreshold="3"
+                                                Visibility="{x:Bind HasSerials, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            <TextBlock
+                                                x:Uid="ProductManagementNoSerialsMessage"
+                                                FontSize="14"
+                                                Foreground="{StaticResource BrushTextSecondary}"
+                                                Visibility="{x:Bind NoSerials, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        </StackPanel>
+                                    </TabViewItem>
+                                </TabView>
                             </StackPanel>
                         </Grid>
 

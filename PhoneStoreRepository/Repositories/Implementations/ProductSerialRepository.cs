@@ -246,6 +246,70 @@ namespace PhoneStoreRepository.Repositories.Implementations
             return result;
         }
 
+        public IEnumerable<ProductSerial> GetPagedByProductId(int productId, int page, int pageSize, out int totalCount, int? batchId = null)
+        {
+            totalCount = 0;
+            if (productId <= 0)
+            {
+                return Enumerable.Empty<ProductSerial>();
+            }
+
+            if (page <= 0)
+            {
+                page = 1;
+            }
+
+            if (pageSize <= 0)
+            {
+                pageSize = 20;
+            }
+
+            using var connection = _dataSource.GetConnection();
+            var filters = new List<string> { "product_id = @productId" };
+            if (batchId.HasValue)
+            {
+                filters.Add("batch_id = @batchId");
+            }
+
+            var whereClause = string.Join(" AND ", filters);
+
+            using (var countCommand = new MySqlCommand($"SELECT COUNT(*) FROM product_serials WHERE {whereClause}", connection))
+            {
+                countCommand.Parameters.AddWithValue("@productId", productId);
+                if (batchId.HasValue)
+                {
+                    countCommand.Parameters.AddWithValue("@batchId", batchId.Value);
+                }
+
+                var scalar = countCommand.ExecuteScalar();
+                totalCount = scalar == null ? 0 : Convert.ToInt32(scalar);
+            }
+
+            if (totalCount == 0)
+            {
+                return Enumerable.Empty<ProductSerial>();
+            }
+
+            var offset = (page - 1) * pageSize;
+            using var command = new MySqlCommand($"SELECT * FROM product_serials WHERE {whereClause} ORDER BY id DESC LIMIT @limit OFFSET @offset", connection);
+            command.Parameters.AddWithValue("@productId", productId);
+            command.Parameters.AddWithValue("@limit", pageSize);
+            command.Parameters.AddWithValue("@offset", offset);
+            if (batchId.HasValue)
+            {
+                command.Parameters.AddWithValue("@batchId", batchId.Value);
+            }
+
+            var result = new List<ProductSerial>();
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                result.Add(MapFromReader(reader));
+            }
+
+            return result;
+        }
+
         public IEnumerable<ProductSerial> GetByStatus(SerialStatus status)
         {
             var result = new List<ProductSerial>();

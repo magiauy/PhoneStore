@@ -278,6 +278,33 @@ namespace PhoneStore.Services.ViewModels
         }
     }
 
+    public class PagedResult<T>
+    {
+        public IReadOnlyList<T> Items { get; }
+        public int TotalRecords { get; }
+
+        public PagedResult(IEnumerable<T>? items, int totalRecords)
+        {
+            Items = items?.ToList() ?? new List<T>();
+            TotalRecords = totalRecords < 0 ? 0 : totalRecords;
+        }
+
+        public bool HasMore(int currentCount)
+        {
+            if (TotalRecords <= 0)
+            {
+                return false;
+            }
+
+            return currentCount < TotalRecords;
+        }
+
+        public static PagedResult<T> CreateEmpty()
+        {
+            return new PagedResult<T>(Array.Empty<T>(), 0);
+        }
+    }
+
     public class ProductAttributeValueInput
     {
         public int AttributeId { get; set; }
