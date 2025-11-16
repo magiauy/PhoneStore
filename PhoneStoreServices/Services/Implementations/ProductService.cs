@@ -297,6 +297,22 @@ namespace PhoneStore.Services.Implementations
                     .OrderByDescending(b => b.Id)
                     .ToList();
 
+                var serialsByBatch = serialViewModels
+                    .Where(serial => serial.BatchId.HasValue)
+                    .GroupBy(serial => serial.BatchId!.Value)
+                    .ToDictionary(group => group.Key, group => group.ToList());
+
+                foreach (var batch in batchViewModels)
+                {
+                    if (serialsByBatch.TryGetValue(batch.BatchId, out var batchSerials))
+                    {
+                        foreach (var serial in batchSerials)
+                        {
+                            batch.SerialItems.Add(serial);
+                        }
+                    }
+                }
+
                 var productViewModel = new ProductListItemViewModel(product, categoryName, brandName, serialViewModels.Count, modelName);
                 return new ProductManagementDetailViewModel(productViewModel, batchViewModels, serialViewModels);
             }
