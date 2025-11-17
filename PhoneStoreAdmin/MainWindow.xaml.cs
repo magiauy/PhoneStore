@@ -72,6 +72,7 @@ namespace PhoneStoreAdmin
                 "Roles" => typeof(RolesPage),
                 "Reports" => typeof(ReportsPage),
                 "Settings" => typeof(SettingsPage),
+                "Invoice" => typeof(InvoicePage),
                 _ => typeof(DashboardPage)
             };
 

@@ -6,6 +6,11 @@ namespace PhoneStore.Services.Interfaces
     public interface IPersonService
     {
         /// <summary>
+        /// Get all persons
+        /// </summary>
+        /// <returns>List of persons</returns>
+        Task<IEnumerable<Person>> GetAllAsync();
+        /// <summary>
         /// Get person by ID
         /// </summary>
         /// <param name="personId">Person ID</param>

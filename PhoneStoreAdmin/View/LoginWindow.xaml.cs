@@ -80,6 +80,23 @@ namespace PhoneStoreAdmin
 
         private async System.Threading.Tasks.Task PerformLoginInternalAsync()
         {
+            // Bỏ qua toàn bộ kiểm tra & xác thực
+            Logger.Info("Login bypassed - auto redirecting to MainWindow");
+
+            // Hiển thị dialog nhỏ cho vui (tuỳ chọn)
+            await new ContentDialog()
+            {
+                Title = "Login bypassed",
+                Content = "Đăng nhập đã được bỏ qua. Chào mừng bạn!",
+                CloseButtonText = "OK",
+                XamlRoot = this.Content.XamlRoot
+            }.ShowAsync();
+
+            // Mở MainWindow luôn
+            var mainWindow = new MainWindow();
+            mainWindow.Activate();
+            this.Close();
+            /*
             // Validate input
             if (string.IsNullOrWhiteSpace(UsernameTextBox.Text))
             {
@@ -146,6 +163,7 @@ namespace PhoneStoreAdmin
                 // nếu cần, trả focus về password để người dùng thử lại:
                 PasswordTextBox.Focus(FocusState.Keyboard);
             }
+            */
         }
         private void LoginButton_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
