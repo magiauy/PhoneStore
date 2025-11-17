@@ -1,0 +1,14 @@
+<div class="flex flex-wrap items-center gap-2 justify-between">
+    <div>
+        <p class="text-xs uppercase tracking-wide text-gray-500">@Subtitle</p>
+        <h2 class="text-xl font-semibold text-gray-900">@Title</h2>
+    </div>
+    <a href="@ActionHref" class="text-sm font-semibold text-[#2563EB] hover:underline">@ActionLabel</a>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Subtitle { get; set; } = string.Empty;
+    [Parameter] public string ActionLabel { get; set; } = "Xem tất cả";
+    [Parameter] public string ActionHref { get; set; } = "#";
+}
