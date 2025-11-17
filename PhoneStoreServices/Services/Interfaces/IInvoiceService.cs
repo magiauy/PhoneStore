@@ -1,7 +1,7 @@
-﻿using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Models.Enums;
-using PhoneStoreAdmin.ViewModels;
 using System;
+using PhoneStore.Services.ViewModels;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
 
 namespace PhoneStore.Services.Interfaces
 {
@@ -20,7 +20,7 @@ namespace PhoneStore.Services.Interfaces
             int? customerId,
             int? createdBy,
             InvoiceStatus? status,
-            
+
             DateTime? fromDate,
             DateTime? toDate,
             decimal? minAmount,
