@@ -5,6 +5,7 @@
 [Rr]elease/
 bin/
 obj/
+node_modules/
 # User-specific files
 *.user
 *.suo
