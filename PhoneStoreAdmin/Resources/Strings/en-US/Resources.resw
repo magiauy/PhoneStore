@@ -2208,17 +2208,18 @@
   <data name="Reports_ChartTooltip_Orders" xml:space="preserve">
     <value>orders</value>
   </data>
-  <data name="HeaderTitleProduct.Text" xml:space="preserve">
-    <value>Product Management</value>
-  </data>
-  <data name="SubHeaderTitleProduct.Text" xml:space="preserve">
-    <value>Browse and manage your entire product catalog.</value>
-  </data>
-  <data name="SearchSku.PlaceholderText" xml:space="preserve">
-    <value>Search by SKU</value>
-  <data name="HeaderTitleInvoice.Text" xml:space="preserve">
-    <value>Invoice</value>
-  </data>
+    <data name="HeaderTitleProduct.Text" xml:space="preserve">
+      <value>Product Management</value>
+    </data>
+    <data name="SubHeaderTitleProduct.Text" xml:space="preserve">
+      <value>Browse and manage your entire product catalog.</value>
+    </data>
+    <data name="SearchSku.PlaceholderText" xml:space="preserve">
+      <value>Search by SKU</value>
+    </data>
+    <data name="HeaderTitleInvoice.Text" xml:space="preserve">
+      <value>Invoice</value>
+    </data>
   <data name="SubHeaderTitleInvoice.Text" xml:space="preserve">
     <value>Add, edit, delete and manage Invoice</value>
   </data>
