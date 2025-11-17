@@ -24,11 +24,7 @@
     <Page Remove="View\AddContainers\EditPurchaseOrderPage.xaml" />
   </ItemGroup>
 	
-  <ItemGroup>
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+  <!-- appsettings.json will be updated below with PreserveNewest -->
 
   <ItemGroup>
     <!-- Logo assets -->
@@ -95,22 +91,24 @@
 	  </Page>
 	</ItemGroup>
 
-	<ItemGroup>
-	  <None Update="appsettings.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="View\AddContainers\EditPurchaseOrderPage.xaml">
-	  <Page Update="View\Controls\InvoiceDialog.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </Page>
-	  <None Update="View\Controls\SerialNumberInputDialog.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </None>
-	  <Page Update="View\InvoicePage.Xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-	  </Page>
-	</ItemGroup>
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Page Update="View\AddContainers\EditPurchaseOrderPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="View\Controls\InvoiceDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="View\Controls\SerialNumberInputDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="View\InvoicePage.Xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Page>
+  </ItemGroup>
 
 	<ItemGroup>
 	  <Folder Include="Database\" />

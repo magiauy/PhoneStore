@@ -1,17 +1,17 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
-using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Models.Enums;
-using PhoneStoreAdmin.Repositories.Implementations;
-using PhoneStoreAdmin.Services;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
+using PhoneStore.Services;
 using PhoneStoreAdmin.Services.Interfaces;
-using PhoneStoreAdmin.ViewModels;
+using PhoneStore.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using PhoneStore.Services.Interfaces;
 
 namespace PhoneStoreAdmin.View.Controls
 {

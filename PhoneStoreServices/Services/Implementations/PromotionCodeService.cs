@@ -6,6 +6,7 @@ using PhoneStore.Services.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace PhoneStore.Services.Implementations
 {
@@ -222,6 +223,20 @@ namespace PhoneStore.Services.Implementations
             {
                 promotionCode.IsActive = false;
                 Update(promotionCode);
+            }
+        }
+
+        public Task<IEnumerable<PromotionCode>> GetAllPromotionCodesAsync()
+        {
+            try
+            {
+                var promotionCodes = _promotionCodeRepository.GetAll();
+                return Task.FromResult(promotionCodes);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to load all promotion codes", ex);
+                return Task.FromResult(Enumerable.Empty<PromotionCode>());
             }
         }
     }

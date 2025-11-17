@@ -1162,8 +1162,7 @@
     <value>Thêm sản phẩm</value>
   </data>
   <data name="AddProductExistingMessage" xml:space="preserve">
-    <value>Sản phẩm này đã có {0} máy trong phiếu.
-Bạn muốn thêm bao nhiêu máy?</value>
+    <value>Sản phẩm này đã có {0} máy trong phiếu. Bạn muốn thêm bao nhiêu máy?</value>
   </data>
   <data name="AddProductQuantityLabel" xml:space="preserve">
     <value>Số lượng muốn thêm:</value>
@@ -2790,6 +2789,7 @@ Bạn muốn thêm bao nhiêu máy?</value>
   </data>
   <data name="ProductModelRequiredError" xml:space="preserve">
     <value>Vui lòng chọn model sản phẩm.</value>
+  </data>
   <data name="HeaderTitleInvoice.Text" xml:space="preserve">
     <value>Hóa đơn bán hàng</value>
   </data>
