@@ -33,6 +33,7 @@ namespace PhoneStoreAdmin.View.Controls
 
         public enum DialogMode { Add, Edit, View }
         private DialogMode _currentMode = DialogMode.Add;
+        private int _editingInvoiceId;
 
         public InvoiceDialog()
         {
@@ -56,8 +57,6 @@ namespace PhoneStoreAdmin.View.Controls
                 Reset();     // đặt lại tất cả giá trị
                 e.Cancel = true;  // giữ dialog mở
             };
-
-            this.Loaded += InvoiceDialog_Loaded;
         }
 
         private async void InvoiceDialog_Loaded(object? sender, RoutedEventArgs e)
@@ -114,7 +113,7 @@ namespace PhoneStoreAdmin.View.Controls
                     PersonComboBox.ItemsSource = persons;
                     PromotionComboBox.ItemsSource = promos;
                     CreatedByComboBox.ItemsSource = persons;
-                    PaymentMethodComboBox.ItemsSource = new List<string> { "CASH", "CARD", "BANK", "EWALLET" };
+                    PaymentMethodComboBox.ItemsSource = Enum.GetValues(typeof(PaymentMethod)).Cast<PaymentMethod>().ToList();
                 }
                 if (!this.DispatcherQueue.HasThreadAccess)
                     this.DispatcherQueue.TryEnqueue(SetItems);
@@ -263,15 +262,14 @@ namespace PhoneStoreAdmin.View.Controls
             if (StatusComboBox.SelectedItem == null)
             {
                 _isStatusValid = false;
-                ShowError(CreatedByError, "Please select the creator");
             }
             else
             {
                 _isStatusValid = true;
                 HideError(StatusError);
             }
-            UpdateValidationUI();
         }
+
 
         public bool IsValid()
         {
@@ -360,7 +358,21 @@ namespace PhoneStoreAdmin.View.Controls
 
         public async Task SetMode(DialogMode mode, InvoiceViewModel? invoice = null)
         {
+            if (mode == DialogMode.Edit && invoice != null)
+            {
+                _editingInvoiceId = invoice.Id;
+            }
             _currentMode = mode;
+            // Ẩn nút Reset nếu là Edit hoặc View
+            if (mode == DialogMode.Edit || mode == DialogMode.View)
+            {
+                this.SecondaryButtonText = null;   // Ẩn hoàn toàn
+            }
+            else
+            {
+                this.SecondaryButtonText = "Reset"; // Hiện lại khi Add
+            }
+
             await LoadComboBoxData();
             LoadData(invoice);
             UpdateUIForMode();
@@ -390,6 +402,8 @@ namespace PhoneStoreAdmin.View.Controls
             FinalAmountTextBox.Text = invoice.FinalAmount.ToString("0.00");
             PaymentMethodComboBox.SelectedItem = invoice.PaymentMethod;
             NoteTextBox.Text = invoice.Note;
+            InvoiceDatePicker.Date = new DateTimeOffset(invoice.InvoiceDate);
+            StatusComboBox.SelectedIndex = (int)invoice.Status;
 
             _isTotalValid = true;
             _isPaymentValid = true;
@@ -457,6 +471,7 @@ namespace PhoneStoreAdmin.View.Controls
 
                 var invoice = new Invoice
                 {
+                    Id = _editingInvoiceId,
                     PersonId = (int)PersonComboBox.SelectedValue,
                     PromotionCodeId = (int?)PromotionComboBox.SelectedValue,
                     CreatedBy = (int)CreatedByComboBox.SelectedValue,

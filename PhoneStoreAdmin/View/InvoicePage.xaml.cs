@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.Foundation;
 
 namespace PhoneStoreAdmin.View
 {
@@ -34,6 +35,7 @@ namespace PhoneStoreAdmin.View
         private bool _isInitialized = false;
         private ContentDialog? _currentDialog;
         private readonly ResourceLoader _resourceLoader;
+        private readonly ResourceLoader _resource_loader;
         public InvoicePage()
         {
             this._resourceLoader = new ResourceLoader();
@@ -239,7 +241,7 @@ namespace PhoneStoreAdmin.View
                 var invoiceDialog = new InvoiceDialog();
                 await invoiceDialog.SetMode(InvoiceDialog.DialogMode.Add); // nếu SetMode async
 
-                // Nếu cần gán XamlRoot (thường không cần nếu gọi từ UI thread)
+                // Nếu cần gán XamlRoot
                 invoiceDialog.XamlRoot = this.XamlRoot;
 
                 Debug.WriteLine("About to ShowAsync invoiceDialog");
@@ -253,39 +255,45 @@ namespace PhoneStoreAdmin.View
         }
 
         private async void BtnEdit_Click(object sender, RoutedEventArgs e)
-        {   
-            var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
-            if (!int.TryParse(idStr, out int invoiceId)) return;
-
-            var invoice = InvoiceService.GetById(invoiceId);
-            if (invoice == null)
+        {
+            try
             {
-                ShowErrorDialog("Error", "Invoice not found.");
-                return;
+                if (sender is not MenuFlyoutItem mi || mi.Tag is not InvoiceViewModel vm)
+                    return;
+
+                int invoiceId = vm.Id;
+
+                var invoice = InvoiceService.GetById(invoiceId);
+                if (invoice == null)
+                {
+                    ShowErrorDialog("Error", "Invoice not found.");
+                    return;
+                }
+
+                var viewModel = new InvoiceViewModel(invoice);
+                var invoiceDialog = new InvoiceDialog();
+
+                await invoiceDialog.SetMode(InvoiceDialog.DialogMode.Edit, viewModel);
+
+                invoiceDialog.XamlRoot = this.XamlRoot;
+
+                invoiceDialog.PrimaryButtonText = "Update";
+                invoiceDialog.CloseButtonText = "Cancel";
+
+                invoiceDialog.PrimaryButtonClick += (dlg, args) =>
+                {
+                    invoiceDialog.Save();
+                    if (!invoiceDialog.IsValid())
+                        args.Cancel = true;
+                };
+
+                await invoiceDialog.ShowAsync();
+                LoadInvoice();
             }
-
-            var viewModel = new InvoiceViewModel(invoice);
-            var invoiceDialog = new InvoiceDialog();
-            await invoiceDialog.SetMode(InvoiceDialog.DialogMode.Edit, viewModel);
-
-            var dialog = CreateContentDialog(invoiceDialog, "Edit Invoice");
-            dialog.PrimaryButtonText = _resourceLoader.GetString("DialogUpdateInvoice");
-            dialog.CloseButtonText = _resourceLoader.GetString("DialogCancelInvoice");
-
-            invoiceDialog.InvoiceSaved += (s, model) =>
+            catch (Exception ex)
             {
-                if (model != null) LoadInvoice();
-            };
-
-            dialog.PrimaryButtonClick += (s, args) =>
-            {
-                var ctrl = (InvoiceDialog)dialog.Content;
-                ctrl.Save();
-                if (!ctrl.IsValid()) args.Cancel = true;
-            };
-
-            _currentDialog = dialog;
-            await dialog.ShowAsync();
+                ShowErrorDialog("Error", ex.Message);
+            }
         }
 
         private void BtnDetail_Click(object sender, RoutedEventArgs e)

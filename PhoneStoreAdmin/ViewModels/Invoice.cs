@@ -42,6 +42,21 @@ namespace PhoneStoreAdmin.ViewModels
             _ => "#6c757d"
         };
 
+        public List<Person> Customers { get; set; }
+        public Person? SelectedCustomer { get; set; }
+
+        public List<Person> Creator { get; set; }
+        public Person? SelectedCreator { get; set; }
+
+        public List<Promotion> Promotions { get; set; }
+        public Promotion? SelectedPromotion { get; set; }
+
+        public List<PaymentMethod> PaymentMethods { get; set; }
+        public PaymentMethod SelectedPaymentMethod { get; set; }
+
+        public List<InvoiceStatus> StatusList { get; set; }
+        public InvoiceStatus SelectedStatus { get; set; }
+
         public InvoiceViewModel() { }
 
         public InvoiceViewModel(Invoice invoice)

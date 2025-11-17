@@ -732,7 +732,7 @@
                                                     <MenuFlyoutItem
                                                         x:Uid="BtnEditPurchaseOrder"
                                                         Click="BtnEdit_Click"
-                                                        Tag="{Binding Id}">
+                                                        Tag="{Binding}">
                                                         <MenuFlyoutItem.Icon>
                                                             <FontIcon Glyph="&#xE104;" />
                                                         </MenuFlyoutItem.Icon>
