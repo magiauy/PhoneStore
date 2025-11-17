@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -14,7 +15,7 @@ using PhoneStore.Services.ViewModels;
 
 namespace PhoneStoreAdmin.View.Controls
 {
-    public sealed partial class ProductDialog : ContentControl
+    public sealed partial class ProductDialog : ContentDialog
     {
         public sealed class SelectionOption<T>
         {
@@ -35,9 +36,7 @@ namespace PhoneStoreAdmin.View.Controls
             public IReadOnlyList<ProductAttributeOption> Options => Definition.Options;
             public required FrameworkElement InputControl { get; init; }
             public required TextBlock ErrorTextBlock { get; init; }
-            public CheckBox? Toggle { get; init; }
             public bool IsRequired { get; init; }
-            public bool IsSelected { get; set; }
             public bool IsValid { get; set; }
         }
 
@@ -60,18 +59,17 @@ namespace PhoneStoreAdmin.View.Controls
         private bool _isNameValid;
         private bool _isModelValid;
         private bool _isCategoryValid;
-        private bool _isPriceValid;
-        private bool _isCostValid;
         private bool _isWarrantyValid;
         private bool _isStatusValid;
         private bool _inputsEnabled = true;
         private int? _pendingModelSelection;
-        private bool _suppressModelSelectionChanged;
+        private int? _selectedModelId;
 
         private int _currentProductId;
         private int _currentSerialCount;
         private DateTime _currentCreatedAt = DateTime.UtcNow;
         private ProductDetailViewModel? _currentDetail;
+        private ProductModelListItemViewModel? _contextModel;
 
         public event EventHandler<ProductDetailViewModel>? ProductSaved;
         public event EventHandler? DialogClosed;
@@ -96,11 +94,26 @@ namespace PhoneStoreAdmin.View.Controls
             _resourceLoader = new ResourceLoader();
 
             this.Unloaded += ProductDialog_Unloaded;
+            PrimaryButtonClick += ProductDialog_PrimaryButtonClick;
+            Closed += ProductDialog_Closed;
         }
 
         private void ProductDialog_Unloaded(object sender, RoutedEventArgs e)
         {
             CleanupResources();
+        }
+
+        private void ProductDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        {
+            if (!Save())
+            {
+                args.Cancel = true;
+            }
+        }
+
+        private void ProductDialog_Closed(ContentDialog sender, ContentDialogClosedEventArgs args)
+        {
+            Cancel();
         }
 
         private void CleanupResources()
@@ -201,6 +214,34 @@ namespace PhoneStoreAdmin.View.Controls
             }
         }
 
+        public void SetContextModel(ProductModelListItemViewModel? model)
+        {
+            _contextModel = model;
+            if (_contextModel != null)
+            {
+                try
+                {
+                    Logger.Info($"ProductDialog context model set: Id={_contextModel.Id}, Name={_contextModel.Name}");
+                }
+                catch { /* best-effort logging only */ }
+            }
+
+            // When context model is set, treat it as an implicit model selection for display/attributes
+            _isModelValid = _selectedModelId.HasValue || _contextModel != null;
+            if (_isModelValid)
+            {
+                HideError(ModelError);
+            }
+
+            if (_referenceDataLoaded)
+            {
+                // Refresh attributes to reflect the context model if selection wasn't set
+                RefreshAttributeInputs(false);
+                UpdateModelDisplayText();
+            }
+            }
+        
+
         public bool IsValid()
         {
             ValidateAllFields();
@@ -208,11 +249,9 @@ namespace PhoneStoreAdmin.View.Controls
                 && _isNameValid
                 && _isModelValid
                 && _isCategoryValid
-                && _isPriceValid
-                && _isCostValid
                 && _isWarrantyValid
                 && _isStatusValid
-                && _attributeInputs.All(i => (!i.IsRequired && !i.IsSelected) || i.IsValid);
+                && _attributeInputs.All(i => i.IsValid);
         }
 
         public void Cancel()
@@ -237,18 +276,6 @@ namespace PhoneStoreAdmin.View.Controls
             ValidateName(NameTextBox.Text ?? string.Empty);
         }
 
-        private void ModelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            ValidateModel();
-
-            if (_suppressModelSelectionChanged)
-            {
-                return;
-            }
-
-            RefreshAttributeInputs(true);
-        }
-
         private void CategoryComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ValidateCategory();
@@ -258,16 +285,6 @@ namespace PhoneStoreAdmin.View.Controls
         {
             // optional field; keep error hidden
             HideError(BrandError);
-        }
-
-        private void PriceNumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
-        {
-            ValidatePrice();
-        }
-
-        private void CostNumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
-        {
-            ValidateCost();
         }
 
         private void WarrantyNumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
@@ -283,6 +300,13 @@ namespace PhoneStoreAdmin.View.Controls
         private void StatusComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ValidateStatus();
+            try
+            {
+                var selVal = StatusComboBox.SelectedValue is ProductStatus sv ? sv.ToString() : "null";
+                var selItem = StatusComboBox.SelectedItem != null ? StatusComboBox.SelectedItem.ToString() : "null";
+                Logger.Info($"StatusComboBox selection changed. SelectedValue={selVal}, SelectedIndex={StatusComboBox.SelectedIndex}, SelectedItem={selItem}");
+            }
+            catch { }
         }
 
         private void ViewSerialsButton_Click(object sender, RoutedEventArgs e)
@@ -303,8 +327,6 @@ namespace PhoneStoreAdmin.View.Controls
             ValidateName(NameTextBox.Text ?? string.Empty);
             ValidateModel();
             ValidateCategory();
-            ValidatePrice();
-            ValidateCost();
             ValidateWarranty();
             ValidateStatus();
 
@@ -344,7 +366,8 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void ValidateModel()
         {
-            _isModelValid = ModelComboBox.SelectedValue is int;
+            // Treat as valid when user selected a model OR when a context model was provided by the caller
+            _isModelValid = _selectedModelId.HasValue || _contextModel != null;
 
             if (!_isModelValid)
             {
@@ -374,34 +397,6 @@ namespace PhoneStoreAdmin.View.Controls
             {
                 HideError(CategoryError);
             }
-        }
-
-        private void ValidatePrice()
-        {
-            var value = PriceNumberBox.Value;
-            if (double.IsNaN(value) || value < 0)
-            {
-                _isPriceValid = false;
-                ShowError(PriceError, _resourceLoader.GetString("ProductPriceInvalidError"));
-                return;
-            }
-
-            _isPriceValid = true;
-            HideError(PriceError);
-        }
-
-        private void ValidateCost()
-        {
-            var value = CostNumberBox.Value;
-            if (double.IsNaN(value) || value < 0)
-            {
-                _isCostValid = false;
-                ShowError(CostError, _resourceLoader.GetString("ProductCostInvalidError"));
-                return;
-            }
-
-            _isCostValid = true;
-            HideError(CostError);
         }
 
         private void ValidateWarranty()
@@ -439,13 +434,6 @@ namespace PhoneStoreAdmin.View.Controls
                 return;
             }
 
-            if (!state.IsRequired && !state.IsSelected)
-            {
-                state.IsValid = true;
-                HideError(state.ErrorTextBlock);
-                return;
-            }
-
             if (state.Options.Count > 0)
             {
                 ValidateOptionAttribute(state);
@@ -475,13 +463,6 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void ValidateOptionAttribute(AttributeInputState state)
         {
-            if (!state.IsRequired && !state.IsSelected)
-            {
-                state.IsValid = true;
-                HideError(state.ErrorTextBlock);
-                return;
-            }
-
             if (state.InputControl is ComboBox comboBox)
             {
                 var hasSelection = comboBox.SelectedItem is ProductAttributeOption;
@@ -512,13 +493,6 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void ValidateTextAttribute(AttributeInputState state)
         {
-            if (!state.IsRequired && !state.IsSelected)
-            {
-                state.IsValid = true;
-                HideError(state.ErrorTextBlock);
-                return;
-            }
-
             var textBox = state.InputControl as TextBox;
             var text = textBox?.Text?.Trim();
             var hasValue = !string.IsNullOrWhiteSpace(text);
@@ -536,13 +510,6 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void ValidateNumberAttribute(AttributeInputState state)
         {
-            if (!state.IsRequired && !state.IsSelected)
-            {
-                state.IsValid = true;
-                HideError(state.ErrorTextBlock);
-                return;
-            }
-
             var numberBox = state.InputControl as NumberBox;
             var text = numberBox?.Text?.Trim();
 
@@ -574,13 +541,6 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void ValidateDateAttribute(AttributeInputState state)
         {
-            if (!state.IsRequired && !state.IsSelected)
-            {
-                state.IsValid = true;
-                HideError(state.ErrorTextBlock);
-                return;
-            }
-
             var datePicker = state.InputControl as DatePicker;
             var hasValue = datePicker?.Date != null;
 
@@ -597,13 +557,6 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void ValidateBooleanAttribute(AttributeInputState state)
         {
-            if (!state.IsRequired && !state.IsSelected)
-            {
-                state.IsValid = true;
-                HideError(state.ErrorTextBlock);
-                return;
-            }
-
             // Boolean toggle always has a value; treat as valid even when required
             state.IsValid = true;
             HideError(state.ErrorTextBlock);
@@ -638,11 +591,29 @@ namespace PhoneStoreAdmin.View.Controls
                 SetModelSelection(null);
                 CategoryComboBox.SelectedIndex = -1;
                 BrandComboBox.SelectedIndex = -1;
-                PriceNumberBox.Value = 0;
-                CostNumberBox.Value = 0;
                 WarrantyNumberBox.Value = 12;
                 SerialTrackedToggle.IsOn = false;
                 StatusComboBox.SelectedValue = ProductStatus.ACTIVE;
+                // If SelectedItem isn't resolved (null) after setting SelectedValue, try to find and select by Value explicitly
+                if (StatusComboBox.SelectedItem == null && StatusComboBox.SelectedValue is ProductStatus sv)
+                {
+                    var matchIndex = _statusOptions.FindIndex(opt => opt.Value.Equals(sv));
+                    if (matchIndex >= 0)
+                    {
+                        StatusComboBox.SelectedIndex = matchIndex;
+                        Logger.Info($"PopulateForm(Add): SelectedIndex set explicitly to {matchIndex} for status {sv}");
+                    }
+                    else if (_statusOptions.Count > 0)
+                    {
+                        StatusComboBox.SelectedIndex = 0;
+                        Logger.Warning($"PopulateForm(Add): Could not find status option matching {sv}; defaulting SelectedIndex to 0 (value {_statusOptions[0].Value}).");
+                    }
+                }
+                try
+                {
+                    Logger.Info($"PopulateForm(Add): Status ComboBox SelectedValue set to {StatusComboBox.SelectedValue}");
+                }
+                catch { }
 
                 RefreshAttributeInputs(false);
                 SerialSummaryPanel.Visibility = Visibility.Collapsed;
@@ -667,11 +638,28 @@ namespace PhoneStoreAdmin.View.Controls
             {
                 BrandComboBox.SelectedIndex = -1;
             }
-            PriceNumberBox.Value = Convert.ToDouble(product.Price);
-            CostNumberBox.Value = Convert.ToDouble(product.Cost);
             WarrantyNumberBox.Value = product.WarrantyMonths;
             SerialTrackedToggle.IsOn = product.IsSerialTracked;
             StatusComboBox.SelectedValue = product.Status;
+            if (StatusComboBox.SelectedItem == null && StatusComboBox.SelectedValue is ProductStatus sv2)
+            {
+                var matchIndex = _statusOptions.FindIndex(opt => opt.Value.Equals(sv2));
+                if (matchIndex >= 0)
+                {
+                    StatusComboBox.SelectedIndex = matchIndex;
+                    Logger.Info($"PopulateForm(Edit): SelectedIndex set explicitly to {matchIndex} for status {sv2}");
+                }
+                else if (_statusOptions.Count > 0)
+                {
+                    StatusComboBox.SelectedIndex = 0;
+                    Logger.Warning($"PopulateForm(Edit): Could not find status option matching {sv2}; defaulting SelectedIndex to 0 (value {_statusOptions[0].Value}).");
+                }
+            }
+            try
+            {
+                Logger.Info($"PopulateForm(Edit): Status ComboBox SelectedValue set to {StatusComboBox.SelectedValue}");
+            }
+            catch { }
 
             RefreshAttributeInputs(false);
             UpdateSerialSummaryVisibility();
@@ -721,11 +709,8 @@ namespace PhoneStoreAdmin.View.Controls
             _inputsEnabled = enabled;
             SkuTextBox.IsEnabled = enabled;
             NameTextBox.IsEnabled = enabled;
-            ModelComboBox.IsEnabled = enabled;
             CategoryComboBox.IsEnabled = enabled;
             BrandComboBox.IsEnabled = enabled;
-            PriceNumberBox.IsEnabled = enabled;
-            CostNumberBox.IsEnabled = enabled;
             WarrantyNumberBox.IsEnabled = enabled;
             SerialTrackedToggle.IsEnabled = enabled;
             StatusComboBox.IsEnabled = enabled;
@@ -775,7 +760,8 @@ namespace PhoneStoreAdmin.View.Controls
         private IReadOnlyList<ProductAttributeDefinition> GetDefinitionsForCurrentModel()
         {
             var definitions = _attributeDefinitions?.ToList() ?? new List<ProductAttributeDefinition>();
-            var modelId = ModelComboBox.SelectedValue is int value ? value : (int?)null;
+            // Consider context model when explicit selection missing
+            var modelId = _selectedModelId ?? _contextModel?.Id;
 
             if (!modelId.HasValue || modelId.Value <= 0)
             {
@@ -829,24 +815,12 @@ namespace PhoneStoreAdmin.View.Controls
                 }
                 var isRequired = IsAttributeRequired(definition);
                 valueLookup.TryGetValue(attribute.Id, out var existingValue);
-                var row = new Grid
-                {
-                    ColumnDefinitions =
-                    {
-                        new ColumnDefinition { Width = GridLength.Auto },
-                        new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
-                    },
-                    Margin = new Thickness(0, 4, 0, 0)
-                };
 
-                var toggle = new CheckBox
+                var container = new StackPanel
                 {
-                    Margin = new Thickness(0, 12, 12, 0),
-                    VerticalAlignment = VerticalAlignment.Top,
-                    IsEnabled = !isRequired,
-                    IsChecked = isRequired || existingValue != null
+                    Spacing = 6,
+                    Margin = new Thickness(0, 8, 0, 0)
                 };
-
                 var label = new TextBlock
                 {
                     Style = (Style)Resources["InputLabelStyle"],
@@ -862,42 +836,31 @@ namespace PhoneStoreAdmin.View.Controls
                     Style = (Style)Resources["ValidationErrorStyle"]
                 };
 
-                var contentStack = new StackPanel { Spacing = 6 };
-                contentStack.Children.Add(label);
-                contentStack.Children.Add(inputControl);
-                contentStack.Children.Add(errorText);
+                container.Children.Add(label);
+                container.Children.Add(inputControl);
+                container.Children.Add(errorText);
 
-                Grid.SetColumn(toggle, 0);
-                Grid.SetColumn(contentStack, 1);
-                row.Children.Add(toggle);
-                row.Children.Add(contentStack);
-
-                AttributesPanel.Children.Add(row);
+                AttributesPanel.Children.Add(container);
 
                 var state = new AttributeInputState
                 {
                     Definition = definition,
                     InputControl = inputControl,
                     ErrorTextBlock = errorText,
-                    Toggle = toggle,
                     IsRequired = isRequired,
-                    IsSelected = toggle.IsChecked ?? false,
-                    IsValid = existingValue != null || !isRequired
+                    IsValid = existingValue != null
                 };
-
-                toggle.Checked += (_, _) => OnAttributeToggleChanged(state, true);
-                toggle.Unchecked += (_, _) => OnAttributeToggleChanged(state, false);
 
                 AttachAttributeValidationHandlers(state);
 
-                if (state.IsSelected || state.IsRequired)
+                if (existingValue != null)
                 {
                     ValidateAttribute(state);
                 }
                 else
                 {
                     HideError(state.ErrorTextBlock);
-                    state.IsValid = true;
+                    state.IsValid = !state.IsRequired;
                 }
 
                 UpdateAttributeInputEnabled(state);
@@ -912,12 +875,6 @@ namespace PhoneStoreAdmin.View.Controls
                 var attribute = state.Attribute;
                 if (attribute == null)
                 {
-                    continue;
-                }
-
-                if (!state.IsRequired && !state.IsSelected)
-                {
-                    _attributeValueState.Remove(attribute.Id);
                     continue;
                 }
 
@@ -967,7 +924,7 @@ namespace PhoneStoreAdmin.View.Controls
                     case AttributeDataType.DATE:
                         if (state.InputControl is DatePicker datePicker)
                         {
-                            viewModel.ValueDate = datePicker.Date?.DateTime;
+                            viewModel.ValueDate = datePicker.Date.DateTime;
                         }
                         break;
                     case AttributeDataType.BOOLEAN:
@@ -1157,30 +1114,6 @@ namespace PhoneStoreAdmin.View.Controls
             }
         }
 
-        private void OnAttributeToggleChanged(AttributeInputState state, bool isChecked)
-        {
-            if (state.IsRequired)
-            {
-                state.IsSelected = true;
-                UpdateAttributeInputEnabled(state);
-                ValidateAttribute(state);
-                return;
-            }
-
-            state.IsSelected = isChecked;
-            UpdateAttributeInputEnabled(state);
-
-            if (!isChecked)
-            {
-                state.IsValid = true;
-                HideError(state.ErrorTextBlock);
-            }
-            else
-            {
-                ValidateAttribute(state);
-            }
-        }
-
         private string BuildAttributeLabel(string name, bool isRequired)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -1193,18 +1126,8 @@ namespace PhoneStoreAdmin.View.Controls
 
         private bool IsAttributeRequired(ProductAttributeDefinition definition)
         {
-            if (definition?.Attribute == null)
-            {
-                return false;
-            }
-
-            var note = definition.Attribute.Note;
-            if (string.IsNullOrWhiteSpace(note))
-            {
-                return false;
-            }
-
-            return note.Contains("required", StringComparison.OrdinalIgnoreCase);
+            // Business requirement: every attribute mapped to the product model must be provided.
+            return true;
         }
 
         private void HideAllErrors()
@@ -1214,8 +1137,6 @@ namespace PhoneStoreAdmin.View.Controls
             HideError(ModelError);
             HideError(CategoryError);
             HideError(BrandError);
-            HideError(PriceError);
-            HideError(CostError);
             HideError(WarrantyError);
             HideError(StatusError);
 
@@ -1231,15 +1152,12 @@ namespace PhoneStoreAdmin.View.Controls
             _isNameValid = false;
             _isModelValid = false;
             _isCategoryValid = false;
-            _isPriceValid = false;
-            _isCostValid = false;
             _isWarrantyValid = false;
             _isStatusValid = false;
 
             foreach (var attribute in _attributeInputs)
             {
                 attribute.IsValid = !attribute.IsRequired;
-                attribute.IsSelected = attribute.IsRequired;
             }
         }
 
@@ -1277,12 +1195,11 @@ namespace PhoneStoreAdmin.View.Controls
             var failedContexts = new List<string>();
 
             bool hasErrors = false;
-            hasErrors |= !TryLoadReferenceData(LoadModels, "ProductModelLabel", failedContexts);
-            hasErrors |= !TryLoadReferenceData(LoadCategories, "ProductCategoryLabel", failedContexts);
-            hasErrors |= !TryLoadReferenceData(LoadBrands, "ProductBrandLabel", failedContexts);
-            hasErrors |= !TryLoadReferenceData(LoadStatuses, "ProductStatusLabel", failedContexts);
-            hasErrors |= !TryLoadReferenceData(LoadAttributes, "ProductAttributesHeader", failedContexts);
-
+            // hasErrors |= !TryLoadReferenceData(LoadModels, "ProductModelLabel/Text", failedContexts);
+            hasErrors |= !TryLoadReferenceData(LoadCategories, "ProductCategoryLabel/Text", failedContexts);
+            hasErrors |= !TryLoadReferenceData(LoadBrands, "ProductBrandLabel/Text", failedContexts);
+            hasErrors |= !TryLoadReferenceData(LoadStatuses, "ProductStatusLabel/Text", failedContexts);
+            hasErrors |= !TryLoadReferenceData(LoadAttributes, "ProductAttributesHeader/Text", failedContexts);
             _referenceDataLoaded = true;
 
             if (hasErrors)
@@ -1327,15 +1244,28 @@ namespace PhoneStoreAdmin.View.Controls
             {
                 Logger.Error($"Failed to load {contextResourceKey} for ProductDialog", ex);
 
-                var context = _resourceLoader.GetString(contextResourceKey);
-                if (string.IsNullOrWhiteSpace(context))
-                {
-                    context = contextResourceKey;
-                }
-
+                var context = GetReferenceContextDisplay(contextResourceKey);
                 failedContexts.Add(context);
                 return false;
             }
+        }
+
+        private string GetReferenceContextDisplay(string contextResourceKey)
+        {
+            try
+            {
+                var context = _resourceLoader.GetString(contextResourceKey);
+                if (!string.IsNullOrWhiteSpace(context))
+                {
+                    return context;
+                }
+            }
+            catch (COMException)
+            {
+                // Fall back to the resource key when localization data is missing.
+            }
+
+            return contextResourceKey;
         }
 
         private void LoadCategories()
@@ -1373,8 +1303,6 @@ namespace PhoneStoreAdmin.View.Controls
                 _modelOptions.Add(new SelectionOption<int>(displayName, model.Id));
             }
 
-            ModelComboBox.ItemsSource = null;
-            ModelComboBox.ItemsSource = _modelOptions;
             SetModelSelection(null);
             ApplyPendingModelSelection();
         }
@@ -1397,23 +1325,67 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void SetModelSelection(int? modelId)
         {
-            _suppressModelSelectionChanged = true;
+            _selectedModelId = modelId.HasValue && modelId.Value > 0 ? modelId : null;
 
+            UpdateModelDisplayText();
+
+            _isModelValid = _selectedModelId.HasValue || _contextModel != null;
+            if (_isModelValid)
+            {
+                HideError(ModelError);
+            }
+        }
+
+        private void UpdateModelDisplayText()
+        {
+            if (ModelDisplayTextBox == null)
+            {
+                // Logunexpected UI state - the textbox should be present after InitializeComponent
+                Logger.Warning("ModelDisplayTextBox is null in UpdateModelDisplayText; control may not be initialized.");
+                return;
+            }
+            string displayName = string.Empty;
+            // Include contextual info for easier debugging
             try
             {
-                if (modelId.HasValue && modelId.Value > 0)
-                {
-                    ModelComboBox.SelectedValue = modelId.Value;
-                }
-                else
-                {
-                    ModelComboBox.SelectedIndex = -1;
-                }
+                Logger.Info($"UpdateModelDisplayText called. Mode={_currentMode}, CurrentProductId={_currentProductId}, SelectedModelId={(_selectedModelId.HasValue ? _selectedModelId.Value.ToString() : "null")}, PendingModelId={(_pendingModelSelection.HasValue ? _pendingModelSelection.Value.ToString() : "null")}, ContextModelId={(_contextModel != null ? _contextModel.Id.ToString() : "null")}, ContextModelName={(_contextModel != null ? _contextModel.Name : "null")}");
             }
-            finally
+            catch { /* keep logging best-effort; don't let it crash UI */ }
+            System.Diagnostics.Debug.Assert(_productService != null);
+
+            if (_selectedModelId.HasValue)
             {
-                _suppressModelSelectionChanged = false;
+                try
+                {
+                    var model = _productService.GetProductModelById(_selectedModelId.Value);
+                    if (model != null)
+                    {
+                        displayName = model.Name ?? string.Empty;
+                        Logger.Info($"Resolved product model for ID {_selectedModelId.Value}: '{displayName}'");
+                    }
+                    else
+                    {
+                        Logger.Warning($"Product model not found for ID {_selectedModelId.Value} when updating display text.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"Failed to resolve product model {_selectedModelId.Value} in UpdateModelDisplayText", ex);
+                }
             }
+            else if (_contextModel != null)
+            {
+                // No explicit product model selected; use the context model passed by the caller for the display
+                displayName = _contextModel.Name ?? string.Empty;
+                Logger.Info($"Using context model name for display: Id={_contextModel.Id}, Name='{displayName}'");
+            }
+            else
+            {
+                Logger.Info($"No product model selected; setting empty model display text. Mode={_currentMode}, CurrentProductId={_currentProductId}");
+            }
+
+            ModelDisplayTextBox.Text = displayName;
+            ToolTipService.SetToolTip(ModelDisplayTextBox, string.IsNullOrWhiteSpace(displayName) ? null : displayName);
         }
 
         private void LoadBrands()
@@ -1439,6 +1411,7 @@ namespace PhoneStoreAdmin.View.Controls
         private void LoadStatuses()
         {
             _statusOptions.Clear();
+            Logger.Info("Loading product status options for product dialog");
 
             foreach (ProductStatus status in Enum.GetValues(typeof(ProductStatus)))
             {
@@ -1450,18 +1423,30 @@ namespace PhoneStoreAdmin.View.Controls
                     _ => status.ToString()
                 };
 
-                var label = _resourceLoader.GetString(labelKey);
+                string label;
+                try
+                {
+                    label = _resourceLoader.GetString(labelKey);
+                }
+                catch (COMException ex)
+                {
+                    Logger.Warning($"Failed to load localized status label '{labelKey}': {ex.Message}");
+                    label = null;
+                }
+
                 if (string.IsNullOrWhiteSpace(label))
                 {
                     label = status.ToString();
                 }
 
                 _statusOptions.Add(new SelectionOption<ProductStatus>(label, status));
+                Logger.Info($"Added status option: Key={labelKey}, Label='{label}', Value={status}");
             }
 
             StatusComboBox.ItemsSource = null;
             StatusComboBox.ItemsSource = _statusOptions;
             StatusComboBox.SelectedValue = ProductStatus.ACTIVE;
+            Logger.Info($"Status ComboBox ItemsSource assigned with {_statusOptions.Count} options and selected value {StatusComboBox.SelectedValue}");
         }
 
         private void LoadAttributes()
@@ -1471,16 +1456,31 @@ namespace PhoneStoreAdmin.View.Controls
 
         private Product BuildProductFromForm()
         {
+            var modelId = _selectedModelId ?? _contextModel?.Id ?? 0;
+            try
+            {
+                Logger.Info($"BuildProductFromForm: using ModelId={modelId} (SelectedModelId={_selectedModelId?.ToString() ?? "null"}, ContextModelId={_contextModel?.Id.ToString() ?? "null"})");
+            }
+            catch { }
+            var price = 0m;
+            var cost = 0m;
+
+            if (_currentMode != DialogMode.Add && _currentDetail?.Product != null)
+            {
+                price = _currentDetail.Product.Price;
+                cost = _currentDetail.Product.Cost;
+            }
+
             var product = new Product
             {
                 Id = _currentProductId,
                 Sku = (SkuTextBox.Text ?? string.Empty).Trim(),
                 Name = (NameTextBox.Text ?? string.Empty).Trim(),
-                ModelId = ModelComboBox.SelectedValue is int modelId ? modelId : 0,
+                ModelId = modelId,
                 CategoryId = CategoryComboBox.SelectedValue is int categoryId ? categoryId : 0,
                 BrandId = GetSelectedBrandId(),
-                Price = ConvertToDecimal(PriceNumberBox.Value),
-                Cost = ConvertToDecimal(CostNumberBox.Value),
+                Price = price,
+                Cost = cost,
                 WarrantyMonths = ConvertToWarrantyMonths(WarrantyNumberBox.Value),
                 IsSerialTracked = SerialTrackedToggle.IsOn,
                 Status = StatusComboBox.SelectedValue is ProductStatus status ? status : ProductStatus.ACTIVE,
@@ -1499,7 +1499,7 @@ namespace PhoneStoreAdmin.View.Controls
         {
             foreach (var state in _attributeInputs)
             {
-                if (!state.IsRequired && !state.IsSelected)
+                if (state.Attribute == null)
                 {
                     continue;
                 }
@@ -1544,11 +1544,6 @@ namespace PhoneStoreAdmin.View.Controls
 
                         yield return input;
                     }
-                    else if (state.IsRequired)
-                    {
-                        yield return input;
-                    }
-
                     continue;
                 }
 
@@ -1634,16 +1629,6 @@ namespace PhoneStoreAdmin.View.Controls
             };
         }
 
-        private decimal ConvertToDecimal(double value)
-        {
-            if (double.IsNaN(value))
-            {
-                return 0m;
-            }
-
-            return Convert.ToDecimal(value);
-        }
-
         private int ConvertToWarrantyMonths(double value)
         {
             if (double.IsNaN(value))
@@ -1657,14 +1642,9 @@ namespace PhoneStoreAdmin.View.Controls
 
         private void UpdateAttributeInputEnabled(AttributeInputState state)
         {
-            if (state.Toggle != null)
-            {
-                state.Toggle.IsEnabled = _inputsEnabled && !state.IsRequired;
-            }
-
             if (state.InputControl is Control control)
             {
-                control.IsEnabled = _inputsEnabled && (state.IsRequired || state.IsSelected);
+                control.IsEnabled = _inputsEnabled;
             }
         }
 
