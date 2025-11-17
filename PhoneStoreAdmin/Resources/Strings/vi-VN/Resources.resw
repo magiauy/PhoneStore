@@ -2217,9 +2217,6 @@
   <data name="SearchSku.PlaceholderText" xml:space="preserve">
     <value>Tìm theo mã SKU</value>
   </data>
-  <data name="SearchName.PlaceholderText" xml:space="preserve">
-    <value>Tìm theo tên</value>
-  </data>
   <data name="RefreshProducts.ToolTipService.ToolTip" xml:space="preserve">
     <value>Làm mới</value>
   </data>
