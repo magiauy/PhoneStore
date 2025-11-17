@@ -24,7 +24,7 @@ namespace PhoneStoreRepository.Repositories.Implementations
 
         public IEnumerable<Account> GetAll()
         {
-            throw new NotImplementedException("Use async version instead");
+            return new List<Account>();
         }
 
         public void Insert(Account entity)

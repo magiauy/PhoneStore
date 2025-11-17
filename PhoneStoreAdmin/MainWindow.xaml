@@ -66,6 +66,11 @@
                     Icon="Paste"
                     Tag="PurchaseOrders" />
                 <NavigationViewItem
+                    x:Name="InvoiceNavItem"
+                    x:Uid="MenuItemInvoice"
+                    Icon="Paste"
+                    Tag="Invoice" />
+                <NavigationViewItem
                     x:Name="BatchesNavItem"
                     x:Uid="MenuItemBatches"
                     Icon="PreviewLink"
