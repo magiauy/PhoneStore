@@ -1,0 +1,64 @@
+<header class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur shadow-sm">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="flex flex-wrap items-center gap-3 py-3">
+            <div class="flex items-center gap-3">
+                <button class="md:hidden rounded-full border border-gray-200 p-2 text-gray-600 hover:border-[#2563EB] hover:text-[#2563EB] transition">
+                    <span class="sr-only">Mở menu</span>
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+                    </svg>
+                </button>
+                <a class="text-lg font-bold tracking-tight text-gray-900" href="/">
+                    Gu<span class="text-[#2563EB]">Zone</span>
+                </a>
+            </div>
+
+            <div class="w-full flex-1 md:w-auto">
+                <label class="sr-only" for="site-search">Tìm kiếm sản phẩm</label>
+                <div class="flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50/80 px-4 py-2 shadow-inner">
+                    <svg class="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 4.5a6 6 0 1 1 0 12a6 6 0 0 1 0-12zm7 12l3.5 3.5" />
+                    </svg>
+                    <input id="site-search" type="search" placeholder="Tìm kiếm iPhone 15 Pro Max..." class="w-full bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none" />
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                <button class="hidden md:inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-2 hover:border-[#2563EB] hover:text-[#2563EB] transition">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0a3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0V21H4.5z" />
+                    </svg>
+                    Tài khoản
+                </button>
+                <button class="relative inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-2 hover:border-[#2563EB] hover:text-[#2563EB] transition">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l2.4 12.6a2 2 0 0 0 2 1.6h6.8a2 2 0 0 0 2-1.6L20 7H6" />
+                    </svg>
+                    <span>Giỏ hàng</span>
+                    <span class="absolute -top-1 -right-1 rounded-full bg-[#2563EB] px-2 text-[10px] font-semibold text-white">3</span>
+                </button>
+            </div>
+        </div>
+
+        <nav class="hidden md:flex items-center gap-3 border-t border-gray-100 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+            @foreach (var item in NavigationItems)
+            {
+                <a class="rounded-full border border-transparent px-3 py-1 text-gray-600 hover:border-[#2563EB]/30 hover:bg-[#2563EB]/5 hover:text-[#2563EB] transition" href="@item.Href">@item.Label</a>
+            }
+        </nav>
+    </div>
+</header>
+
+@code {
+    private readonly List<NavigationItem> NavigationItems = new()
+    {
+        new("Flagship", "#flagship"),
+        new("Apple", "#apple"),
+        new("Samsung", "#samsung"),
+        new("Android cao cấp", "#android"),
+        new("Tablet", "#tablet"),
+        new("Phụ kiện", "#accessories")
+    };
+
+    private record NavigationItem(string Label, string Href);
+}
