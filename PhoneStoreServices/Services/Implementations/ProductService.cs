@@ -85,6 +85,30 @@ namespace PhoneStore.Services.Implementations
             }
         }
 
+        public ProductModel? GetProductModelById(int modelId)
+        {
+            if (modelId <= 0)
+            {
+                return null;
+            }
+
+            try
+            {
+                var model = _productModelRepository.GetById(modelId);
+                if (model != null)
+                {
+                    _modelNameCache[model.Id] = model.Name ?? string.Empty;
+                }
+
+                return model;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to load product model {modelId}", ex);
+                return null;
+            }
+        }
+
         public IReadOnlyList<ProductModelListItemViewModel> GetProductModelSummaries()
         {
             try

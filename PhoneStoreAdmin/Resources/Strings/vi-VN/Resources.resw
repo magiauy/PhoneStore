@@ -1,52 +1,110 @@
-<?xml version='1.0' encoding='utf-8'?>
-<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  
-  <xs:schema id="root">
-    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
-    <xs:element name="root" ns1:IsDataSet="true">
-      <xs:complexType>
-        <xs:choice maxOccurs="unbounded">
-          <xs:element name="metadata">
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="value" type="xsd:string" minOccurs="0" />
-              </xs:sequence>
-              <xs:attribute name="name" use="required" type="xsd:string" />
-              <xs:attribute name="type" type="xsd:string" />
-              <xs:attribute name="mimetype" type="xsd:string" />
-              <xs:attribute ref="xml:space" />
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="assembly">
-            <xs:complexType>
-              <xs:attribute name="alias" type="xsd:string" />
-              <xs:attribute name="name" type="xsd:string" />
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="data">
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
-                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
-              </xs:sequence>
-              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
-              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
-              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
-              <xs:attribute ref="xml:space" />
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="resheader">
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
-              </xs:sequence>
-              <xs:attribute name="name" type="xsd:string" use="required" />
-            </xs:complexType>
-          </xs:element>
-        </xs:choice>
-      </xs:complexType>
-    </xs:element>
-  </xs:schema>
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
   </resheader>
@@ -2082,7 +2140,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="MenuItemReports.Content" xml:space="preserve">
     <value>Báo cáo</value>
   </data>
-  
   <data name="Reports_PageTitle.Text" xml:space="preserve">
     <value>Báo cáo và Thống kê</value>
   </data>
@@ -2111,7 +2168,7 @@ Bạn muốn thêm bao nhiêu máy?</value>
     <value>Trạng thái</value>
   </data>
   <data name="Reports_AllStatus.Content" xml:space="preserve">
-  <value>Tất cả</value>
+    <value>Tất cả</value>
   </data>
   <data name="Reports_DraftStatus.Content" xml:space="preserve">
     <value>Nháp</value>
@@ -2425,7 +2482,202 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="ProductModelSaveSuccess" xml:space="preserve">
     <value>Lưu mẫu sản phẩm thành công.</value>
   </data>
-<data name="ManageAttributesTitle.Text" xml:space="preserve"><value>Thuộc tính sản phẩm</value></data><data name="ManageAttributesDescription.Text" xml:space="preserve"><value>Định nghĩa các thuộc tính mô tả sản phẩm trong danh mục.</value></data><data name="ManageAttributesButton.Content" xml:space="preserve"><value>Quản lý thuộc tính</value></data><data name="ProductAttributes_HeaderTitle.Text" xml:space="preserve"><value>Thuộc tính sản phẩm</value></data><data name="ProductAttributes_HeaderSubtitle.Text" xml:space="preserve"><value>Quản lý định nghĩa thuộc tính và các lựa chọn áp dụng cho sản phẩm.</value></data><data name="ProductAttributes_AddAttributeButton.Text" xml:space="preserve"><value>Thuộc tính mới</value></data><data name="ProductAttributes_Search.PlaceholderText" xml:space="preserve"><value>Tìm kiếm thuộc tính</value></data><data name="ProductAttributes_DataTypeFilter.Text" xml:space="preserve"><value>Kiểu dữ liệu</value></data><data name="ProductAttributes_ClearFilters.Text" xml:space="preserve"><value>Xóa bộ lọc</value></data><data name="ProductAttributes_NameColumn.Text" xml:space="preserve"><value>Tên</value></data><data name="ProductAttributes_DataTypeColumn.Text" xml:space="preserve"><value>Kiểu dữ liệu</value></data><data name="ProductAttributes_OptionCountColumn.Text" xml:space="preserve"><value>Tùy chọn</value></data><data name="ProductAttributes_EmptyStateTitle.Text" xml:space="preserve"><value>Không tìm thấy thuộc tính</value></data><data name="ProductAttributes_EmptyStateDescription.Text" xml:space="preserve"><value>Điều chỉnh bộ lọc hoặc tạo thuộc tính mới để bắt đầu.</value></data><data name="ProductAttributes_DetailsHeader.Text" xml:space="preserve"><value>Chi tiết thuộc tính</value></data><data name="ProductAttributes_DataTypeLabel.Text" xml:space="preserve"><value>Kiểu dữ liệu</value></data><data name="ProductAttributes_NoteLabel.Text" xml:space="preserve"><value>Mô tả</value></data><data name="ProductAttributes_EditAttributeButton.Text" xml:space="preserve"><value>Chỉnh sửa thuộc tính</value></data><data name="ProductAttributes_DeleteAttributeButton.Text" xml:space="preserve"><value>Xóa thuộc tính</value></data><data name="ProductAttributes_OptionsHeader.Text" xml:space="preserve"><value>Tùy chọn thuộc tính</value></data><data name="ProductAttributes_OptionsHeaderFormat.Text" xml:space="preserve"><value>Tùy chọn thuộc tính · {0}</value></data><data name="ProductAttributes_AddOptionButton.Text" xml:space="preserve"><value>Thêm tùy chọn</value></data><data name="ProductAttributes_OptionsEmpty.Text" xml:space="preserve"><value>Thuộc tính này chưa có tùy chọn.</value></data><data name="ProductAttributes_OptionValueColumn.Text" xml:space="preserve"><value>Giá trị hiển thị</value></data><data name="ProductAttributes_OptionNormalizedColumn.Text" xml:space="preserve"><value>Giá trị chuẩn hóa</value></data><data name="ProductAttributes_OptionSortColumn.Text" xml:space="preserve"><value>Thứ tự sắp xếp</value></data><data name="ProductAttributes_OptionStatusColumn.Text" xml:space="preserve"><value>Trạng thái</value></data><data name="ProductAttributes_CreateDialogTitle.Text" xml:space="preserve"><value>Tạo thuộc tính</value></data><data name="ProductAttributes_EditDialogTitle.Text" xml:space="preserve"><value>Chỉnh sửa thuộc tính</value></data><data name="ProductAttributes_DeleteConfirmTitle.Text" xml:space="preserve"><value>Xóa thuộc tính</value></data><data name="ProductAttributes_DeleteConfirmMessage.Text" xml:space="preserve"><value>Bạn có chắc chắn muốn xóa thuộc tính "{0}"? Hành động này không thể hoàn tác.</value></data><data name="ProductAttributes_SaveError.Text" xml:space="preserve"><value>Không thể lưu thuộc tính. {0}</value></data><data name="ProductAttributes_DeleteError.Text" xml:space="preserve"><value>Không thể xóa thuộc tính. {0}</value></data><data name="ProductAttributes_ValidationNameRequired.Text" xml:space="preserve"><value>Tên là bắt buộc.</value></data><data name="ProductAttributes_ValidationDuplicateName.Text" xml:space="preserve"><value>Thuộc tính với tên này đã tồn tại.</value></data><data name="ProductAttributes_LoadError.Text" xml:space="preserve"><value>Không thể tải thuộc tính sản phẩm. {0}</value></data><data name="ProductAttributes_OptionDialogTitleAdd.Text" xml:space="preserve"><value>Thêm tùy chọn</value></data><data name="ProductAttributes_OptionDialogTitleEdit.Text" xml:space="preserve"><value>Chỉnh sửa tùy chọn</value></data><data name="ProductAttributes_DeleteOptionConfirmTitle.Text" xml:space="preserve"><value>Xóa tùy chọn</value></data><data name="ProductAttributes_DeleteOptionConfirmMessage.Text" xml:space="preserve"><value>Bạn có chắc chắn muốn xóa tùy chọn "{0}"?</value></data><data name="ProductAttributes_OptionSaveError.Text" xml:space="preserve"><value>Không thể lưu tùy chọn. {0}</value></data><data name="ProductAttributes_OptionDeleteError.Text" xml:space="preserve"><value>Không thể xóa tùy chọn. {0}</value></data><data name="ProductAttributes_ValidationOptionValueRequired.Text" xml:space="preserve"><value>Giá trị hiển thị là bắt buộc.</value></data><data name="ProductAttributes_RecordSummaryFormat.Text" xml:space="preserve"><value>{0} trong tổng {1} thuộc tính</value></data><data name="ProductAttributes_OptionsRecordSummaryFormat.Text" xml:space="preserve"><value>{0} trong tổng {1} tùy chọn</value></data><data name="ProductAttributes_PageInfoFormat.Text" xml:space="preserve"><value>Trang {0} / {1}</value></data><data name="ProductAttributes_OptionEditButton.Text" xml:space="preserve"><value>Sửa</value></data><data name="ProductAttributes_OptionDeleteButton.Text" xml:space="preserve"><value>Xóa</value></data><data name="ProductAttributes_NoPermissionMessage.Text" xml:space="preserve"><value>Bạn không có quyền quản lý thuộc tính sản phẩm.</value></data><data name="ProductAttributes_OptionIsActiveLabel.Text" xml:space="preserve"><value>Tùy chọn đang kích hoạt</value></data><data name="AttributeDataType_Text.Text" xml:space="preserve"><value>Văn bản</value></data><data name="AttributeDataType_Number.Text" xml:space="preserve"><value>Số</value></data><data name="AttributeDataType_Date.Text" xml:space="preserve"><value>Ngày</value></data><data name="AttributeDataType_Boolean.Text" xml:space="preserve"><value>Đúng/Sai</value></data><data name="MenuItemProductAttributes.Content" xml:space="preserve"><value>Thuộc tính sản phẩm</value></data><data name="DialogDelete" xml:space="preserve"><value>Xóa</value></data><data name="ProductAttributes_DataTypeFilter_All.Text" xml:space="preserve"><value>Tất cả kiểu</value></data><data name="ProductAttributes_OptionDisplayLabel.Text" xml:space="preserve"><value>Giá trị hiển thị</value></data><data name="ProductAttributes_OptionNormalizedLabel.Text" xml:space="preserve"><value>Giá trị chuẩn hóa</value></data><data name="ProductAttributes_OptionSortLabel.Text" xml:space="preserve"><value>Thứ tự sắp xếp</value></data><data name="ProductAttributes_AttributeNameLabel.Text" xml:space="preserve"><value>Tên</value></data><data name="ProductAttributes_AttributeNoteLabel.Text" xml:space="preserve"><value>Mô tả</value></data><data name="ProductAttributes_AttributeDataTypeLabel.Text" xml:space="preserve"><value>Kiểu dữ liệu</value></data><data name="ProductAttributes_OptionLoadError.Text" xml:space="preserve"><value>Không thể tải tùy chọn thuộc tính. {0}</value></data>  <data name="ProductManagementTitle.Text" xml:space="preserve">
+  <data name="ManageAttributesTitle.Text" xml:space="preserve">
+    <value>Thuộc tính sản phẩm</value>
+  </data>
+  <data name="ManageAttributesDescription.Text" xml:space="preserve">
+    <value>Định nghĩa các thuộc tính mô tả sản phẩm trong danh mục.</value>
+  </data>
+  <data name="ManageAttributesButton.Content" xml:space="preserve">
+    <value>Quản lý thuộc tính</value>
+  </data>
+  <data name="ProductAttributes_HeaderTitle.Text" xml:space="preserve">
+    <value>Thuộc tính sản phẩm</value>
+  </data>
+  <data name="ProductAttributes_HeaderSubtitle.Text" xml:space="preserve">
+    <value>Quản lý định nghĩa thuộc tính và các lựa chọn áp dụng cho sản phẩm.</value>
+  </data>
+  <data name="ProductAttributes_AddAttributeButton.Text" xml:space="preserve">
+    <value>Thuộc tính mới</value>
+  </data>
+  <data name="ProductAttributes_Search.PlaceholderText" xml:space="preserve">
+    <value>Tìm kiếm thuộc tính</value>
+  </data>
+  <data name="ProductAttributes_DataTypeFilter.Text" xml:space="preserve">
+    <value>Kiểu dữ liệu</value>
+  </data>
+  <data name="ProductAttributes_ClearFilters.Text" xml:space="preserve">
+    <value>Xóa bộ lọc</value>
+  </data>
+  <data name="ProductAttributes_NameColumn.Text" xml:space="preserve">
+    <value>Tên</value>
+  </data>
+  <data name="ProductAttributes_DataTypeColumn.Text" xml:space="preserve">
+    <value>Kiểu dữ liệu</value>
+  </data>
+  <data name="ProductAttributes_OptionCountColumn.Text" xml:space="preserve">
+    <value>Tùy chọn</value>
+  </data>
+  <data name="ProductAttributes_EmptyStateTitle.Text" xml:space="preserve">
+    <value>Không tìm thấy thuộc tính</value>
+  </data>
+  <data name="ProductAttributes_EmptyStateDescription.Text" xml:space="preserve">
+    <value>Điều chỉnh bộ lọc hoặc tạo thuộc tính mới để bắt đầu.</value>
+  </data>
+  <data name="ProductAttributes_DetailsHeader.Text" xml:space="preserve">
+    <value>Chi tiết thuộc tính</value>
+  </data>
+  <data name="ProductAttributes_DataTypeLabel.Text" xml:space="preserve">
+    <value>Kiểu dữ liệu</value>
+  </data>
+  <data name="ProductAttributes_NoteLabel.Text" xml:space="preserve">
+    <value>Mô tả</value>
+  </data>
+  <data name="ProductAttributes_EditAttributeButton.Text" xml:space="preserve">
+    <value>Chỉnh sửa thuộc tính</value>
+  </data>
+  <data name="ProductAttributes_DeleteAttributeButton.Text" xml:space="preserve">
+    <value>Xóa thuộc tính</value>
+  </data>
+  <data name="ProductAttributes_OptionsHeader.Text" xml:space="preserve">
+    <value>Tùy chọn thuộc tính</value>
+  </data>
+  <data name="ProductAttributes_OptionsHeaderFormat.Text" xml:space="preserve">
+    <value>Tùy chọn thuộc tính · {0}</value>
+  </data>
+  <data name="ProductAttributes_AddOptionButton.Text" xml:space="preserve">
+    <value>Thêm tùy chọn</value>
+  </data>
+  <data name="ProductAttributes_OptionsEmpty.Text" xml:space="preserve">
+    <value>Thuộc tính này chưa có tùy chọn.</value>
+  </data>
+  <data name="ProductAttributeOptionPlaceholder" xml:space="preserve">
+    <value>Chọn một tùy chọn</value>
+  </data>
+  <data name="ProductAttributes_OptionValueColumn.Text" xml:space="preserve">
+    <value>Giá trị hiển thị</value>
+  </data>
+  <data name="ProductAttributes_OptionNormalizedColumn.Text" xml:space="preserve">
+    <value>Giá trị chuẩn hóa</value>
+  </data>
+  <data name="ProductAttributes_OptionSortColumn.Text" xml:space="preserve">
+    <value>Thứ tự sắp xếp</value>
+  </data>
+  <data name="ProductAttributes_OptionStatusColumn.Text" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="ProductAttributes_CreateDialogTitle.Text" xml:space="preserve">
+    <value>Tạo thuộc tính</value>
+  </data>
+  <data name="ProductAttributes_EditDialogTitle.Text" xml:space="preserve">
+    <value>Chỉnh sửa thuộc tính</value>
+  </data>
+  <data name="ProductAttributes_DeleteConfirmTitle.Text" xml:space="preserve">
+    <value>Xóa thuộc tính</value>
+  </data>
+  <data name="ProductAttributes_DeleteConfirmMessage.Text" xml:space="preserve">
+    <value>Bạn có chắc chắn muốn xóa thuộc tính "{0}"? Hành động này không thể hoàn tác.</value>
+  </data>
+  <data name="ProductAttributes_SaveError.Text" xml:space="preserve">
+    <value>Không thể lưu thuộc tính. {0}</value>
+  </data>
+  <data name="ProductAttributes_DeleteError.Text" xml:space="preserve">
+    <value>Không thể xóa thuộc tính. {0}</value>
+  </data>
+  <data name="ProductAttributes_ValidationNameRequired.Text" xml:space="preserve">
+    <value>Tên là bắt buộc.</value>
+  </data>
+  <data name="ProductAttributes_ValidationDuplicateName.Text" xml:space="preserve">
+    <value>Thuộc tính với tên này đã tồn tại.</value>
+  </data>
+  <data name="ProductAttributes_LoadError.Text" xml:space="preserve">
+    <value>Không thể tải thuộc tính sản phẩm. {0}</value>
+  </data>
+  <data name="ProductAttributes_OptionDialogTitleAdd.Text" xml:space="preserve">
+    <value>Thêm tùy chọn</value>
+  </data>
+  <data name="ProductAttributes_OptionDialogTitleEdit.Text" xml:space="preserve">
+    <value>Chỉnh sửa tùy chọn</value>
+  </data>
+  <data name="ProductAttributes_DeleteOptionConfirmTitle.Text" xml:space="preserve">
+    <value>Xóa tùy chọn</value>
+  </data>
+  <data name="ProductAttributes_DeleteOptionConfirmMessage.Text" xml:space="preserve">
+    <value>Bạn có chắc chắn muốn xóa tùy chọn "{0}"?</value>
+  </data>
+  <data name="ProductAttributes_OptionSaveError.Text" xml:space="preserve">
+    <value>Không thể lưu tùy chọn. {0}</value>
+  </data>
+  <data name="ProductAttributes_OptionDeleteError.Text" xml:space="preserve">
+    <value>Không thể xóa tùy chọn. {0}</value>
+  </data>
+  <data name="ProductAttributes_ValidationOptionValueRequired.Text" xml:space="preserve">
+    <value>Giá trị hiển thị là bắt buộc.</value>
+  </data>
+  <data name="ProductAttributes_RecordSummaryFormat.Text" xml:space="preserve">
+    <value>{0} trong tổng {1} thuộc tính</value>
+  </data>
+  <data name="ProductAttributes_OptionsRecordSummaryFormat.Text" xml:space="preserve">
+    <value>{0} trong tổng {1} tùy chọn</value>
+  </data>
+  <data name="ProductAttributes_PageInfoFormat.Text" xml:space="preserve">
+    <value>Trang {0} / {1}</value>
+  </data>
+  <data name="ProductAttributes_OptionEditButton.Text" xml:space="preserve">
+    <value>Sửa</value>
+  </data>
+  <data name="ProductAttributes_OptionDeleteButton.Text" xml:space="preserve">
+    <value>Xóa</value>
+  </data>
+  <data name="ProductAttributes_NoPermissionMessage.Text" xml:space="preserve">
+    <value>Bạn không có quyền quản lý thuộc tính sản phẩm.</value>
+  </data>
+  <data name="ProductAttributes_OptionIsActiveLabel.Text" xml:space="preserve">
+    <value>Tùy chọn đang kích hoạt</value>
+  </data>
+  <data name="AttributeDataType_Text.Text" xml:space="preserve">
+    <value>Văn bản</value>
+  </data>
+  <data name="AttributeDataType_Number.Text" xml:space="preserve">
+    <value>Số</value>
+  </data>
+  <data name="AttributeDataType_Date.Text" xml:space="preserve">
+    <value>Ngày</value>
+  </data>
+  <data name="AttributeDataType_Boolean.Text" xml:space="preserve">
+    <value>Đúng/Sai</value>
+  </data>
+  <data name="MenuItemProductAttributes.Content" xml:space="preserve">
+    <value>Thuộc tính sản phẩm</value>
+  </data>
+  <data name="DialogDelete" xml:space="preserve">
+    <value>Xóa</value>
+  </data>
+  <data name="ProductAttributes_DataTypeFilter_All.Text" xml:space="preserve">
+    <value>Tất cả kiểu</value>
+  </data>
+  <data name="ProductAttributes_OptionDisplayLabel.Text" xml:space="preserve">
+    <value>Giá trị hiển thị</value>
+  </data>
+  <data name="ProductAttributes_OptionNormalizedLabel.Text" xml:space="preserve">
+    <value>Giá trị chuẩn hóa</value>
+  </data>
+  <data name="ProductAttributes_OptionSortLabel.Text" xml:space="preserve">
+    <value>Thứ tự sắp xếp</value>
+  </data>
+  <data name="ProductAttributes_AttributeNameLabel.Text" xml:space="preserve">
+    <value>Tên</value>
+  </data>
+  <data name="ProductAttributes_AttributeNoteLabel.Text" xml:space="preserve">
+    <value>Mô tả</value>
+  </data>
+  <data name="ProductAttributes_AttributeDataTypeLabel.Text" xml:space="preserve">
+    <value>Kiểu dữ liệu</value>
+  </data>
+  <data name="ProductAttributes_OptionLoadError.Text" xml:space="preserve">
+    <value>Không thể tải tùy chọn thuộc tính. {0}</value>
+  </data>
+  <data name="ProductManagementTitle.Text" xml:space="preserve">
     <value>Quản lý sản phẩm</value>
   </data>
   <data name="ProductManagementVariantsLabel.Text" xml:space="preserve">
@@ -2523,5 +2775,20 @@ Bạn muốn thêm bao nhiêu máy?</value>
   </data>
   <data name="ProductManagementBatchSerialHeaderFormat" xml:space="preserve">
     <value>Serial trong lô {0}</value>
+  </data>
+  <data name="ProductModelLabel.Text" xml:space="preserve">
+    <value>Mẫu sản phẩm</value>
+  </data>
+  <data name="ProductManagementBatchItemCountFormat" xml:space="preserve">
+    <value>{0} sản phẩm</value>
+  </data>
+  <data name="ProductManagementBatchCodeFormat" xml:space="preserve">
+    <value>BATCH-{0:D4}</value>
+  </data>
+  <data name="ProductManagementBatchImportPlaceholder" xml:space="preserve">
+    <value>Ngày nhập: đang cập nhật</value>
+  </data>
+  <data name="ProductModelRequiredError" xml:space="preserve">
+    <value>Vui lòng chọn model sản phẩm.</value>
   </data>
 </root>

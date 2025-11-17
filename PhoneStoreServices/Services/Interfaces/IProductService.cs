@@ -43,6 +43,13 @@ namespace PhoneStore.Services.Interfaces
         IReadOnlyList<ProductModel> GetAllModels();
 
         /// <summary>
+        /// Retrieve a single product model by identifier.
+        /// </summary>
+        /// <param name="modelId">Product model identifier.</param>
+        /// <returns>The matching product model or null when not found.</returns>
+        ProductModel? GetProductModelById(int modelId);
+
+        /// <summary>
         /// Retrieve summarized product model information for dashboard cards.
         /// </summary>
         IReadOnlyList<ProductModelListItemViewModel> GetProductModelSummaries();
