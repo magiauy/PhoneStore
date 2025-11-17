@@ -24,7 +24,7 @@ namespace PhoneStoreAdmin.View
         private readonly ResourceLoader _resourceLoader;
         private readonly NotifyCollectionChangedEventHandler _collectionChangedHandler;
         private readonly NotifyCollectionChangedEventHandler _detailCollectionChangedHandler;
-        private ContentDialog? _currentDialog;
+        private ProductDialog? _currentDialog;
         private bool _isLoaded;
         private DetailSectionTab _activeDetailTab = DetailSectionTab.BatchHistory;
 
@@ -443,8 +443,17 @@ namespace PhoneStoreAdmin.View
                 return;
             }
 
-            var dialogContent = new ProductDialog();
-            dialogContent.ProductSaved += ProductDialog_ProductSaved;
+            var dialog = new ProductDialog
+            {
+                XamlRoot = XamlRoot,
+                Title = _resourceLoader.GetString(mode == ProductDialog.DialogMode.Add
+                    ? "AddProductDialogTitle"
+                    : "EditProductDialogTitle"),
+                PrimaryButtonText = _resourceLoader.GetString("DialogSaveButton"),
+                CloseButtonText = _resourceLoader.GetString("DialogCloseButton")
+            };
+
+            dialog.ProductSaved += ProductDialog_ProductSaved;
 
             ProductDetailViewModel? detail = null;
             if (mode == ProductDialog.DialogMode.Edit)
@@ -463,35 +472,21 @@ namespace PhoneStoreAdmin.View
                 }
             }
 
-            dialogContent.SetMode(mode, detail);
+            // Pass the current model context to the dialog if present
+            if (CurrentModel != null)
+            {
+                dialog.SetContextModel(CurrentModel);
+            }
+            dialog.SetMode(mode, detail);
+
             if (mode == ProductDialog.DialogMode.Add && CurrentModel != null)
             {
-                dialogContent.SetPreselectedModel(CurrentModel.Id);
+                dialog.SetPreselectedModel(CurrentModel.Id);
             }
-
-            var dialog = new ContentDialog
-            {
-                Title = _resourceLoader.GetString(mode == ProductDialog.DialogMode.Add
-                    ? "AddProductDialogTitle"
-                    : "EditProductDialogTitle"),
-                PrimaryButtonText = _resourceLoader.GetString("DialogSaveButton"),
-                CloseButtonText = _resourceLoader.GetString("DialogCloseButton"),
-                Content = dialogContent,
-                XamlRoot = XamlRoot
-            };
-
-            dialog.PrimaryButtonClick += (_, args) =>
-            {
-                if (!dialogContent.Save())
-                {
-                    args.Cancel = true;
-                }
-            };
 
             dialog.Closed += (_, _) =>
             {
-                dialogContent.Cancel();
-                dialogContent.ProductSaved -= ProductDialog_ProductSaved;
+                dialog.ProductSaved -= ProductDialog_ProductSaved;
                 _currentDialog = null;
             };
 
