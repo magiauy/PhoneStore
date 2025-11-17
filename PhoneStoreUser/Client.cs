@@ -1,4 +1,4 @@
-﻿namespace PhoneStoreUserWebApp
+﻿namespace PhoneStoreUser
 {
     internal class Client
     {
