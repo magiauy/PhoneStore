@@ -1,6 +1,7 @@
-using PhoneStoreRepository.Models;
 using System;
 using System.Collections.Generic;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
 
 namespace PhoneStoreRepository.Repositories.Interfaces
 {
@@ -8,7 +9,7 @@ namespace PhoneStoreRepository.Repositories.Interfaces
     {
         IEnumerable<Invoice> GetByCustomer(int customerId);
         IEnumerable<Invoice> GetByDateRange(DateTime from, DateTime to);
-        IEnumerable<Invoice> GetByStatus(PhoneStoreRepository.Models.Enums.InvoiceStatus status);
+        IEnumerable<Invoice> GetByStatus(InvoiceStatus status);
         IEnumerable<Invoice> GetByCreatedBy(int createdBy);
         IEnumerable<Invoice> GetInvoicesFiltered(
             string? customerName,
