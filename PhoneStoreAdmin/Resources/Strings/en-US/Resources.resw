@@ -1162,8 +1162,7 @@
     <value>Add Product</value>
   </data>
   <data name="AddProductExistingMessage" xml:space="preserve">
-    <value>This product already has {0} device(s) in the order.
-How many devices do you want to add?</value>
+    <value>This product already has {0} device(s) in the order. How many devices do you want to add?</value>
   </data>
   <data name="AddProductQuantityLabel" xml:space="preserve">
     <value>Quantity to add:</value>
@@ -2849,6 +2848,7 @@ How many devices do you want to add?</value>
   </data>
   <data name="ProductModelRequiredError" xml:space="preserve">
     <value>Please select a product model.</value>
+  </data>
   <data name="InvoicePaymentLabel.Text" xml:space="preserve">
     <value>Payment Method</value>
   </data>

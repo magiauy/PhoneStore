@@ -3,7 +3,7 @@ using PhoneStoreAdmin.Models.Enums;
 using PhoneStoreAdmin.ViewModels;
 using System;
 
-namespace PhoneStoreAdmin.Services.Interfaces
+namespace PhoneStore.Services.Interfaces
 {
     public interface IInvoiceService
     {
