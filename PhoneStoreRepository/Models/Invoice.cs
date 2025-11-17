@@ -1,6 +1,3 @@
-using Microsoft.UI;
-using Microsoft.UI.Xaml.Media;
-using PhoneStoreAdmin.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -16,7 +13,7 @@ namespace PhoneStoreRepository.Models
         private int? _promotionCodeId;
         private int _createdBy;
         private DateTime _invoiceDate;
-        private PhoneStoreAdmin.Models.Enums.InvoiceStatus _status;
+        private InvoiceStatus _status;
         private decimal _totalAmount = 0;
         private decimal _discountAmount = 0;
         private decimal _finalAmount = 0;
@@ -32,8 +29,6 @@ namespace PhoneStoreRepository.Models
         public string CustomerName => Customer?.FullName ?? "Unknown";
         public string CreatedByName => Creator?.FullName ?? "System";
         public string DiscountCode => PromotionCode?.Code ?? "_";
-        public enum InvoiceStatus { UNPAID,PAID,CANCELLED}
-        
         // Public properties with backing fields
         public int Id
         {
@@ -68,7 +63,7 @@ namespace PhoneStoreRepository.Models
         }
 
         [Required]
-        public PhoneStoreAdmin.Models.Enums.InvoiceStatus Status
+        public InvoiceStatus Status
         {
             get => _status;
             set => _status = value;
@@ -126,7 +121,7 @@ namespace PhoneStoreRepository.Models
             _promotionCodeId = null;
             _createdBy = 0;
             _invoiceDate = DateTime.UtcNow;
-            _status = PhoneStoreAdmin.Models.Enums.InvoiceStatus.UNPAID;
+            _status = InvoiceStatus.UNPAID;
             _totalAmount = 0;
             _discountAmount = 0;
             _finalAmount = 0;
@@ -142,7 +137,7 @@ namespace PhoneStoreRepository.Models
             _promotionCodeId = null;
             _createdBy = createdBy;
             _invoiceDate = invoiceDate;
-            _status = (Enums.InvoiceStatus)InvoiceStatus.UNPAID;
+            _status = InvoiceStatus.UNPAID;
             _totalAmount = 0;
             _discountAmount = 0;
             _finalAmount = 0;

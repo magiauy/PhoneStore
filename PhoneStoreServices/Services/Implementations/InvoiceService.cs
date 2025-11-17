@@ -1,12 +1,10 @@
-﻿using PhoneStoreRepository.Models;
+using System;
+using PhoneStore.Services.Interfaces;
+using PhoneStore.Services.ViewModels;
+using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Models.Enums;
 using PhoneStoreRepository.Repositories.Interfaces;
-using PhoneStore.Services.Interfaces;
 using PhoneStoreRepository.Utils;
-using PhoneStoreAdmin.ViewModels;
-using System;
-using System.Linq;
-using PhoneStoreAdmin.Services.Interfaces;
 
 namespace PhoneStore.Services.Implementations
 {
