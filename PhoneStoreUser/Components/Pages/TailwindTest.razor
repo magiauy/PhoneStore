@@ -1,0 +1,126 @@
+@page "/tailwind-test"
+
+<PageTitle>Tailwind CSS Test</PageTitle>
+
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">✅ Tailwind CSS is Working!</h1>
+            <p class="text-lg text-gray-600">Your Blazor project is successfully using Tailwind CSS</p>
+        </div>
+
+        <!-- Color Palette Test -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Color Palette Test</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-red-500 text-white p-4 rounded-lg text-center font-semibold">Red</div>
+                <div class="bg-orange-500 text-white p-4 rounded-lg text-center font-semibold">Orange</div>
+                <div class="bg-yellow-500 text-white p-4 rounded-lg text-center font-semibold">Yellow</div>
+                <div class="bg-green-500 text-white p-4 rounded-lg text-center font-semibold">Green</div>
+                <div class="bg-blue-500 text-white p-4 rounded-lg text-center font-semibold">Blue</div>
+                <div class="bg-indigo-500 text-white p-4 rounded-lg text-center font-semibold">Indigo</div>
+                <div class="bg-purple-500 text-white p-4 rounded-lg text-center font-semibold">Purple</div>
+                <div class="bg-pink-500 text-white p-4 rounded-lg text-center font-semibold">Pink</div>
+            </div>
+        </div>
+
+        <!-- Responsive Grid Test -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Responsive Grid (1 col mobile → 4 cols desktop)</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-gradient-to-br from-blue-400 to-blue-600 p-6 rounded-lg text-white font-semibold">
+                    Mobile: 1 col
+                </div>
+                <div class="bg-gradient-to-br from-purple-400 to-purple-600 p-6 rounded-lg text-white font-semibold">
+                    Tablet: 2 cols
+                </div>
+                <div class="bg-gradient-to-br from-pink-400 to-pink-600 p-6 rounded-lg text-white font-semibold">
+                    Desktop: 3 cols
+                </div>
+                <div class="bg-gradient-to-br from-green-400 to-green-600 p-6 rounded-lg text-white font-semibold">
+                    Large: 4 cols
+                </div>
+            </div>
+        </div>
+
+        <!-- Button States Test -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Button Styles</h2>
+            <div class="flex flex-wrap gap-4">
+                <button class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 shadow-md hover:shadow-lg">
+                    Primary Button
+                </button>
+                <button class="px-6 py-3 bg-gray-200 text-gray-900 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-200">
+                    Secondary Button
+                </button>
+                <button class="px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-all duration-200">
+                    Outline Button
+                </button>
+                <button class="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all duration-200">
+                    Danger Button
+                </button>
+            </div>
+        </div>
+
+        <!-- Spacing & Typography Test -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Typography</h2>
+            <div class="space-y-4">
+                <p class="text-xs text-gray-500 uppercase tracking-widest">Extra Small (xs)</p>
+                <p class="text-sm text-gray-600">Small text for secondary information</p>
+                <p class="text-base text-gray-700">Base text - standard paragraph</p>
+                <p class="text-lg text-gray-800 font-semibold">Large text (lg)</p>
+                <p class="text-xl text-gray-900 font-bold">Extra large text (xl)</p>
+                <p class="text-2xl text-blue-600 font-extrabold">2XL Bold Heading</p>
+            </div>
+        </div>
+
+        <!-- Cards with Hover Effects -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Card Components with Hover Effects</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-lg p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                        <span class="text-2xl">🚀</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Fast</h3>
+                    <p class="text-sm text-gray-600">Lightning-fast performance with Tailwind CSS</p>
+                </div>
+                <div class="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-lg p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                        <span class="text-2xl">🎨</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Beautiful</h3>
+                    <p class="text-sm text-gray-600">Create stunning designs with utility classes</p>
+                </div>
+                <div class="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-lg p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                        <span class="text-2xl">⚡</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Productive</h3>
+                    <p class="text-sm text-gray-600">Build modern UIs faster than ever</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Message -->
+        <div class="bg-green-50 border-l-4 border-green-500 rounded-lg p-6">
+            <div class="flex gap-4">
+                <div class="text-green-600 text-2xl">✓</div>
+                <div>
+                    <h3 class="text-lg font-semibold text-green-900">Tailwind CSS is Ready!</h3>
+                    <p class="text-sm text-green-700 mt-1">
+                        Your Blazor project is configured with Tailwind CSS v3 via CDN. 
+                        You can now use all Tailwind utility classes in your Razor components.
+                    </p>
+                    <a href="/" class="text-sm text-green-600 font-semibold hover:text-green-700 mt-3 inline-block">← Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // No C# needed - pure Tailwind CSS styling!
+}
