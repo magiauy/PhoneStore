@@ -1,0 +1,17 @@
+@if (Products?.Any() == true)
+{
+    <div class="relative">
+        <div class="flex gap-4 overflow-x-auto pb-2">
+            @foreach (var product in Products)
+            {
+                <div class="min-w-[240px] max-w-[280px] flex-1">
+                    <ProductCard Product="product" />
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public IEnumerable<ProductCardModel>? Products { get; set; }
+}
