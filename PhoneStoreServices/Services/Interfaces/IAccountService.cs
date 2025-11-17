@@ -10,7 +10,7 @@ namespace PhoneStore.Services.Interfaces
         /// Get all accounts
         /// </summary>
         /// <returns>List of accounts</returns>
-        Task<IEnumerable<Account>> GetAllAsync();
+        //Task<IEnumerable<Account>> GetAllAsync();
         /// <summary>
         /// Get account by ID
         /// </summary>
