@@ -1,51 +1,35 @@
+﻿using MySqlConnector;
+using PhoneStoreAdmin.Data;
+using PhoneStoreAdmin.Models;
+using PhoneStoreAdmin.Models.Enums;
+using PhoneStoreAdmin.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-using MySqlConnector;
-using PhoneStoreRepository.Data;
-using PhoneStoreRepository.Models;
-using PhoneStoreRepository.Models.Enums;
-using PhoneStoreRepository.Repositories.Interfaces;
 
-namespace PhoneStoreRepository.Repositories.Implementations
+namespace PhoneStoreAdmin.Repositories.Implementations
 {
     public class InvoiceRepository(DataSource dataSource) : IInvoiceRepository
     {
         private readonly DataSource _dataSource = dataSource;
-        private const string BaseInvoiceSelect = @"
-            SELECT
-                i.*,
-                p.full_name AS customer_name,
-                c.full_name AS creator_name,
-                pr.code AS promotion_code
-            FROM invoices i
-            LEFT JOIN persons p ON i.person_id = p.id
-            LEFT JOIN persons c ON i.created_by = c.id
-            LEFT JOIN promotion_codes pr ON i.promotion_code_id = pr.id";
-
-        private IEnumerable<Invoice> ExecuteInvoiceQuery(string sql, Action<MySqlCommand>? configureParameters = null)
-        {
-            var invoices = new List<Invoice>();
-            using var connection = _dataSource.GetConnection();
-            using var command = new MySqlCommand(sql, connection);
-            configureParameters?.Invoke(command);
-            using var reader = command.ExecuteReader();
-
-            while (reader.Read())
-            {
-                invoices.Add(MapFromReader(reader));
-            }
-
-            return invoices;
-        }
 
         public Invoice? GetById(int id)
         {
             using var connection = _dataSource.GetConnection();
 
             // Lấy hóa đơn
-            using var command = new MySqlCommand($"{BaseInvoiceSelect}\n                WHERE i.id = @id", connection);
+            using var command = new MySqlCommand(@"
+                SELECT 
+                    i.*, 
+                    p.full_name AS customer_name, 
+                    c.full_name AS creator_name,
+                    pr.code AS promotion_code
+                FROM invoices i
+                LEFT JOIN persons p ON i.person_id = p.id
+                LEFT JOIN persons c ON i.created_by = c.id
+                LEFT JOIN promotion_codes pr ON i.promotion_code_id = pr.id
+                WHERE i.id = @id", connection);
 
             command.Parameters.AddWithValue("@id", id);
 
@@ -90,8 +74,30 @@ namespace PhoneStoreRepository.Repositories.Implementations
 
         public IEnumerable<Invoice> GetAll()
         {
-            var sql = $"{BaseInvoiceSelect}\n                ORDER BY i.id ASC";
-            return ExecuteInvoiceQuery(sql);
+            var invoices = new List<Invoice>();
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand(@"
+                SELECT 
+                    i.*, 
+                    p.full_name AS customer_name, 
+                    c.full_name AS creator_name
+                FROM invoices i
+                LEFT JOIN persons p ON i.person_id = p.id
+                LEFT JOIN persons c ON i.created_by = c.id
+                ORDER BY i.id ASC", connection);
+            using var reader = command.ExecuteReader();
+
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                Console.WriteLine(reader.GetName(i));
+            }
+
+            while (reader.Read())
+            {
+                invoices.Add(MapFromReader(reader));
+            }
+
+            return invoices;
         }
 
         public void Insert(Invoice entity)
@@ -153,38 +159,27 @@ namespace PhoneStoreRepository.Repositories.Implementations
 
         public void Delete(int id)
         {
-            using var connection = _dataSource.GetConnection();
-            using var command = new MySqlCommand("DELETE FROM invoices WHERE id = @id", connection);
-            command.Parameters.AddWithValue("@id", id);
-            command.ExecuteNonQuery();
+            throw new NotImplementedException();
         }
 
         public IEnumerable<Invoice> GetByCustomer(int customerId)
         {
-            var sql = $"{BaseInvoiceSelect}\n                WHERE i.person_id = @customerId\n                ORDER BY i.invoice_date DESC";
-            return ExecuteInvoiceQuery(sql, cmd => cmd.Parameters.AddWithValue("@customerId", customerId));
+            throw new NotImplementedException();
         }
 
         public IEnumerable<Invoice> GetByDateRange(DateTime from, DateTime to)
         {
-            var sql = $"{BaseInvoiceSelect}\n                WHERE i.invoice_date BETWEEN @from AND @to\n                ORDER BY i.invoice_date DESC";
-            return ExecuteInvoiceQuery(sql, cmd =>
-            {
-                cmd.Parameters.AddWithValue("@from", from);
-                cmd.Parameters.AddWithValue("@to", to);
-            });
+            throw new NotImplementedException();
         }
 
-        public IEnumerable<Invoice> GetByStatus(InvoiceStatus status)
+        public IEnumerable<Invoice> GetByStatus(PhoneStoreAdmin.Models.Enums.InvoiceStatus status)
         {
-            var sql = $"{BaseInvoiceSelect}\n                WHERE i.status = @status\n                ORDER BY i.invoice_date DESC";
-            return ExecuteInvoiceQuery(sql, cmd => cmd.Parameters.AddWithValue("@status", status.ToString()));
+            throw new NotImplementedException();
         }
 
         public IEnumerable<Invoice> GetByCreatedBy(int createdBy)
         {
-            var sql = $"{BaseInvoiceSelect}\n                WHERE i.created_by = @createdBy\n                ORDER BY i.invoice_date DESC";
-            return ExecuteInvoiceQuery(sql, cmd => cmd.Parameters.AddWithValue("@createdBy", createdBy));
+            throw new NotImplementedException();
         }
         private static bool HasColumn(MySqlDataReader reader, string columnName)
         {

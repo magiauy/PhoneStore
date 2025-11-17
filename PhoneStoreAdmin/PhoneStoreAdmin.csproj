@@ -21,10 +21,13 @@
   </ItemGroup>
   <ItemGroup>
     <Page Remove="LoginWindow.xaml" />
-    <Page Remove="View\AddContainers\EditPurchaseOrderPage.xaml" />
   </ItemGroup>
 	
-  <!-- appsettings.json will be updated below with PreserveNewest -->
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <!-- Logo assets -->
@@ -91,28 +94,26 @@
 	  </Page>
 	</ItemGroup>
 
-  <ItemGroup>
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <Page Update="View\AddContainers\EditPurchaseOrderPage.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="View\Controls\InvoiceDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Update="View\Controls\SerialNumberInputDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Update="View\InvoicePage.Xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Page>
-  </ItemGroup>
+	<ItemGroup>
+	  <None Update="appsettings.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <Page Update="View\Controls\InvoiceDialog.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	  <None Update="View\Controls\SerialNumberInputDialog.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </None>
+	  <Page Update="View\InvoicePage.Xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Page>
+	</ItemGroup>
 
 	<ItemGroup>
 	  <Folder Include="Database\" />
 	  <Folder Include="Resources\Strings\en-US\" />
+	  <Folder Include="View\AddContainers\" />
 	</ItemGroup>
 
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
