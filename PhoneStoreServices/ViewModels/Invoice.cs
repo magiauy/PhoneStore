@@ -1,11 +1,11 @@
-﻿using PhoneStoreAdmin.Helpers;
-using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Models.Enums;
+﻿using PhoneStore.Services.Helpers;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace PhoneStoreAdmin.ViewModels
+namespace PhoneStore.ViewModels
 {
     public class InvoiceViewModel
     {

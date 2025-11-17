@@ -1,13 +1,14 @@
-﻿using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Models.Enums;
-using PhoneStoreAdmin.Repositories.Interfaces;
-using PhoneStoreAdmin.Services.Interfaces;
-using PhoneStoreAdmin.Utils;
+﻿using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
+using PhoneStoreRepository.Repositories.Interfaces;
+using PhoneStore.Services.Interfaces;
+using PhoneStoreRepository.Utils;
 using PhoneStoreAdmin.ViewModels;
 using System;
 using System.Linq;
+using PhoneStoreAdmin.Services.Interfaces;
 
-namespace PhoneStoreAdmin.Services.Implementations
+namespace PhoneStore.Services.Implementations
 {
     public class InvoiceService : IInvoiceService
     {
