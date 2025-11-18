@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using PhoneStoreRepository.Repositories.Interfaces;
 using PhoneStoreUser.Components.Models;
@@ -11,6 +14,7 @@ public class ProductCatalogService : IProductCatalogService
     private readonly IProductModelAttributeRepository _productModelAttributeRepository;
     private readonly IProductAttributeRepository _productAttributeRepository;
     private readonly IProductAttributeValueRepository _productAttributeValueRepository;
+    private readonly IProductAttributeOptionRepository _productAttributeOptionRepository;
     private readonly ILogger<ProductCatalogService> _logger;
 
     public ProductCatalogService(
@@ -19,6 +23,7 @@ public class ProductCatalogService : IProductCatalogService
         IProductModelAttributeRepository productModelAttributeRepository,
         IProductAttributeRepository productAttributeRepository,
         IProductAttributeValueRepository productAttributeValueRepository,
+        IProductAttributeOptionRepository productAttributeOptionRepository,
         ILogger<ProductCatalogService> logger)
     {
         _productModelRepository = productModelRepository;
@@ -26,6 +31,7 @@ public class ProductCatalogService : IProductCatalogService
         _productModelAttributeRepository = productModelAttributeRepository;
         _productAttributeRepository = productAttributeRepository;
         _productAttributeValueRepository = productAttributeValueRepository;
+        _productAttributeOptionRepository = productAttributeOptionRepository;
         _logger = logger;
     }
 
@@ -138,6 +144,48 @@ public class ProductCatalogService : IProductCatalogService
         }, "load attribute values for products", Array.Empty<ProductAttributeValue>());
     }
 
+    public Task<IReadOnlyDictionary<int, IReadOnlyList<ProductAttributeOption>>> GetAttributeOptionsForAttributesAsync(IEnumerable<int> attributeIds)
+    {
+        if (attributeIds == null)
+        {
+            return Task.FromResult<IReadOnlyDictionary<int, IReadOnlyList<ProductAttributeOption>>>(new Dictionary<int, IReadOnlyList<ProductAttributeOption>>());
+        }
+
+        var ids = attributeIds.Where(id => id > 0).Distinct().ToList();
+        if (ids.Count == 0)
+        {
+            return Task.FromResult<IReadOnlyDictionary<int, IReadOnlyList<ProductAttributeOption>>>(new Dictionary<int, IReadOnlyList<ProductAttributeOption>>());
+        }
+
+        return ExecuteAsync(() =>
+        {
+            var lookup = _productAttributeOptionRepository.GetByAttributeIds(ids)
+                ?? new Dictionary<int, IReadOnlyList<PhoneStoreRepository.Models.ProductAttributeOption>>();
+
+            var result = new Dictionary<int, IReadOnlyList<ProductAttributeOption>>();
+            foreach (var id in ids)
+            {
+                if (lookup.TryGetValue(id, out var options) && options != null)
+                {
+                    var mapped = options
+                        .Select(MapProductAttributeOption)
+                        .OrderBy(o => o.SortOrder)
+                        .ThenBy(o => o.DisplayValue, StringComparer.OrdinalIgnoreCase)
+                        .ToList()
+                        .AsReadOnly();
+
+                    result[id] = mapped;
+                }
+                else
+                {
+                    result[id] = Array.Empty<ProductAttributeOption>();
+                }
+            }
+
+            return (IReadOnlyDictionary<int, IReadOnlyList<ProductAttributeOption>>)result;
+        }, "load attribute options", new Dictionary<int, IReadOnlyList<ProductAttributeOption>>());
+    }
+
     private Task<T> ExecuteAsync<T>(Func<T> action, string operationDescription, T? fallback)
     {
         return Task.Run(() =>
@@ -196,4 +244,15 @@ public class ProductCatalogService : IProductCatalogService
             ValueNumber: attributeValue.ValueNumber,
             ValueDate: attributeValue.ValueDate,
             ValueBool: attributeValue.ValueBool);
+
+    private static ProductAttributeOption MapProductAttributeOption(PhoneStoreRepository.Models.ProductAttributeOption option) =>
+        new(
+            Id: option.Id,
+            AttributeId: option.AttributeId,
+            DisplayValue: option.DisplayValue,
+            NormalizedValue: option.NormalizedValue,
+            SortOrder: option.SortOrder,
+            IsActive: option.IsActive,
+            CreatedAt: option.CreatedAt,
+            UpdatedAt: option.UpdatedAt);
 }
