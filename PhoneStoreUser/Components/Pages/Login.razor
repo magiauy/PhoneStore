@@ -28,7 +28,7 @@
 
             <div class="space-y-4">
                 <div class="space-y-1">
-                    <label for="email" class="text-sm font-medium text-gray-700">Email / Username</label>
+                    <label for="email" class="text-sm font-medium text-gray-700">Tên đăng nhập</label>
                     <InputText
                         id="email"
                         @bind-Value="Model.EmailOrUsername"
@@ -39,7 +39,7 @@
                 </div>
 
                 <div class="space-y-1">
-                    <label for="password" class="text-sm font-medium text-gray-700">Password</label>
+                    <label for="password" class="text-sm font-medium text-gray-700">Mật khẩu</label>
                     <InputText
                         id="password"
                         type="password"
@@ -55,9 +55,9 @@
                         <InputCheckbox
                             class="h-4 w-4 text-[#2563EB] border-gray-300 rounded"
                             @bind-Value="Model.RememberMe" />
-                        Remember me
+                        Ghi nhớ đăng nhập
                     </label>
-                    <a href="/forgot-password" class="text-sm text-[#2563EB] hover:underline">Forgot password?</a>
+                    <a href="/forgot-password" class="text-sm text-[#2563EB] hover:underline">Quên mật khẩu?</a>
                 </div>
 
                 <button
@@ -71,7 +71,7 @@
                     }
                     else
                     {
-                        <span>Login</span>
+                        <span>Đăng nhập</span>
                     }
                 </button>
 
@@ -90,8 +90,13 @@
                             <path d="M12 6.5c1.47 0 2.79.5 3.82 1.48l2.86-2.87C16.94 3.48 14.7 2.5 12 2.5A10 10 0 0 0 3.04 7.53l3.27 2.6C7.11 8.27 9.34 6.5 12 6.5Z" fill="#EA4335" />
                         </svg>
                     </span>
-                    Login with Google
+                    Đăng nhập với Google
                 </button>
+
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Chưa có tài khoản?
+                    <a href="/register" class="font-semibold text-[#2563EB] hover:underline">Đăng ký tại đây</a>
+                </p>
             </div>
         </EditForm>
     </div>
