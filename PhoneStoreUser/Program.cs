@@ -1,10 +1,22 @@
+using PhoneStoreRepository.Data;
+using PhoneStoreRepository.Repositories.Implementations;
+using PhoneStoreRepository.Repositories.Interfaces;
 using PhoneStoreUser.Components;
+using PhoneStoreUser.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddSingleton<DataSource>(sp => new DataSource(sp.GetRequiredService<IConfiguration>()));
+builder.Services.AddScoped<IProductModelRepository, ProductModelRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductModelAttributeRepository, ProductModelAttributeRepository>();
+builder.Services.AddScoped<IProductAttributeRepository, ProductAttributeRepository>();
+builder.Services.AddScoped<IProductAttributeValueRepository, ProductAttributeValueRepository>();
+builder.Services.AddScoped<IProductCatalogService, ProductCatalogService>();
 
 var app = builder.Build();
 

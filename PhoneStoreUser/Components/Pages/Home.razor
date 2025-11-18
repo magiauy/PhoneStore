@@ -1,5 +1,6 @@
 @page "/"
 @using PhoneStoreUser.Components.Models
+@inject IProductCatalogService ProductCatalogService
 
 <PageTitle>GuZone - Flagship Store</PageTitle>
 
@@ -18,17 +19,35 @@
 
     <section id="flagship" class="space-y-3">
         <SectionTitle Title="Flagship nổi bật" Subtitle="Hàng mới về tuần này" ActionHref="#" />
-        <ProductCarousel ProductModels="ProductModels" />
+        @if (IsLoading)
+        {
+            <div class="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-500">Đang tải dữ liệu sản phẩm...</div>
+        }
+        else if (!ProductModels.Any())
+        {
+            <div class="rounded-2xl border border-dashed border-gray-300 bg-white p-6 text-sm text-gray-500">Chưa có sản phẩm để hiển thị.</div>
+        }
+        else
+        {
+            <ProductCarousel ProductModels="ProductModels" />
+        }
     </section>
 
     <section id="android" class="space-y-3">
         <SectionTitle Title="Android cao cấp" Subtitle="Mạnh mẽ - camera AI" ActionHref="#" />
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            @foreach (var model in ProductModels)
-            {
-                <ProductCard ProductModel="model" BrandName="Apple" />
-            }
-        </div>
+        @if (IsLoading)
+        {
+            <div class="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-500">Đang tải...</div>
+        }
+        else if (ProductModels.Any())
+        {
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach (var model in ProductModels)
+                {
+                    <ProductCard ProductModel="model" BrandName="Apple" />
+                }
+            </div>
+        }
     </section>
 
     <section id="care" class="grid gap-3 md:grid-cols-3">
@@ -48,7 +67,15 @@
 </div>
 
 @code {
-    private List<ProductModel> ProductModels => ProductModelData.GetSampleProductModels();
+    private List<ProductModel> ProductModels { get; set; } = new();
+    private bool IsLoading { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var models = await ProductCatalogService.GetProductModelsAsync();
+        ProductModels = models.ToList();
+        IsLoading = false;
+    }
 
     private readonly List<BrandBadgeModel> BrandBadges = new()
     {
