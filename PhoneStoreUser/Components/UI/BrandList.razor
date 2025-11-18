@@ -8,11 +8,18 @@
             </div>
             <span class="text-xs font-medium text-[#2563EB]">Tổng @Brands.Count() hãng</span>
         </div>
-        <div class="flex gap-3 overflow-x-auto pb-1">
+        <div class="flex gap-3 overflow-x-auto pb-1 pt-1">
             @foreach (var brand in Brands)
             {
                 <button class="flex min-w-[140px] flex-1 items-center gap-3 rounded-2xl border border-gray-200 bg-gray-50/60 px-3 py-2 text-left transition hover:-translate-y-0.5 hover:border-[#2563EB] hover:bg-white">
-                    <span class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-sm font-semibold text-[#2563EB]">@brand.Initial</span>
+                    @if (!string.IsNullOrEmpty(brand.LogoUrl))
+                    {
+                        <img src="@brand.LogoUrl" alt="@brand.Name logo" class="h-10 w-10 rounded-full border border-gray-200 bg-white object-contain p-1" />
+                    }
+                    else
+                    {
+                        <span class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-sm font-semibold text-[#2563EB]">@brand.Initial</span>
+                    }
                     <span>
                         <p class="text-sm font-semibold text-gray-900">@brand.Name</p>
                         <p class="text-xs text-gray-500">@brand.Tagline</p>
