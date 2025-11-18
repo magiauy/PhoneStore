@@ -294,9 +294,10 @@
                                         Style="{StaticResource VariantCardStyle}"
                                         Shadow="{StaticResource SharedShadow}"
                                         MinWidth="412"
+                                        MaxWidth="412"
                                         MaxHeight="400"
                                         VerticalAlignment="Stretch"
-                                        HorizontalAlignment="Stretch">
+                                        HorizontalAlignment="Left">
                                         <Grid RowSpacing="12">
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto" />
@@ -310,7 +311,9 @@
                                                 FontSize="18"
                                                 FontWeight="SemiBold"
                                                 TextTrimming="CharacterEllipsis"
-                                                TextWrapping="NoWrap" />
+                                                TextWrapping="NoWrap" 
+                                                HorizontalTextAlignment="Left"
+                                                />
                                             <Grid Grid.Row="1" ColumnSpacing="8">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
@@ -320,12 +323,17 @@
                                                     Grid.Column="0"
                                                     Text="{x:Bind Sku}"
                                                     FontSize="13"
-                                                    Foreground="{StaticResource BrushTextSecondary}" />
+                                                    Foreground="{StaticResource BrushTextSecondary}"
+                                                    TextTrimming="CharacterEllipsis"
+                                                    TextWrapping="NoWrap" 
+                                                    />
                                                 <TextBlock
                                                     Grid.Column="1"
                                                     Text="{x:Bind BrandName}"
                                                     FontSize="13"
-                                                    Foreground="{StaticResource BrushTextSecondary}" />
+                                                    Foreground="{StaticResource BrushTextSecondary}"
+                                                    TextTrimming="CharacterEllipsis"
+                                                    TextWrapping="NoWrap" />
                                             </Grid>
                                             <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
                                                 <Border Style="{StaticResource TagPillStyle}" HorizontalAlignment="Stretch">
@@ -397,13 +405,13 @@
                                 <Border Grid.Column="0" Style="{StaticResource CardBorderStyle}">
                                     <StackPanel>
                                         <TextBlock Text="SKU" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
-                                        <TextBlock Text="{x:Bind SelectedProductSku, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" />
+                                        <TextBlock Text="{x:Bind SelectedProductSku, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" MaxWidth="180" />
                                     </StackPanel>
                                 </Border>
                                 <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
                                     <StackPanel>
                                         <TextBlock Text="Brand" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
-                                        <TextBlock Text="{x:Bind SelectedProductBrand, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" />
+                                        <TextBlock Text="{x:Bind SelectedProductBrand, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" MaxWidth="180" />
                                     </StackPanel>
                                 </Border>
                                 <Border Grid.Column="2" Style="{StaticResource CardBorderStyle}">
