@@ -28,10 +28,9 @@
 
     protected override void OnParametersSet()
     {
-        if (ProductModel != null && !string.IsNullOrEmpty(BrandName))
-        {
-            ImageUrl = $"https://res.cloudinary.com/dstytmxfh/image/upload/v1763457477/phone_products/{BrandName.ToLower()}/{ProductModel.Slug}/{ProductModel.Image}";
-        }
+        ImageUrl = !string.IsNullOrEmpty(ProductModel?.Image)
+            ? ProductModel!.Image!
+            : "/images/hero/iphone-17-pm-2.png";
     }
 }
 
