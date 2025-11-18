@@ -1,0 +1,116 @@
+@page "/register"
+@using PhoneStoreUser.Components.Models
+@rendermode InteractiveServer
+
+<PageTitle>GuZone Register</PageTitle>
+
+@if (ShowSuccessMessage)
+{
+    <div class="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <div class="toast-success toast-glow bg-linear-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-2">
+            <svg class="h-6 w-6 toast-checkmark text-green-100" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span class="font-semibold">Đăng ký thành công! Đang chuyển hướng...</span>
+        </div>
+    </div>
+}
+
+<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div class="w-full max-w-2xl bg-white border border-gray-200 rounded-2xl shadow-lg p-6 sm:p-10">
+        <div class="space-y-2 text-center mb-6">
+            <div class="text-2xl font-extrabold text-[#2563EB]">GuZone</div>
+            <p class="text-sm text-gray-500">Tạo tài khoản mới để trải nghiệm hệ sinh thái flagship</p>
+        </div>
+
+        <EditForm Model="@Model" OnValidSubmit="@HandleSubmit" FormName="register-form">
+            <DataAnnotationsValidator />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label for="fullname" class="text-sm font-medium text-gray-700">Họ và tên</label>
+                    <InputText
+                        id="fullname"
+                        @bind-Value="Model.FullName"
+                        class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB]"
+                        placeholder="Nguyễn Thanh Bình"
+                        autocomplete="name" />
+                    <ValidationMessage For="@(() => Model.FullName)" class="text-xs text-red-500" />
+                </div>
+
+                <div class="space-y-1">
+                    <label for="phone" class="text-sm font-medium text-gray-700">Số điện thoại</label>
+                    <InputText
+                        id="phone"
+                        @bind-Value="Model.Phone"
+                        class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB]"
+                        placeholder="0988 123 456"
+                        autocomplete="tel" />
+                    <ValidationMessage For="@(() => Model.Phone)" class="text-xs text-red-500" />
+                </div>
+
+                <div class="space-y-1 md:col-span-2">
+                    <label for="email" class="text-sm font-medium text-gray-700">Email</label>
+                    <InputText
+                        id="email"
+                        type="email"
+                        @bind-Value="Model.Email"
+                        class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB]"
+                        placeholder="name@gu.zone"
+                        autocomplete="email" />
+                    <ValidationMessage For="@(() => Model.Email)" class="text-xs text-red-500" />
+                </div>
+
+                <div class="space-y-1">
+                    <label for="username" class="text-sm font-medium text-gray-700">Tên đăng nhập</label>
+                    <InputText
+                        id="username"
+                        @bind-Value="Model.Username"
+                        class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB]"
+                        placeholder="guzone.user"
+                        autocomplete="username" />
+                    <ValidationMessage For="@(() => Model.Username)" class="text-xs text-red-500" />
+                </div>
+
+                <div class="space-y-1">
+                    <label for="password" class="text-sm font-medium text-gray-700">Mật khẩu</label>
+                    <InputText
+                        id="password"
+                        type="password"
+                        @bind-Value="Model.Password"
+                        class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB]"
+                        placeholder="••••••••"
+                        autocomplete="new-password" />
+                    <ValidationMessage For="@(() => Model.Password)" class="text-xs text-red-500" />
+                </div>
+            </div>
+
+            <div class="mt-4 flex flex-col gap-3">
+                <label class="inline-flex items-center gap-3 text-sm text-gray-600">
+                    <InputCheckbox class="h-4 w-4 text-[#2563EB] border-gray-300 rounded" @bind-Value="Model.AgreePolicy" />
+                    Tôi đồng ý với Điều khoản & Chính sách bảo mật của GuZone
+                </label>
+                <ValidationMessage For="@(() => Model.AgreePolicy)" class="text-xs text-red-500" />
+            </div>
+
+            <button
+                type="submit"
+                class="w-full mt-6 bg-[#2563EB] text-white font-semibold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 hover:bg-blue-600 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed transition"
+                disabled="@IsLoading">
+                @if (IsLoading)
+                {
+                    <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+                    <span>Đang xử lý...</span>
+                }
+                else
+                {
+                    <span>Tạo tài khoản</span>
+                }
+            </button>
+
+            <div class="mt-4 text-center text-sm text-gray-500">
+                Đã có tài khoản? <a class="text-[#2563EB] font-medium hover:underline" href="/login">Đăng nhập</a>
+            </div>
+        </EditForm>
+    </div>
+</div>
