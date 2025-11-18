@@ -81,7 +81,7 @@ public class ProductData
         ),
         new Product(
             Id: 6,
-            Sku: "S24U-512-TITAN",
+            Sku: "SAMSUNG-GALAXY-S25-ULTRA-512GB-SAMSUNG-GALAXY-S25-ULTRA-512GB-XANH-DUONG",
             Name: "Galaxy S24 Ultra 12GB/512GB - Titan Gray",
             CategoryId: 3,
             BrandId: 2,

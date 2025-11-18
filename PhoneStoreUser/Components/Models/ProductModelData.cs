@@ -15,10 +15,10 @@ public class ProductModelData
         ),
         new ProductModel(
             Id: 2,
-            Name: "Galaxy S24 Ultra",
-            Slug: "galaxy-s24-ultra",
+            Name: "Galaxy S25 Ultra",
+            Slug: "samsung-galaxy-s25-ultra-512gb",
             Description: "Galaxy AI 512GB | Snapdragon 8 Gen 3",
-            Image: "galaxy-s24-ultra.jpg",
+            Image: "galaxy-s25-ultra.jpg",
             CreatedAt: new DateTime(2025, 2, 5, 9, 0, 0),
             UpdatedAt: new DateTime(2025, 2, 5, 9, 0, 0)
         ),

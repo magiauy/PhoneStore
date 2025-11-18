@@ -105,7 +105,7 @@
                         }
 
                         <div class="space-y-2">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">@attribute.Name</p>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">@(attribute.Name)</p>
                             <div class="flex flex-wrap gap-2">
                                 @foreach (var option in options)
                                 {
@@ -193,7 +193,7 @@
                                 <button type="button"
                                         class="@GetChipClass()"
                                         @onclick="() => ToggleAttributeValue(attribute.Id, value)">
-                                    @attribute.Name: <span class="font-semibold">@value</span>
+                                    @(attribute.Name): <span class="font-semibold">@value</span>
                                     <span aria-hidden="true">×</span>
                                 </button>
                             }
@@ -493,7 +493,7 @@
         }
 
         var normalizedBrand = brandName.Replace(" ", "-").ToLowerInvariant();
-        return $"https://res.cloudinary.com/dstytmxfh/image/upload/v1763457477/phone_products/{normalizedBrand}/{model.Slug}/{model.Image}";
+        return $"https://res.cloudinary.com/dstytmxfh/image/upload/v1763457477/mobileguzone/{normalizedBrand}/{model.Slug}/{model.Image}";
     }
 
     private ProductModelSummary GetModelSummary(int modelId)

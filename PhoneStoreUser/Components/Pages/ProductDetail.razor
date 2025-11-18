@@ -18,7 +18,7 @@
             <!-- Product Info -->
             <div class="space-y-6">
                 <div>
-                    <p class="text-sm text-gray-500 uppercase">Apple</p>
+                    <p class="text-sm text-gray-500 uppercase">@BrandName</p>
                     <h1 class="text-3xl font-bold text-gray-900 mt-2">@ProductModel.Name</h1>
                     <p class="text-gray-600 mt-2">@ProductModel.Description</p>
                 </div>
@@ -82,6 +82,7 @@
     private Dictionary<int, string> SelectedAttributes { get; set; } = new();
     private Product? SelectedProduct { get; set; }
     private string CurrentImageUrl { get; set; } = string.Empty;
+    private string BrandName { get; set; } = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -122,6 +123,15 @@
                 .ToList();
 
             Console.WriteLine($"[ProductDetail] Attribute Values loaded: {AttributeValues.Count}");
+
+            // Get brand name
+            if (Products.Any())
+            {
+                var firstProduct = Products.First();
+                var brand = BrandData.GetSampleBrands().FirstOrDefault(b => b.Id == firstProduct.BrandId);
+                BrandName = brand?.Name ?? "Unknown";
+                Console.WriteLine($"[ProductDetail] Brand loaded: {BrandName}");
+            }
 
             // Select first product by default
             if (Products.Any())
@@ -192,7 +202,7 @@
     {
         if (SelectedProduct != null && ProductModel != null)
         {
-            CurrentImageUrl = $"https://res.cloudinary.com/dstytmxfh/image/upload/v1763457477/phone_products/apple/{ProductModel.Slug}/{SelectedProduct.Sku}.webp";
+            CurrentImageUrl = $"https://res.cloudinary.com/dstytmxfh/image/upload/v1763457477/mobileguzone/{BrandName.ToLower()}/{ProductModel.Slug}/{SelectedProduct.Sku}.webp";
             Console.WriteLine($"[ProductDetail] Image URL updated: {CurrentImageUrl}");
         }
     }
