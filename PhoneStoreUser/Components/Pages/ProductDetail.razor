@@ -33,19 +33,26 @@
                 {
                     <div class="space-y-2">
                         <label class="text-sm font-semibold text-gray-700">@attr.Name</label>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach (var value in GetUniqueAttributeValues(attr.Id))
-                            {
-                                var currentAttrId = attr.Id;
-                                var currentValue = value;
-                                <button 
-                                    type="button"
-                                    @onclick="@(() => SelectAttributeValue(currentAttrId, currentValue))"
-                                    class="@GetAttributeButtonClass(currentAttrId, currentValue)">
-                                    @currentValue
-                                </button>
-                            }
-                        </div>
+                        @{ var choices = GetAttributeChoices(attr.Id); }
+                        if (choices.Count > 0)
+                        {
+                            <div class="flex flex-wrap gap-2">
+                                @foreach (var choice in choices)
+                                {
+                                    @{ var capturedChoice = choice; }
+                                    <button
+                                        type="button"
+                                        class="@GetAttributeButtonClass(capturedChoice)"
+                                        @onclick="@(() => SelectAttributeValue(capturedChoice))">
+                                        @capturedChoice.DisplayValue
+                                    </button>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-xs text-gray-500">Chưa có tuỳ chọn cho thuộc tính này.</p>
+                        }
                     </div>
                 }
 
@@ -84,7 +91,9 @@
     private List<Product> Products { get; set; } = new();
     private List<ProductAttribute> Attributes { get; set; } = new();
     private List<ProductAttributeValue> AttributeValues { get; set; } = new();
-    private Dictionary<int, string> SelectedAttributes { get; } = new();
+    private Dictionary<int, IReadOnlyList<ProductAttributeOption>> AttributeOptionLookup { get; set; } = new();
+    private Dictionary<int, IReadOnlyList<AttributeChoice>> AttributeChoices { get; } = new();
+    private Dictionary<int, AttributeChoice> SelectedAttributes { get; } = new();
     private Product? SelectedProduct { get; set; }
     private string CurrentImageUrl { get; set; } = string.Empty;
     private bool IsLoading { get; set; } = true;
@@ -101,6 +110,8 @@
         Products.Clear();
         Attributes.Clear();
         AttributeValues.Clear();
+        AttributeOptionLookup = new Dictionary<int, IReadOnlyList<ProductAttributeOption>>();
+        AttributeChoices.Clear();
         SelectedAttributes.Clear();
         SelectedProduct = null;
         CurrentImageUrl = string.Empty;
@@ -125,27 +136,34 @@
             ? (await ProductCatalogService.GetAttributeValuesForProductsAsync(productIds)).ToList()
             : new List<ProductAttributeValue>();
 
+        var attributeIds = Attributes.Select(a => a.Id).Distinct().ToList();
+        AttributeOptionLookup = attributeIds.Count > 0
+            ? (await ProductCatalogService.GetAttributeOptionsForAttributesAsync(attributeIds)).ToDictionary(pair => pair.Key, pair => pair.Value)
+            : new Dictionary<int, IReadOnlyList<ProductAttributeOption>>();
+
+        BuildAttributeChoices();
+
         SelectedProduct = Products.FirstOrDefault();
+        if (SelectedProduct != null)
+        {
+            ApplySelectedProductAttributes(SelectedProduct, replaceExisting: true);
+        }
+
         UpdateImageUrl();
         IsLoading = false;
     }
 
-    private List<string> GetUniqueAttributeValues(int attributeId)
+    private IReadOnlyList<AttributeChoice> GetAttributeChoices(int attributeId)
     {
-        return AttributeValues
-            .Where(av => av.AttributeId == attributeId)
-            .Select(av => av.ValueText?.Trim() ?? string.Empty)
-            .Where(v => !string.IsNullOrEmpty(v))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(v => v)
-            .ToList();
+        return AttributeChoices.TryGetValue(attributeId, out var choices) && choices.Count > 0
+            ? choices
+            : Array.Empty<AttributeChoice>();
     }
 
-    private void SelectAttributeValue(int attributeId, string value)
+    private void SelectAttributeValue(AttributeChoice choice)
     {
-        SelectedAttributes[attributeId] = value;
+        SelectedAttributes[choice.AttributeId] = choice;
         FindMatchingProduct();
-        StateHasChanged();
     }
 
     private void FindMatchingProduct()
@@ -158,16 +176,36 @@
             foreach (var selected in SelectedAttributes)
             {
                 var attrValue = productAttrValues.FirstOrDefault(av => av.AttributeId == selected.Key);
-                if (!string.Equals(attrValue?.ValueText, selected.Value, StringComparison.OrdinalIgnoreCase))
+                if (attrValue == null)
                 {
                     matches = false;
                     break;
+                }
+
+                if (selected.Value.OptionId.HasValue)
+                {
+                    if (attrValue.OptionId != selected.Value.OptionId)
+                    {
+                        matches = false;
+                        break;
+                    }
+                }
+                else
+                {
+                    var normalized = attrValue.ValueText?.Trim();
+                    var expected = selected.Value.RawValueText ?? selected.Value.DisplayValue;
+                    if (!string.Equals(normalized, expected, StringComparison.OrdinalIgnoreCase))
+                    {
+                        matches = false;
+                        break;
+                    }
                 }
             }
 
             if (matches)
             {
                 SelectedProduct = product;
+                ApplySelectedProductAttributes(product, replaceExisting: false);
                 UpdateImageUrl();
                 return;
             }
@@ -181,11 +219,110 @@
             : "/images/hero/iphone-17-pm-2.png";
     }
 
-    private string GetAttributeButtonClass(int attributeId, string value)
+    private string GetAttributeButtonClass(AttributeChoice choice)
     {
-        bool isSelected = SelectedAttributes.TryGetValue(attributeId, out var selectedValue) && selectedValue == value;
+        bool isSelected = SelectedAttributes.TryGetValue(choice.AttributeId, out var selectedValue)
+            && selectedValue == choice;
         return isSelected
             ? "px-4 py-2 rounded-lg border-2 border-[#2563EB] bg-blue-50 text-[#2563EB] font-semibold transition"
             : "px-4 py-2 rounded-lg border border-gray-300 hover:border-gray-400 transition";
     }
+
+    private void BuildAttributeChoices()
+    {
+        AttributeChoices.Clear();
+        foreach (var attribute in Attributes)
+        {
+            var choices = BuildChoicesForAttribute(attribute.Id);
+            if (choices.Count > 0)
+            {
+                AttributeChoices[attribute.Id] = choices;
+            }
+        }
+    }
+
+    private List<AttributeChoice> BuildChoicesForAttribute(int attributeId)
+    {
+        var values = AttributeValues.Where(av => av.AttributeId == attributeId);
+        var result = new List<AttributeChoice>();
+        var seenOptionIds = new HashSet<int>();
+        var seenText = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var value in values)
+        {
+            var choice = CreateChoiceFromValue(value);
+            if (choice == null)
+            {
+                continue;
+            }
+
+            if (choice.OptionId.HasValue)
+            {
+                if (!seenOptionIds.Add(choice.OptionId.Value))
+                {
+                    continue;
+                }
+            }
+            else
+            {
+                var key = choice.DisplayValue;
+                if (!seenText.Add(key))
+                {
+                    continue;
+                }
+            }
+
+            result.Add(choice);
+        }
+
+        return result
+            .OrderBy(c => c.OptionId.HasValue ? 0 : 1)
+            .ThenBy(c => c.DisplayValue, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private AttributeChoice? CreateChoiceFromValue(ProductAttributeValue value)
+    {
+        var display = ResolveAttributeDisplay(value.AttributeId, value.OptionId, value.ValueText);
+        if (string.IsNullOrWhiteSpace(display))
+        {
+            return null;
+        }
+
+        return new AttributeChoice(value.AttributeId, value.OptionId, display, value.ValueText?.Trim());
+    }
+
+    private string ResolveAttributeDisplay(int attributeId, int? optionId, string? valueText)
+    {
+        if (optionId.HasValue && AttributeOptionLookup.TryGetValue(attributeId, out var options))
+        {
+            var option = options.FirstOrDefault(o => o.Id == optionId.Value);
+            if (option != null)
+            {
+                return option.DisplayValue;
+            }
+        }
+
+        return valueText?.Trim() ?? string.Empty;
+    }
+
+    private void ApplySelectedProductAttributes(Product product, bool replaceExisting)
+    {
+        var productValues = AttributeValues.Where(av => av.ProductId == product.Id);
+        foreach (var value in productValues)
+        {
+            var choice = CreateChoiceFromValue(value);
+            if (choice == null)
+            {
+                continue;
+            }
+
+            if (replaceExisting || !SelectedAttributes.ContainsKey(value.AttributeId))
+            {
+                SelectedAttributes[value.AttributeId] = choice;
+            }
+        }
+    }
+
+    private sealed record AttributeChoice(int AttributeId, int? OptionId, string DisplayValue, string? RawValueText);
 }

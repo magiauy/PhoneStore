@@ -16,6 +16,7 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductModelAttributeRepository, ProductModelAttributeRepository>();
 builder.Services.AddScoped<IProductAttributeRepository, ProductAttributeRepository>();
 builder.Services.AddScoped<IProductAttributeValueRepository, ProductAttributeValueRepository>();
+builder.Services.AddScoped<IProductAttributeOptionRepository, ProductAttributeOptionRepository>();
 builder.Services.AddScoped<IProductCatalogService, ProductCatalogService>();
 
 var app = builder.Build();
