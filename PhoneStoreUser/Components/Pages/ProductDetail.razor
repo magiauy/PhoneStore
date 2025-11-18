@@ -1,16 +1,21 @@
 @page "/product/{slug}"
 @using PhoneStoreUser.Components.Models
 @rendermode InteractiveServer
+@inject IProductCatalogService ProductCatalogService
 
 <PageTitle>@ProductModel?.Name - GuZone</PageTitle>
 
 <div class="container mx-auto px-4 py-8">
-    @if (ProductModel != null)
+    @if (IsLoading)
     {
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">Đang tải chi tiết sản phẩm...</div>
+    }
+    else if (ProductModel != null)
+    {
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <!-- Product Image -->
             <div class="bg-gray-50 rounded-2xl overflow-hidden aspect-square">
-                <img src="@CurrentImageUrl" 
+                <img src="@CurrentImageUrl"
                      alt="@SelectedProduct?.Name" 
                      class="w-full h-full object-cover" />
             </div>
@@ -18,7 +23,7 @@
             <!-- Product Info -->
             <div class="space-y-6">
                 <div>
-                    <p class="text-sm text-gray-500 uppercase">Apple</p>
+                    <p class="text-sm text-gray-500 uppercase">GuZone</p>
                     <h1 class="text-3xl font-bold text-gray-900 mt-2">@ProductModel.Name</h1>
                     <p class="text-gray-600 mt-2">@ProductModel.Description</p>
                 </div>
@@ -79,97 +84,81 @@
     private List<Product> Products { get; set; } = new();
     private List<ProductAttribute> Attributes { get; set; } = new();
     private List<ProductAttributeValue> AttributeValues { get; set; } = new();
-    private Dictionary<int, string> SelectedAttributes { get; set; } = new();
+    private Dictionary<int, string> SelectedAttributes { get; } = new();
     private Product? SelectedProduct { get; set; }
     private string CurrentImageUrl { get; set; } = string.Empty;
+    private bool IsLoading { get; set; } = true;
 
-    protected override void OnInitialized()
+    protected override async Task OnParametersSetAsync()
     {
-        Console.WriteLine($"[ProductDetail] OnInitialized - Slug: {Slug}");
-        
-        // Load product model by slug
-        ProductModel = ProductModelData.GetSampleProductModels()
-            .FirstOrDefault(m => m.Slug == Slug);
+        await LoadProductDetailAsync();
+    }
 
-        Console.WriteLine($"[ProductDetail] ProductModel found: {ProductModel?.Name ?? "null"}");
+    private async Task LoadProductDetailAsync()
+    {
+        IsLoading = true;
+        ProductModel = null;
+        Products.Clear();
+        Attributes.Clear();
+        AttributeValues.Clear();
+        SelectedAttributes.Clear();
+        SelectedProduct = null;
+        CurrentImageUrl = string.Empty;
 
-        if (ProductModel != null)
+        if (string.IsNullOrWhiteSpace(Slug))
         {
-            // Load products for this model
-            Products = ProductData.GetSampleProducts()
-                .Where(p => p.ModelId == ProductModel.Id)
-                .ToList();
-
-            Console.WriteLine($"[ProductDetail] Products loaded: {Products.Count}");
-
-            // Load attributes for this model
-            var modelAttrIds = ProductModelAttributeData.GetSampleProductModelAttributes()
-                .Where(ma => ma.ProductModelId == ProductModel.Id)
-                .Select(ma => ma.ProductAttributeId)
-                .ToList();
-
-            Console.WriteLine($"[ProductDetail] Model Attribute IDs: {string.Join(", ", modelAttrIds)}");
-
-            Attributes = ProductAttributeData.GetSampleProductAttributes()
-                .Where(a => modelAttrIds.Contains(a.Id))
-                .ToList();
-
-            Console.WriteLine($"[ProductDetail] Attributes loaded: {Attributes.Count}");
-
-            // Load attribute values
-            AttributeValues = ProductAttributeValueData.GetSampleProductAttributeValues()
-                .Where(av => Products.Select(p => p.Id).Contains(av.ProductId))
-                .ToList();
-
-            Console.WriteLine($"[ProductDetail] Attribute Values loaded: {AttributeValues.Count}");
-
-            // Select first product by default
-            if (Products.Any())
-            {
-                SelectedProduct = Products.First();
-                Console.WriteLine($"[ProductDetail] Default selected product: {SelectedProduct.Name}");
-                UpdateImageUrl();
-            }
+            IsLoading = false;
+            return;
         }
+
+        ProductModel = await ProductCatalogService.GetProductModelBySlugAsync(Slug);
+        if (ProductModel == null)
+        {
+            IsLoading = false;
+            return;
+        }
+
+        Products = (await ProductCatalogService.GetProductsByModelAsync(ProductModel.Id)).ToList();
+        var productIds = Products.Select(p => p.Id).ToList();
+        Attributes = (await ProductCatalogService.GetAttributesForModelAsync(ProductModel.Id)).ToList();
+        AttributeValues = productIds.Count > 0
+            ? (await ProductCatalogService.GetAttributeValuesForProductsAsync(productIds)).ToList()
+            : new List<ProductAttributeValue>();
+
+        SelectedProduct = Products.FirstOrDefault();
+        UpdateImageUrl();
+        IsLoading = false;
     }
 
     private List<string> GetUniqueAttributeValues(int attributeId)
     {
         return AttributeValues
             .Where(av => av.AttributeId == attributeId)
-            .Select(av => av.ValueText ?? string.Empty)
-            .Distinct()
+            .Select(av => av.ValueText?.Trim() ?? string.Empty)
             .Where(v => !string.IsNullOrEmpty(v))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(v => v)
             .ToList();
     }
 
     private void SelectAttributeValue(int attributeId, string value)
     {
-        Console.WriteLine($"[ProductDetail] SelectAttributeValue - AttributeId: {attributeId}, Value: {value}");
         SelectedAttributes[attributeId] = value;
-        Console.WriteLine($"[ProductDetail] SelectedAttributes count: {SelectedAttributes.Count}");
         FindMatchingProduct();
         StateHasChanged();
     }
 
     private void FindMatchingProduct()
     {
-        Console.WriteLine("[ProductDetail] FindMatchingProduct - Starting search");
-        
-        // Find product that matches all selected attributes
         foreach (var product in Products)
         {
             var productAttrValues = AttributeValues.Where(av => av.ProductId == product.Id).ToList();
-            Console.WriteLine($"[ProductDetail] Checking product: {product.Name} (ID: {product.Id})");
-            
             bool matches = true;
 
             foreach (var selected in SelectedAttributes)
             {
                 var attrValue = productAttrValues.FirstOrDefault(av => av.AttributeId == selected.Key);
-                Console.WriteLine($"[ProductDetail]   Attribute {selected.Key}: Expected '{selected.Value}', Got '{attrValue?.ValueText ?? "null"}'");
-                
-                if (attrValue?.ValueText != selected.Value)
+                if (!string.Equals(attrValue?.ValueText, selected.Value, StringComparison.OrdinalIgnoreCase))
                 {
                     matches = false;
                     break;
@@ -178,29 +167,24 @@
 
             if (matches)
             {
-                Console.WriteLine($"[ProductDetail] Match found! Product: {product.Name}");
                 SelectedProduct = product;
                 UpdateImageUrl();
                 return;
             }
         }
-        
-        Console.WriteLine("[ProductDetail] No matching product found");
     }
 
     private void UpdateImageUrl()
     {
-        if (SelectedProduct != null && ProductModel != null)
-        {
-            CurrentImageUrl = $"https://res.cloudinary.com/dstytmxfh/image/upload/v1763457477/phone_products/apple/{ProductModel.Slug}/{SelectedProduct.Sku}.webp";
-            Console.WriteLine($"[ProductDetail] Image URL updated: {CurrentImageUrl}");
-        }
+        CurrentImageUrl = !string.IsNullOrEmpty(ProductModel?.Image)
+            ? ProductModel!.Image!
+            : "/images/hero/iphone-17-pm-2.png";
     }
 
     private string GetAttributeButtonClass(int attributeId, string value)
     {
         bool isSelected = SelectedAttributes.TryGetValue(attributeId, out var selectedValue) && selectedValue == value;
-        return isSelected 
+        return isSelected
             ? "px-4 py-2 rounded-lg border-2 border-[#2563EB] bg-blue-50 text-[#2563EB] font-semibold transition"
             : "px-4 py-2 rounded-lg border border-gray-300 hover:border-gray-400 transition";
     }
