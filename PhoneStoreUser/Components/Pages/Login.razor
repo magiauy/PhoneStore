@@ -1,0 +1,87 @@
+@page "/login"
+@using PhoneStoreUser.Components.Models
+@inherits Login
+
+<PageTitle>GuZone Login</PageTitle>
+
+<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div class="w-full max-w-md bg-white border border-gray-200 rounded-2xl shadow-lg p-6 sm:p-8">
+        <div class="space-y-2 text-center mb-6">
+            <div class="text-2xl font-extrabold text-[#2563EB]">GuZone</div>
+            <p class="text-sm text-gray-500">Đăng nhập tài khoản để quản lý đơn hàng flagship</p>
+        </div>
+
+        <EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-sm text-red-500 mb-3" />
+
+            <div class="space-y-4">
+                <div class="space-y-1">
+                    <label for="email" class="text-sm font-medium text-gray-700">Email / Username</label>
+                    <InputText
+                        id="email"
+                        @bind-Value="Model.EmailOrUsername"
+                        class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB]"
+                        placeholder="name@gu.zone"
+                        autocomplete="username" />
+                    <ValidationMessage For="@(() => Model.EmailOrUsername)" class="text-xs text-red-500" />
+                </div>
+
+                <div class="space-y-1">
+                    <label for="password" class="text-sm font-medium text-gray-700">Password</label>
+                    <InputText
+                        id="password"
+                        type="password"
+                        @bind-Value="Model.Password"
+                        class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB]"
+                        placeholder="••••••••"
+                        autocomplete="current-password" />
+                    <ValidationMessage For="@(() => Model.Password)" class="text-xs text-red-500" />
+                </div>
+
+                <div class="flex items-center justify-between text-sm">
+                    <label class="inline-flex items-center gap-2 text-gray-600">
+                        <InputCheckbox
+                            class="h-4 w-4 text-[#2563EB] border-gray-300 rounded"
+                            @bind-Value="Model.RememberMe" />
+                        Remember me
+                    </label>
+                    <a href="/forgot-password" class="text-sm text-[#2563EB] hover:underline">Forgot password?</a>
+                </div>
+
+                <button
+                    type="submit"
+                    class="w-full mt-4 bg-[#2563EB] text-white font-semibold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 hover:bg-blue-600 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed transition"
+                    disabled="@IsLoading">
+                    @if (IsLoading)
+                    {
+                        <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+                        <span>Processing...</span>
+                    }
+                    else
+                    {
+                        <span>Login</span>
+                    }
+                </button>
+
+                <div class="flex items-center gap-3 my-4 text-xs text-gray-400 uppercase tracking-wide">
+                    <span class="flex-1 h-px bg-gray-200"></span>
+                    or
+                    <span class="flex-1 h-px bg-gray-200"></span>
+                </div>
+
+                <button type="button" class="w-full border border-gray-300 rounded-xl py-2.5 text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition">
+                    <span class="flex h-5 w-5 items-center justify-center rounded-full bg-white shadow border border-gray-200">
+                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21.6 12.23c0-.63-.06-1.24-.18-1.84H12v3.48h5.4a4.62 4.62 0 0 1-2 3.04v2.5h3.2c1.88-1.73 3-4.28 3-7.18Z" fill="#4285F4" />
+                            <path d="M12 22c2.7 0 4.96-.9 6.61-2.43l-3.2-2.5c-.9.6-2.05.95-3.41.95-2.63 0-4.86-1.77-5.66-4.15H3.04v2.6A10 10 0 0 0 12 22Z" fill="#34A853" />
+                            <path d="M6.34 13.87A5.98 5.98 0 0 1 6 12c0-.65.11-1.28.31-1.87V7.53H3.04A9.99 9.99 0 0 0 2 12c0 1.6.38 3.1 1.04 4.47l3.3-2.6Z" fill="#FBBC05" />
+                            <path d="M12 6.5c1.47 0 2.79.5 3.82 1.48l2.86-2.87C16.94 3.48 14.7 2.5 12 2.5A10 10 0 0 0 3.04 7.53l3.27 2.6C7.11 8.27 9.34 6.5 12 6.5Z" fill="#EA4335" />
+                        </svg>
+                    </span>
+                    Login with Google
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</div>
