@@ -1,7 +1,9 @@
 @page "/product/{slug}"
 @using PhoneStoreUser.Components.Models
+@using Microsoft.Extensions.Logging
 @rendermode InteractiveServer
 @inject IProductCatalogService ProductCatalogService
+@inject ILogger<ProductDetail> Logger
 
 <PageTitle>@ProductModel?.Name - GuZone</PageTitle>
 
@@ -14,10 +16,17 @@
     {
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <!-- Product Image -->
-            <div class="bg-gray-50 rounded-2xl overflow-hidden aspect-square">
-                <img src="@CurrentImageUrl"
-                     alt="@SelectedProduct?.Name" 
-                     class="w-full h-full object-cover" />
+            <div class="bg-gray-50 rounded-2xl overflow-hidden aspect-square relative">
+                @foreach (var product in Products)
+                {
+                    var isSelected = product.Id == SelectedProduct?.Id;
+                    var imgUrl = GetProductImageUrl(product);
+                    
+                    <img src="@imgUrl"
+                         alt="@product.Name" 
+                         class="w-full h-full object-cover absolute inset-0 transition-opacity duration-300 ease-in-out @(isSelected ? "opacity-100 z-10" : "opacity-0 z-0")" 
+                         loading="@(isSelected ? "eager" : "lazy")" />
+                }
             </div>
 
             <!-- Product Info -->
@@ -31,15 +40,17 @@
                 <!-- Attributes Selection -->
                 @foreach (var attr in Attributes)
                 {
+                    var choices = GetAttributeChoices(attr.Id);
+
                     <div class="space-y-2">
                         <label class="text-sm font-semibold text-gray-700">@attr.Name</label>
-                        @{ var choices = GetAttributeChoices(attr.Id); }
-                        if (choices.Count > 0)
+                        
+                        @if (choices.Count > 0)
                         {
                             <div class="flex flex-wrap gap-2">
                                 @foreach (var choice in choices)
                                 {
-                                    @{ var capturedChoice = choice; }
+                                    var capturedChoice = choice;
                                     <button
                                         type="button"
                                         class="@GetAttributeButtonClass(capturedChoice)"
@@ -149,7 +160,12 @@
             ApplySelectedProductAttributes(SelectedProduct, replaceExisting: true);
         }
 
-        UpdateImageUrl();
+        SelectedProduct = Products.FirstOrDefault();
+        if (SelectedProduct != null)
+        {
+            ApplySelectedProductAttributes(SelectedProduct, replaceExisting: true);
+        }
+        
         IsLoading = false;
     }
 
@@ -206,7 +222,7 @@
             {
                 SelectedProduct = product;
                 ApplySelectedProductAttributes(product, replaceExisting: false);
-                UpdateImageUrl();
+                @* UpdateImageUrl(); *@
                 return;
             }
         }
@@ -214,9 +230,12 @@
 
     private void UpdateImageUrl()
     {
+
+
         CurrentImageUrl = !string.IsNullOrEmpty(ProductModel?.Image)
             ? ProductModel!.Image!
-            : "/images/hero/iphone-17-pm-2.png";
+            @* : "/images/hero/iphone-17-pm-2.png"; *@
+            : $"https://res.cloudinary.com/dstytmxfh/image/upload/e_upscale,w_1200/v1763457477/mobileguzone/{SelectedProduct?.BrandName.ToLower()}/{ProductModel?.Slug}/{SelectedProduct?.Sku}.webp";
     }
 
     private string GetAttributeButtonClass(AttributeChoice choice)
@@ -322,6 +341,20 @@
                 SelectedAttributes[value.AttributeId] = choice;
             }
         }
+    }
+    private string GetProductImageUrl(Product product)
+    {
+        // Ưu tiên logic Cloudinary cho từng variant (SKU)
+        // Nếu logic cũ của bạn ưu tiên ProductModel.Image thì đảo ngược lại điều kiện if
+        
+        // Giả sử bạn muốn ưu tiên ảnh theo SKU (variant) để đổi màu sắc:
+        if (product != null && ProductModel != null)
+        {
+             return $"https://res.cloudinary.com/dstytmxfh/image/upload/w_800,h_800,c_fill,f_auto,q_auto/v1763457477/mobileguzone/{product.BrandName.ToLower()}/{ProductModel.Slug}/{product.Sku}.webp";
+        }
+
+        // Fallback nếu không tạo được link variant
+        return ProductModel?.Image ?? "";
     }
 
     private sealed record AttributeChoice(int AttributeId, int? OptionId, string DisplayValue, string? RawValueText);

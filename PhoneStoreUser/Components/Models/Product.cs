@@ -7,6 +7,7 @@ public record Product(
     int CategoryId,
     int ModelId,
     int? BrandId = null,
+    string BrandName = "",
     decimal Price = 0,
     decimal Cost = 0,
     bool IsSerialTracked = true,
