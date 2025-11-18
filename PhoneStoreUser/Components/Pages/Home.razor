@@ -4,14 +4,14 @@
 
 <div class="space-y-6">
     <HeroBanner
-        Heading="Nâng cấp flagship chuẩn GuZone"
+        Heading="Đón đầu iPhone 17 Pro Max cùng GuZone"
         Subheading="Limited Launch"
-        Description="Đặt trước iPhone 15 Pro Max, Galaxy S24 Ultra và hàng loạt flagship Android với ưu đãi thu cũ + trợ giá đến 5 triệu."
+        Description="Đặt trước iPhone 17 Pro Max với ưu đãi thu cũ + trợ giá đến 5 triệu. Số lượng mở bán đợt đầu có hạn."
         PrimaryCta="Đặt trước ngay"
         PrimaryHref="#flagship"
         SecondaryCta="Ưu đãi thu cũ"
         SecondaryHref="#care"
-        HeroImage="https://via.placeholder.com/480x480?text=Flagship" />
+        HeroImage="/images/hero/iphone-17-pm-2.png" />
 
     <BrandList Brands="BrandBadges" />
 
@@ -49,16 +49,16 @@
 @code {
     private readonly List<BrandBadgeModel> BrandBadges = new()
     {
-        new("Apple", "iPhone, iPad", ""),
-        new("Samsung", "Galaxy AI", "S"),
-        new("Xiaomi", "HyperOS", "Mi"),
-        new("Oppo", "Tốc độ 240W", "O"),
-        new("Vivo", "Camera ZEISS", "V")
+        new("Apple", "iPhone, iPad", "", "/images/brand-logo/apple.png"),
+        new("Samsung", "Galaxy AI", "S", "/images/brand-logo/samsung.png"),
+        new("Xiaomi", "HyperOS", "Mi", "/images/brand-logo/xiaomi.png"),
+        new("Oppo", "Tốc độ 240W", "O", "/images/brand-logo/oppo.png"),
+        new("Tecno", "Camera ZEISS", "T", "/images/brand-logo/tecno.png")
     };
 
     private readonly List<ProductCardModel> FeaturedProducts = new()
     {
-        new("iPhone 15 Pro Max 256GB", "Apple", "41.990.000đ", "https://via.placeholder.com/400x400?text=iPhone+15+Pro+Max", "Thu cũ đổi mới tặng thêm 3 triệu", "Hot"),
+        new ProductCardModel("iPhone 15 Pro Max 256GB", "Apple", "41.990.000đ", "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-15-pro-max_5.png", "Thu cũ đổi mới tặng thêm 3 triệu", "Hot"),
         new("Galaxy S24 Ultra 12GB", "Samsung", "34.990.000đ", "https://via.placeholder.com/400x400?text=Galaxy+S24+Ultra", "Tặng kèm S Pen AZURE", "New"),
         new("Xiaomi 14 Ultra", "Xiaomi", "28.990.000đ", "https://via.placeholder.com/400x400?text=Xiaomi+14+Ultra", "Voucher phụ kiện 1 triệu", "Deal"),
         new("Oppo Find X7 Ultra", "Oppo", "26.990.000đ", "https://via.placeholder.com/400x400?text=Find+X7+Ultra", "Giảm thêm 2 triệu khi trả góp", "Sale"),
