@@ -10,4 +10,9 @@
     <ProjectReference Include="..\PhoneStoreRepository\PhoneStoreRepository.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
+  </ItemGroup>
+
 </Project>

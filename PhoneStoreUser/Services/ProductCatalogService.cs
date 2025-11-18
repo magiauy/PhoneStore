@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PhoneStoreRepository.Repositories.Interfaces;
 using PhoneStoreUser.Components.Models;
+using PhoneStoreUser.Data;
 
 namespace PhoneStoreUser.Services;
 
@@ -16,6 +18,7 @@ public class ProductCatalogService : IProductCatalogService
     private readonly IProductAttributeValueRepository _productAttributeValueRepository;
     private readonly IProductAttributeOptionRepository _productAttributeOptionRepository;
     private readonly ILogger<ProductCatalogService> _logger;
+    private readonly AppDbContext _dbContext;
 
     public ProductCatalogService(
         IProductModelRepository productModelRepository,
@@ -24,7 +27,8 @@ public class ProductCatalogService : IProductCatalogService
         IProductAttributeRepository productAttributeRepository,
         IProductAttributeValueRepository productAttributeValueRepository,
         IProductAttributeOptionRepository productAttributeOptionRepository,
-        ILogger<ProductCatalogService> logger)
+        ILogger<ProductCatalogService> logger,
+        AppDbContext dbContext)
     {
         _productModelRepository = productModelRepository;
         _productRepository = productRepository;
@@ -33,11 +37,12 @@ public class ProductCatalogService : IProductCatalogService
         _productAttributeValueRepository = productAttributeValueRepository;
         _productAttributeOptionRepository = productAttributeOptionRepository;
         _logger = logger;
+        _dbContext = dbContext;
     }
 
     public Task<IReadOnlyList<ProductModel>> GetProductModelsAsync()
     {
-        return ExecuteAsync(() =>
+        return ExecuteAsync<IReadOnlyList<ProductModel>>(() =>
         {
             var models = _productModelRepository.GetAll() ?? Enumerable.Empty<PhoneStoreRepository.Models.ProductModel>();
             return models
@@ -56,7 +61,7 @@ public class ProductCatalogService : IProductCatalogService
             return Task.FromResult<ProductModel?>(null);
         }
 
-        return ExecuteAsync(() =>
+        return ExecuteAsync<ProductModel?>(() =>
         {
             var model = _productModelRepository.FindBySlug(slug);
             return model == null ? null : MapProductModel(model);
@@ -70,14 +75,38 @@ public class ProductCatalogService : IProductCatalogService
             return Task.FromResult<IReadOnlyList<Product>>(Array.Empty<Product>());
         }
 
-        return ExecuteAsync(() =>
+        return ExecuteAsync<IReadOnlyList<Product>>(() =>
         {
-            var products = _productRepository.GetByModelId(modelId) ?? Enumerable.Empty<PhoneStoreRepository.Models.Product>();
-            return products
-                .Select(MapProduct)
-                .OrderByDescending(p => p.CreatedAt)
+            var query = from p in _dbContext.Products.AsNoTracking()
+                        where p.ModelId == modelId
+                        join b in _dbContext.Brands.AsNoTracking()
+                            on p.BrandId equals (int?)b.Id into pb
+                        from b in pb.DefaultIfEmpty()
+                        select new { P = p, BrandName = b != null ? b.Name : string.Empty };
+
+            var list = query
+                .OrderByDescending(x => x.P.CreatedAt)
+                .ToList()
+                .Select(x => new Product(
+                    x.P.Id,
+                    x.P.Sku,
+                    x.P.Name,
+                    x.P.CategoryId,
+                    x.P.ModelId,
+                    x.P.BrandId,
+                    x.BrandName,
+                    x.P.Price,
+                    x.P.Cost,
+                    x.P.IsSerialTracked,
+                    x.P.WarrantyMonths,
+                    (x.P.Status ?? "active").ToLower(),
+                    x.P.CreatedAt,
+                    null
+                ))
                 .ToList()
                 .AsReadOnly();
+
+            return list;
         }, $"load products for model {modelId}", Array.Empty<Product>());
     }
 
@@ -88,7 +117,7 @@ public class ProductCatalogService : IProductCatalogService
             return Task.FromResult<IReadOnlyList<ProductAttribute>>(Array.Empty<ProductAttribute>());
         }
 
-        return ExecuteAsync(() =>
+        return ExecuteAsync<IReadOnlyList<ProductAttribute>>(() =>
         {
             var attributeIds = _productModelAttributeRepository.GetAttributeIdsByModel(modelId)?.Distinct().ToList();
             if (attributeIds == null || attributeIds.Count == 0)
@@ -130,7 +159,7 @@ public class ProductCatalogService : IProductCatalogService
             return Task.FromResult<IReadOnlyList<ProductAttributeValue>>(Array.Empty<ProductAttributeValue>());
         }
 
-        return ExecuteAsync(() =>
+        return ExecuteAsync<IReadOnlyList<ProductAttributeValue>>(() =>
         {
             var values = new List<ProductAttributeValue>();
             foreach (var productId in distinctIds)
@@ -157,7 +186,7 @@ public class ProductCatalogService : IProductCatalogService
             return Task.FromResult<IReadOnlyDictionary<int, IReadOnlyList<ProductAttributeOption>>>(new Dictionary<int, IReadOnlyList<ProductAttributeOption>>());
         }
 
-        return ExecuteAsync(() =>
+        return ExecuteAsync<IReadOnlyDictionary<int, IReadOnlyList<ProductAttributeOption>>>(() =>
         {
             var lookup = _productAttributeOptionRepository.GetByAttributeIds(ids)
                 ?? new Dictionary<int, IReadOnlyList<PhoneStoreRepository.Models.ProductAttributeOption>>();
@@ -220,6 +249,7 @@ public class ProductCatalogService : IProductCatalogService
             CategoryId: product.CategoryId,
             ModelId: product.ModelId,
             BrandId: product.BrandId,
+            BrandName: string.Empty,
             Price: product.Price,
             Cost: product.Cost,
             IsSerialTracked: product.IsSerialTracked,
