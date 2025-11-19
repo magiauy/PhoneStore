@@ -18,7 +18,7 @@ public class ProductCatalogService : IProductCatalogService
     private readonly IProductAttributeValueRepository _productAttributeValueRepository;
     private readonly IProductAttributeOptionRepository _productAttributeOptionRepository;
     private readonly ILogger<ProductCatalogService> _logger;
-    private readonly AppDbContext _dbContext;
+    private readonly IDbContextFactory<AppDbContext> _dbContextFactory;
 
     public ProductCatalogService(
         IProductModelRepository productModelRepository,
@@ -28,7 +28,7 @@ public class ProductCatalogService : IProductCatalogService
         IProductAttributeValueRepository productAttributeValueRepository,
         IProductAttributeOptionRepository productAttributeOptionRepository,
         ILogger<ProductCatalogService> logger,
-        AppDbContext dbContext)
+        IDbContextFactory<AppDbContext> dbContextFactory)
     {
         _productModelRepository = productModelRepository;
         _productRepository = productRepository;
@@ -37,7 +37,7 @@ public class ProductCatalogService : IProductCatalogService
         _productAttributeValueRepository = productAttributeValueRepository;
         _productAttributeOptionRepository = productAttributeOptionRepository;
         _logger = logger;
-        _dbContext = dbContext;
+        _dbContextFactory = dbContextFactory;
     }
 
     public Task<IReadOnlyList<ProductModel>> GetProductModelsAsync()
@@ -68,6 +68,49 @@ public class ProductCatalogService : IProductCatalogService
         }, $"load product model {slug}", (ProductModel?)null);
     }
 
+    public Task<IReadOnlyList<ProductModel>> GetProductModelsByCategorySlugAsync(string categorySlug)
+    {
+        if (string.IsNullOrWhiteSpace(categorySlug))
+        {
+            return Task.FromResult<IReadOnlyList<ProductModel>>(Array.Empty<ProductModel>());
+        }
+
+        return ExecuteAsync<IReadOnlyList<ProductModel>>(() =>
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            // Find category by name (treating input slug as name)
+            var category = context.Categories.AsNoTracking()
+                .FirstOrDefault(c => c.Name == categorySlug);
+
+            if (category == null)
+            {
+                return Array.Empty<ProductModel>();
+            }
+
+            var modelIds = context.Products.AsNoTracking()
+                .Where(p => p.CategoryId == category.Id)
+                .Select(p => p.ModelId)
+                .Distinct()
+                .ToList();
+
+            if (modelIds.Count == 0)
+            {
+                return Array.Empty<ProductModel>();
+            }
+
+            var allModels = _productModelRepository.GetAll() ?? Enumerable.Empty<PhoneStoreRepository.Models.ProductModel>();
+            
+            return allModels
+                .Where(m => modelIds.Contains(m.Id))
+                .Select(MapProductModel)
+                .OrderByDescending(m => m.UpdatedAt ?? m.CreatedAt)
+                .ThenBy(m => m.Name)
+                .ToList()
+                .AsReadOnly();
+        }, $"load product models for category {categorySlug}", Array.Empty<ProductModel>());
+    }
+
     public Task<IReadOnlyList<Product>> GetProductsByModelAsync(int modelId)
     {
         if (modelId <= 0)
@@ -77,9 +120,10 @@ public class ProductCatalogService : IProductCatalogService
 
         return ExecuteAsync<IReadOnlyList<Product>>(() =>
         {
-            var query = from p in _dbContext.Products.AsNoTracking()
+            using var context = _dbContextFactory.CreateDbContext();
+            var query = from p in context.Products.AsNoTracking()
                         where p.ModelId == modelId
-                        join b in _dbContext.Brands.AsNoTracking()
+                        join b in context.Brands.AsNoTracking()
                             on p.BrandId equals (int?)b.Id into pb
                         from b in pb.DefaultIfEmpty()
                         select new { P = p, BrandName = b != null ? b.Name : string.Empty };

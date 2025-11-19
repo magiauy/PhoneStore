@@ -6,6 +6,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<BrandEntity> Brands => Set<BrandEntity>();
     public DbSet<ProductEntity> Products => Set<ProductEntity>();
+    public DbSet<CategoryEntity> Categories => Set<CategoryEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -37,6 +38,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(50);
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
         });
+
+        modelBuilder.Entity<CategoryEntity>(entity =>
+        {
+            entity.ToTable("product_categories");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(120);
+            entity.Property(e => e.ParentId).HasColumnName("parent_id");
+            entity.Property(e => e.Note).HasColumnName("note").HasMaxLength(255);
+        });
     }
 }
 
@@ -60,4 +71,12 @@ public class ProductEntity
     public int WarrantyMonths { get; set; }
     public string Status { get; set; } = "active";
     public DateTime CreatedAt { get; set; }
+}
+
+public class CategoryEntity
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int? ParentId { get; set; }
+    public string? Note { get; set; }
 }
