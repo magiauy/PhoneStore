@@ -1,0 +1,113 @@
+@page "/cart"
+@using PhoneStoreUser.Components.Models
+@using PhoneStoreUser.Services
+@inject ICartService CartService
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<PageTitle>Shopping Cart</PageTitle>
+
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Shopping Cart</h1>
+
+    @if (cartItems == null || !cartItems.Any())
+    {
+        <div class="text-center py-10">
+            <p class="text-xl text-gray-600">Your cart is empty.</p>
+            <a href="/" class="mt-4 inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">Continue Shopping</a>
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2">
+                @foreach (var item in cartItems)
+                {
+                    <div class="flex items-center justify-between border-b py-4">
+                        <div class="flex items-center space-x-4">
+                            @* Placeholder for image if available *@
+                            <div class="w-20 h-20 bg-gray-200 rounded flex items-center justify-center text-gray-500">
+                                No Img
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg">@item.Product.Name</h3>
+                                <p class="text-gray-600">@item.Product.Price.ToString("C")</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center border rounded">
+                                <button class="px-3 py-1 hover:bg-gray-100" @onclick="() => UpdateQuantity(item, item.Quantity - 1)">-</button>
+                                <span class="px-3 py-1">@item.Quantity</span>
+                                <button class="px-3 py-1 hover:bg-gray-100" @onclick="() => UpdateQuantity(item, item.Quantity + 1)">+</button>
+                            </div>
+                            <button class="text-red-500 hover:text-red-700" @onclick="() => RemoveItem(item)">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                }
+                
+                <div class="mt-6 flex justify-between">
+                     <button class="text-red-600 hover:text-red-800 font-semibold" @onclick="ClearCart">Clear Cart</button>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-lg h-fit">
+                <h2 class="text-xl font-bold mb-4">Order Summary</h2>
+                <div class="flex justify-between mb-2">
+                    <span>Subtotal</span>
+                    <span>@totalPrice.ToString("C")</span>
+                </div>
+                <div class="border-t my-4"></div>
+                <div class="flex justify-between mb-6 text-xl font-bold">
+                    <span>Total</span>
+                    <span>@totalPrice.ToString("C")</span>
+                </div>
+                <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                    Proceed to Checkout
+                </button>
+                <a href="/" class="block text-center mt-4 text-blue-600 hover:underline">Continue Shopping</a>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<CartItem> cartItems = new();
+    private decimal totalPrice;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cartItems = await CartService.GetCartItems();
+        totalPrice = await CartService.GetTotal();
+        CartService.OnChange += StateHasChanged;
+    }
+
+    private async Task UpdateQuantity(CartItem item, int newQuantity)
+    {
+        await CartService.UpdateQuantity(item.Product, newQuantity);
+        cartItems = await CartService.GetCartItems();
+        totalPrice = await CartService.GetTotal();
+    }
+
+    private async Task RemoveItem(CartItem item)
+    {
+        await CartService.RemoveFromCart(item.Product);
+        cartItems = await CartService.GetCartItems();
+        totalPrice = await CartService.GetTotal();
+    }
+
+    private async Task ClearCart()
+    {
+        await CartService.ClearCart();
+        cartItems = await CartService.GetCartItems();
+        totalPrice = await CartService.GetTotal();
+    }
+
+    public void Dispose()
+    {
+        CartService.OnChange -= StateHasChanged;
+    }
+}

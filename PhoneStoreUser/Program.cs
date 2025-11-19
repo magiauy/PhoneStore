@@ -20,6 +20,7 @@ builder.Services.AddScoped<IProductAttributeRepository, ProductAttributeReposito
 builder.Services.AddScoped<IProductAttributeValueRepository, ProductAttributeValueRepository>();
 builder.Services.AddScoped<IProductAttributeOptionRepository, ProductAttributeOptionRepository>();
 builder.Services.AddScoped<IProductCatalogService, ProductCatalogService>();
+builder.Services.AddScoped<ICartService, CartService>();
 
 // EF Core DbContext for read operations (e.g., Brand names)
 var dbSection = builder.Configuration.GetSection("Database");
@@ -30,7 +31,7 @@ var user = dbSection["User"] ?? "root";
 var password = dbSection["Password"] ?? string.Empty;
 var connectionString = $"Server={host};Port={port};Database={database};User={user};Password={password};";
 
-builder.Services.AddDbContext<AppDbContext>(options =>
+builder.Services.AddDbContextFactory<AppDbContext>(options =>
 {
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
