@@ -1,3 +1,5 @@
+using Microsoft.JSInterop;
+using System.Text.Json;
 using PhoneStoreUser.Components.Models;
 
 namespace PhoneStoreUser.Services;
@@ -5,49 +7,101 @@ namespace PhoneStoreUser.Services;
 public class CartService : ICartService
 {
     private List<CartItem> _cart = new();
+    private readonly IJSRuntime _jsRuntime;
+    private bool _isInitialized = false;
+    public bool IsInitialized => _isInitialized;
 
     public event Action OnChange;
 
-    public CartService()
+#if DEBUG
+    private void Log(string message)
     {
-        SeedSampleData();
+        Console.WriteLine($"[CartService] {message}");
+    }
+#else
+    private void Log(string message) { }
+#endif
+
+    public CartService(IJSRuntime jsRuntime)
+    {
+        _jsRuntime = jsRuntime;
     }
 
-    private void SeedSampleData()
+    public async Task EnsureInitialized()
     {
-        _cart.Add(new CartItem(new Product(1, "IP15PM-256-TI", "iPhone 15 Pro Max 256GB Titan Tự Nhiên", 1, 1, 1, "Apple", 29990000), 1));
-        _cart.Add(new CartItem(new Product(2, "S24U-512-GR", "Samsung Galaxy S24 Ultra 512GB Xám Titan", 1, 2, 2, "Samsung", 31990000), 2));
-        _cart.Add(new CartItem(new Product(3, "X14U-512-BK", "Xiaomi 14 Ultra 512GB Đen", 1, 3, 3, "Xiaomi", 24990000), 1));
+        if (_isInitialized)
+        {
+            return;
+        }
+
+        try
+        {
+            var cartJson = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "cart");
+            Log("Loaded cart from localStorage." + cartJson);
+            if (!string.IsNullOrEmpty(cartJson))
+            {
+                _cart = JsonSerializer.Deserialize<List<CartItem>>(cartJson) ?? new List<CartItem>();
+            }
+            _isInitialized = true;
+        }
+        catch (JSException jsEx)
+        {
+            Log("JSException caught during cart initialization.");
+            Log(jsEx.ToString());
+            // JS runtime may not be available during prerendering, so defer initialization.
+        }
+        catch (Exception ex)
+        {
+            Log("Exception caught during cart initialization.");
+            Log(ex.ToString());
+            // Other errors should stop further retries to avoid infinite loops.
+            _cart = new List<CartItem>();
+            _isInitialized = true;
+        }
     }
 
-    public Task AddToCart(Product product)
+    private async Task SaveCart()
     {
+        var cartJson = JsonSerializer.Serialize(_cart);
+        Log($"cartJson: {cartJson}");
+        await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "cart", cartJson);
+        OnChange?.Invoke();
+    }
+
+    public async Task AddToCart(Product product, string? imageUrl = null)
+    {
+        await EnsureInitialized();
         var cartItem = _cart.FirstOrDefault(i => i.Product.Id == product.Id);
         if (cartItem == null)
         {
-            _cart.Add(new CartItem(product, 1));
+            _cart.Add(new CartItem(product, 1, imageUrl));
         }
         else
         {
             cartItem.Quantity++;
+            // Optionally update image url if provided
+            if (!string.IsNullOrEmpty(imageUrl))
+            {
+                cartItem.ImageUrl = imageUrl;
+            }
         }
-        OnChange?.Invoke();
-        return Task.CompletedTask;
+        await SaveCart();
     }
 
-    public Task RemoveFromCart(Product product)
+    public async Task RemoveFromCart(Product product)
     {
+        await EnsureInitialized();
         var cartItem = _cart.FirstOrDefault(i => i.Product.Id == product.Id);
         if (cartItem != null)
         {
             _cart.Remove(cartItem);
-            OnChange?.Invoke();
+            await SaveCart();
         }
-        return Task.CompletedTask;
     }
 
-    public Task UpdateQuantity(Product product, int quantity)
+    public async Task UpdateQuantity(Product product, int quantity)
     {
+        await EnsureInitialized();
         var cartItem = _cart.FirstOrDefault(i => i.Product.Id == product.Id);
         if (cartItem != null)
         {
@@ -59,25 +113,25 @@ public class CartService : ICartService
             {
                 _cart.Remove(cartItem);
             }
-            OnChange?.Invoke();
+            await SaveCart();
         }
-        return Task.CompletedTask;
     }
 
-    public Task<List<CartItem>> GetCartItems()
+    public async Task<List<CartItem>> GetCartItems()
     {
-        return Task.FromResult(_cart);
+        await EnsureInitialized();
+        return _cart;
     }
 
-    public Task ClearCart()
+    public async Task ClearCart()
     {
         _cart.Clear();
-        OnChange?.Invoke();
-        return Task.CompletedTask;
+        await SaveCart();
     }
 
-    public Task<decimal> GetTotal()
+    public async Task<decimal> GetTotal()
     {
-        return Task.FromResult(_cart.Sum(i => i.TotalPrice));
+        await EnsureInitialized();
+        return _cart.Sum(i => i.TotalPrice);
     }
 }
