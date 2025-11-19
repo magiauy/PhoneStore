@@ -3,6 +3,8 @@
 @implements IDisposable
 @inject ICartService CartService
 @inject IUserSessionService SessionService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
 
 
 <header class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur shadow-sm">
@@ -33,13 +35,39 @@
             <div class="flex items-center gap-2 text-sm font-medium text-gray-700">
                 @if (ActiveSession is not null)
                 {
-                    <div class="hidden md:inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-2 text-gray-700">
-                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-[#2563EB]/10 text-[#2563EB] font-semibold">
-                            @(ActiveSession.DisplayName?.Length > 0 ? ActiveSession.DisplayName[0].ToString()?.ToUpperInvariant() : "G")
-                        </div>
-                        <div class="flex flex-col text-left leading-tight">
-                            <span class="text-sm font-semibold text-gray-900">@ActiveSession.DisplayName</span>
-                        </div>
+                    <div class="relative">
+                        <button @onclick="ToggleUserMenu" class="hidden md:inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-2 text-gray-700 hover:bg-gray-50 transition">
+                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-[#2563EB]/10 text-[#2563EB] font-semibold">
+                                @(ActiveSession.DisplayName?.Length > 0 ? ActiveSession.DisplayName[0].ToString()?.ToUpperInvariant() : "G")
+                            </div>
+                            <div class="flex flex-col text-left leading-tight">
+                                <span class="text-sm font-semibold text-gray-900">@ActiveSession.DisplayName</span>
+                            </div>
+                            <svg class="h-4 w-4 text-gray-400 transition-transform @(IsUserMenuOpen ? "rotate-180" : "")" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        @if (IsUserMenuOpen)
+                        {
+                            <div class="absolute right-0 mt-2 w-56 origin-top-right rounded-xl border border-gray-100 bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                <div class="p-2">
+                                    <button @onclick="OpenProfileDialog" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                        <svg class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                        </svg>
+                                        Thông tin cá nhân
+                                    </button>
+                                    <div class="my-1 h-px bg-gray-100"></div>
+                                    <button @onclick="Logout" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                                        </svg>
+                                        Đăng xuất
+                                    </button>
+                                </div>
+                            </div>
+                        }
                     </div>
                 }
                 else
@@ -75,9 +103,67 @@
     </div>
 </header>
 
+@if (IsProfileDialogOpen && ActiveSession is not null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" @onclick="CloseProfileDialog">
+        <div class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all" @onclick:stopPropagation>
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-lg font-bold leading-6 text-gray-900">Thông tin cá nhân</h3>
+                <button @onclick="CloseProfileDialog" class="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500 transition">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="flex flex-col items-center mb-6">
+                <div class="flex h-20 w-20 items-center justify-center rounded-full bg-[#2563EB]/10 text-[#2563EB] text-3xl font-bold mb-3">
+                    @(ActiveSession.DisplayName?.Length > 0 ? ActiveSession.DisplayName[0].ToString()?.ToUpperInvariant() : "G")
+                </div>
+                <h4 class="text-xl font-semibold text-gray-900">@ActiveSession.DisplayName</h4>
+                <p class="text-sm text-gray-500">@ActiveSession.Username</p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex items-center gap-3 rounded-xl bg-gray-50 p-3">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-gray-500 shadow-sm">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                        </svg>
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <p class="text-xs font-medium text-gray-500">Email</p>
+                        <p class="truncate text-sm font-semibold text-gray-900">@(ActiveSession.Email ?? "Chưa cập nhật")</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 rounded-xl bg-gray-50 p-3">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-gray-500 shadow-sm">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                        </svg>
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <p class="text-xs font-medium text-gray-500">Số điện thoại</p>
+                        <p class="truncate text-sm font-semibold text-gray-900">@(ActiveSession.Phone ?? "Chưa cập nhật")</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+                <button @onclick="CloseProfileDialog" class="rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 transition">
+                    Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private int CartItemCount = 0;
     private UserSession? ActiveSession;
+    private bool IsUserMenuOpen = false;
+    private bool IsProfileDialogOpen = false;
 
     private readonly List<NavigationItem> NavigationItems = new()
     {
@@ -132,4 +218,30 @@
         ActiveSession = SessionService.CurrentSession;
         _ = InvokeAsync(StateHasChanged);
     }
+
+    private void ToggleUserMenu()
+    {
+        IsUserMenuOpen = !IsUserMenuOpen;
+    }
+
+    private void OpenProfileDialog()
+    {
+        IsUserMenuOpen = false;
+        IsProfileDialogOpen = true;
+        JS.InvokeVoidAsync("document.body.classList.add", "overflow-hidden");
+    }
+
+    private void CloseProfileDialog()
+    {
+        IsProfileDialogOpen = false;
+        JS.InvokeVoidAsync("document.body.classList.remove", "overflow-hidden");
+    }
+
+    private async Task Logout()
+    {
+        await SessionService.LogoutAsync();
+        IsUserMenuOpen = false;
+        NavigationManager.NavigateTo("/", true);
+    }
 }
+
