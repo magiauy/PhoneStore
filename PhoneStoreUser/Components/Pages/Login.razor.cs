@@ -23,20 +23,37 @@ public partial class Login : ComponentBase
     public string? ErrorMessage { get; set; }
 
     private bool _hasRedirectedFromSession;
-
+    private bool _isCheckingAuth = true;
     protected override async Task OnInitializedAsync()
     {
-        await RedirectIfAuthenticatedAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await RedirectIfAuthenticatedAsync();
+            await CheckAuthStatus();
         }
     }
+    private async Task CheckAuthStatus()
+    {
+        if (SessionService is null || NavigationManager is null) return;
 
+        // Gọi InitializeAsync để check cookie dưới client
+        var session = await SessionService.InitializeAsync();
+
+        if (session is not null)
+        {
+            // Nếu đã login => Chuyển hướng ngay lập tức
+            NavigationManager.NavigateTo("/", true);
+        }
+        else
+        {
+            // Nếu chưa login => Cho phép hiện form
+            _isCheckingAuth = false;
+            StateHasChanged();
+        }
+    }
     private async Task HandleValidSubmit()
     {
         if (SessionService is null)
@@ -65,7 +82,7 @@ public partial class Login : ComponentBase
             StateHasChanged();
 
             await Task.Delay(1500);
-            NavigationManager?.NavigateTo("/");
+            NavigationManager?.NavigateTo("/",true);
         }
         catch (Exception ex)
         {
