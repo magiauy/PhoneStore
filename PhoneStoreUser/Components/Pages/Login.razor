@@ -15,7 +15,18 @@
         </div>
     </div>
 }
-
+@if (_isCheckingAuth)
+{
+    @* HIỂN THỊ LOADING KHI ĐANG CHECK SESSION *@
+    <div class="min-h-screen flex items-center justify-center bg-gray-50">
+        <div class="flex flex-col items-center gap-3">
+            <div class="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+            <p class="text-sm text-gray-500 font-medium">Đang kiểm tra đăng nhập...</p>
+        </div>
+    </div>
+}
+else
+{
 <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
     <div class="w-full max-w-md bg-white border border-gray-200 rounded-2xl shadow-lg p-6 sm:p-8">
         <div class="space-y-2 text-center mb-6">
@@ -107,3 +118,4 @@
         </EditForm>
     </div>
 </div>
+}

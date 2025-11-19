@@ -52,6 +52,7 @@ public class UserSessionService : IUserSessionService, IAsyncDisposable
         try
         {
             var sessionJson = await _authModule!.InvokeAsync<string?>("getUserCookie");
+            Console.WriteLine("Loaded user session from cookie: " + sessionJson);
             if (!string.IsNullOrWhiteSpace(sessionJson))
             {
                 CurrentSession = JsonSerializer.Deserialize<UserSession>(sessionJson, _serializerOptions);
@@ -66,9 +67,11 @@ public class UserSessionService : IUserSessionService, IAsyncDisposable
         catch (JSException)
         {
             // Ignore parsing/interop errors, caller can attempt again later.
+            Console.WriteLine("JSException caught while loading user session from cookie.");
         }
         catch (JsonException)
         {
+            Console.WriteLine("JsonException caught while deserializing user session from cookie.");
             CurrentSession = null;
             _hasLoadedFromCookie = true;
         }

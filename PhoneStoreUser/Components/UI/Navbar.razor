@@ -4,6 +4,7 @@
 @inject ICartService CartService
 @inject IUserSessionService SessionService
 
+
 <header class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur shadow-sm">
     <div class="max-w-6xl mx-auto px-4">
         <div class="flex flex-wrap items-center gap-3 py-3">
@@ -37,7 +38,6 @@
                             @(ActiveSession.DisplayName?.Length > 0 ? ActiveSession.DisplayName[0].ToString()?.ToUpperInvariant() : "G")
                         </div>
                         <div class="flex flex-col text-left leading-tight">
-                            <span class="text-[11px] uppercase tracking-wide text-gray-400">Xin chào</span>
                             <span class="text-sm font-semibold text-gray-900">@ActiveSession.DisplayName</span>
                         </div>
                     </div>
@@ -48,7 +48,7 @@
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0a3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0V21H4.5z" />
                         </svg>
-                        Tài khoản
+                        Đăng nhập
                     </a>
                 }
                 <a href="/cart" class="relative inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-2 hover:border-[#2563EB] hover:text-[#2563EB] transition">
@@ -107,7 +107,11 @@
         }
 
         await SessionService.InitializeAsync();
-        ActiveSession ??= SessionService.CurrentSession;
+        if (ActiveSession != SessionService.CurrentSession)
+        {
+            ActiveSession = SessionService.CurrentSession;
+            StateHasChanged();
+        }
     }
 
     private async Task UpdateCartCount()
