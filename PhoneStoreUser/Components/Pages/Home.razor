@@ -23,13 +23,13 @@
         {
             <div class="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-500">Đang tải dữ liệu sản phẩm...</div>
         }
-        else if (!ProductModels.Any())
+        else if (!FlagshipModels.Any())
         {
             <div class="rounded-2xl border border-dashed border-gray-300 bg-white p-6 text-sm text-gray-500">Chưa có sản phẩm để hiển thị.</div>
         }
         else
         {
-            <ProductCarousel ProductModels="ProductModels" />
+            <ProductCarousel ProductModels="FlagshipModels" />
         }
     </section>
 
@@ -42,11 +42,21 @@
         else if (ProductModels.Any())
         {
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                @foreach (var model in ProductModels)
+                @foreach (var model in ProductModels.Take(VisibleAndroidCount))
                 {
                     <ProductCard ProductModel="model" />
                 }
             </div>
+            
+            @if (VisibleAndroidCount < ProductModels.Count)
+            {
+                <div class="flex justify-center mt-4">
+                    <button class="rounded-xl border border-gray-200 bg-white px-6 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-[#2563EB] transition" 
+                            @onclick="ShowMoreAndroid">
+                        Xem thêm 9 sản phẩm
+                    </button>
+                </div>
+            }
         }
     </section>
 
@@ -68,12 +78,25 @@
 
 @code {
     private List<ProductModel> ProductModels { get; set; } = new();
+    private List<ProductModel> FlagshipModels { get; set; } = new();
     private bool IsLoading { get; set; } = true;
+    private int VisibleAndroidCount { get; set; } = 9;
+
+    private void ShowMoreAndroid()
+    {
+        VisibleAndroidCount += 9;
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        var models = await ProductCatalogService.GetProductModelsAsync();
-        ProductModels = models.ToList();
+        var t1 = ProductCatalogService.GetProductModelsAsync();
+        var t2 = ProductCatalogService.GetProductModelsByCategorySlugAsync("PhoneFlagShip");
+
+        await Task.WhenAll(t1, t2);
+
+        ProductModels = (await t1).ToList();
+        FlagshipModels = (await t2).ToList();
+        
         IsLoading = false;
     }
 

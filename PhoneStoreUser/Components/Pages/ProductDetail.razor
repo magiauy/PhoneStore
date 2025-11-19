@@ -3,6 +3,8 @@
 @using Microsoft.Extensions.Logging
 @rendermode InteractiveServer
 @inject IProductCatalogService ProductCatalogService
+@inject ICartService CartService
+@inject NavigationManager NavigationManager
 @inject ILogger<ProductDetail> Logger
 
 <PageTitle>@ProductModel?.Name - GuZone</PageTitle>
@@ -35,6 +37,15 @@
                     <p class="text-sm text-gray-500 uppercase">GuZone</p>
                     <h1 class="text-3xl font-bold text-gray-900 mt-2">@ProductModel.Name</h1>
                     <p class="text-gray-600 mt-2">@ProductModel.Description</p>
+                    
+                    @if (SelectedProduct != null)
+                    {
+                        <p class="text-2xl font-bold text-[#2563EB] mt-4">
+                            @(SelectedProduct.Price > 0 
+                                ? $"{SelectedProduct.Price.ToString("N0", new System.Globalization.CultureInfo("vi-VN"))} ₫" 
+                                : "Liên hệ")
+                        </p>
+                    }
                 </div>
 
                 <!-- Attributes Selection -->
@@ -78,7 +89,7 @@
 
                 <!-- Action Buttons -->
                 <div class="space-y-3">
-                    <button class="w-full bg-[#2563EB] text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
+                    <button class="w-full bg-[#2563EB] text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition" @onclick="AddToCart">
                         Thêm vào giỏ hàng
                     </button>
                     <button class="w-full border border-gray-300 py-3 rounded-xl font-semibold hover:bg-gray-50 transition">
@@ -355,6 +366,15 @@
 
         // Fallback nếu không tạo được link variant
         return ProductModel?.Image ?? "";
+    }
+
+    private async Task AddToCart()
+    {
+        if (SelectedProduct != null)
+        {
+            await CartService.AddToCart(SelectedProduct);
+            NavigationManager.NavigateTo("/cart");
+        }
     }
 
     private sealed record AttributeChoice(int AttributeId, int? OptionId, string DisplayValue, string? RawValueText);
