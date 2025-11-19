@@ -27,39 +27,42 @@ public class CartService : ICartService
         _jsRuntime = jsRuntime;
     }
 
-    public async Task EnsureInitialized()
+public async Task EnsureInitialized()
+{
+    if (_isInitialized)
     {
-        if (_isInitialized)
-        {
-            return;
-        }
-
-        try
-        {
-            var cartJson = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "cart");
-            Log("Loaded cart from localStorage." + cartJson);
-            if (!string.IsNullOrEmpty(cartJson))
-            {
-                _cart = JsonSerializer.Deserialize<List<CartItem>>(cartJson) ?? new List<CartItem>();
-            }
-            _isInitialized = true;
-        }
-        catch (JSException jsEx)
-        {
-            Log("JSException caught during cart initialization.");
-            Log(jsEx.ToString());
-            // JS runtime may not be available during prerendering, so defer initialization.
-        }
-        catch (Exception ex)
-        {
-            Log("Exception caught during cart initialization.");
-            Log(ex.ToString());
-            // Other errors should stop further retries to avoid infinite loops.
-            _cart = new List<CartItem>();
-            _isInitialized = true;
-        }
+        return;
     }
 
+    try
+    {
+        var cartJson = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "cart");
+        Log("Loaded cart from localStorage." + cartJson);
+        if (!string.IsNullOrEmpty(cartJson))
+        {
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            _cart = JsonSerializer.Deserialize<List<CartItem>>(cartJson, options) ?? new List<CartItem>();
+        }
+        _isInitialized = true;
+    }
+    catch (InvalidOperationException ex) when (ex.Message.Contains("prerendering"))
+    {
+        // 👇 SỬA: Bỏ qua lỗi Prerendering một cách êm đẹp
+        // Không log lỗi này vì nó là hành vi bình thường của Blazor Server khi chưa kết nối Browser
+        Log("Prerendering: LocalStorage not available yet.");
+    }
+    catch (JSException jsEx)
+    {
+        Log("JSException caught: " + jsEx.Message);
+    }
+    catch (Exception ex)
+    {
+        Log("Error initializing cart: " + ex.Message);
+        // Khởi tạo list rỗng để tránh crash app
+        _cart = new List<CartItem>();
+        _isInitialized = true;
+    }
+}
     private async Task SaveCart()
     {
         var cartJson = JsonSerializer.Serialize(_cart);
