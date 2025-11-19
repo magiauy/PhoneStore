@@ -10,6 +10,15 @@
 <PageTitle>@ProductModel?.Name - GuZone</PageTitle>
 
 <div class="container mx-auto px-4 py-8">
+    @if (ShowToast)
+    {
+        <div class="fixed bottom-4 right-4 z-50 rounded-xl bg-green-600 px-6 py-3 text-white shadow-lg transition-opacity duration-300 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span class="font-medium">Đã thêm sản phẩm vào giỏ hàng!</span>
+        </div>
+    }
     @if (IsLoading)
     {
         <div class="rounded-2xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">Đang tải chi tiết sản phẩm...</div>
@@ -99,26 +108,22 @@
             </div>
         </div>
     }
-    else
-    {
-        <p class="text-center text-gray-500">Không tìm thấy sản phẩm</p>
-    }
 </div>
 
 @code {
-    [Parameter]
-    public string? Slug { get; set; }
+    [Parameter] public string? Slug { get; set; }
 
     private ProductModel? ProductModel { get; set; }
     private List<Product> Products { get; set; } = new();
     private List<ProductAttribute> Attributes { get; set; } = new();
     private List<ProductAttributeValue> AttributeValues { get; set; } = new();
     private Dictionary<int, IReadOnlyList<ProductAttributeOption>> AttributeOptionLookup { get; set; } = new();
-    private Dictionary<int, IReadOnlyList<AttributeChoice>> AttributeChoices { get; } = new();
-    private Dictionary<int, AttributeChoice> SelectedAttributes { get; } = new();
+    private Dictionary<int, List<AttributeChoice>> AttributeChoices { get; set; } = new();
+    private Dictionary<int, AttributeChoice> SelectedAttributes { get; set; } = new();
     private Product? SelectedProduct { get; set; }
     private string CurrentImageUrl { get; set; } = string.Empty;
     private bool IsLoading { get; set; } = true;
+    private bool ShowToast { get; set; } = false;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -372,8 +377,16 @@
     {
         if (SelectedProduct != null)
         {
-            await CartService.AddToCart(SelectedProduct);
-            NavigationManager.NavigateTo("/cart");
+            // Ensure CurrentImageUrl is up to date or calculate it here
+            var imgUrl = !string.IsNullOrEmpty(CurrentImageUrl) ? CurrentImageUrl : GetProductImageUrl(SelectedProduct);
+            
+            await CartService.AddToCart(SelectedProduct, imgUrl);
+            
+            ShowToast = true;
+            StateHasChanged();
+            await Task.Delay(3000);
+            ShowToast = false;
+            StateHasChanged();
         }
     }
 
