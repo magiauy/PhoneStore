@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Routing;
 using PhoneStoreUser.Components.Models;
+using PhoneStoreUser.Services;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
 namespace PhoneStoreUser.Components.Pages;
@@ -13,57 +11,51 @@ public partial class Login : ComponentBase
     [Inject]
     public NavigationManager? NavigationManager { get; set; }
 
+    [Inject]
+    public IUserSessionService? SessionService { get; set; }
+
     public LoginModel Model { get; set; } = new();
 
     public bool IsLoading { get; set; }
 
     public bool ShowSuccessMessage { get; set; }
 
-    private async Task HandleSubmit()
-    {
-        Console.WriteLine($"[Login] HandleSubmit called with EmailOrUsername: {Model.EmailOrUsername}");
-        
-        // Validate manually
-        var validationContext = new ValidationContext(Model);
-        var validationResults = new List<ValidationResult>();
-        bool isValid = Validator.TryValidateObject(Model, validationContext, validationResults, true);
-
-        if (!isValid)
-        {
-            Console.WriteLine($"[Login] Validation failed with {validationResults.Count} errors");
-            foreach (var error in validationResults)
-            {
-                Console.WriteLine($"[Login] - {error.ErrorMessage}");
-            }
-            return;
-        }
-
-        Console.WriteLine($"[Login] Validation passed, calling HandleValidSubmit");
-        await HandleValidSubmit();
-    }
+    public string? ErrorMessage { get; set; }
 
     private async Task HandleValidSubmit()
     {
-        Console.WriteLine("[Login] HandleValidSubmit - Starting login process");
+        if (SessionService is null)
+        {
+            return;
+        }
+
         IsLoading = true;
+        ErrorMessage = null;
         ShowSuccessMessage = false;
 
         try
         {
-            await Task.Delay(1000);
-            Console.WriteLine("[Login] Simulated API call completed");
-            // TODO: Replace with real authentication API call.
-            // For now, always login success
-            
-            // Show success message
+            var session = await SessionService.LoginAsync(
+                Model.EmailOrUsername.Trim(),
+                Model.Password,
+                Model.RememberMe);
+
+            if (session is null)
+            {
+                ErrorMessage = "Sai tên đăng nhập hoặc mật khẩu.";
+                return;
+            }
+
             ShowSuccessMessage = true;
-            Console.WriteLine("[Login] Success message displayed");
-            StateHasChanged(); // Force re-render để hiển thị toast
-            
-            // Navigate after showing message and animation (2.8s for animation to complete)
-            await Task.Delay(2800);
-            Console.WriteLine("[Login] Navigating to home page");
-            NavigationManager?.NavigateTo("/", forceLoad: true);
+            StateHasChanged();
+
+            await Task.Delay(1500);
+            NavigationManager?.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Login] Login failed: {ex.Message}");
+            ErrorMessage = "Không thể đăng nhập ngay lúc này. Vui lòng thử lại sau.";
         }
         finally
         {
