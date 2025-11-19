@@ -19,8 +19,11 @@ builder.Services.AddScoped<IProductModelAttributeRepository, ProductModelAttribu
 builder.Services.AddScoped<IProductAttributeRepository, ProductAttributeRepository>();
 builder.Services.AddScoped<IProductAttributeValueRepository, ProductAttributeValueRepository>();
 builder.Services.AddScoped<IProductAttributeOptionRepository, ProductAttributeOptionRepository>();
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 builder.Services.AddScoped<IProductCatalogService, ProductCatalogService>();
 builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IUserSessionService, UserSessionService>();
 
 // EF Core DbContext for read operations (e.g., Brand names)
 var dbSection = builder.Configuration.GetSection("Database");
