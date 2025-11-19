@@ -1,3 +1,7 @@
+@using PhoneStoreUser.Services
+@implements IDisposable
+@inject ICartService CartService
+
 <header class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur shadow-sm">
     <div class="max-w-6xl mx-auto px-4">
         <div class="flex flex-wrap items-center gap-3 py-3">
@@ -37,7 +41,10 @@
                         <path d="M2 3L2.26121 3.09184C3.5628 3.54945 4.2136 3.77826 4.58584 4.32298C4.95808 4.86771 4.95808 5.59126 4.95808 7.03836V9.76C4.95808 12.7016 5.02132 13.6723 5.88772 14.5862C6.75412 15.5 8.14857 15.5 10.9375 15.5H12M16.2404 15.5C17.8014 15.5 18.5819 15.5 19.1336 15.0504C19.6853 14.6008 19.8429 13.8364 20.158 12.3075L20.6578 9.88275C21.0049 8.14369 21.1784 7.27417 20.7345 6.69708C20.2906 6.12 18.7738 6.12 17.0888 6.12H11.0235M4.95808 6.12H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
                     <span>Giỏ hàng</span>
-                    <span class="absolute -top-1 -right-1 rounded-full bg-[#2563EB] px-2 text-[10px] font-semibold text-white">3</span>
+                    @if (CartItemCount > 0)
+                    {
+                        <span class="absolute -top-1 -right-1 rounded-full bg-[#2563EB] px-2 text-[10px] font-semibold text-white">@CartItemCount</span>
+                    }
                 </a>
             </div>
         </div>
@@ -52,6 +59,8 @@
 </header>
 
 @code {
+    private int CartItemCount = 0;
+
     private readonly List<NavigationItem> NavigationItems = new()
     {
         new("Flagship", "#flagship"),
@@ -63,4 +72,32 @@
     };
 
     private record NavigationItem(string Label, string Href);
+
+    protected override async Task OnInitializedAsync()
+    {
+        CartService.OnChange += StateHasChanged;
+        await UpdateCartCount();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            CartService.OnChange += async () => await UpdateCartCount();
+            await UpdateCartCount();
+            StateHasChanged();
+        }
+    }
+
+    private async Task UpdateCartCount()
+    {
+        var items = await CartService.GetCartItems();
+        CartItemCount = items.Sum(i => i.Quantity);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        CartService.OnChange -= StateHasChanged;
+    }
 }
