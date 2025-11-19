@@ -22,6 +22,21 @@ public partial class Login : ComponentBase
 
     public string? ErrorMessage { get; set; }
 
+    private bool _hasRedirectedFromSession;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RedirectIfAuthenticatedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await RedirectIfAuthenticatedAsync();
+        }
+    }
+
     private async Task HandleValidSubmit()
     {
         if (SessionService is null)
@@ -60,6 +75,21 @@ public partial class Login : ComponentBase
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    private async Task RedirectIfAuthenticatedAsync()
+    {
+        if (_hasRedirectedFromSession || SessionService is null || NavigationManager is null)
+        {
+            return;
+        }
+
+        var session = SessionService.CurrentSession ?? await SessionService.InitializeAsync();
+        if (session is not null)
+        {
+            _hasRedirectedFromSession = true;
+            NavigationManager.NavigateTo("/", true);
         }
     }
 }
