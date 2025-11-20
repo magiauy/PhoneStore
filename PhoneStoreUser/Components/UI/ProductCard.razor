@@ -1,3 +1,4 @@
+@using System
 @using PhoneStoreUser.Components.Models
 
 @inject IProductCatalogService ProductCatalogService
@@ -33,34 +34,60 @@
     [Parameter]
     public ProductModel? ProductModel { get; set; }
 
+    private const string DefaultFallbackImageUrl = "/images/hero/iphone-17-pm-2.png";
     private Product? SelectedProduct { get; set; }
-    private string ImageUrl { get; set; } = string.Empty;
+    private string ImageUrl { get; set; } = DefaultFallbackImageUrl;
 
     protected override async Task OnParametersSetAsync()
     {
-        if (ProductModel != null)
-        {
-            var products = await ProductCatalogService.GetProductsByModelAsync(ProductModel.Id);
-            SelectedProduct = products.FirstOrDefault();
+        ImageUrl = GetFallbackImageUrl(ProductModel);
 
-            if (SelectedProduct != null)
-            {
-                ImageUrl = $"https://res.cloudinary.com/REMOVED_SECRET/image/upload/v1763457477/mobileguzone/{SelectedProduct.BrandName.ToLower()}/{ProductModel.Slug}/{SelectedProduct.Sku}.webp";
-            }
-            else
-            {
-                 ImageUrl = !string.IsNullOrEmpty(ProductModel.Image)
-                    ? ProductModel.Image
-                    : "/images/hero/iphone-17-pm-2.png";
-            }
+        if (ProductModel == null)
+        {
+            SelectedProduct = null;
+            return;
         }
+
+        var products = await ProductCatalogService.GetProductsByModelAsync(ProductModel.Id);
+        SelectedProduct = products.FirstOrDefault();
+
+        var variantImageUrl = BuildVariantImageUrl(SelectedProduct, ProductModel);
+        if (!string.IsNullOrEmpty(variantImageUrl))
+        {
+            ImageUrl = variantImageUrl;
+        }
+    }
+
+    private static string GetFallbackImageUrl(ProductModel? model)
+        => !string.IsNullOrEmpty(model?.Image) ? model.Image! : DefaultFallbackImageUrl;
+
+    private static string? BuildVariantImageUrl(Product? product, ProductModel? model)
+    {
+        if (product == null || model == null)
+        {
+            return null;
+        }
+
+        var brand = product.BrandName?.Trim();
+        var slug = model.Slug?.Trim();
+        var sku = product.Sku?.Trim();
+
+        if (string.IsNullOrEmpty(brand) || string.IsNullOrEmpty(slug) || string.IsNullOrEmpty(sku))
+        {
+            return null;
+        }
+
+        var brandSegment = Uri.EscapeDataString(brand.ToLowerInvariant());
+        var slugSegment = Uri.EscapeDataString(slug);
+        var skuSegment = Uri.EscapeDataString(sku);
+
+        return $"https://res.cloudinary.com/REMOVED_SECRET/image/upload/v1763457477/mobileguzone/{brandSegment}/{slugSegment}/{skuSegment}.webp";
     }
 
     private void HandleImageError()
     {
-        ImageUrl = !string.IsNullOrEmpty(ProductModel?.Image)
-            ? ProductModel.Image
-            : "/images/hero/iphone-17-pm-2.png";
+        Console.WriteLine("Image failed to load, using fallback image.");
+        ImageUrl = GetFallbackImageUrl(ProductModel);
     }
 }
 
