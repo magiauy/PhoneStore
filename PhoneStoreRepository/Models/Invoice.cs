@@ -1,11 +1,7 @@
-using Microsoft.UI;
-using Microsoft.UI.Xaml.Media;
-using PhoneStoreAdmin.Models.Enums;
-using System;
-using System.Collections.Generic;
+using PhoneStoreRepository.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace PhoneStoreAdmin.Models
+namespace PhoneStoreRepository.Models
 {
     public class Invoice
     {
@@ -15,7 +11,7 @@ namespace PhoneStoreAdmin.Models
         private int? _promotionCodeId;
         private int _createdBy;
         private DateTime _invoiceDate;
-        private PhoneStoreAdmin.Models.Enums.InvoiceStatus _status;
+        private PhoneStoreRepository.Models.Enums.InvoiceStatus _status;
         private decimal _totalAmount = 0;
         private decimal _discountAmount = 0;
         private decimal _finalAmount = 0;
@@ -67,7 +63,7 @@ namespace PhoneStoreAdmin.Models
         }
 
         [Required]
-        public PhoneStoreAdmin.Models.Enums.InvoiceStatus Status
+        public PhoneStoreRepository.Models.Enums.InvoiceStatus Status
         {
             get => _status;
             set => _status = value;
@@ -125,7 +121,7 @@ namespace PhoneStoreAdmin.Models
             _promotionCodeId = null;
             _createdBy = 0;
             _invoiceDate = DateTime.UtcNow;
-            _status = PhoneStoreAdmin.Models.Enums.InvoiceStatus.UNPAID;
+            _status = PhoneStoreRepository.Models.Enums.InvoiceStatus.UNPAID;
             _totalAmount = 0;
             _discountAmount = 0;
             _finalAmount = 0;
