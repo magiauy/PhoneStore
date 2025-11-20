@@ -7,6 +7,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<BrandEntity> Brands => Set<BrandEntity>();
     public DbSet<ProductEntity> Products => Set<ProductEntity>();
     public DbSet<CategoryEntity> Categories => Set<CategoryEntity>();
+    public DbSet<PersonEntity> People => Set<PersonEntity>();
+    public DbSet<CustomerEntity> Customers => Set<CustomerEntity>();
+    public DbSet<AccountEntity> Accounts => Set<AccountEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -48,6 +51,36 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.ParentId).HasColumnName("parent_id");
             entity.Property(e => e.Note).HasColumnName("note").HasMaxLength(255);
         });
+
+        modelBuilder.Entity<PersonEntity>(entity =>
+        {
+            entity.ToTable("persons");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.FullName).HasColumnName("full_name").HasMaxLength(255);
+            entity.Property(e => e.Email).HasColumnName("email").HasMaxLength(255);
+            entity.Property(e => e.Phone).HasColumnName("phone").HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<CustomerEntity>(entity =>
+        {
+            entity.ToTable("customers");
+            entity.HasKey(e => e.PersonId);
+            entity.Property(e => e.PersonId).HasColumnName("person_id");
+            entity.Property(e => e.Address).HasColumnName("address").HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<AccountEntity>(entity =>
+        {
+            entity.ToTable("accounts");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Username).HasColumnName("username").HasMaxLength(50);
+            entity.Property(e => e.Password).HasColumnName("password_hash").HasMaxLength(255);
+            entity.Property(e => e.LastLogin).HasColumnName("last_login");
+            entity.Property(e => e.PersonId).HasColumnName("person_id");
+            entity.Property(e => e.IsActive).HasColumnName("is_active");
+        });
     }
 }
 
@@ -79,4 +112,28 @@ public class CategoryEntity
     public string Name { get; set; } = string.Empty;
     public int? ParentId { get; set; }
     public string? Note { get; set; }
+}
+
+public class PersonEntity
+{
+    public int Id { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+}
+
+public class CustomerEntity
+{
+    public int PersonId { get; set; }
+    public string? Address { get; set; }
+}
+
+public class AccountEntity
+{
+    public int Id { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public DateTime? LastLogin { get; set; }
+    public int PersonId { get; set; }
+    public bool IsActive { get; set; }
 }
