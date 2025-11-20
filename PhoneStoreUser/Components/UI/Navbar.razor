@@ -5,7 +5,8 @@
 @inject IUserSessionService SessionService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
-
+@inject IUserProfileService UserProfileService
+@inject IAuthService AuthService
 
 <header class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur shadow-sm">
     <div class="max-w-6xl mx-auto px-4">
@@ -58,6 +59,12 @@
                                         </svg>
                                         Thông tin cá nhân
                                     </button>
+                                    <button @onclick="OpenChangePasswordDialog" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                        <svg class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                        </svg>
+                                        Đổi mật khẩu
+                                    </button>
                                     <div class="my-1 h-px bg-gray-100"></div>
                                     <button @onclick="Logout" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition">
                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -81,9 +88,9 @@
                 }
                 <a href="/cart" class="relative inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-2 hover:border-[#2563EB] hover:text-[#2563EB] transition">
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M7.5 18C8.32843 18 9 18.6716 9 19.5C9 20.3284 8.32843 21 7.5 21C6.67157 21 6 20.3284 6 19.5C6 18.6716 6.67157 18 7.5 18Z" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="M16.5 18.0001C17.3284 18.0001 18 18.6716 18 19.5001C18 20.3285 17.3284 21.0001 16.5 21.0001C15.6716 21.0001 15 20.3285 15 19.5001C15 18.6716 15.6716 18.0001 16.5 18.0001Z" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="M2 3L2.26121 3.09184C3.5628 3.54945 4.2136 3.77826 4.58584 4.32298C4.95808 4.86771 4.95808 5.59126 4.95808 7.03836V9.76C4.95808 12.7016 5.02132 13.6723 5.88772 14.5862C6.75412 15.5 8.14857 15.5 10.9375 15.5H12M16.2404 15.5C17.8014 15.5 18.5819 15.5 19.1336 15.0504C19.6853 14.6008 19.8429 13.8364 20.158 12.3075L20.6578 9.88275C21.0049 8.14369 21.1784 7.27417 20.7345 6.69708C20.2906 6.12 18.7738 6.12 17.0888 6.12H11.0235M4.95808 6.12H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M7.5 18C8.32843 18 9 18.6716 9 19.5C9 20.3284 8.32843 21 7.5 21C6.67157 21 6 20.3284 6 19.5C6 18.6716 6.67157 18 7.5 18Z" stroke="currentColor" stroke-width="1.5" />
+                        <path d="M16.5 18.0001C17.3284 18.0001 18 18.6716 18 19.5001C18 20.3285 17.3284 21.0001 16.5 21.0001C15.6716 21.0001 15 20.3285 15 19.5001C15 18.6716 15.6716 18.0001 16.5 18.0001Z" stroke="currentColor" stroke-width="1.5" />
+                        <path d="M2 3L2.26121 3.09184C3.5628 3.54945 4.2136 3.77826 4.58584 4.32298C4.95808 4.86771 4.95808 5.59126 4.95808 7.03836V9.76C4.95808 12.7016 5.02132 13.6723 5.88772 14.5862C6.75412 15.5 8.14857 15.5 10.9375 15.5H12M16.2404 15.5C17.8014 15.5 18.5819 15.5 19.1336 15.0504C19.6853 14.6008 19.8429 13.8364 20.158 12.3075L20.6578 9.88275C21.0049 8.14369 21.1784 7.27417 20.7345 6.69708C20.2906 6.12 18.7738 6.12 17.0888 6.12H11.0235M4.95808 6.12H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                     </svg>
                     <span>Giỏ hàng</span>
                     @if (CartItemCount > 0)
@@ -105,65 +112,37 @@
 
 @if (IsProfileDialogOpen && ActiveSession is not null)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" @onclick="CloseProfileDialog">
-        <div class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all" @onclick:stopPropagation>
-            <div class="flex items-center justify-between mb-5">
-                <h3 class="text-lg font-bold leading-6 text-gray-900">Thông tin cá nhân</h3>
-                <button @onclick="CloseProfileDialog" class="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500 transition">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-
-            <div class="flex flex-col items-center mb-6">
-                <div class="flex h-20 w-20 items-center justify-center rounded-full bg-[#2563EB]/10 text-[#2563EB] text-3xl font-bold mb-3">
-                    @(ActiveSession.DisplayName?.Length > 0 ? ActiveSession.DisplayName[0].ToString()?.ToUpperInvariant() : "G")
-                </div>
-                <h4 class="text-xl font-semibold text-gray-900">@ActiveSession.DisplayName</h4>
-                <p class="text-sm text-gray-500">@ActiveSession.Username</p>
-            </div>
-
-            <div class="space-y-4">
-                <div class="flex items-center gap-3 rounded-xl bg-gray-50 p-3">
-                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-gray-500 shadow-sm">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                        </svg>
-                    </div>
-                    <div class="flex-1 overflow-hidden">
-                        <p class="text-xs font-medium text-gray-500">Email</p>
-                        <p class="truncate text-sm font-semibold text-gray-900">@(ActiveSession.Email ?? "Chưa cập nhật")</p>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-3 rounded-xl bg-gray-50 p-3">
-                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-gray-500 shadow-sm">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
-                        </svg>
-                    </div>
-                    <div class="flex-1 overflow-hidden">
-                        <p class="text-xs font-medium text-gray-500">Số điện thoại</p>
-                        <p class="truncate text-sm font-semibold text-gray-900">@(ActiveSession.Phone ?? "Chưa cập nhật")</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-6 flex justify-end">
-                <button @onclick="CloseProfileDialog" class="rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 transition">
-                    Đóng
-                </button>
-            </div>
-        </div>
-    </div>
+    <ProfileDialog 
+        UserProfile="@UserProfile"
+        ActiveSession="@ActiveSession"
+        IsSaving="@IsSaving"
+        IsSuccess="@IsUpdateProfileSuccess"
+        OnClose="@CloseProfileDialog"
+        OnSave="@HandleUpdateProfile" />
 }
+@if (IsProfileDialogOpen && ActiveSession is not null)
+{
+   }
 
+@if (IsChangePasswordDialogOpen)
+{
+    <ChangePasswordDialog 
+        IsSaving="@IsSavingPassword"
+        IsSuccess="@IsChangePasswordSuccess"
+        OnClose="@CloseChangePasswordDialog"
+        OnSave="@HandleChangePassword" />
+}
 @code {
     private int CartItemCount = 0;
     private UserSession? ActiveSession;
     private bool IsUserMenuOpen = false;
     private bool IsProfileDialogOpen = false;
+    private ProfileModel? UserProfile;
+    private bool IsSaving = false;
+    private bool IsUpdateProfileSuccess = false;
+    private bool IsChangePasswordDialogOpen = false;
+    private bool IsSavingPassword = false;
+    private bool IsChangePasswordSuccess = false;
 
     private readonly List<NavigationItem> NavigationItems = new()
     {
@@ -224,15 +203,69 @@
         IsUserMenuOpen = !IsUserMenuOpen;
     }
 
-    private void OpenProfileDialog()
+    private async Task OpenProfileDialog()
     {
         IsUserMenuOpen = false;
         IsProfileDialogOpen = true;
-        JS.InvokeVoidAsync("document.body.classList.add", "overflow-hidden");
+        await JS.InvokeVoidAsync("document.body.classList.add", "overflow-hidden");
+        
+        if (ActiveSession != null)
+        {
+            UserProfile = await UserProfileService.GetProfileAsync(ActiveSession.PersonId);
+            if (UserProfile == null)
+            {
+                // Fallback if profile not found (shouldn't happen if logged in)
+                UserProfile = new ProfileModel
+                {
+                    PersonId = ActiveSession.PersonId,
+                    FullName = ActiveSession.DisplayName,
+                    Email = ActiveSession.Email,
+                    Phone = ActiveSession.Phone
+                };
+            }
+        }
+    }
+
+    private async Task HandleUpdateProfile()
+    {
+        if (UserProfile is null) return;
+
+
+        IsSaving = true;
+        StateHasChanged();
+        try
+        {
+            await UserProfileService.UpdateProfileAsync(UserProfile);
+            await Task.Delay(1000);
+
+
+            IsSaving = false;
+            IsUpdateProfileSuccess = true;
+            StateHasChanged();
+            //Wait 2s 
+            await Task.Delay(1000);
+            // Update local session display
+            if (ActiveSession != null)
+            {
+                ActiveSession.DisplayName = UserProfile.FullName;
+                ActiveSession.Email = UserProfile.Email;
+                ActiveSession.Phone = UserProfile.Phone;
+            }
+            CloseProfileDialog();
+        }
+        catch (Exception ex)
+        {
+             await JS.InvokeVoidAsync("alert", "Đã xảy ra lỗi khi cập nhật: " + ex.Message);
+        }
+        finally
+        {
+            IsSaving = false;
+        }
     }
 
     private void CloseProfileDialog()
     {
+        IsUpdateProfileSuccess = false;
         IsProfileDialogOpen = false;
         JS.InvokeVoidAsync("document.body.classList.remove", "overflow-hidden");
     }
@@ -243,5 +276,48 @@
         IsUserMenuOpen = false;
         NavigationManager.NavigateTo("/", true);
     }
-}
+    private void OpenChangePasswordDialog()
+    {
+        IsUserMenuOpen = false; // Đóng menu
+        IsChangePasswordDialogOpen = true;
+        IsChangePasswordSuccess = false; // Reset trạng thái
+        JS.InvokeVoidAsync("document.body.classList.add", "overflow-hidden");
+    }
 
+    // --- Hàm đóng Dialog ---
+    private void CloseChangePasswordDialog()
+    {
+        IsChangePasswordDialogOpen = false;
+        JS.InvokeVoidAsync("document.body.classList.remove", "overflow-hidden");
+    }
+
+    // --- Hàm xử lý Submit ---
+    private async Task HandleChangePassword(ChangePasswordModel model)
+    {
+        IsSavingPassword = true;
+        try
+        {
+            if(ActiveSession != null)
+            {
+                await AuthService.ChangePasswordAsync(ActiveSession.AccountId, model);
+                await Task.Delay(1000);
+
+                // Nếu thành công:
+                IsSavingPassword = false;
+                IsChangePasswordSuccess = true;
+                StateHasChanged();
+                await Task.Delay(1000); // Đợi hiện nút xanh
+                CloseChangePasswordDialog();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Lỗi: " + ex.Message);
+        }
+        finally
+        {
+            IsSavingPassword = false;
+            IsChangePasswordSuccess = false;
+        }
+    }
+}
