@@ -1,14 +1,14 @@
 ﻿using MySqlConnector;
-using PhoneStoreAdmin.Data;
-using PhoneStoreAdmin.Models;
-using PhoneStoreAdmin.Models.Enums;
-using PhoneStoreAdmin.Repositories.Interfaces;
+using PhoneStoreRepository.Data;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
+using PhoneStoreRepository.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 
-namespace PhoneStoreAdmin.Repositories.Implementations
+namespace PhoneStoreRepository.Repositories.Implementations
 {
     public class InvoiceRepository(DataSource dataSource) : IInvoiceRepository
     {
@@ -172,7 +172,7 @@ namespace PhoneStoreAdmin.Repositories.Implementations
             throw new NotImplementedException();
         }
 
-        public IEnumerable<Invoice> GetByStatus(PhoneStoreAdmin.Models.Enums.InvoiceStatus status)
+        public IEnumerable<Invoice> GetByStatus(PhoneStoreRepository.Models.Enums.InvoiceStatus status)
         {
             throw new NotImplementedException();
         }
