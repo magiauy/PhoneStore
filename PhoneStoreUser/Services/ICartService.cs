@@ -1,13 +1,13 @@
-using PhoneStoreUser.Components.Models;
+using PhoneStoreUser.Components.ViewModels;
 
 namespace PhoneStoreUser.Services;
 
 public interface ICartService
 {
     event Action OnChange;
-    Task AddToCart(Product product, string? imageUrl = null);
-    Task RemoveFromCart(Product product);
-    Task UpdateQuantity(Product product, int quantity);
+    Task AddToCart(ProductVariantViewModel product, string? imageUrl = null);
+    Task RemoveFromCart(ProductVariantViewModel product);
+    Task UpdateQuantity(ProductVariantViewModel product, int quantity);
     Task<List<CartItem>> GetCartItems();
     Task ClearCart();
     Task<decimal> GetTotal();

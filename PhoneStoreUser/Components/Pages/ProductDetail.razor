@@ -1,5 +1,4 @@
 @page "/product/{slug}"
-@using PhoneStoreUser.Components.Models
 @using Microsoft.Extensions.Logging
 @rendermode InteractiveServer
 @inject IProductCatalogService ProductCatalogService
@@ -114,13 +113,13 @@
     [Parameter] public string? Slug { get; set; }
 
     private ProductModel? ProductModel { get; set; }
-    private List<Product> Products { get; set; } = new();
+    private List<ProductVariantViewModel> Products { get; set; } = new();
     private List<ProductAttribute> Attributes { get; set; } = new();
     private List<ProductAttributeValue> AttributeValues { get; set; } = new();
     private Dictionary<int, IReadOnlyList<ProductAttributeOption>> AttributeOptionLookup { get; set; } = new();
     private Dictionary<int, List<AttributeChoice>> AttributeChoices { get; set; } = new();
     private Dictionary<int, AttributeChoice> SelectedAttributes { get; set; } = new();
-    private Product? SelectedProduct { get; set; }
+    private ProductVariantViewModel? SelectedProduct { get; set; }
     private string CurrentImageUrl { get; set; } = string.Empty;
     private bool IsLoading { get; set; } = true;
     private bool ShowToast { get; set; } = false;
@@ -248,8 +247,8 @@
     {
 
 
-        CurrentImageUrl = !string.IsNullOrEmpty(ProductModel?.Image)
-            ? ProductModel!.Image!
+        CurrentImageUrl = !string.IsNullOrEmpty(ProductModel?.DefaultImageUrl)
+            ? ProductModel!.DefaultImageUrl!
             @* : "/images/hero/iphone-17-pm-2.png"; *@
             : $"https://res.cloudinary.com/dstytmxfh/image/upload/e_upscale,w_1200/v1763457477/mobileguzone/{SelectedProduct?.BrandName.ToLower()}/{ProductModel?.Slug}/{SelectedProduct?.Sku}.webp";
     }
@@ -341,7 +340,7 @@
         return valueText?.Trim() ?? string.Empty;
     }
 
-    private void ApplySelectedProductAttributes(Product product, bool replaceExisting)
+    private void ApplySelectedProductAttributes(ProductVariantViewModel product, bool replaceExisting)
     {
         var productValues = AttributeValues.Where(av => av.ProductId == product.Id);
         foreach (var value in productValues)

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Components;
-using PhoneStoreUser.Components.Models;
+using PhoneStoreUser.Components.ViewModels;
 using PhoneStoreUser.Services;
 using System;
 using System.Threading.Tasks;

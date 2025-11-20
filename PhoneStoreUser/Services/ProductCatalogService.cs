@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Repositories.Interfaces;
-using PhoneStoreUser.Components.Models;
+using PhoneStoreUser.Components.ViewModels;
 using PhoneStoreUser.Data;
 
 namespace PhoneStoreUser.Services;
@@ -44,10 +45,9 @@ public class ProductCatalogService : IProductCatalogService
     {
         return ExecuteAsync<IReadOnlyList<ProductModel>>(() =>
         {
-            var models = _productModelRepository.GetAll() ?? Enumerable.Empty<PhoneStoreRepository.Models.ProductModel>();
+            var models = _productModelRepository.GetAll() ?? Enumerable.Empty<ProductModel>();
             return models
-                .Select(MapProductModel)
-                .OrderByDescending(m => m.UpdatedAt ?? m.CreatedAt)
+                .OrderByDescending(m => m.UpdatedAt)
                 .ThenBy(m => m.Name)
                 .ToList()
                 .AsReadOnly();
@@ -64,7 +64,7 @@ public class ProductCatalogService : IProductCatalogService
         return ExecuteAsync<ProductModel?>(() =>
         {
             var model = _productModelRepository.FindBySlug(slug);
-            return model == null ? null : MapProductModel(model);
+            return model;
         }, $"load product model {slug}", (ProductModel?)null);
     }
 
@@ -78,8 +78,7 @@ public class ProductCatalogService : IProductCatalogService
         return ExecuteAsync<IReadOnlyList<ProductModel>>(() =>
         {
             using var context = _dbContextFactory.CreateDbContext();
-            
-            // Find category by name (treating input slug as name)
+
             var category = context.Categories.AsNoTracking()
                 .FirstOrDefault(c => c.Name == categorySlug);
 
@@ -99,59 +98,52 @@ public class ProductCatalogService : IProductCatalogService
                 return Array.Empty<ProductModel>();
             }
 
-            var allModels = _productModelRepository.GetAll() ?? Enumerable.Empty<PhoneStoreRepository.Models.ProductModel>();
-            
+            var allModels = _productModelRepository.GetAll() ?? Enumerable.Empty<ProductModel>();
+
             return allModels
                 .Where(m => modelIds.Contains(m.Id))
-                .Select(MapProductModel)
-                .OrderByDescending(m => m.UpdatedAt ?? m.CreatedAt)
+                .OrderByDescending(m => m.UpdatedAt)
                 .ThenBy(m => m.Name)
                 .ToList()
                 .AsReadOnly();
         }, $"load product models for category {categorySlug}", Array.Empty<ProductModel>());
     }
 
-    public Task<IReadOnlyList<Product>> GetProductsByModelAsync(int modelId)
+    public Task<IReadOnlyList<ProductVariantViewModel>> GetProductsByModelAsync(int modelId)
     {
         if (modelId <= 0)
         {
-            return Task.FromResult<IReadOnlyList<Product>>(Array.Empty<Product>());
+            return Task.FromResult<IReadOnlyList<ProductVariantViewModel>>(Array.Empty<ProductVariantViewModel>());
         }
 
-        return ExecuteAsync<IReadOnlyList<Product>>(() =>
+        return ExecuteAsync<IReadOnlyList<ProductVariantViewModel>>(() =>
         {
             using var context = _dbContextFactory.CreateDbContext();
-            var query = from p in context.Products.AsNoTracking()
-                        where p.ModelId == modelId
-                        join b in context.Brands.AsNoTracking()
-                            on p.BrandId equals (int?)b.Id into pb
-                        from b in pb.DefaultIfEmpty()
-                        select new { P = p, BrandName = b != null ? b.Name : string.Empty };
+            var products = _productRepository.GetByModelId(modelId)?.ToList() ?? new List<Product>();
 
-            var list = query
-                .OrderByDescending(x => x.P.CreatedAt)
-                .ToList()
-                .Select(x => new Product(
-                    x.P.Id,
-                    x.P.Sku,
-                    x.P.Name,
-                    x.P.CategoryId,
-                    x.P.ModelId,
-                    x.P.BrandId,
-                    x.BrandName,
-                    x.P.Price,
-                    x.P.Cost,
-                    x.P.IsSerialTracked,
-                    x.P.WarrantyMonths,
-                    (x.P.Status ?? "active").ToLower(),
-                    x.P.CreatedAt,
-                    null
-                ))
+            var brandIds = products
+                .Select(p => p.BrandId)
+                .Where(id => id.HasValue)
+                .Select(id => id!.Value)
+                .Distinct()
+                .ToList();
+
+            var brandLookup = brandIds.Count == 0
+                ? new Dictionary<int, string>()
+                : context.Brands.AsNoTracking()
+                    .Where(b => brandIds.Contains(b.Id))
+                    .ToDictionary(b => b.Id, b => b.Name);
+
+            var list = products
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new ProductVariantViewModel(
+                    p,
+                    brandLookup.TryGetValue(p.BrandId ?? 0, out var brand) ? brand : string.Empty))
                 .ToList()
                 .AsReadOnly();
 
             return list;
-        }, $"load products for model {modelId}", Array.Empty<Product>());
+        }, $"load products for model {modelId}", Array.Empty<ProductVariantViewModel>());
     }
 
     public Task<IReadOnlyList<ProductAttribute>> GetAttributesForModelAsync(int modelId)
@@ -175,7 +167,7 @@ public class ProductCatalogService : IProductCatalogService
                 try
                 {
                     var attribute = _productAttributeRepository.GetById(attributeId);
-                    attributes.Add(MapProductAttribute(attribute));
+                    attributes.Add(attribute);
                 }
                 catch (Exception ex)
                 {
@@ -209,8 +201,8 @@ public class ProductCatalogService : IProductCatalogService
             foreach (var productId in distinctIds)
             {
                 var attributeValues = _productAttributeValueRepository.GetByProductId(productId)
-                                     ?? Enumerable.Empty<PhoneStoreRepository.Models.ProductAttributeValue>();
-                values.AddRange(attributeValues.Select(MapProductAttributeValue));
+                                     ?? Enumerable.Empty<ProductAttributeValue>();
+                values.AddRange(attributeValues);
             }
 
             return values.AsReadOnly();
@@ -233,7 +225,7 @@ public class ProductCatalogService : IProductCatalogService
         return ExecuteAsync<IReadOnlyDictionary<int, IReadOnlyList<ProductAttributeOption>>>(() =>
         {
             var lookup = _productAttributeOptionRepository.GetByAttributeIds(ids)
-                ?? new Dictionary<int, IReadOnlyList<PhoneStoreRepository.Models.ProductAttributeOption>>();
+                ?? new Dictionary<int, IReadOnlyList<ProductAttributeOption>>();
 
             var result = new Dictionary<int, IReadOnlyList<ProductAttributeOption>>();
             foreach (var id in ids)
@@ -241,7 +233,6 @@ public class ProductCatalogService : IProductCatalogService
                 if (lookup.TryGetValue(id, out var options) && options != null)
                 {
                     var mapped = options
-                        .Select(MapProductAttributeOption)
                         .OrderBy(o => o.SortOrder)
                         .ThenBy(o => o.DisplayValue, StringComparer.OrdinalIgnoreCase)
                         .ToList()
@@ -274,59 +265,4 @@ public class ProductCatalogService : IProductCatalogService
             }
         });
     }
-
-    private static ProductModel MapProductModel(PhoneStoreRepository.Models.ProductModel model) =>
-        new(
-            Id: model.Id,
-            Name: model.Name,
-            Slug: model.Slug,
-            Description: model.Description,
-            Image: model.DefaultImageUrl,
-            CreatedAt: model.CreatedAt,
-            UpdatedAt: model.UpdatedAt);
-
-    private static Product MapProduct(PhoneStoreRepository.Models.Product product) =>
-        new(
-            Id: product.Id,
-            Sku: product.Sku,
-            Name: product.Name,
-            CategoryId: product.CategoryId,
-            ModelId: product.ModelId,
-            BrandId: product.BrandId,
-            BrandName: string.Empty,
-            Price: product.Price,
-            Cost: product.Cost,
-            IsSerialTracked: product.IsSerialTracked,
-            WarrantyMonths: product.WarrantyMonths,
-            Status: product.Status.ToString().ToLowerInvariant(),
-            CreatedAt: product.CreatedAt);
-
-    private static ProductAttribute MapProductAttribute(PhoneStoreRepository.Models.ProductAttribute attribute) =>
-        new(
-            Id: attribute.Id,
-            Name: attribute.Name,
-            DataType: attribute.DataType.ToString().ToLowerInvariant(),
-            Note: attribute.Note);
-
-    private static ProductAttributeValue MapProductAttributeValue(PhoneStoreRepository.Models.ProductAttributeValue attributeValue) =>
-        new(
-            Id: attributeValue.Id,
-            ProductId: attributeValue.ProductId,
-            AttributeId: attributeValue.AttributeId,
-            OptionId: attributeValue.OptionId,
-            ValueText: attributeValue.ValueText,
-            ValueNumber: attributeValue.ValueNumber,
-            ValueDate: attributeValue.ValueDate,
-            ValueBool: attributeValue.ValueBool);
-
-    private static ProductAttributeOption MapProductAttributeOption(PhoneStoreRepository.Models.ProductAttributeOption option) =>
-        new(
-            Id: option.Id,
-            AttributeId: option.AttributeId,
-            DisplayValue: option.DisplayValue,
-            NormalizedValue: option.NormalizedValue,
-            SortOrder: option.SortOrder,
-            IsActive: option.IsActive,
-            CreatedAt: option.CreatedAt,
-            UpdatedAt: option.UpdatedAt);
 }

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.JSInterop;
 using PhoneStoreRepository.Repositories.Interfaces;
-using PhoneStoreUser.Components.Models;
+using PhoneStoreUser.Components.ViewModels;
 
 namespace PhoneStoreUser.Services;
 

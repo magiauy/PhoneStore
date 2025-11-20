@@ -1,4 +1,4 @@
-namespace PhoneStoreUser.Components.Models;
+namespace PhoneStoreUser.Components.ViewModels;
 
 public record BrandBadgeModel(
     string Name,

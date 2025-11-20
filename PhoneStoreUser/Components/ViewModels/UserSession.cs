@@ -1,4 +1,4 @@
-namespace PhoneStoreUser.Components.Models;
+namespace PhoneStoreUser.Components.ViewModels;
 
 public class UserSession
 {

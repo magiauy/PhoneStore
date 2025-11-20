@@ -1,6 +1,6 @@
 using Microsoft.JSInterop;
 using System.Text.Json;
-using PhoneStoreUser.Components.Models;
+using PhoneStoreUser.Components.ViewModels;
 
 namespace PhoneStoreUser.Services;
 
@@ -71,7 +71,7 @@ public async Task EnsureInitialized()
         OnChange?.Invoke();
     }
 
-    public async Task AddToCart(Product product, string? imageUrl = null)
+    public async Task AddToCart(ProductVariantViewModel product, string? imageUrl = null)
     {
         await EnsureInitialized();
         var cartItem = _cart.FirstOrDefault(i => i.Product.Id == product.Id);
@@ -91,7 +91,7 @@ public async Task EnsureInitialized()
         await SaveCart();
     }
 
-    public async Task RemoveFromCart(Product product)
+    public async Task RemoveFromCart(ProductVariantViewModel product)
     {
         await EnsureInitialized();
         var cartItem = _cart.FirstOrDefault(i => i.Product.Id == product.Id);
@@ -102,7 +102,7 @@ public async Task EnsureInitialized()
         }
     }
 
-    public async Task UpdateQuantity(Product product, int quantity)
+    public async Task UpdateQuantity(ProductVariantViewModel product, int quantity)
     {
         await EnsureInitialized();
         var cartItem = _cart.FirstOrDefault(i => i.Product.Id == product.Id);

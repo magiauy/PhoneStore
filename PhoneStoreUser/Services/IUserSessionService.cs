@@ -1,4 +1,4 @@
-using PhoneStoreUser.Components.Models;
+using PhoneStoreUser.Components.ViewModels;
 
 namespace PhoneStoreUser.Services;
 
