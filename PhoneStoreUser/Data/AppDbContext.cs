@@ -10,6 +10,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<PersonEntity> People => Set<PersonEntity>();
     public DbSet<CustomerEntity> Customers => Set<CustomerEntity>();
     public DbSet<AccountEntity> Accounts => Set<AccountEntity>();
+    public DbSet<InvoiceEntity> Invoices => Set<InvoiceEntity>();
+    public DbSet<InvoiceLineEntity> InvoiceLines => Set<InvoiceLineEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -81,6 +83,42 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.PersonId).HasColumnName("person_id");
             entity.Property(e => e.IsActive).HasColumnName("is_active");
         });
+
+        modelBuilder.Entity<InvoiceEntity>(entity =>
+        {
+            entity.ToTable("invoices");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PersonId).HasColumnName("person_id");
+            entity.Property(e => e.PromotionCodeId).HasColumnName("promotion_code_id");
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.InvoiceDate).HasColumnName("invoice_date");
+            entity.Property(e => e.Status).HasColumnName("status");
+            entity.Property(e => e.TotalAmount).HasColumnName("total_amount");
+            entity.Property(e => e.DiscountAmount).HasColumnName("discount_amount");
+            entity.Property(e => e.FinalAmount).HasColumnName("final_amount");
+            entity.Property(e => e.PaymentMethod).HasColumnName("payment_method");
+            entity.Property(e => e.Note).HasColumnName("note").HasMaxLength(255);
+
+            entity.HasOne<PersonEntity>().WithMany().HasForeignKey(e => e.PersonId);
+            entity.HasOne<PersonEntity>().WithMany().HasForeignKey(e => e.CreatedBy);
+        });
+
+        modelBuilder.Entity<InvoiceLineEntity>(entity =>
+        {
+            entity.ToTable("invoice_lines");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.InvoiceId).HasColumnName("invoice_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.Quantity).HasColumnName("quantity");
+            entity.Property(e => e.UnitPrice).HasColumnName("unit_price");
+            entity.Property(e => e.DiscountPct).HasColumnName("discount_pct");
+            entity.Property(e => e.TotalPrice).HasColumnName("total_price");
+
+            entity.HasOne<InvoiceEntity>().WithMany().HasForeignKey(e => e.InvoiceId);
+            entity.HasOne<ProductEntity>().WithMany().HasForeignKey(e => e.ProductId);
+        });
     }
 }
 
@@ -136,4 +174,30 @@ public class AccountEntity
     public DateTime? LastLogin { get; set; }
     public int PersonId { get; set; }
     public bool IsActive { get; set; }
+}
+
+public class InvoiceEntity
+{
+    public int Id { get; set; }
+    public int? PersonId { get; set; }
+    public int? PromotionCodeId { get; set; }
+    public int CreatedBy { get; set; }
+    public DateTime InvoiceDate { get; set; }
+    public string Status { get; set; } = "unpaid";
+    public decimal TotalAmount { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public decimal FinalAmount { get; set; }
+    public string PaymentMethod { get; set; } = "cash";
+    public string? Note { get; set; }
+}
+
+public class InvoiceLineEntity
+{
+    public int Id { get; set; }
+    public int InvoiceId { get; set; }
+    public int ProductId { get; set; }
+    public int Quantity { get; set; } = 1;
+    public decimal UnitPrice { get; set; }
+    public decimal DiscountPct { get; set; }
+    public decimal TotalPrice { get; set; }
 }
