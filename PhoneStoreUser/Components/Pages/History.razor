@@ -111,18 +111,27 @@
 @code {
     private List<InvoiceEntity> orders = new();
     private bool isLoading = true;
+    private bool hasLoadedSession;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender || hasLoadedSession)
+        {
+            return;
+        }
+
         var session = await UserSessionService.InitializeAsync();
+        hasLoadedSession = true;
+
         if (session is null)
         {
-            Navigation.NavigateTo("/login?returnUrl=/history");
+            Navigation.NavigateTo("/login?returnUrl=/history", true);
             return;
         }
 
         orders = await OrderService.GetOrdersAsync(session.PersonId);
         isLoading = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     private static string GetStatusBadgeClass(string status) => status switch
