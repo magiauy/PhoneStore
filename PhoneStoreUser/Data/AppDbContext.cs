@@ -102,6 +102,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
             entity.HasOne<PersonEntity>().WithMany().HasForeignKey(e => e.PersonId);
             entity.HasOne<PersonEntity>().WithMany().HasForeignKey(e => e.CreatedBy);
+            entity.HasMany(e => e.Lines).WithOne(l => l.Invoice).HasForeignKey(l => l.InvoiceId);
         });
 
         modelBuilder.Entity<InvoiceLineEntity>(entity =>
@@ -116,8 +117,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.DiscountPct).HasColumnName("discount_pct");
             entity.Property(e => e.TotalPrice).HasColumnName("total_price");
 
-            entity.HasOne<InvoiceEntity>().WithMany().HasForeignKey(e => e.InvoiceId);
-            entity.HasOne<ProductEntity>().WithMany().HasForeignKey(e => e.ProductId);
+            entity.HasOne(e => e.Invoice).WithMany(e => e.Lines).HasForeignKey(e => e.InvoiceId);
+            entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId);
         });
     }
 }
@@ -189,6 +190,8 @@ public class InvoiceEntity
     public decimal FinalAmount { get; set; }
     public string PaymentMethod { get; set; } = "cash";
     public string? Note { get; set; }
+
+    public List<InvoiceLineEntity> Lines { get; set; } = new();
 }
 
 public class InvoiceLineEntity
@@ -200,4 +203,7 @@ public class InvoiceLineEntity
     public decimal UnitPrice { get; set; }
     public decimal DiscountPct { get; set; }
     public decimal TotalPrice { get; set; }
+
+    public InvoiceEntity? Invoice { get; set; }
+    public ProductEntity? Product { get; set; }
 }
