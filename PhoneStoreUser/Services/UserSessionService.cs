@@ -52,7 +52,6 @@ public class UserSessionService : IUserSessionService, IAsyncDisposable
         try
         {
             var sessionJson = await _authModule!.InvokeAsync<string?>("getUserCookie");
-            Console.WriteLine("Loaded user session from cookie: " + sessionJson);
             if (!string.IsNullOrWhiteSpace(sessionJson))
             {
                 CurrentSession = JsonSerializer.Deserialize<UserSession>(sessionJson, _serializerOptions);
