@@ -6,6 +6,7 @@
 @inject IUserSessionService UserSessionService
 @inject IUserProfileService UserProfileService
 @inject NavigationManager Navigation
+@inject IOrderService OrderService
 
 <!-- Lưu ý: Đảm bảo dự án của bạn đã nhúng FontAwesome trong _Layout.cshtml hoặc index.html -->
 <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> -->
@@ -217,12 +218,26 @@
                         </div>
                     </div>
 
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                            @errorMessage
+                        </div>
+                    }
+
                     <!-- Nút đặt hàng -->
                     @if (isInfoConfirmed)
                     {
-                        <button @onclick="ProcessPayment" class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-lg shadow-md transition transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center text-lg">
-                            <i class="fa-solid fa-cart-shopping mr-2"></i> 
-                            Đặt hàng @(paymentMethod == "PayOS" ? "qua PayOS" : "")
+                        <button @onclick="ProcessPayment" disabled="@isProcessing" class="w-full mt-6 bg-green-600 hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg shadow-md transition transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center text-lg gap-2">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            @if (isProcessing)
+                            {
+                                <span>Đang xử lý...</span>
+                            }
+                            else
+                            {
+                                <span>Đặt hàng @(paymentMethod == "PayOS" ? "qua PayOS" : "")</span>
+                            }
                         </button>
                     }
                     else
@@ -247,6 +262,8 @@
     private bool isInfoConfirmed = false;
     private string paymentMethod = "COD";
     private UserSession? userSession;
+    private bool isProcessing;
+    private string? errorMessage;
 
     private decimal Total => cartItems.Sum(i => i.Product.Price * i.Quantity);
 
@@ -288,32 +305,33 @@
 
     private async Task ProcessPayment()
     {
-        if (paymentMethod == "PayOS")
+        if (userSession is null)
         {
-            // Logic PayOS
-            // await JSRuntime.InvokeVoidAsync("alert", "Chuyển hướng đến PayOS...");
+            Navigation.NavigateTo("/login?returnUrl=/checkout");
+            return;
         }
-        else
+
+        if (!cartItems.Any())
         {
-            // Logic COD
+            return;
+        }
+
+        isProcessing = true;
+        errorMessage = null;
+
+        try
+        {
+            var orderId = await OrderService.CreateOrderAsync(userSession.PersonId, cartItems, checkoutModel, paymentMethod);
             await CartService.ClearCart();
-            Navigation.NavigateTo("/order-success");
+            Navigation.NavigateTo($"/order-success?OrderId={orderId}");
         }
-    }
-
-    public class CheckoutModel
-    {
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập họ tên")]
-        public string? FullName { get; set; }
-
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập số điện thoại")]
-        public string? Phone { get; set; }
-
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập email")]
-        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Email không hợp lệ")]
-        public string? Email { get; set; }
-
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập địa chỉ")]
-        public string? Address { get; set; }
+        catch (Exception)
+        {
+            errorMessage = "Không thể tạo đơn hàng. Vui lòng thử lại.";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
     }
 }
