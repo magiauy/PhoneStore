@@ -1,8 +1,12 @@
 @page "/history"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @using PhoneStoreUser.Services
 @using PhoneStoreUser.Data
 @inject IOrderService OrderService
-@inject IUserSessionService UserSessionService
+@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 
 <div class="min-h-screen bg-gray-50 py-10 font-sans text-slate-800">
@@ -146,27 +150,30 @@
 @code {
     private List<InvoiceEntity> orders = new();
     private bool isLoading = true;
-    private bool hasLoadedSession;
+    private ClaimsPrincipal? currentUser;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        if (!firstRender || hasLoadedSession)
+        if (AuthStateProvider is null)
         {
             return;
         }
 
-        var session = await UserSessionService.InitializeAsync();
-        hasLoadedSession = true;
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        currentUser = authState.User;
 
-        if (session is null)
+        if (currentUser?.Identity?.IsAuthenticated != true)
         {
             Navigation.NavigateTo("/login?returnUrl=/history", true);
             return;
         }
 
-        orders = await OrderService.GetOrdersAsync(session.PersonId);
+        if (int.TryParse(currentUser.FindFirst("person_id")?.Value, out var personId))
+        {
+            orders = await OrderService.GetOrdersAsync(personId);
+        }
+
         isLoading = false;
-        await InvokeAsync(StateHasChanged);
     }
 
     // Helper để lấy Icon cho badge trạng thái
