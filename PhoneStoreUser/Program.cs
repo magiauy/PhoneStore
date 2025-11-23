@@ -9,9 +9,9 @@ using PhoneStoreRepository.Data;
 using PhoneStoreRepository.Repositories.Implementations;
 using PhoneStoreRepository.Repositories.Interfaces;
 using PhoneStoreUser.Components;
+using PhoneStoreUser.Components.Models;
 using PhoneStoreUser.Data;
 using PhoneStoreUser.Services;
-using PhoneStoreUser.Components.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +36,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<CookieAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider, CookieAuthStateProvider>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -82,20 +83,20 @@ app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapPost("/login", async (
-    LoginModel model,
+    [Microsoft.AspNetCore.Mvc.FromForm] LoginModel model,
     HttpContext context,
     IAuthRepository authRepository,
     IPersonRepository personRepository) =>
 {
     if (string.IsNullOrWhiteSpace(model.EmailOrUsername) || string.IsNullOrWhiteSpace(model.Password))
     {
-        return Results.BadRequest();
+        return Results.Redirect("/login?error=missing_credentials");
     }
 
     var account = await authRepository.AuthenticateAsync(model.EmailOrUsername.Trim(), model.Password);
     if (account is null)
     {
-        return Results.Unauthorized();
+        return Results.Redirect("/login?error=invalid_credentials");
     }
 
     var person = await personRepository.GetByIdAsync(account.PersonId);
@@ -117,24 +118,25 @@ app.MapPost("/login", async (
     var principal = new ClaimsPrincipal(identity);
     var authProperties = new AuthenticationProperties
     {
-        IsPersistent = model.RememberMe
+        IsPersistent = model.RememberMe,
+        RedirectUri = "/"
     };
 
     await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
-    return Results.Ok(new
-    {
-        account.Id,
-        account.Username,
-        account.PersonId,
-        person?.FullName,
-        person?.Email
-    });
-}).AllowAnonymous();
+
+    return Results.Redirect("/");
+}).AllowAnonymous().DisableAntiforgery();
 
 app.MapPost("/logout", async (HttpContext context) =>
 {
     await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     return Results.Ok();
+}).RequireAuthorization();
+
+app.MapGet("/logout", async (HttpContext context) =>
+{
+    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    return Results.Redirect("/");
 }).RequireAuthorization();
 
 app.MapRazorComponents<App>()

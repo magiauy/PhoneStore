@@ -1,5 +1,4 @@
 @page "/checkout"
-@attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
@@ -278,13 +277,8 @@
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         currentUser = authState.User;
 
-        if (currentUser?.Identity?.IsAuthenticated != true)
-        {
-            Navigation.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(Navigation.Uri)}", true);
-            return;
-        }
-
-        if (int.TryParse(currentUser.FindFirst("person_id")?.Value, out var parsedPersonId))
+        if (currentUser?.Identity?.IsAuthenticated == true
+            && int.TryParse(currentUser.FindFirst("person_id")?.Value, out var parsedPersonId))
         {
             personId = parsedPersonId;
             var profile = await UserProfileService.GetProfileAsync(parsedPersonId);
@@ -318,12 +312,6 @@
 
     private async Task ProcessPayment()
     {
-        if (personId is null)
-        {
-            Navigation.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(Navigation.Uri)}", true);
-            return;
-        }
-
         if (!cartItems.Any())
         {
             return;
@@ -334,7 +322,7 @@
 
         try
         {
-            var orderId = await OrderService.CreateOrderAsync(personId.Value, cartItems, checkoutModel, paymentMethod);
+            var orderId = await OrderService.CreateOrderAsync(personId, cartItems, checkoutModel, paymentMethod);
             await CartService.ClearCart();
             Navigation.NavigateTo($"/order-success?OrderId={orderId}");
         }

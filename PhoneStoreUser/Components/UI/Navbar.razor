@@ -4,8 +4,7 @@
 @using PhoneStoreUser.Services
 @implements IDisposable
 @inject ICartService CartService
-@inject AuthenticationStateProvider AuthStateProvider
-@inject IHttpClientFactory HttpClientFactory
+@inject CookieAuthStateProvider AuthStateProvider
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
 @inject IUserProfileService UserProfileService
@@ -159,7 +158,6 @@
     private bool IsChangePasswordDialogOpen = false;
     private bool IsSavingPassword = false;
     private bool IsChangePasswordSuccess = false;
-    private HttpClient? _httpClient;
 
     private readonly List<NavigationItem> NavigationItems = new()
     {
@@ -176,24 +174,17 @@
     protected override async Task OnInitializedAsync()
     {
         CartService.OnChange += HandleCartChanged;
-        AuthStateProvider.AuthenticationStateChanged += HandleAuthenticationChanged;
-
-        _httpClient = HttpClientFactory?.CreateClient();
-        if (_httpClient is not null)
-        {
-            _httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
-        }
+        AuthStateProvider.AuthenticationStateChanged += HandleAuthenticationChangedAsync;
 
         await UpdateCartCount();
         await LoadActiveUserAsync();
     }
-
     private void HandleCartChanged()
     {
         _ = UpdateCartCount();
     }
-
-    private async Task HandleAuthenticationChanged(Task<AuthenticationState> task)
+    // Rename to match expected delegate signature: void (Task<AuthenticationState>)
+    private async void HandleAuthenticationChangedAsync(Task<AuthenticationState> task)
     {
         var state = await task;
         await UpdateSessionAsync(state.User);
@@ -207,6 +198,7 @@
         }
 
         var state = await AuthStateProvider.GetAuthenticationStateAsync();
+        Console.WriteLine("Loaded authentication state." + (state.User.Identity?.IsAuthenticated == true ? "User is authenticated." : "User is not authenticated."));
         await UpdateSessionAsync(state.User);
     }
 
@@ -247,7 +239,7 @@
         CartService.OnChange -= HandleCartChanged;
         if (AuthStateProvider is not null)
         {
-            AuthStateProvider.AuthenticationStateChanged -= HandleAuthenticationChanged;
+            AuthStateProvider.AuthenticationStateChanged -= HandleAuthenticationChangedAsync;
         }
     }
 
@@ -318,14 +310,12 @@
         JS.InvokeVoidAsync("document.body.classList.remove", "overflow-hidden");
     }
 
-    private async Task Logout()
+    private Task Logout()
     {
-        if (_httpClient is not null)
-        {
-            await _httpClient.PostAsync("logout", null);
-        }
+        AuthStateProvider.NotifyUserLogout();
         IsUserMenuOpen = false;
-        NavigationManager.NavigateTo("/", true);
+        NavigationManager.NavigateTo("/logout", true);
+        return Task.CompletedTask;
     }
 
     private void OpenChangePasswordDialog()
