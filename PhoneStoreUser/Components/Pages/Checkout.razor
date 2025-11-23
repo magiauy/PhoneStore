@@ -1,9 +1,13 @@
 @page "/checkout"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @using PhoneStoreUser.Services
 @using PhoneStoreUser.Components.Models
 @using PhoneStoreUser.Data
 @inject ICartService CartService
-@inject IUserSessionService UserSessionService
+@inject AuthenticationStateProvider AuthStateProvider
 @inject IUserProfileService UserProfileService
 @inject NavigationManager Navigation
 @inject IOrderService OrderService
@@ -261,7 +265,8 @@
     private CheckoutModel checkoutModel = new();
     private bool isInfoConfirmed = false;
     private string paymentMethod = "COD";
-    private UserSession? userSession;
+    private ClaimsPrincipal? currentUser;
+    private int? personId;
     private bool isProcessing;
     private string? errorMessage;
 
@@ -270,11 +275,19 @@
     protected override async Task OnInitializedAsync()
     {
         cartItems = await CartService.GetCartItems();
-        userSession = await UserSessionService.InitializeAsync();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        currentUser = authState.User;
 
-        if (userSession != null)
+        if (currentUser?.Identity?.IsAuthenticated != true)
         {
-            var profile = await UserProfileService.GetProfileAsync(userSession.PersonId);
+            Navigation.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(Navigation.Uri)}", true);
+            return;
+        }
+
+        if (int.TryParse(currentUser.FindFirst("person_id")?.Value, out var parsedPersonId))
+        {
+            personId = parsedPersonId;
+            var profile = await UserProfileService.GetProfileAsync(parsedPersonId);
             if (profile != null)
             {
                 checkoutModel.FullName = profile.FullName;
@@ -305,9 +318,9 @@
 
     private async Task ProcessPayment()
     {
-        if (userSession is null)
+        if (personId is null)
         {
-            Navigation.NavigateTo("/login?returnUrl=/checkout");
+            Navigation.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(Navigation.Uri)}", true);
             return;
         }
 
@@ -321,7 +334,7 @@
 
         try
         {
-            var orderId = await OrderService.CreateOrderAsync(userSession.PersonId, cartItems, checkoutModel, paymentMethod);
+            var orderId = await OrderService.CreateOrderAsync(personId.Value, cartItems, checkoutModel, paymentMethod);
             await CartService.ClearCart();
             Navigation.NavigateTo($"/order-success?OrderId={orderId}");
         }

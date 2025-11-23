@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using PhoneStoreUser.Components.Models;
-using PhoneStoreUser.Services;
 using System;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 
 namespace PhoneStoreUser.Components.Pages;
@@ -12,7 +15,13 @@ public partial class Login : ComponentBase
     public NavigationManager? NavigationManager { get; set; }
 
     [Inject]
-    public IUserSessionService? SessionService { get; set; }
+    public AuthenticationStateProvider? AuthenticationStateProvider { get; set; }
+
+    [Inject]
+    public IHttpClientFactory? HttpClientFactory { get; set; }
+
+    [Parameter, SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
 
     public LoginModel Model { get; set; } = new();
 
@@ -22,59 +31,65 @@ public partial class Login : ComponentBase
 
     public string? ErrorMessage { get; set; }
 
-    private bool _hasRedirectedFromSession;
+    private HttpClient? _httpClient;
     private bool _isCheckingAuth = true;
+
     protected override async Task OnInitializedAsync()
     {
+        if (NavigationManager is not null)
+        {
+            _httpClient = HttpClientFactory?.CreateClient();
+            if (_httpClient is not null)
+            {
+                _httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
+            }
+        }
+
+        await CheckAuthStatusAsync();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task CheckAuthStatusAsync()
     {
-        if (firstRender)
+        if (AuthenticationStateProvider is null || NavigationManager is null)
         {
-            await CheckAuthStatus();
-        }
-    }
-    private async Task CheckAuthStatus()
-    {
-        if (SessionService is null || NavigationManager is null) return;
-
-        // Gọi InitializeAsync để check cookie dưới client
-        var session = await SessionService.InitializeAsync();
-
-        if (session is not null)
-        {
-            // Nếu đã login => Chuyển hướng ngay lập tức
-            NavigationManager.NavigateTo("/", true);
-        }
-        else
-        {
-            // Nếu chưa login => Cho phép hiện form
             _isCheckingAuth = false;
-            StateHasChanged();
-        }
-    }
-    private async Task HandleValidSubmit()
-    {
-        if (SessionService is null)
-        {
             return;
         }
 
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            NavigationManager.NavigateTo(ReturnUrl ?? "/", true);
+            return;
+        }
+
+        _isCheckingAuth = false;
+    }
+    private async Task HandleValidSubmit()
+    {
         IsLoading = true;
         ErrorMessage = null;
         ShowSuccessMessage = false;
 
         try
         {
-            var session = await SessionService.LoginAsync(
-                Model.EmailOrUsername.Trim(),
-                Model.Password,
-                Model.RememberMe);
+            if (_httpClient is null)
+            {
+                ErrorMessage = "Không thể kết nối máy chủ.";
+                return;
+            }
 
-            if (session is null)
+            var response = await _httpClient.PostAsJsonAsync("login", Model);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 ErrorMessage = "Sai tên đăng nhập hoặc mật khẩu.";
+                return;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                ErrorMessage = "Không thể đăng nhập ngay lúc này. Vui lòng thử lại sau.";
                 return;
             }
 
@@ -82,7 +97,7 @@ public partial class Login : ComponentBase
             StateHasChanged();
 
             await Task.Delay(1500);
-            NavigationManager?.NavigateTo("/",true);
+            NavigationManager?.NavigateTo(ReturnUrl ?? "/", true);
         }
         catch (Exception ex)
         {
@@ -95,18 +110,4 @@ public partial class Login : ComponentBase
         }
     }
 
-    private async Task RedirectIfAuthenticatedAsync()
-    {
-        if (_hasRedirectedFromSession || SessionService is null || NavigationManager is null)
-        {
-            return;
-        }
-
-        var session = SessionService.CurrentSession ?? await SessionService.InitializeAsync();
-        if (session is not null)
-        {
-            _hasRedirectedFromSession = true;
-            NavigationManager.NavigateTo("/", true);
-        }
-    }
 }
