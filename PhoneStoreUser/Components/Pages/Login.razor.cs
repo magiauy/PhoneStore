@@ -43,6 +43,29 @@ public partial class Login : ComponentBase
             {
                 _httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
             }
+
+            var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+            var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+            if (query.TryGetValue("error", out var error))
+            {
+                var errorValue = error.ToString();
+                ErrorMessage = errorValue switch
+                {
+                    "missing_credentials" => "Vui lòng nhập đầy đủ thông tin.",
+                    "invalid_credentials" => "Sai tên đăng nhập hoặc mật khẩu.",
+                    _ => "Đăng nhập thất bại."
+                };
+            }
+
+            if (query.TryGetValue("success", out var successValue))
+            {
+                var successString = successValue.ToString();
+                if (successString.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+                    successString.Equals("1", StringComparison.OrdinalIgnoreCase))
+                {
+                    ShowSuccessMessage = true;
+                }
+            }
         }
 
         await CheckAuthStatusAsync();

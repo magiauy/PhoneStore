@@ -13,8 +13,11 @@ public class OrderService : IOrderService
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<int> CreateOrderAsync(int personId, List<CartItem> items, CheckoutModel model, string paymentMethod)
+    public async Task<int> CreateOrderAsync(int? personId, List<CartItem> items, CheckoutModel model, string paymentMethod)
     {
+        ArgumentNullException.ThrowIfNull(items);
+        ArgumentNullException.ThrowIfNull(model);
+
         if (items.Count == 0)
         {
             throw new InvalidOperationException("Cart is empty");
@@ -22,11 +25,74 @@ public class OrderService : IOrderService
 
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
+        int? resolvedPersonId = personId;
+
+        if (resolvedPersonId is null)
+        {
+            var newPerson = new PersonEntity
+            {
+                FullName = model.FullName ?? string.Empty,
+                Email = model.Email,
+                Phone = model.Phone
+            };
+
+            dbContext.People.Add(newPerson);
+            await dbContext.SaveChangesAsync();
+
+            dbContext.Customers.Add(new CustomerEntity
+            {
+                PersonId = newPerson.Id,
+                Address = model.Address
+            });
+
+            resolvedPersonId = newPerson.Id;
+        }
+        else
+        {
+            var personEntity = await dbContext.People.FirstOrDefaultAsync(p => p.Id == resolvedPersonId.Value);
+            if (personEntity is not null)
+            {
+                if (!string.IsNullOrWhiteSpace(model.FullName))
+                {
+                    personEntity.FullName = model.FullName;
+                }
+
+                if (!string.IsNullOrWhiteSpace(model.Email))
+                {
+                    personEntity.Email = model.Email;
+                }
+
+                if (!string.IsNullOrWhiteSpace(model.Phone))
+                {
+                    personEntity.Phone = model.Phone;
+                }
+            }
+
+            var customerEntity = await dbContext.Customers.FirstOrDefaultAsync(c => c.PersonId == resolvedPersonId.Value);
+            if (customerEntity is not null)
+            {
+                if (!string.IsNullOrWhiteSpace(model.Address))
+                {
+                    customerEntity.Address = model.Address;
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(model.Address))
+            {
+                dbContext.Customers.Add(new CustomerEntity
+                {
+                    PersonId = resolvedPersonId.Value,
+                    Address = model.Address
+                });
+            }
+        }
+
+        var finalPersonId = resolvedPersonId ?? throw new InvalidOperationException("Unable to resolve customer information for the order.");
+
         var totalAmount = items.Sum(i => i.Product.Price * i.Quantity);
         var invoice = new InvoiceEntity
         {
-            PersonId = personId,
-            CreatedBy = personId,
+            PersonId = finalPersonId,
+            CreatedBy = finalPersonId,
             InvoiceDate = DateTime.UtcNow,
             Status = string.Equals(paymentMethod, "PayOS", StringComparison.OrdinalIgnoreCase) ? "paid" : "unpaid",
             TotalAmount = totalAmount,
