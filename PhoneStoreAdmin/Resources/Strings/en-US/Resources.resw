@@ -2851,9 +2851,6 @@ How many devices do you want to add?</value>
   <data name="POStatus_REFUNDED.Content" xml:space="preserve">
     <value>Refunded</value>
   </data>
-  <data name="SearchName.PlaceholderText" xml:space="preserve">
-    <value>Search by name</value>
-  </data>
   <data name="InvoicePaymentLabel.Text" xml:space="preserve">
     <value>Payment Method</value>
   </data>
