@@ -133,15 +133,15 @@ namespace PhoneStoreAdmin
 
                     var mainWindow = new MainWindow();
         
-   // Register MainWindow in ServiceContainer for dependency injection
- ServiceContainer.RegisterSingleton<MainWindow>(mainWindow);
+                    // Register MainWindow in ServiceContainer for dependency injection
+                    ServiceContainer.RegisterSingleton<MainWindow>(mainWindow);
      
-               // Update App.CurrentWindow to point to MainWindow
-       (Application.Current as App)?.SetCurrentWindow(mainWindow);
+                    // Update App.CurrentWindow to point to MainWindow
+                    (Application.Current as App)?.SetCurrentWindow(mainWindow);
   
- mainWindow.Activate();
-         this.Close();
-    }
+                    mainWindow.Activate();
+                    this.Close();
+                }
                 else
                 {
                     Logger.LogAuth(UsernameTextBox.Text, false);
