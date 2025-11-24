@@ -75,6 +75,10 @@ namespace PhoneStoreRepository.Models
             set => _invoiceLineSerials = value ?? new List<InvoiceLineSerial>();
         }
 
+        // Navigation properties
+        public Invoice? Invoice { get; set; }
+        public Product? Product { get; set; }
+
         // Constructors
         public InvoiceLine()
         {

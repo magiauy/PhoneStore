@@ -1,0 +1,299 @@
+@page "/admin/orders-history"
+@using PhoneStoreUser.Components.Layout
+@layout AdminLayout
+@using System.Globalization
+@using PhoneStoreUser.Services
+@using PhoneStoreUser.Components.ViewModels
+@inject IAdminOrderHistoryService AdminOrderHistoryService
+
+<div class="min-h-screen bg-gray-50/50 p-6 font-sans space-y-6">
+
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Thống kê & Lịch sử</h1>
+            <p class="text-sm text-slate-500">Báo cáo doanh thu và tra cứu toàn bộ đơn hàng.</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-3">
+            <button class="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition shadow-sm">
+                <i class="fa-solid fa-file-csv"></i> Xuất Excel
+            </button>
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="text-center text-slate-500 py-8">Đang tải thống kê...</div>
+    }
+    else if (Statistics != null)
+    {
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium uppercase text-slate-500">Tổng doanh thu</p>
+                        <h3 class="mt-1 text-2xl font-bold text-slate-900">@FormatCurrency(Statistics.TotalRevenue)</h3>
+                    </div>
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                        <i class="fa-solid fa-sack-dollar text-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium uppercase text-slate-500">Tổng đơn hàng</p>
+                        <h3 class="mt-1 text-2xl font-bold text-slate-900">@Statistics.TotalOrders</h3>
+                    </div>
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                        <i class="fa-solid fa-cart-shopping text-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium uppercase text-slate-500">Tỷ lệ hoàn tất</p>
+                        <h3 class="mt-1 text-2xl font-bold text-slate-900">@Statistics.CompletionRate%</h3>
+                    </div>
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                        <i class="fa-solid fa-chart-pie text-lg"></i>
+                    </div>
+                </div>
+                <div class="mt-4 w-full bg-slate-100 rounded-full h-1.5">
+                    <div class="bg-violet-500 h-1.5 rounded-full" style="width: @Statistics.CompletionRate%"></div>
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium uppercase text-slate-500">Đơn hủy / Hoàn</p>
+                        <h3 class="mt-1 text-2xl font-bold text-slate-900">@Statistics.CancelledOrRefundedCount</h3>
+                    </div>
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                        <i class="fa-solid fa-ban text-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="flex flex-col border-b border-slate-100 bg-white px-6 py-4 gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <h3 class="font-bold text-slate-900">Chi tiết giao dịch</h3>
+            <div class="flex gap-2">
+                <input @bind="SearchTerm" @onkeyup="HandleSearch" 
+                       class="w-64 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" 
+                       placeholder="Tìm theo Mã đơn, Khách hàng..." />
+                <select @bind="StatusFilter" @bind:after="HandleFilterChange"
+                        class="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none">
+                    <option value="all">Tất cả trạng thái</option>
+                    <option value="completed">Hoàn tất</option>
+                    <option value="delivering">Đang giao</option>
+                    <option value="cancelled">Đã hủy</option>
+                    <option value="pending">Chờ xử lý</option>
+                    <option value="paid">Đã thanh toán</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            @if (IsLoadingOrders)
+            {
+                <div class="text-center text-slate-500 py-8">Đang tải...</div>
+            }
+            else if (OrderHistory != null && OrderHistory.Items.Any())
+            {
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500">
+                        <tr>
+                            <th class="px-6 py-4">Mã đơn</th>
+                            <th class="px-6 py-4">Thời gian</th>
+                            <th class="px-6 py-4">Khách hàng</th>
+                            <th class="px-6 py-4 text-center">Phương thức</th>
+                            <th class="px-6 py-4 text-center">Trạng thái</th>
+                            <th class="px-6 py-4 text-right">Tổng tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach (var order in OrderHistory.Items)
+                        {
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-4 font-mono font-medium text-blue-600">
+                                    #@order.Code
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-col">
+                                        <span class="font-medium text-slate-900">@order.Date.ToString("dd/MM/yyyy")</span>
+                                        <span class="text-xs text-slate-400">@order.Date.ToString("HH:mm")</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 font-medium text-slate-900">
+                                    @order.Customer
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    @if(order.Payment == "bank") {
+                                        <span class="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-1 text-xs text-slate-600">
+                                            <i class="fa-solid fa-building-columns"></i> CK
+                                        </span>
+                                    } else {
+                                        <span class="inline-flex items-center gap-1 rounded bg-slate-100 px-2py-1 text-xs text-slate-600">
+                                            <i class="fa-solid fa-money-bill"></i> COD
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    @{ var style = GetStatusStyle(order.Status); }
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium @style.Class">
+                                        <i class="@style.Icon mr-1"></i> @GetStatusLabel(order.Status)
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right font-bold text-slate-900 tabular-nums">
+                                    @FormatCurrency(order.Total)
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="text-center text-slate-500 py-8">Không có đơn hàng nào</div>
+            }
+        </div>
+        
+        @if (OrderHistory != null && OrderHistory.TotalCount > 0)
+        {
+            <div class="flex items-center justify-between border-t border-slate-200 px-6 py-4">
+                <p class="text-sm text-slate-500">
+                    Hiển thị <span class="font-bold text-slate-900">@((OrderHistory.Page - 1) * OrderHistory.PageSize + 1)-@Math.Min(OrderHistory.Page * OrderHistory.PageSize, OrderHistory.TotalCount)</span> 
+                    trong số <span class="font-bold text-slate-900">@OrderHistory.TotalCount</span> kết quả
+                </p>
+                <div class="flex gap-1">
+                    <button @onclick="() => ChangePage(OrderHistory.Page - 1)" 
+                            disabled="@(OrderHistory.Page <= 1)"
+                            class="rounded border border-slate-200 px-3 py-1 text-sm text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                        &lt;
+                    </button>
+                    
+                    @for (int i = Math.Max(1, OrderHistory.Page - 2); i <= Math.Min(GetTotalPages(), OrderHistory.Page + 2); i++)
+                    {
+                        int pageNum = i; 
+
+                            <button @onclick="() => ChangePage(pageNum)"
+                                    type="button"
+                                    class="@(pageNum == OrderHistory.Page 
+                                             ? "rounded bg-blue-600 border border-blue-600 px-3 py-1 text-sm text-white" 
+                                             : "rounded border border-slate-200 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50")">
+                                @pageNum
+                            </button>
+                    }
+                    
+                    <button @onclick ="() => ChangePage(OrderHistory.Page + 1)" 
+                            disabled="@(OrderHistory.Page >= GetTotalPages())"
+                            class="rounded border border-slate-200 px-3 py-1 text-sm text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                        &gt;
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
+
+@code {
+    private OrderStatisticsDto? Statistics;
+    private OrderHistoryPageDto? OrderHistory;
+    private string SearchTerm = "";
+    private string StatusFilter = "all";
+    private int CurrentPage = 1;
+    private const int PageSize = 10;
+    private bool IsLoading = true;
+    private bool IsLoadingOrders = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStatistics();
+        await LoadOrderHistory();
+    }
+
+    private async Task LoadStatistics()
+    {
+        IsLoading = true;
+        StateHasChanged();
+
+        Statistics = await AdminOrderHistoryService.GetOrderStatisticsAsync(
+            DateTime.UtcNow.AddDays(-30), 
+            DateTime.UtcNow
+        );
+
+        IsLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task LoadOrderHistory()
+    {
+        IsLoadingOrders = true;
+        StateHasChanged();
+
+        OrderHistory = await AdminOrderHistoryService.GetOrderHistoryAsync(
+            CurrentPage,
+            PageSize,
+            string.IsNullOrWhiteSpace(SearchTerm) ? null : SearchTerm,
+            StatusFilter == "all" ? null : StatusFilter
+        );
+
+        IsLoadingOrders = false;
+        StateHasChanged();
+    }
+
+    private async Task HandleSearch()
+    {
+        CurrentPage = 1; // Reset to first page when searching
+        await LoadOrderHistory();
+    }
+
+    private async Task HandleFilterChange()
+    {
+        CurrentPage = 1; // Reset to first page when filtering
+        await LoadOrderHistory();
+    }
+
+    private async Task ChangePage(int page)
+    {
+        if (page < 1 || page > GetTotalPages()) return;
+        
+        CurrentPage = page;
+        await LoadOrderHistory();
+    }
+
+    private int GetTotalPages()
+    {
+        if (OrderHistory == null || OrderHistory.TotalCount == 0) return 1;
+        return (int)Math.Ceiling((double)OrderHistory.TotalCount / PageSize);
+    }
+
+    private string FormatCurrency(decimal value) => string.Format(new CultureInfo("vi-VN"), "₫{0:N0}", value);
+    
+    private string GetStatusLabel(string status) => status switch {
+        "unpaid" => "Chưa thanh toán",
+        "pending" => "Chờ xử lý",
+        "paid" => "Đã thanh toán",
+        "delivering" => "Đang giao",
+        "completed" => "Hoàn tất",
+        "cancelled" => "Đã hủy",
+        _ => status
+    };
+
+    private (string Class, string Icon) GetStatusStyle(string status) => status switch {
+        "completed" => ("bg-emerald-50 text-emerald-600 ring-1 ring-inset ring-emerald-600/20", "fa-solid fa-check"),
+        "pending" => ("bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-600/20", "fa-solid fa-clock"),
+        "paid" => ("bg-cyan-50 text-cyan-600 ring-1 ring-inset ring-cyan-600/20", "fa-solid fa-check-circle"),
+        "delivering" => ("bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-600/20", "fa-solid fa-truck"),
+        "cancelled" => ("bg-slate-50 text-slate-500 ring-1 ring-inset ring-slate-500/20", "fa-solid fa-xmark"),
+        _ => ("bg-gray-50 text-gray-600", "fa-solid fa-circle")
+    };
+}
