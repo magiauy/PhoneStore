@@ -1,8 +1,10 @@
 @page "/admin/orders"
 @using PhoneStoreUser.Components.Layout
 @layout AdminLayout
-
 @using System.Globalization
+@using PhoneStoreUser.Services
+@using PhoneStoreUser.Components.ViewModels
+@inject IAdminOrderService AdminOrderService
 
 <div class="flex h-[calc(100vh-10rem)] gap-6 bg-gray-50/50 p-6 font-sans">
     
@@ -11,70 +13,80 @@
             <h1 class="text-xl font-bold text-slate-900">Xử lý đơn hàng</h1>
             <div class="relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                <input class="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-4 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm" placeholder="Tìm mã đơn, SĐT..." />
+                <input @bind="SearchTerm" @bind:event="oninput" @onkeyup="HandleSearch" class="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-4 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm" placeholder="Tìm mã đơn, SĐT..." />
             </div>
             <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                <button class="whitespace-nowrap rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-sm">Tất cả</button>
-                <button class="whitespace-nowrap rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">Cần xử lý</button>
-                <button class="whitespace-nowrap rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">Đang giao</button>
-                <button class="whitespace-nowrap rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">Hoàn tất</button>
+                <button @onclick='() => FilterByStatus(null)' class="@GetFilterButtonClass(null)">Tất cả</button>
+                <button @onclick='() => FilterByStatus("pending")' class="@GetFilterButtonClass("pending")">Cần xử lý</button>
+                <button @onclick='() => FilterByStatus("delivering")' class="@GetFilterButtonClass("delivering")">Đang giao</button>
+                <button @onclick='() => FilterByStatus("completed")' class="@GetFilterButtonClass("completed")">Hoàn tất</button>
             </div>
         </div>
 
         <div class="flex-1 overflow-y-auto pr-1 space-y-3">
-            @foreach (var invoice in Invoices)
+            @if (IsLoading)
             {
-                bool isSelected = SelectedInvoice?.InvoiceCode == invoice.InvoiceCode;
-                <div @onclick="() => SelectInvoice(invoice)" 
-                     class="cursor-pointer rounded-xl border p-4 transition-all duration-200 hover:shadow-md
-                            @(isSelected ? "border-blue-500 bg-blue-50/50 ring-1 ring-blue-500" : "border-slate-200 bg-white hover:border-blue-300")">
-                    
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="font-mono text-sm font-bold text-slate-900">#@invoice.InvoiceCode</span>
-                        <span class="text-[10px] text-slate-500">@invoice.InvoiceDate.ToString("dd/MM HH:mm")</span>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <p class="text-sm font-medium text-slate-800">@invoice.CustomerName</p>
-                        <div class="flex items-center gap-1 text-xs text-slate-500">
-                             @if(invoice.PaymentMethod == "transfer") { <i class="fa-solid fa-credit-card text-blue-500"></i> }
-                             else { <i class="fa-solid fa-money-bill text-emerald-500"></i> }
-                             <span>@invoice.PaymentMethod</span>
+                <div class="text-center text-slate-500 py-8">Đang tải...</div>
+            }
+            else if (!FilteredInvoices.Any())
+            {
+                <div class="text-center text-slate-500 py-8">Không có đơn hàng nào</div>
+            }
+            else
+            {
+                @foreach (var invoice in FilteredInvoices)
+                {
+                    bool isSelected = SelectedInvoice?.InvoiceId == invoice.InvoiceId;
+                    <div @onclick="() => SelectInvoice(invoice)" 
+                         class="cursor-pointer rounded-xl border p-4 transition-all duration-200 hover:shadow-md
+                                @(isSelected ? "border-blue-500 bg-blue-50/50 ring-1 ring-blue-500" : "border-slate-200 bg-white hover:border-blue-300")">
+                        
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="font-mono text-sm font-bold text-slate-900">#@invoice.InvoiceCode</span>
+                            <span class="text-[10px] text-slate-500">@invoice.InvoiceDate.ToString("dd/MM HH:mm")</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <p class="text-sm font-medium text-slate-800">@invoice.CustomerName</p>
+                            <div class="flex items-center gap-1 text-xs text-slate-500">
+                                 @if(invoice.PaymentMethod == "bank") { <i class="fa-solid fa-credit-card text-blue-500"></i> }
+                                 else { <i class="fa-solid fa-money-bill text-emerald-500"></i> }
+                                 <span>@(invoice.PaymentMethod == "bank" ? "Chuyển khoản" : "COD")</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+                            @{ var statusStyle = GetStatusStyle(invoice.Status); }
+                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium @statusStyle.Class">
+                                <i class="@statusStyle.Icon mr-1"></i> @GetStatusLabel(invoice.Status)
+                            </span>
+                            <span class="text-sm font-bold text-slate-900">@FormatCurrency(invoice.Total)</span>
                         </div>
                     </div>
-
-                    <div class="flex items-center justify-between border-t border-slate-100 pt-3">
-                        @{ var statusStyle = GetStatusStyle(invoice.Status); }
-                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium @statusStyle.Class">
-                            <i class="@statusStyle.Icon mr-1"></i> @GetStatusLabel(invoice.Status)
-                        </span>
-                        <span class="text-sm font-bold text-slate-900">@FormatCurrency(invoice.GrandTotal)</span>
-                    </div>
-                </div>
+                }
             }
         </div>
     </div>
 
     <div class="flex flex-1 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        @if (SelectedInvoice != null)
+        @if (SelectedInvoiceDetail != null)
         {
-            // Kiểm tra trạng thái có cho phép chỉnh sửa không
-            bool isReadOnly = SelectedInvoice.Status == "complete" || SelectedInvoice.Status == "cancelled" || SelectedInvoice.Status == "refunded";
+            bool isReadOnly = SelectedInvoiceDetail.Status == "completed" || SelectedInvoiceDetail.Status == "cancelled" || SelectedInvoiceDetail.Status == "refunded";
 
             <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4 flex justify-between items-center">
                 <div>
                     <div class="flex items-center gap-3">
-                        <h2 class="text-lg font-bold text-slate-900">Đơn hàng #@SelectedInvoice.InvoiceCode</h2>
-                        @if(!string.IsNullOrEmpty(SelectedInvoice.PromoCode))
+                        <h2 class="text-lg font-bold text-slate-900">Đơn hàng #@SelectedInvoiceDetail.InvoiceCode</h2>
+                        @if(!string.IsNullOrEmpty(SelectedInvoiceDetail.PromoCode))
                         {
                             <span class="inline-flex items-center gap-1 rounded-md bg-rose-50 px-2 py-1 text-xs font-medium text-rose-600 border border-rose-100">
-                                <i class="fa-solid fa-tag"></i> @SelectedInvoice.PromoCode
+                                <i class="fa-solid fa-tag"></i> @SelectedInvoiceDetail.PromoCode
                             </span>
                         }
                     </div>
                     <div class="flex gap-4 mt-1 text-xs text-slate-500">
-                         <span class="flex items-center gap-1"><i class="fa-solid fa-user-tie"></i> @SelectedInvoice.CreatedBy</span>
-                         <span class="flex items-center gap-1"><i class="fa-regular fa-clock"></i> @SelectedInvoice.InvoiceDate.ToString("dd/MM/yyyy HH:mm")</span>
+                         <span class="flex items-center gap-1"><i class="fa-solid fa-user-tie"></i> @SelectedInvoiceDetail.CreatedBy</span>
+                         <span class="flex items-center gap-1"><i class="fa-regular fa-clock"></i> @SelectedInvoiceDetail.InvoiceDate.ToString("dd/MM/yyyy HH:mm")</span>
                     </div>
                 </div>
                 <div class="flex gap-2">
@@ -83,7 +95,7 @@
                     </button>
                     @if (!isReadOnly)
                     {
-                        <button class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-600 hover:bg-rose-100 transition">
+                        <button @onclick="HandleCancelOrder" class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-600 hover:bg-rose-100 transition">
                             Hủy đơn
                         </button>
                     }
@@ -91,13 +103,13 @@
             </div>
 
             <div class="flex-1 overflow-y-auto p-6">
-                @if (SelectedInvoice.Status == "paid")
+                @if (SelectedInvoiceDetail.Status == "paid")
                 {
                     <div class="mb-4 flex items-center gap-3 rounded-lg border border-blue-100 bg-blue-50 p-3 text-blue-700">
                         <i class="fa-solid fa-circle-info text-xl"></i>
                         <div>
                             <p class="text-sm font-bold">Đã thanh toán - Cần xuất kho</p>
-                            <p class="text-xs text-blue-600">Khách đã thanh toán online. Vui lòng nhập Serial/IMEI và xác nhận giao hàng.</p>
+                            <p class="text-xs text-blue-600">Khách đã thanh toán online. Vui lòng nhập Serial/IMEI (nếu có) và xác nhận giao hàng.</p>
                         </div>
                     </div>
                 }
@@ -113,7 +125,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        @foreach (var line in SelectedInvoice.Lines)
+                        @foreach (var line in SelectedInvoiceDetail.Lines)
                         {
                             <tr>
                                 <td class="px-3 py-4 align-top">
@@ -132,11 +144,15 @@
                                             <div class="space-y-2">
                                                 @for (int i = 0; i < line.Quantity; i++)
                                                 {
-                                                     <input disabled="@isReadOnly"
-                                                            class="w-full rounded border bg-white px-2 py-1.5 text-xs font-mono text-slate-700 placeholder:text-slate-400 
-                                                                   @(isReadOnly ? "border-slate-200 bg-slate-50 text-slate-500" : "border-amber-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500")" 
-                                                            placeholder="Nhập Serial #@(i+1)..." 
-                                                            value="@(isReadOnly ? "SN-SAMPLE-8888" : "")" /> 
+                                                    int index = i;
+                                                    string existingSerial = line.Serials.Count > i ? line.Serials[i] : "";
+                                                    string serialKey = $"{line.LineId}_{i}";
+                                                    <input disabled="@isReadOnly"
+                                                           value="@GetSerialInput(serialKey, existingSerial)"
+                                                           @onchange='e => HandleSerialInput(line.LineId, serialKey, e.Value?.ToString() ?? "")'
+                                                           class="w-full rounded border bg-white px-2 py-1.5 text-xs font-mono text-slate-700 placeholder:text-slate-400
+                                                            @(isReadOnly ? "border-slate-200 bg-slate-50 text-slate-500" : "border-amber-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500")"
+                                                           placeholder="Nhập Serial #@(i + 1)..." />
                                                 }
                                             </div>
                                         </div>
@@ -157,21 +173,15 @@
                     <div class="w-72 space-y-2">
                         <div class="flex justify-between text-sm text-slate-500">
                             <span>Thành tiền:</span>
-                            <span>@FormatCurrency(SelectedInvoice.Subtotal)</span>
+                            <span>@FormatCurrency(SelectedInvoiceDetail.Subtotal)</span>
                         </div>
                          <div class="flex justify-between text-sm text-rose-500">
                             <span>Giảm giá:</span>
-                            <span>-@FormatCurrency(SelectedInvoice.DiscountAmount)</span>
+                            <span>-@FormatCurrency(SelectedInvoiceDetail.DiscountAmount)</span>
                         </div>
                         <div class="flex justify-between border-t border-dashed border-slate-200 pt-2 text-lg font-bold text-slate-900">
                             <span>Tổng thanh toán:</span>
-                            <span class="text-blue-600">@FormatCurrency(SelectedInvoice.GrandTotal)</span>
-                        </div>
-                        <div class="flex justify-end pt-1">
-                             @{ var paymentBadge = GetStatusStyle(SelectedInvoice.Status == "paid" || SelectedInvoice.Status == "complete" ? "paid" : "unpaid"); }
-                             <span class="text-xs font-medium @paymentBadge.TextClass">
-                                 (@(SelectedInvoice.Status == "paid" || SelectedInvoice.Status == "complete" ? "Đã thanh toán" : "Chưa thanh toán"))
-                             </span>
+                            <span class="text-blue-600">@FormatCurrency(SelectedInvoiceDetail.GrandTotal)</span>
                         </div>
                     </div>
                 </div>
@@ -182,30 +192,27 @@
                      <div class="flex flex-col">
                          <span class="text-xs text-slate-500">Trạng thái hiện tại</span>
                          <div class="flex items-center gap-2">
-                             @{ var currentStyle = GetStatusStyle(SelectedInvoice.Status); }
+                             @{ var currentStyle = GetStatusStyle(SelectedInvoiceDetail.Status); }
                              <i class="@currentStyle.Icon @currentStyle.TextClass"></i>
-                             <span class="font-bold text-sm text-slate-900">@GetStatusLabel(SelectedInvoice.Status)</span>
+                             <span class="font-bold text-sm text-slate-900">@GetStatusLabel(SelectedInvoiceDetail.Status)</span>
                          </div>
                      </div>
 
                      <div class="flex gap-3">
-                         @if (SelectedInvoice.Status == "pending" || SelectedInvoice.Status == "unpaid" || SelectedInvoice.Status == "paid")
+                         @if (SelectedInvoiceDetail.Status == "pending" || SelectedInvoiceDetail.Status == "paid")
                          {
-                             // Các trạng thái này đều cần Xử lý kho -> Giao hàng
-                             <button class="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 hover:shadow-blue-300 transition flex items-center gap-2">
+                             <button @onclick="HandleConfirmDelivery" class="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 transition">
                                  <i class="fa-solid fa-truck-fast"></i> Xác nhận & Giao hàng
                              </button>
                          }
-                         else if (SelectedInvoice.Status == "đang giao hàng")
+                         else if (SelectedInvoiceDetail.Status == "delivering")
                          {
-                             // Đang giao -> Hoàn tất
-                              <button class="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition flex items-center gap-2">
+                              <button @onclick="HandleCompleteOrder" class="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition">
                                  <i class="fa-solid fa-check-double"></i> Xác nhận Hoàn tất
                              </button>
                          }
-                         else if (SelectedInvoice.Status == "complete")
+                         else if (SelectedInvoiceDetail.Status == "completed")
                          {
-                             // Đã xong -> Chỉ xem
                              <span class="flex items-center gap-2 text-emerald-600 font-medium px-4 py-2 bg-emerald-50 rounded-lg border border-emerald-100">
                                  <i class="fa-solid fa-circle-check"></i> Đơn hàng đã hoàn thành
                              </span>
@@ -214,96 +221,216 @@
                  </div>
             </div>
         }
+        else if (IsLoading)
+        {
+            <div class="flex items-center justify-center h-full">
+                <div class="text-slate-500">Đang tải chi tiết...</div>
+            </div>
+        }
+        else
+        {
+            <div class="flex items-center justify-center h-full">
+                <div class="text-slate-500">Chọn đơn hàng để xem chi tiết</div>
+            </div>
+        }
     </div>
 </div>
 
 @code {
-    // --- Mock Data Setup ---
-    protected override void OnInitialized()
+    private List<AdminOrderDto> Invoices = new();
+    private List<AdminOrderDto> FilteredInvoices = new();
+    private AdminOrderDto? SelectedInvoice;
+    private AdminOrderDetailDto? SelectedInvoiceDetail;
+    private string? CurrentStatusFilter = null;
+    private string SearchTerm = "";
+    private bool IsLoading = true;
+    private Dictionary<string, string> SerialInputs = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        // 1. Đơn Paid (Online) -> Cần nhập Serial -> Chờ giao
-        Invoices.Add(new Invoice {
-            InvoiceCode = "INV-PAID-01", CustomerName = "Trần Thanh Tú (Paid)", CreatedBy = "System", 
-            InvoiceDate = DateTime.Now.AddHours(-1), Status = "paid", PaymentMethod = "transfer",
-            Subtotal = 28990000, GrandTotal = 28990000,
-            Lines = new List<InvoiceLine> { new("P1", "iPhone 15 Pro Max", 1, 28990000, 0, 28990000, true) }
-        });
-
-        // 2. Đơn Pending (COD) -> Cần nhập Serial -> Chờ giao
-        Invoices.Add(new Invoice {
-            InvoiceCode = "INV-COD-02", CustomerName = "Lê Văn Luyện (COD)", CreatedBy = "Sale Admin", 
-            InvoiceDate = DateTime.Now.AddHours(-5), Status = "pending", PaymentMethod = "cash",
-            Subtotal = 5000000, GrandTotal = 5000000,
-            Lines = new List<InvoiceLine> { new("P2", "Màn hình LG 27inch", 1, 5000000, 0, 5000000, true) }
-        });
-
-        // 3. Đơn Đang giao -> Cần bấm Hoàn tất
-        Invoices.Add(new Invoice {
-            InvoiceCode = "INV-SHIP-03", CustomerName = "Phạm Quỳnh Anh", CreatedBy = "Kho Q1", 
-            InvoiceDate = DateTime.Now.AddDays(-1), Status = "đang giao hàng", PaymentMethod = "transfer",
-            Subtotal = 1200000, GrandTotal = 1200000,
-            Lines = new List<InvoiceLine> { new("P3", "Chuột Logitech", 2, 600000, 0, 1200000, true) }
-        });
-
-        // 4. Đơn Complete -> Readonly
-        Invoices.Add(new Invoice {
-            InvoiceCode = "INV-DONE-04", CustomerName = "Hoàng Thùy Linh", CreatedBy = "Kho Q1", 
-            InvoiceDate = DateTime.Now.AddDays(-3), Status = "complete", PaymentMethod = "transfer",
-            Subtotal = 32000000, GrandTotal = 32000000,
-            Lines = new List<InvoiceLine> { new("P1", "iPhone 15 Pro Max", 1, 32000000, 0, 32000000, true) }
-        });
-
-        SelectedInvoice = Invoices[0];
+        await LoadOrders();
     }
 
-    // ... (Giữ nguyên các Class Models: Invoice, InvoiceLine) ...
-    public record InvoiceLine(string ProductId, string ProductName, int Quantity, decimal UnitPrice, double DiscountPct, decimal TotalPrice, bool HasSerial);
-    public class Invoice
+    private async Task LoadOrders()
     {
-        public string InvoiceCode { get; set; }
-        public string CustomerName { get; set; }
-        public string PromoCode { get; set; }
-        public string CreatedBy { get; set; }
-        public DateTime InvoiceDate { get; set; }
-        public string Status { get; set; } 
-        public string PaymentMethod { get; set; }
-        public string Note { get; set; }
-        public decimal Subtotal { get; set; }
-        public decimal DiscountAmount { get; set; }
-        public decimal GrandTotal { get; set; }
-        public List<InvoiceLine> Lines { get; set; } = new();
+        IsLoading = true;
+        StateHasChanged();
+
+        Invoices = await AdminOrderService.GetPendingOrdersAsync(CurrentStatusFilter);
+        FilteredInvoices = Invoices;
+        
+        if (SelectedInvoice != null)
+        {
+            // Reload selected invoice if it still exists
+            SelectedInvoice = Invoices.FirstOrDefault(i => i.InvoiceId == SelectedInvoice.InvoiceId);
+            if (SelectedInvoice != null)
+            {
+                await LoadOrderDetail(SelectedInvoice.InvoiceId);
+            }
+        }
+
+        IsLoading = false;
+        StateHasChanged();
     }
-    private List<Invoice> Invoices = new();
-    private Invoice SelectedInvoice;
-    private void SelectInvoice(Invoice inv) => SelectedInvoice = inv;
+
+    private async Task SelectInvoice(AdminOrderDto invoice)
+    {
+        SelectedInvoice = invoice;
+        await LoadOrderDetail(invoice.InvoiceId);
+    }
+
+    private async Task LoadOrderDetail(int invoiceId)
+    {
+        IsLoading = true;
+        StateHasChanged();
+
+        SelectedInvoiceDetail = await AdminOrderService.GetOrderDetailAsync(invoiceId);
+        SerialInputs.Clear(); // Clear previous serial inputs
+
+        IsLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task FilterByStatus(string? status)
+    {
+        CurrentStatusFilter = status;
+        await LoadOrders();
+    }
+
+    private void HandleSearch()
+    {
+        if (string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            FilteredInvoices = Invoices;
+        }
+        else
+        {
+            FilteredInvoices = Invoices.Where(i =>
+                i.InvoiceCode.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                i.CustomerName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (i.CustomerPhone != null && i.CustomerPhone.Contains(SearchTerm))
+            ).ToList();
+        }
+    }
+
+    private string GetFilterButtonClass(string? status)
+    {
+        return CurrentStatusFilter == status
+            ? "whitespace-nowrap rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-sm"
+            : "whitespace-nowrap rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50";
+    }
+
+    private string GetSerialInput(string key, string existingSerial)
+    {
+        return string.IsNullOrWhiteSpace(existingSerial) && SerialInputs.ContainsKey(key) 
+            ? SerialInputs[key] 
+            : existingSerial;
+    }
+
+    private void HandleSerialInput(int lineId, string key, string value)
+    {
+        SerialInputs[key] = value;
+    }
+
+    private async Task HandleConfirmDelivery()
+    {
+        if (SelectedInvoiceDetail == null) return;
+
+        try
+        {
+            // Save all pending serials
+            await SavePendingSerials();
+
+            // Update status to delivering
+            await AdminOrderService.UpdateOrderStatusAsync(SelectedInvoiceDetail.InvoiceId, "delivering");
+
+            // Reload orders
+            await LoadOrders();
+        }
+        catch (Exception ex)
+        {
+            // TODO: Show error message to user
+            Console.WriteLine($"Error confirming delivery: {ex.Message}");
+        }
+    }
+
+    private async Task HandleCompleteOrder()
+    {
+        if (SelectedInvoiceDetail == null) return;
+
+        try
+        {
+            await AdminOrderService.UpdateOrderStatusAsync(SelectedInvoiceDetail.InvoiceId, "completed");
+            await LoadOrders();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error completing order: {ex.Message}");
+        }
+    }
+
+    private async Task HandleCancelOrder()
+    {
+        if (SelectedInvoiceDetail == null) return;
+
+        // TODO: Show dialog to get cancellation reason
+        string reason = "Admin cancelled";
+
+        try
+        {
+            await AdminOrderService.CancelOrderAsync(SelectedInvoiceDetail.InvoiceId, reason);
+            await LoadOrders();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error cancelling order: {ex.Message}");
+        }
+    }
+
+    private async Task SavePendingSerials()
+    {
+        if (SelectedInvoiceDetail == null) return;
+
+        foreach (var line in SelectedInvoiceDetail.Lines.Where(l => l.HasSerial))
+        {
+            for (int i = 0; i < line.Quantity; i++)
+            {
+                string serialKey = $"{line.LineId}_{i}";
+                if (SerialInputs.TryGetValue(serialKey, out var serial) && !string.IsNullOrWhiteSpace(serial))
+                {
+                    try
+                    {
+                        await AdminOrderService.AddSerialToOrderLineAsync(line.LineId, serial, null, null);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error adding serial: {ex.Message}");
+                        // Continue with other serials
+                    }
+                }
+            }
+        }
+    }
+
     private string FormatCurrency(decimal value) => string.Format(new CultureInfo("vi-VN"), "{0:C0}", value);
 
-
-    // --- Logic hiển thị Label ---
     private string GetStatusLabel(string status) => status switch {
         "unpaid" => "Chưa thanh toán",
         "pending" => "Chờ duyệt (COD)",
-        "paid" => "Đã thanh toán (Chờ xử lý)",
-        "đang giao hàng" => "Đang giao hàng",
-        "complete" => "Hoàn tất",
+        "paid" => "Đã thanh toán",
+        "delivering" => "Đang giao hàng",
+        "completed" => "Hoàn tất",
         "cancelled" => "Đã hủy",
         "refunded" => "Đã hoàn tiền",
         _ => status
     };
 
-    // --- Logic hiển thị Màu sắc ---
     private (string Class, string TextClass, string Icon) GetStatusStyle(string status) => status switch {
         "unpaid" => ("bg-slate-100 text-slate-600", "text-slate-600", "fa-solid fa-circle-notch"),
-        
-        // Pending & Paid đều cần sự chú ý để xử lý, nhưng Paid có màu sắc tích cực hơn về tiền bạc
         "pending" => ("bg-amber-50 text-amber-600 border border-amber-100", "text-amber-600", "fa-solid fa-clock"),
-        "paid" => ("bg-cyan-50 text-cyan-700 border border-cyan-100", "text-cyan-700", "fa-solid fa-circle-dollar-to-slot"), 
-        
-        "đang giao hàng" => ("bg-blue-50 text-blue-600 border border-blue-100", "text-blue-600", "fa-solid fa-truck-fast"),
-        
-        // Complete là trạng thái đích
-        "complete" => ("bg-emerald-50 text-emerald-600 border border-emerald-100", "text-emerald-600", "fa-solid fa-check-double"),
-        
+        "paid" => ("bg-cyan-50 text-cyan-700 border border-cyan-100", "text-cyan-700", "fa-solid fa-circle-dollar-to-slot"),
+        "delivering" => ("bg-blue-50 text-blue-600 border border-blue-100", "text-blue-600", "fa-solid fa-truck-fast"),
+        "completed" => ("bg-emerald-50 text-emerald-600 border border-emerald-100", "text-emerald-600", "fa-solid fa-check-double"),
         "cancelled" => ("bg-rose-50 text-rose-600 border border-rose-100", "text-rose-600", "fa-solid fa-ban"),
         _ => ("bg-gray-50 text-gray-600", "text-gray-600", "fa-solid fa-circle")
     };
