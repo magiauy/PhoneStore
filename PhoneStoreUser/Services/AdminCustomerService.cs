@@ -66,7 +66,7 @@ public async Task<PagedResult<AdminCustomerDto>> GetCustomersAsync(int page, int
     // Vì đã có cột LastOrderDate trong bảng Customer, việc sort này cực nhẹ
     var orderedQuery = query
         .OrderByDescending(x => x.Customer.LastOrderDate) 
-        .ThenByDescending(x => x.Person.CreatedAt);
+        .ThenByDescending(x => x.Person.CreatedAt ?? DateTime.MinValue);
 
     var items = await orderedQuery
         .Skip((page - 1) * pageSize)
