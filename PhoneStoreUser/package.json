@@ -4,8 +4,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "tailwind:watch": "postcss ./wwwroot/app.css -o ./wwwroot/app.min.css --watch",
-    "tailwind:build": "postcss ./wwwroot/app.css -o ./wwwroot/app.min.css"
+    "tailwind:watch": "npx @tailwindcss/cli -i ./wwwroot/css/input.css -o ./wwwroot/app.min.css --watch",
+    "tailwind:build": "npx @tailwindcss/cli -i ./wwwroot/css/input.css -o ./wwwroot/app.min.css"
   },
   "keywords": [],
   "author": "",
