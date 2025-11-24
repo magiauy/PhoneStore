@@ -12,6 +12,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<AccountEntity> Accounts => Set<AccountEntity>();
     public DbSet<InvoiceEntity> Invoices => Set<InvoiceEntity>();
     public DbSet<InvoiceLineEntity> InvoiceLines => Set<InvoiceLineEntity>();
+    public DbSet<ProductSerialEntity> ProductSerials => Set<ProductSerialEntity>();
+    public DbSet<InvoiceLineSerialEntity> InvoiceLineSerials => Set<InvoiceLineSerialEntity>();
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -119,6 +122,35 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
             entity.HasOne(e => e.Invoice).WithMany(e => e.Lines).HasForeignKey(e => e.InvoiceId);
             entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId);
+            entity.HasMany(e => e.LineSerials).WithOne(ls => ls.InvoiceLine).HasForeignKey(ls => ls.InvoiceLineId);
+        });
+
+        modelBuilder.Entity<ProductSerialEntity>(entity =>
+        {
+            entity.ToTable("product_serials");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.SerialNumber).HasColumnName("serial_number").HasMaxLength(100);
+            entity.Property(e => e.Imei1).HasColumnName("imei1").HasMaxLength(20);
+            entity.Property(e => e.Imei2).HasColumnName("imei2").HasMaxLength(20);
+            entity.Property(e => e.BatchId).HasColumnName("batch_id");
+            entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(50);
+            entity.Property(e => e.PurchaseOrderLineId).HasColumnName("purchase_order_line_id");
+            entity.Property(e => e.Note).HasColumnName("note").HasMaxLength(255);
+
+            entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId);
+        });
+
+        modelBuilder.Entity<InvoiceLineSerialEntity>(entity =>
+        {
+            entity.ToTable("invoice_line_serials");
+            entity.HasKey(e => new { e.InvoiceLineId, e.ProductSerialId });
+            entity.Property(e => e.InvoiceLineId).HasColumnName("invoice_line_id");
+            entity.Property(e => e.ProductSerialId).HasColumnName("product_serial_id");
+
+            entity.HasOne(e => e.InvoiceLine).WithMany(il => il.LineSerials).HasForeignKey(e => e.InvoiceLineId);
+            entity.HasOne(e => e.ProductSerial).WithMany().HasForeignKey(e => e.ProductSerialId);
         });
     }
 }
@@ -206,4 +238,30 @@ public class InvoiceLineEntity
 
     public InvoiceEntity? Invoice { get; set; }
     public ProductEntity? Product { get; set; }
+    public List<InvoiceLineSerialEntity> LineSerials { get; set; } = new();
 }
+
+public class ProductSerialEntity
+{
+    public int Id { get; set; }
+    public int ProductId { get; set; }
+    public string? SerialNumber { get; set; }
+    public string? Imei1 { get; set; }
+    public string? Imei2 { get; set; }
+    public int? BatchId { get; set; }
+    public string Status { get; set; } = "in_stock";
+    public int? PurchaseOrderLineId { get; set; }
+    public string? Note { get; set; }
+
+    public ProductEntity? Product { get; set; }
+}
+
+public class InvoiceLineSerialEntity
+{
+    public int InvoiceLineId { get; set; }
+    public int ProductSerialId { get; set; }
+
+    public InvoiceLineEntity? InvoiceLine { get; set; }
+    public ProductSerialEntity? ProductSerial { get; set; }
+}
+
