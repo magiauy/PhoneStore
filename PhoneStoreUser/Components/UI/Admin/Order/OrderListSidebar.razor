@@ -41,7 +41,7 @@
                     
                     <div class="flex justify-between items-start mb-2">
                         <span class="font-mono text-sm font-bold text-slate-900">#@invoice.InvoiceCode</span>
-                        <span class="text-[10px] text-slate-500">@invoice.InvoiceDate.ToString("dd/MM HH:mm")</span>
+                        <span class="text-[10px] text-slate-500">@FormatShortTimestamp(invoice.InvoiceDate)</span>
                     </div>
                     
                     <div class="mb-3">
@@ -116,4 +116,6 @@
             ? "whitespace-nowrap rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-sm"
             : "whitespace-nowrap rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50";
     }
+
+    private static string FormatShortTimestamp(DateTime? date) => date?.ToString("dd/MM HH:mm") ?? "-";
 }

@@ -8,6 +8,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ProductEntity> Products => Set<ProductEntity>();
     public DbSet<ProductModelEntity> ProductModels => Set<ProductModelEntity>();
     public DbSet<CategoryEntity> Categories => Set<CategoryEntity>();
+    public DbSet<PersonEntity> Persons => Set<PersonEntity>();
     public DbSet<PersonEntity> People => Set<PersonEntity>();
     public DbSet<CustomerEntity> Customers => Set<CustomerEntity>();
     public DbSet<AccountEntity> Accounts => Set<AccountEntity>();
@@ -67,9 +68,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.ToTable("persons");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Code).HasColumnName("code").HasMaxLength(30);
             entity.Property(e => e.FullName).HasColumnName("full_name").HasMaxLength(255);
             entity.Property(e => e.Email).HasColumnName("email").HasMaxLength(255);
             entity.Property(e => e.Phone).HasColumnName("phone").HasMaxLength(20);
+            entity.Property(e => e.PersonType).HasColumnName("person_type").HasMaxLength(30);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.IsActive).HasColumnName("is_active");
         });
 
         modelBuilder.Entity<CustomerEntity>(entity =>
@@ -261,15 +266,22 @@ public class CategoryEntity
 public class PersonEntity
 {
     public int Id { get; set; }
+    public string? Code { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string? Email { get; set; }
     public string? Phone { get; set; }
+    public string PersonType { get; set; } = "CUSTOMER";
+    public DateTime? CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool? IsActive { get; set; } = true;
 }
 
 public class CustomerEntity
 {
     public int PersonId { get; set; }
     public string? Address { get; set; }
+
+    public DateTime? LastOrderDate { get; set; }
+    public decimal? TotalSpend { get; set; }
 }
 
 public class AccountEntity
@@ -325,7 +337,7 @@ public class InvoiceEntity
     public int? PersonId { get; set; }
     public int? PromotionCodeId { get; set; }
     public int CreatedBy { get; set; }
-    public DateTime InvoiceDate { get; set; }
+    public DateTime? InvoiceDate { get; set; }
     public string Status { get; set; } = "unpaid";
     public decimal TotalAmount { get; set; }
     public decimal DiscountAmount { get; set; }
