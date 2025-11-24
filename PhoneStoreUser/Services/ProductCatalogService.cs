@@ -1,10 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PhoneStoreRepository.Repositories.Interfaces;
 using PhoneStoreUser.Components.Models;
+using PhoneStoreUser.Components.ViewModels;
 using PhoneStoreUser.Data;
 
 namespace PhoneStoreUser.Services;
@@ -78,7 +79,7 @@ public class ProductCatalogService : IProductCatalogService
         return ExecuteAsync<IReadOnlyList<ProductModel>>(() =>
         {
             using var context = _dbContextFactory.CreateDbContext();
-            
+
             // Find category by name (treating input slug as name)
             var category = context.Categories.AsNoTracking()
                 .FirstOrDefault(c => c.Name == categorySlug);
@@ -100,7 +101,7 @@ public class ProductCatalogService : IProductCatalogService
             }
 
             var allModels = _productModelRepository.GetAll() ?? Enumerable.Empty<PhoneStoreRepository.Models.ProductModel>();
-            
+
             return allModels
                 .Where(m => modelIds.Contains(m.Id))
                 .Select(MapProductModel)
@@ -257,6 +258,162 @@ public class ProductCatalogService : IProductCatalogService
 
             return (IReadOnlyDictionary<int, IReadOnlyList<ProductAttributeOption>>)result;
         }, "load attribute options", new Dictionary<int, IReadOnlyList<ProductAttributeOption>>());
+    }
+
+    public Task<IReadOnlyList<Brand>> GetBrandsAsync()
+    {
+        return ExecuteAsync<IReadOnlyList<Brand>>(() =>
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            return context.Brands.AsNoTracking()
+                .OrderBy(b => b.Name)
+                .Select(b => new Brand(b.Id, b.Name))
+                .ToList()
+                .AsReadOnly();
+        }, "load brands", Array.Empty<Brand>());
+    }
+
+    public Task<IReadOnlyList<ProductCategory>> GetCategoriesAsync()
+    {
+        return ExecuteAsync<IReadOnlyList<ProductCategory>>(() =>
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            return context.Categories.AsNoTracking()
+                .OrderBy(c => c.Name)
+                .Select(c => new ProductCategory(c.Id, c.Name, c.ParentId, c.Note))
+                .ToList()
+                .AsReadOnly();
+        }, "load categories", Array.Empty<ProductCategory>());
+    }
+
+    public Task<IReadOnlyList<ProductModel>> GetFilteredProductModelsAsync(IEnumerable<int>? brandIds = null, IEnumerable<int>? categoryIds = null)
+    {
+        return ExecuteAsync<IReadOnlyList<ProductModel>>(() =>
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+
+            var productQuery = context.Products.AsNoTracking()
+                .Where(p => (brandIds == null || !brandIds.Any() || brandIds.Contains(p.BrandId ?? 0)) &&
+                            (categoryIds == null || !categoryIds.Any() || categoryIds.Contains(p.CategoryId)));
+
+            var modelIds = productQuery
+                .Select(p => p.ModelId)
+                .Distinct()
+                .ToList();
+
+            if (modelIds.Count == 0)
+            {
+                return Array.Empty<ProductModel>();
+            }
+
+            var allModels = _productModelRepository.GetAll() ?? Enumerable.Empty<PhoneStoreRepository.Models.ProductModel>();
+
+            return allModels
+                .Where(m => modelIds.Contains(m.Id))
+                .Select(MapProductModel)
+                .OrderByDescending(m => m.UpdatedAt ?? m.CreatedAt)
+                .ThenBy(m => m.Name)
+                .ToList()
+                .AsReadOnly();
+        }, "load filtered product models", Array.Empty<ProductModel>());
+    }
+
+    public Task<IReadOnlyList<ProductCardViewModel>> GetFilteredProductsAsync(string? searchTerm = null, IEnumerable<int>? brandIds = null, IEnumerable<int>? categoryIds = null)
+    {
+        return ExecuteAsync<IReadOnlyList<ProductCardViewModel>>(() =>
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+
+            var currentQuery = from p in context.Products.AsNoTracking()
+                               join pm in context.ProductModels.AsNoTracking() on p.ModelId equals pm.Id
+                               join b in context.Brands.AsNoTracking()
+                                   on p.BrandId equals (int?)b.Id into pb
+                               from b in pb.DefaultIfEmpty()
+                               select new { P = p, Model = pm, BrandName = b != null ? b.Name : string.Empty };
+
+            if (brandIds != null && brandIds.Any())
+            {
+                currentQuery = currentQuery.Where(x => x.P.BrandId.HasValue && brandIds.Contains(x.P.BrandId.Value));
+            }
+
+            if (categoryIds != null && categoryIds.Any())
+            {
+                currentQuery = currentQuery.Where(x => categoryIds.Contains(x.P.CategoryId));
+            }
+
+            var normalizedSearchTerm = searchTerm?.Trim().ToLower();
+
+            if (!string.IsNullOrWhiteSpace(normalizedSearchTerm))
+            {
+                var scoredQuery = currentQuery.Select(x => new
+                {
+                    x.P,
+                    x.Model,
+                    x.BrandName,
+                    RelevanceScore =
+                        (x.P.Sku != null && x.P.Sku.ToLower() == normalizedSearchTerm ? 50 : 0) +
+
+                        (x.P.Name != null && x.P.Name.ToLower().StartsWith(normalizedSearchTerm) ? 30 : 0) +
+
+                        (x.P.Name != null && x.P.Name.ToLower().Contains(normalizedSearchTerm) ? 10 : 0) +
+
+                        (x.Model.Name != null && x.Model.Name.ToLower().Contains(normalizedSearchTerm) ? 5 : 0) +
+
+                        (x.P.Sku != null && x.P.Sku.ToLower().Contains(normalizedSearchTerm) && x.P.Sku.ToLower() != normalizedSearchTerm ? 5 : 0) +
+
+                        (x.BrandName != null && x.BrandName.ToLower().Contains(normalizedSearchTerm) ? 3 : 0)
+                });
+
+                scoredQuery = scoredQuery.Where(x => x.RelevanceScore > 0);
+
+                return scoredQuery
+                    .OrderByDescending(x => x.RelevanceScore)
+                    .ThenByDescending(x => x.P.CreatedAt)
+                    .Select(x => new ProductCardViewModel(
+                        x.P.Id,
+                        x.P.Sku,
+                        x.P.Name,
+                        x.P.CategoryId,
+                        x.P.ModelId,
+                        x.P.BrandId,
+                        x.BrandName,
+                        x.P.Price,
+                        x.P.Cost,
+                        x.P.IsSerialTracked,
+                        x.P.WarrantyMonths,
+                        (x.P.Status ?? "active").ToLower(),
+                        x.P.CreatedAt,
+                        null,
+                        x.Model.Slug
+                    ))
+                    .ToList()
+                    .AsReadOnly();
+            }
+            else
+            {
+                return currentQuery
+                    .OrderByDescending(x => x.P.CreatedAt)
+                    .Select(x => new ProductCardViewModel(
+                        x.P.Id,
+                        x.P.Sku,
+                        x.P.Name,
+                        x.P.CategoryId,
+                        x.P.ModelId,
+                        x.P.BrandId,
+                        x.BrandName,
+                        x.P.Price,
+                        x.P.Cost,
+                        x.P.IsSerialTracked,
+                        x.P.WarrantyMonths,
+                        (x.P.Status ?? "active").ToLower(),
+                        x.P.CreatedAt,
+                        null,
+                        x.Model.Slug
+                    ))
+                    .ToList()
+                    .AsReadOnly();
+            }
+        }, "load filtered products", Array.Empty<ProductCardViewModel>());
     }
 
     private Task<T> ExecuteAsync<T>(Func<T> action, string operationDescription, T? fallback)
