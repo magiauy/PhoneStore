@@ -1,0 +1,197 @@
+﻿@page "/products"
+@inject IProductCatalogService ProductCatalogService
+@using PhoneStoreUser.Components.ViewModels
+@using Microsoft.AspNetCore.WebUtilities
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<PageTitle>Sản phẩm</PageTitle>
+
+<div class="container mx-auto px-4 py-0">
+    <div class="text-3xl font-bold text-gray-900 mb-8">Sản phẩm</div>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Filters Sidebar -->
+        <div class="lg:w-1/4">
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <h2 class="text-lg font-semibold mb-4">Bộ lọc</h2>
+
+                <!-- Brand Filter -->
+                <div class="mb-6">
+                    <h3 class="font-medium mb-2">Thương hiệu</h3>
+                    <div class="space-y-2 max-h-48 overflow-y-auto pl-3">
+                        @foreach (var brand in Brands)
+                        {
+                            <label class="flex items-center">
+                                <input type="checkbox"
+                                       checked="@SelectedBrandIds.Contains(brand.Id)"
+                                       @onchange="async (e) => await OnBrandChanged(brand.Id, (bool)e.Value!)"
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                                <span class="ml-2 text-sm">@brand.Name</span>
+                            </label>
+                        }
+                    </div>
+                </div>
+
+                <!-- Category Filter -->
+                <div class="mb-6">
+                    <h3 class="font-medium mb-2">Danh mục</h3>
+                    <div class="space-y-2 max-h-48 overflow-y-auto pl-3">
+                        @foreach (var category in Categories)
+                        {
+                            <label class="flex items-center">
+                                <input type="checkbox"
+                                       checked="@SelectedCategoryIds.Contains(category.Id)"
+                                       @onchange="async (e) => await OnCategoryChanged(category.Id, (bool)e.Value!)"
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                                <span class="ml-2 text-sm">@category.Name</span>
+                            </label>
+                        }
+                    </div>
+                </div>
+
+                <button @onclick="ClearFilters"
+                        class="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 transition">
+                    Xóa bộ lọc
+                </button>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="lg:w-3/4">
+            @if (IsLoading)
+            {
+                <div class="flex justify-center items-center h-64">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+            }
+            else if (!ProductList.Any())
+            {
+                <div class="text-center py-12">
+                    <p class="text-gray-500">Không tìm thấy sản phẩm nào.</p>
+                </div>
+            }
+            else
+            {
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                    @foreach (var product in ProductList)
+                    {
+                        <ProductCardDetail Product="product" />
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private IReadOnlyList<Brand> Brands { get; set; } = Array.Empty<Brand>();
+    private IReadOnlyList<ProductCategory> Categories { get; set; } = Array.Empty<ProductCategory>();
+    private IReadOnlyList<ProductCardViewModel> ProductList { get; set; } = Array.Empty<ProductCardViewModel>();
+    private HashSet<int> SelectedBrandIds { get; set; } = new();
+    private HashSet<int> SelectedCategoryIds { get; set; } = new();
+    private bool IsLoading { get; set; } = true;
+    private string SearchTerm { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBrandsAndCategories();
+        ParseQueryParameters();
+        await LoadProducts();
+
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        ParseQueryParameters();
+        await LoadProducts();
+    }
+
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        ParseQueryParameters();
+        await LoadProducts();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+    private async Task LoadBrandsAndCategories()
+    {
+        Brands = await ProductCatalogService.GetBrandsAsync();
+        Categories = await ProductCatalogService.GetCategoriesAsync();
+    }
+
+    private async Task LoadProducts()
+    {
+        IsLoading = true;
+        StateHasChanged();
+
+        var brandIds = SelectedBrandIds.Any() ? SelectedBrandIds : null;
+        var categoryIds = SelectedCategoryIds.Any() ? SelectedCategoryIds : null;
+
+        ProductList = await ProductCatalogService.GetFilteredProductsAsync(SearchTerm, brandIds, categoryIds);
+
+        IsLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task OnSelectedBrandsChanged(HashSet<int> value)
+    {
+        SelectedBrandIds = value;
+        await LoadProducts();
+    }
+
+    private async Task OnSelectedCategoriesChanged(HashSet<int> value)
+    {
+        SelectedCategoryIds = value;
+        await LoadProducts();
+    }
+
+    private async Task ClearFilters()
+    {
+        SelectedBrandIds.Clear();
+        SelectedCategoryIds.Clear();
+        await LoadProducts();
+    }
+
+    private async Task OnBrandChanged(int brandId, bool isChecked)
+    {
+        if (isChecked)
+        {
+            SelectedBrandIds.Add(brandId);
+        }
+        else
+        {
+            SelectedBrandIds.Remove(brandId);
+        }
+        await LoadProducts();
+    }
+
+    private async Task OnCategoryChanged(int categoryId, bool isChecked)
+    {
+        if (isChecked)
+        {
+            SelectedCategoryIds.Add(categoryId);
+        }
+        else
+        {
+            SelectedCategoryIds.Remove(categoryId);
+        }
+        await LoadProducts();
+    }
+
+    private void ParseQueryParameters()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("search", out var values) && values.Count > 0)
+        {
+            SearchTerm = values[0];
+        }
+    }
+}

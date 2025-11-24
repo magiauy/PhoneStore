@@ -17,7 +17,7 @@ namespace PhoneStoreRepository.Data
             var user = dbConfig["User"];
             var password = dbConfig["Password"];
 
-            _connectionString = $"Server={host};Port={port};Database={database};User ID={user};Password={password};SslMode=Preferred;";
+            _connectionString = $"Server={host};Port={port};Database={database};User ID={user};Password={password};SslMode=Preferred;ConvertZeroDateTime=True;";
             Console.WriteLine(_connectionString);
         }
 
