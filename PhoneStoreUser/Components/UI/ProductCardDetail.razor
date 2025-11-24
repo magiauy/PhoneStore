@@ -169,7 +169,7 @@
         }
 
         var queryString = string.Join("&", queryParams);
-        return $"/product/{Product.Slug}{(string.IsNullOrEmpty(queryString) ? "" : $"?{queryString}")}";
+        return $"/product/{Product.Slug}/{Product.Sku}";
     }
 }
 
