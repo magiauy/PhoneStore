@@ -3,7 +3,7 @@ namespace PhoneStoreUser.Components.ViewModels;
 public record AdminOrderDetailDto(
     int InvoiceId,
     string InvoiceCode,
-    DateTime InvoiceDate,
+    DateTime? InvoiceDate,
     string CustomerName,
     string? CustomerPhone,
     string? CustomerEmail,
