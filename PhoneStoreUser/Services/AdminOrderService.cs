@@ -271,4 +271,37 @@ public class AdminOrderService : IAdminOrderService
             _ => new List<string>()
         };
     }
+    public async Task<SerialValidationResult> ValidateSerialAsync(string serial, int productId)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return new SerialValidationResult(false, "Serial cannot be empty");
+        }
+
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        // 1. Check if serial exists
+        var productSerial = await dbContext.ProductSerials
+            .Include(ps => ps.Product)
+            .FirstOrDefaultAsync(ps => ps.SerialNumber == serial || ps.Imei1 == serial || ps.Imei2 == serial);
+
+        if (productSerial == null)
+        {
+            return new SerialValidationResult(false, "Serial không tồn tại trong hệ thống");
+        }
+
+        // 2. Check if serial belongs to the correct product
+        if (productSerial.ProductId != productId)
+        {
+            return new SerialValidationResult(false, $"Serial này thuộc về sản phẩm khác: {productSerial.Product?.Name ?? "Unknown"}");
+        }
+
+        // 3. Check status
+        if (productSerial.Status != "in_stock")
+        {
+            return new SerialValidationResult(false, $"Serial không khả dụng (Trạng thái: {productSerial.Status})");
+        }
+
+        return new SerialValidationResult(true, "Hợp lệ");
+    }
 }
