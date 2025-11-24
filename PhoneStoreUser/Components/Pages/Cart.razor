@@ -12,21 +12,21 @@
 <div class="container mx-auto px-4 py-8">
     <h1 class="text-3xl font-bold mb-6">Giỏ hàng của bạn</h1>
 
-        @if (_isLoading)
-        {
-            <div class="text-center py-10">
-                <p class="text-gray-500">Đang tải giỏ hàng...</p>
-            </div>
-        }
-        else if (cartItems == null || !cartItems.Any())
-        {
-            <div class="text-center py-10">
-                <p class="text-xl text-gray-600">Giỏ hàng của bạn đang trống.</p>
-                <a href="/" class="mt-4 inline-block bg-[#2563EB] text-white px-6 py-2 rounded-xl hover:bg-blue-700 transition">Tiếp tục mua sắm</a>
-            </div>
-        }
-        else
-        {
+    @if (_isLoading)
+    {
+        <div class="text-center py-10">
+            <p class="text-gray-500">Đang tải giỏ hàng...</p>
+        </div>
+    }
+    else if (cartItems == null || !cartItems.Any())
+    {
+        <div class="text-center py-10">
+            <p class="text-xl text-gray-600">Giỏ hàng của bạn đang trống.</p>
+            <a href="/" class="mt-4 inline-block bg-[#2563EB] text-white px-6 py-2 rounded-xl hover:bg-blue-700 transition">Tiếp tục mua sắm</a>
+        </div>
+    }
+    else
+    {
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-4">
                 @foreach (var item in cartItems)
@@ -72,7 +72,7 @@
                     <span>Tổng cộng</span>
                     <span class="text-[#2563EB]">@totalPrice.ToString("N0", new CultureInfo("vi-VN")) ₫</span>
                 </div>
-                <button class="w-full bg-[#2563EB] text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition shadow-lg shadow-blue-500/30">
+                <button @onclick="ProceedToCheckout" class="w-full bg-[#2563EB] text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition shadow-lg shadow-blue-500/30">
                     Tiến hành thanh toán
                 </button>
                 <a href="/" class="block text-center mt-4 text-sm text-gray-500 hover:text-[#2563EB] transition">Tiếp tục mua sắm</a>
@@ -84,13 +84,10 @@
 @code {
     private List<CartItem> cartItems = new();
     private decimal totalPrice;
-    // Thêm biến này để tránh hiện "Giỏ hàng trống" khi đang load
     private bool _isLoading = true; 
 
     protected override void OnInitialized()
     {
-        // Đăng ký sự kiện ngay khi Component được tạo (kể cả Prerender)
-        // Để đảm bảo không bỏ lỡ bất kỳ thay đổi nào
         CartService.OnChange += HandleCartChanged;
     }
 
@@ -98,18 +95,13 @@
     {
         if (firstRender)
         {
-            // Chỉ chạy duy nhất 1 lần khi Browser đã sẵn sàng
             await CartService.EnsureInitialized();
-            
-            // Load dữ liệu lần đầu
             await LoadData();
-            
             _isLoading = false;
-            StateHasChanged(); // Báo hiệu để vẽ lại UI
+            StateHasChanged();
         }
     }
 
-    // Hàm xử lý tập trung: Chỉ cần gọi hàm này khi Service báo có thay đổi
     private async void HandleCartChanged()
     {
         await LoadData();
@@ -118,7 +110,6 @@
 
     private async Task LoadData()
     {
-        // Chỉ lấy dữ liệu nếu Service đã sẵn sàng
         if (CartService.IsInitialized) 
         {
             cartItems = await CartService.GetCartItems();
@@ -128,8 +119,6 @@
 
     private async Task UpdateQuantity(CartItem item, int newQuantity)
     {
-        // Chỉ gọi Service, không cần gọi RefreshCart thủ công nữa
-        // Service sẽ bắn event OnChange -> kích hoạt HandleCartChanged
         await CartService.UpdateQuantity(item.Product, newQuantity);
     }
 
@@ -143,9 +132,13 @@
         await CartService.ClearCart();
     }
 
+    private void ProceedToCheckout()
+    {
+        NavigationManager.NavigateTo("/checkout");
+    }
+
     public void Dispose()
     {
-        // Hủy đăng ký để tránh Memory Leak
         CartService.OnChange -= HandleCartChanged;
     }
 }

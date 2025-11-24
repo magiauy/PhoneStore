@@ -1,0 +1,31 @@
+@page "/order-cancel"
+@inject NavigationManager Navigation
+
+<div class="container mx-auto p-8 max-w-2xl text-center">
+    <div class="bg-white p-10 rounded-2xl shadow-lg border border-gray-100">
+        <div class="mb-6">
+            <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                <i class="fa-solid fa-xmark text-5xl text-red-600"></i>
+            </div>
+        </div>
+        
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">Đặt Hàng Thất Bại</h1>
+        
+        <p class="text-gray-600 mb-8 text-lg">
+            Rất tiếc, đơn hàng của bạn chưa được hoàn tất hoặc thanh toán đã bị hủy. <br/>
+            Vui lòng thử lại hoặc liên hệ với chúng tôi nếu bạn cần hỗ trợ.
+        </p>
+
+        <div class="space-y-3">
+            <a href="/checkout" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition transform hover:scale-105">
+                <i class="fa-solid fa-rotate-right mr-2"></i> Thử lại thanh toán
+            </a>
+            <a href="/cart" class="block w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3 px-6 rounded-lg transition">
+                <i class="fa-solid fa-cart-shopping mr-2"></i> Quay lại giỏ hàng
+            </a>
+        </div>
+    </div>
+</div>
+
+@code {
+}
