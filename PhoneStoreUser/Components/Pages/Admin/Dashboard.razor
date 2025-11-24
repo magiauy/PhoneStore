@@ -1,111 +1,174 @@
 @page "/admin"
 @layout AdminLayout
 
-<div class="space-y-4">
-    <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
+<div class="space-y-6 bg-gray-50/50 p-6 min-h-screen font-sans">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Dashboard</h1>
+            <p class="text-slate-500 text-sm">Tổng quan hiệu suất kinh doanh hôm nay.</p>
+        </div>
+        <div class="flex gap-2">
+            <button class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition">
+                <i class="fa-solid fa-download mr-2"></i>Xuất báo cáo
+            </button>
+            <button class="px-4 py-2 bg-slate-900 rounded-lg text-sm font-medium text-white hover:bg-slate-800 shadow-sm transition">
+                <i class="fa-solid fa-plus mr-2"></i>Tạo đơn mới
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         @foreach (var stat in Stats)
         {
-            <article class="rounded-xl border bg-white p-3 shadow-sm hover:shadow-md transition">
-                <div class="flex items-center justify-between">
+            <div class="relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm border border-slate-100 group hover:shadow-md transition-all duration-300">
+                <div class="flex items-start justify-between">
                     <div>
-                        <p class="text-xs text-gray-500">@stat.Label</p>
-                        <h3 class="text-xl font-semibold text-gray-900">@stat.Value</h3>
+                        <p class="text-sm font-medium text-slate-500">@stat.Label</p>
+                        <h3 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 tabular-nums">@stat.Value</h3>
                     </div>
-                    <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600/10 text-blue-600">
-                        <i class="@stat.Icon"></i>
+                    <div class="@stat.ColorClass flex h-10 w-10 items-center justify-center rounded-xl bg-opacity-10 text-opacity-100 transition-transform group-hover:scale-110">
+                        <i class="@stat.Icon text-lg"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-xs">
+                    <span class="@(stat.IsPositive ? "text-emerald-600 bg-emerald-50" : "text-rose-600 bg-rose-50") inline-flex items-center rounded-md px-2 py-1 font-medium ring-1 ring-inset ring-opacity-20">
+                        @if(stat.IsPositive) { <i class="fa-solid fa-arrow-up mr-1 text-[10px]"></i> } 
+                        else { <i class="fa-solid fa-arrow-down mr-1 text-[10px]"></i> }
+                        @stat.Trend
                     </span>
                 </div>
-                <p class="mt-2 text-xs text-gray-500">@stat.Description</p>
-            </article>
+            </div>
         }
     </div>
 
-    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <section class="lg:col-span-2 rounded-xl border bg-white p-4 shadow-sm">
-            <div class="flex items-center justify-between mb-3">
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900">Đơn hàng mới</h2>
-                    <p class="text-sm text-gray-500">Theo dõi các đơn chờ xác nhận</p>
-                </div>
-                <button class="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:border-blue-600 hover:text-blue-600 transition">Xem tất cả</button>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-sm">
-                    <thead class="bg-gray-50 text-gray-700 text-sm font-medium">
-                        <tr>
-                            <th class="p-3 text-left">Mã đơn</th>
-                            <th class="p-3 text-left">Khách hàng</th>
-                            <th class="p-3 text-left">Giá trị</th>
-                            <th class="p-3 text-left">Trạng thái</th>
-                            <th class="p-3 text-right">Ngày</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var order in LatestOrders)
-                        {
-                            <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                <td class="p-3 font-semibold text-gray-900">#@order.Code</td>
-                                <td class="p-3">@order.Customer</td>
-                                <td class="p-3 text-blue-600 font-semibold">@order.Total</td>
-                                <td class="p-3">
-                                    <span class="rounded-full bg-blue-600/10 text-blue-600 px-2.5 py-1 text-xs font-medium">@order.Status</span>
-                                </td>
-                                <td class="p-3 text-right text-gray-500">@order.Date</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="rounded-xl border bg-white p-4 shadow-sm space-y-3">
-            <div>
-                <h2 class="text-lg font-semibold text-gray-900">Nhiệm vụ nhanh</h2>
-                <p class="text-sm text-gray-500">Tác vụ ưu tiên trong ngày</p>
-            </div>
-            <div class="space-y-2">
-                @foreach (var task in QuickActions)
-                {
-                    <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 hover:border-blue-600 transition">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        
+        <div class="lg:col-span-2 flex flex-col gap-4">
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                    <div class="flex gap-2 items-center">
+                         <div class="h-8 w-1 bg-blue-600 rounded-full"></div>
                         <div>
-                            <p class="text-sm font-medium text-gray-900">@task.Title</p>
-                            <p class="text-xs text-gray-500">@task.Note</p>
+                            <h2 class="text-base font-semibold text-slate-900">Đơn hàng mới nhất</h2>
                         </div>
-                        <span class="text-xs rounded-full bg-gray-100 px-2 py-1 text-gray-600">@task.Priority</span>
                     </div>
-                }
+                    <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline">Xem tất cả</a>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50/50 text-xs uppercase font-semibold text-slate-500">
+                            <tr>
+                                <th class="px-5 py-4">Mã đơn</th>
+                                <th class="px-5 py-4">Khách hàng</th>
+                                <th class="px-5 py-4 text-right">Giá trị</th>
+                                <th class="px-5 py-4 text-center">Trạng thái</th>
+                                <th class="px-5 py-4 text-right">Ngày</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach (var order in LatestOrders)
+                            {
+                                <tr class="hover:bg-slate-50/80 transition-colors cursor-pointer group">
+                                    <td class="px-5 py-4 font-medium text-slate-900 group-hover:text-blue-600 transition">
+                                        #@order.Code
+                                    </td>
+                                    <td class="px-5 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 ring-2 ring-white">
+                                                @order.Customer.Substring(0, 1)
+                                            </div>
+                                            <span class="font-medium text-slate-700">@order.Customer</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-5 py-4 text-right font-semibold text-slate-900 tabular-nums">
+                                        @order.Total
+                                    </td>
+                                    <td class="px-5 py-4 text-center">
+                                        @{
+                                            var statusColor = order.Status == "Xác nhận" 
+                                                ? "bg-emerald-50 text-emerald-700 ring-emerald-600/20" 
+                                                : "bg-amber-50 text-amber-700 ring-amber-600/20";
+                                        }
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset @statusColor">
+                                            @order.Status
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-4 text-right text-slate-400 text-xs">@order.Date</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <button class="w-full rounded-lg bg-blue-600 text-white py-2 text-sm font-semibold hover:bg-blue-700 transition">Tạo nhiệm vụ</button>
-        </section>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 h-full">
+                <div class="mb-5">
+                    <h2 class="text-base font-semibold text-slate-900">Nhiệm vụ nhanh</h2>
+                    <p class="text-xs text-slate-500 mt-1">Các tác vụ cần xử lý trong phiên làm việc.</p>
+                </div>
+
+                <div class="space-y-3">
+                    @foreach (var task in QuickActions)
+                    {
+                        var priorityColor = task.Priority switch {
+                            "Cao" => "bg-rose-500",
+                            "Trung bình" => "bg-amber-500",
+                            _ => "bg-emerald-500"
+                        };
+
+                        <div class="group relative flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3 hover:bg-white hover:border-blue-200 hover:shadow-sm transition-all duration-200 cursor-pointer">
+                            <div class="mt-1.5 h-2 w-2 rounded-full @priorityColor shadow-sm ring-2 ring-white"></div>
+                            <div class="flex-1">
+                                <h4 class="text-sm font-semibold text-slate-800 group-hover:text-blue-600 transition-colors">@task.Title</h4>
+                                <p class="text-xs text-slate-500 mt-0.5 line-clamp-1">@task.Note</p>
+                            </div>
+                            <button class="text-slate-300 hover:text-blue-600 transition">
+                                <i class="fa-solid fa-chevron-right text-xs"></i>
+                            </button>
+                        </div>
+                    }
+                </div>
+
+                <button class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 py-3 text-sm font-medium text-slate-500 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 transition">
+                    <i class="fa-solid fa-plus"></i> Thêm nhiệm vụ mới
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
 @code {
     private List<StatItem> Stats = new()
     {
-        new("Doanh thu hôm nay", "₫125.5M", "fa-solid fa-wave-square", "+18% so với hôm qua"),
-        new("Đơn hàng", "76", "fa-solid fa-receipt", "12 đơn đang chờ xử lý"),
-        new("Hủy trả", "3", "fa-solid fa-rotate-left", "Cần xác minh nguyên nhân"),
-        new("Khách mới", "22", "fa-solid fa-user-plus", "Đăng ký qua landing page"),
+        // Thêm ColorClass để style icon background
+        new("Doanh thu hôm nay", "₫125.5M", "fa-solid fa-chart-line", "bg-emerald-100 text-emerald-600", "18%", true),
+        new("Đơn hàng", "76", "fa-solid fa-bag-shopping", "bg-blue-100 text-blue-600", "12 chờ", true),
+        new("Hủy trả", "3", "fa-solid fa-arrow-rotate-left", "bg-rose-100 text-rose-600", "Cao", false),
+        new("Khách mới", "22", "fa-solid fa-users", "bg-violet-100 text-violet-600", "+5", true),
     };
 
     private List<LatestOrder> LatestOrders = new()
     {
-        new("A1201", "Trương Minh Khải", "₫18.990.000", "Chờ duyệt", "12/03"),
-        new("A1202", "Nguyễn Hà Vy", "₫24.500.000", "Chờ duyệt", "12/03"),
-        new("A1203", "Lê Quốc Dũng", "₫32.990.000", "Xác nhận", "12/03"),
-        new("A1204", "Phạm Anh Khoa", "₫9.200.000", "Chờ duyệt", "11/03"),
+        new("A1201", "Trương Minh Khải", "18.990.000", "Chờ duyệt", "12/03"),
+        new("A1202", "Nguyễn Hà Vy", "24.500.000", "Chờ duyệt", "12/03"),
+        new("A1203", "Lê Quốc Dũng", "32.990.000", "Xác nhận", "12/03"),
+        new("A1204", "Phạm Anh Khoa", "9.200.000", "Chờ duyệt", "11/03"),
+        new("A1205", "Trần Thị Bích", "5.150.000", "Xác nhận", "11/03"),
     };
 
     private List<QuickAction> QuickActions = new()
     {
         new("Gửi email ưu đãi 3.3", "Danh sách khách VIP", "Cao"),
-        new("Kiểm tra tồn kho iPhone 15PM", "Kho chi nhánh Q1", "Trung bình"),
+        new("Kiểm tra tồn kho iPhone 15", "Kho chi nhánh Q1", "Trung bình"),
         new("Cập nhật banner trang chủ", "Ra mắt Galaxy mới", "Cao"),
-        new("Rà soát đơn COD", "Xác nhận khu vực ngoại thành", "Thấp"),
+        new("Rà soát đơn COD", "Xác nhận khu vực", "Thấp"),
     };
 
-    private record StatItem(string Label, string Value, string Icon, string Description);
+    // Cập nhật record để hỗ trợ UI tốt hơn
+    private record StatItem(string Label, string Value, string Icon, string ColorClass, string Trend, bool IsPositive);
     private record LatestOrder(string Code, string Customer, string Total, string Status, string Date);
     private record QuickAction(string Title, string Note, string Priority);
 }
