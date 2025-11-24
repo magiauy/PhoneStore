@@ -127,8 +127,8 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex flex-col">
-                                        <span class="font-medium text-slate-900">@order.Date.ToString("dd/MM/yyyy")</span>
-                                        <span class="text-xs text-slate-400">@order.Date.ToString("HH:mm")</span>
+                                        <span class="font-medium text-slate-900">@FormatDateOnly(order.Date)</span>
+                                        <span class="text-xs text-slate-400">@FormatTime(order.Date)</span>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 font-medium text-slate-900">
@@ -277,6 +277,8 @@
     }
 
     private string FormatCurrency(decimal value) => string.Format(new CultureInfo("vi-VN"), "₫{0:N0}", value);
+    private static string FormatDateOnly(DateTime? date) => date?.ToString("dd/MM/yyyy") ?? "-";
+    private static string FormatTime(DateTime? date) => date?.ToString("HH:mm") ?? "-";
     
     private string GetStatusLabel(string status) => status switch {
         "unpaid" => "Chưa thanh toán",

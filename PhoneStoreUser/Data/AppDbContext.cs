@@ -198,7 +198,7 @@ public class PersonEntity
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string PersonType { get; set; } = "CUSTOMER";
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? CreatedAt { get; set; } = DateTime.UtcNow;
     public bool? IsActive { get; set; } = true;
 }
 
@@ -227,7 +227,7 @@ public class InvoiceEntity
     public int? PersonId { get; set; }
     public int? PromotionCodeId { get; set; }
     public int CreatedBy { get; set; }
-    public DateTime InvoiceDate { get; set; }
+    public DateTime? InvoiceDate { get; set; }
     public string Status { get; set; } = "unpaid";
     public decimal TotalAmount { get; set; }
     public decimal DiscountAmount { get; set; }

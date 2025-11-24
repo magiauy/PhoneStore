@@ -212,7 +212,8 @@
         _ => status
     };
 
-    private static string FormatDate(DateTime dateTime) => dateTime.ToLocalTime().ToString("HH:mm, dd/MM/yyyy");
+    private static string FormatDate(DateTime? dateTime) =>
+        dateTime?.ToLocalTime().ToString("HH:mm, dd/MM/yyyy") ?? "-";
 
     private static string GetProductName(InvoiceLineEntity line) =>
         line.Product is not null
