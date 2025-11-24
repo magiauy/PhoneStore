@@ -1,0 +1,331 @@
+@using PhoneStoreUser.Components.ViewModels
+@using PhoneStoreUser.Services
+@using PhoneStoreUser.Helper
+@inject IAdminOrderService AdminOrderService
+
+<div class="flex flex-1 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden h-full">
+    @if (IsLoading)
+    {
+        <div class="flex items-center justify-center h-full">
+            <div class="text-slate-500">Đang tải chi tiết...</div>
+        </div>
+    }
+    else if (Detail != null)
+    {
+        bool isReadOnly = Detail.Status == "completed" || Detail.Status == "cancelled" || Detail.Status == "refunded";
+
+        @* === 1. HEADER (Cố định) === *@
+        <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4 flex justify-between items-center flex-none">
+            <div>
+                <div class="flex items-center gap-3">
+                    <h2 class="text-lg font-bold text-slate-900">Đơn hàng #@Detail.InvoiceCode</h2>
+                    @if(!string.IsNullOrEmpty(Detail.PromoCode))
+                    {
+                        <span class="inline-flex items-center gap-1 rounded-md bg-rose-50 px-2 py-1 text-xs font-medium text-rose-600 border border-rose-100">
+                            <i class="fa-solid fa-tag"></i> @Detail.PromoCode
+                        </span>
+                    }
+                </div>
+                <div class="flex gap-4 mt-1 text-xs text-slate-500">
+                     <span class="flex items-center gap-1"><i class="fa-solid fa-user-tie"></i> @Detail.CreatedBy</span>
+                     <span class="flex items-center gap-1"><i class="fa-regular fa-clock"></i> @Detail.InvoiceDate.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                 <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
+                    <i class="fa-solid fa-print"></i> In phiếu
+                </button>
+                @if (!isReadOnly)
+                {
+                    <button @onclick="HandleCancelOrder" class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-600 hover:bg-rose-100 transition">
+                        Hủy đơn
+                    </button>
+                }
+            </div>
+        </div>
+
+        @* === 2. BODY (Scrollable) - Chỉ chứa danh sách sản phẩm === *@
+        <div class="flex-1 overflow-y-auto bg-white">
+            @if (Detail.Status == "paid")
+            {
+                <div class="mb-4 flex items-center gap-3 rounded-lg border border-blue-100 bg-blue-50 p-3 text-blue-700">
+                    <i class="fa-solid fa-circle-info text-xl"></i>
+                    <div>
+                        <p class="text-sm font-bold">Đã thanh toán - Cần xuất kho</p>
+                        <p class="text-xs text-blue-600">Khách đã thanh toán online. Vui lòng nhập Serial/IMEI (nếu có) và xác nhận giao hàng.</p>
+                    </div>
+                </div>
+            }
+
+            <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 sticky top-0 z-10 shadow-sm">
+                    <tr>
+                        <th class="px-3 py-3 rounded-l-lg">Sản phẩm</th>
+                        <th class="px-3 py-3 text-center">SL</th>
+                        <th class="px-3 py-3 text-right">Đơn giá</th>
+                        <th class="px-3 py-3 text-right">Giảm</th>
+                        <th class="px-3 py-3 text-right rounded-r-lg">Tổng</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @foreach (var line in Detail.Lines)
+                    {
+                        <tr>
+                            <td class="px-3 py-4 align-top">
+                                <p class="font-medium text-slate-900">@line.ProductName</p>
+                                @if (line.HasSerial)
+                                {
+                                    <div class="mt-2 p-3 bg-amber-50 rounded-lg border border-amber-100">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <label class="text-[10px] font-bold text-amber-700 uppercase flex items-center gap-1">
+                                                <i class="fa-solid fa-barcode"></i> Serial / IMEI
+                                            </label>
+                                            @if(isReadOnly) {
+                                                <span class="text-[10px] text-amber-600 font-medium"><i class="fa-solid fa-lock"></i> Đã khóa</span>
+                                            }
+                                        </div>
+                                        <div class="space-y-2">
+                                            @for (int i = 0; i < line.Quantity; i++)
+                                            {
+                                                int index = i;
+                                                string existingSerial = line.Serials.Count > i ? line.Serials[i] : "";
+                                                string serialKey = $"{line.LineId}_{i}";
+                                                bool isValid = ValidSerials.Contains(serialKey);
+                                                bool isInvalid = SerialErrors.ContainsKey(serialKey);
+                                                
+                                                <div class="relative">
+                                                    <input disabled="@isReadOnly"
+                                                           value="@GetSerialInput(serialKey, existingSerial)"
+                                                           @onchange='e => HandleSerialInput(serialKey, e.Value?.ToString() ?? "")'
+                                                           @onfocusout="@(async () => await HandleSerialBlur(serialKey, GetSerialInput(serialKey, existingSerial), line.ProductId))"
+                                                           class="w-full rounded border bg-white px-2 py-1.5 text-xs font-mono text-slate-700 placeholder:text-slate-400 transition-colors
+                                                            @(isReadOnly ? "border-slate-200 bg-slate-50 text-slate-500" : 
+                                                              isValid ? "border-emerald-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 pr-7" :
+                                                              isInvalid ? "border-rose-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500" :
+                                                              "border-amber-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500")"
+                                                           placeholder="Nhập Serial #@(i + 1)..." />
+                                                    
+                                                    @if (isValid && !isReadOnly)
+                                                    {
+                                                        <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                                            <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                                                        </div>
+                                                    }
+                                                </div>
+
+                                                @if (SerialErrors.TryGetValue(serialKey, out var error))
+                                                {
+                                                    <p class="mt-1 text-[10px] text-rose-600 font-medium"><i class="fa-solid fa-circle-exclamation"></i> @error</p>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </td>
+                            <td class="px-3 py-4 text-center align-top">x@(line.Quantity)</td>
+                            <td class="px-3 py-4 text-right align-top">@OrderUIHelper.FormatCurrency(line.UnitPrice)</td>
+                            <td class="px-3 py-4 text-right align-top text-rose-500">
+                                @(line.DiscountPct > 0 ? $"-{line.DiscountPct}%" : "-")
+                            </td>
+                            <td class="px-3 py-4 text-right font-medium text-slate-900 align-top">@OrderUIHelper.FormatCurrency(line.TotalPrice)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @* === 3. FOOTER (Cố định) - Chứa Tổng tiền + Action === *@
+        <div class="flex-none border-t border-slate-200 bg-slate-50/80 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            
+            @* Phần Tổng Tiền *@
+            <div class="bg-white px-6 py-4 border-b border-slate-100">
+                <div class="flex justify-end">
+                    <div class="w-72 space-y-2">
+                        <div class="flex justify-between text-sm text-slate-500">
+                            <span>Thành tiền:</span>
+                            <span>@OrderUIHelper.FormatCurrency(Detail.Subtotal)</span>
+                        </div>
+                         <div class="flex justify-between text-sm text-rose-500">
+                            <span>Giảm giá:</span>
+                            <span>-@OrderUIHelper.FormatCurrency(Detail.DiscountAmount)</span>
+                        </div>
+                        <div class="flex justify-between border-t border-dashed border-slate-200 pt-2 text-lg font-bold text-slate-900">
+                            <span>Tổng thanh toán:</span>
+                            <span class="text-blue-600">@OrderUIHelper.FormatCurrency(Detail.GrandTotal)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Phần Action Buttons *@
+            <div class="p-4 bg-slate-50">
+                 <div class="flex items-center justify-between">
+                     <div class="flex flex-col">
+                         <span class="text-xs text-slate-500">Trạng thái hiện tại</span>
+                         <div class="flex items-center gap-2">
+                             @{ var currentStyle = OrderUIHelper.GetStatusStyle(Detail.Status); }
+                             <i class="@currentStyle.Icon @currentStyle.TextClass"></i>
+                             <span class="font-bold text-sm text-slate-900">@OrderUIHelper.GetStatusLabel(Detail.Status)</span>
+                         </div>
+                     </div>
+
+                     <div class="flex gap-3">
+                         @if (Detail.Status == "pending" || Detail.Status == "paid")
+                         {
+                             <button @onclick="HandleConfirmDelivery" class="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 transition">
+                                 <i class="fa-solid fa-truck-fast"></i> Xác nhận & Giao hàng
+                             </button>
+                         }
+                         else if (Detail.Status == "delivering")
+                         {
+                              <button @onclick="HandleCompleteOrder" class="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition">
+                                 <i class="fa-solid fa-check-double"></i> Xác nhận Hoàn tất
+                              </button>
+                         }
+                         else if (Detail.Status == "completed")
+                         {
+                             <span class="flex items-center gap-2 text-emerald-600 font-medium px-4 py-2 bg-emerald-50 rounded-lg border border-emerald-100">
+                                 <i class="fa-solid fa-circle-check"></i> Đơn hàng đã hoàn thành
+                             </span>
+                         }
+                     </div>
+                 </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="flex items-center justify-center h-full">
+            <div class="text-slate-500">Chọn đơn hàng để xem chi tiết</div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public AdminOrderDetailDto? Detail { get; set; }
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public EventCallback OnDataChange { get; set; } 
+
+    private Dictionary<string, string> SerialInputs = new();
+    private Dictionary<string, string> SerialErrors = new();
+    private HashSet<string> ValidSerials = new();
+
+    protected override void OnParametersSet()
+    {
+        SerialInputs.Clear();
+        if (SerialErrors != null) SerialErrors.Clear();
+        ValidSerials.Clear();
+    }
+
+    private string GetSerialInput(string key, string existingSerial)
+    {
+        return string.IsNullOrWhiteSpace(existingSerial) && SerialInputs.ContainsKey(key) 
+            ? SerialInputs[key] 
+            : existingSerial;
+    }
+
+    private void HandleSerialInput(string key, string value)
+    {
+        SerialInputs[key] = value;
+        if (SerialErrors.ContainsKey(key)) SerialErrors.Remove(key);
+        if (ValidSerials.Contains(key)) ValidSerials.Remove(key);
+    }
+
+    private async Task HandleSerialBlur(string key, string currentValue, int productId)
+    {
+        SerialErrors.Remove(key);
+        ValidSerials.Remove(key);
+        
+        if (string.IsNullOrWhiteSpace(currentValue)) return;
+
+        // 1. Check for duplicates in current UI inputs
+        if (IsDuplicateSerial(key, currentValue))
+        {
+            SerialErrors[key] = "Serial này đã được nhập ở ô khác";
+            StateHasChanged();
+            return;
+        }
+
+        // 2. Server-side validation
+        var result = await AdminOrderService.ValidateSerialAsync(currentValue, productId);
+        if (!result.IsValid)
+        {
+            SerialErrors[key] = result.Message;
+        }
+        else
+        {
+            ValidSerials.Add(key);
+        }
+        StateHasChanged();
+    }
+
+    private bool IsDuplicateSerial(string currentKey, string currentValue)
+    {
+        if (Detail == null) return false;
+
+        foreach (var line in Detail.Lines)
+        {
+            if (!line.HasSerial) continue;
+            
+            for (int i = 0; i < line.Quantity; i++)
+            {
+                string otherKey = $"{line.LineId}_{i}";
+                if (otherKey == currentKey) continue;
+
+                string existingSerial = line.Serials.Count > i ? line.Serials[i] : "";
+                string otherValue = GetSerialInput(otherKey, existingSerial);
+
+                if (string.Equals(otherValue, currentValue, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private async Task HandleConfirmDelivery()
+    {
+        if (Detail == null) return;
+        try
+        {
+            await SavePendingSerials();
+            await AdminOrderService.UpdateOrderStatusAsync(Detail.InvoiceId, "delivering");
+            await OnDataChange.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private async Task HandleCompleteOrder()
+    {
+        if (Detail == null) return;
+        await AdminOrderService.UpdateOrderStatusAsync(Detail.InvoiceId, "completed");
+        await OnDataChange.InvokeAsync();
+    }
+
+    private async Task HandleCancelOrder()
+    {
+        if (Detail == null) return;
+        await AdminOrderService.CancelOrderAsync(Detail.InvoiceId, "Admin cancelled");
+        await OnDataChange.InvokeAsync();
+    }
+
+    private async Task SavePendingSerials()
+    {
+        if (Detail == null) return;
+        foreach (var line in Detail.Lines.Where(l => l.HasSerial))
+        {
+            for (int i = 0; i < line.Quantity; i++)
+            {
+                string serialKey = $"{line.LineId}_{i}";
+                if (SerialInputs.TryGetValue(serialKey, out var serial) && !string.IsNullOrWhiteSpace(serial))
+                {
+                    try { await AdminOrderService.AddSerialToOrderLineAsync(line.LineId, serial, null, null); } catch {}
+                }
+            }
+        }
+    }
+}

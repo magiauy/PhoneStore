@@ -1,0 +1,119 @@
+@using PhoneStoreUser.Components.ViewModels
+@using PhoneStoreUser.Helper
+
+<div class="flex w-1/3 flex-col gap-4">
+    <div class="flex flex-col gap-3">
+        <h1 class="text-xl font-bold text-slate-900">Xử lý đơn hàng</h1>
+        <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input @bind="SearchTerm" @bind:event="oninput" @onkeyup="HandleSearch" 
+                   class="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-4 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm" 
+                   placeholder="Tìm mã đơn, SĐT..." />
+        </div>
+        <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+            @foreach (var status in new[] { (string?)null, "pending", "delivering", "completed" })
+            {
+                <button @onclick="() => FilterByStatus(status)" 
+                        class="@GetFilterButtonClass(status)">
+                    @(status == null ? "Tất cả" : OrderUIHelper.GetStatusLabel(status))
+                </button>
+            }
+        </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto pr-1 space-y-3">
+        @if (IsLoading)
+        {
+            <div class="text-center text-slate-500 py-8">Đang tải...</div>
+        }
+        else if (!FilteredInvoices.Any())
+        {
+            <div class="text-center text-slate-500 py-8">Không có đơn hàng nào</div>
+        }
+        else
+        {
+            @foreach (var invoice in FilteredInvoices)
+            {
+                bool isSelected = SelectedInvoiceId == invoice.InvoiceId;
+                <div @onclick="() => SelectInvoice(invoice)"
+                     class="cursor-pointer rounded-xl border p-4 transition-all duration-200 hover:shadow-md
+                            @(isSelected ? "border-blue-500 bg-blue-50/50 ring-1 ring-blue-500" : "border-slate-200 bg-white hover:border-blue-300")">
+                    
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-mono text-sm font-bold text-slate-900">#@invoice.InvoiceCode</span>
+                        <span class="text-[10px] text-slate-500">@invoice.InvoiceDate.ToString("dd/MM HH:mm")</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <p class="text-sm font-medium text-slate-800">@invoice.CustomerName</p>
+                        <div class="flex items-center gap-1 text-xs text-slate-500">
+                             @if(invoice.PaymentMethod == "bank") { <i class="fa-solid fa-credit-card text-blue-500"></i> }
+                             else { <i class="fa-solid fa-money-bill text-emerald-500"></i> }
+                             <span>@(invoice.PaymentMethod == "bank" ? "Chuyển khoản" : "COD")</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+                        @{ var statusStyle = OrderUIHelper.GetStatusStyle(invoice.Status); }
+                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium @statusStyle.Class">
+                            <i class="@statusStyle.Icon mr-1"></i> @OrderUIHelper.GetStatusLabel(invoice.Status)
+                        </span>
+                        <span class="text-sm font-bold text-slate-900">@OrderUIHelper.FormatCurrency(invoice.Total)</span>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<AdminOrderDto> Invoices { get; set; } = new();
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public int? SelectedInvoiceId { get; set; }
+    [Parameter] public EventCallback<AdminOrderDto> OnSelect { get; set; }
+    [Parameter] public EventCallback<string?> OnFilterStatus { get; set; }
+
+    private string? CurrentStatusFilter = null;
+    private string SearchTerm = "";
+    private List<AdminOrderDto> FilteredInvoices = new();
+
+    protected override void OnParametersSet()
+    {
+        // Mỗi khi danh sách gốc thay đổi, chạy lại search local
+        HandleSearch();
+    }
+
+    private async Task FilterByStatus(string? status)
+    {
+        CurrentStatusFilter = status;
+        await OnFilterStatus.InvokeAsync(status);
+    }
+
+    private void HandleSearch()
+    {
+        if (string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            FilteredInvoices = Invoices;
+        }
+        else
+        {
+            FilteredInvoices = Invoices.Where(i =>
+                i.InvoiceCode.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                i.CustomerName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (i.CustomerPhone != null && i.CustomerPhone.Contains(SearchTerm))
+            ).ToList();
+        }
+    }
+
+    private async Task SelectInvoice(AdminOrderDto invoice)
+    {
+        await OnSelect.InvokeAsync(invoice);
+    }
+
+    private string GetFilterButtonClass(string? status)
+    {
+        return CurrentStatusFilter == status
+            ? "whitespace-nowrap rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-sm"
+            : "whitespace-nowrap rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50";
+    }
+}
