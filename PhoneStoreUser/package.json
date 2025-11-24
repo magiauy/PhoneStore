@@ -13,6 +13,7 @@
   "description": "",
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.17",
+    "@tailwindcss/postcss": "^4.1.17",
     "autoprefixer": "^10.4.22",
     "chokidar": "^4.0.3",
     "postcss": "^8.5.6"
