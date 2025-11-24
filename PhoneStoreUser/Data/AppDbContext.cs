@@ -382,7 +382,7 @@ public class InvoiceLineSerialEntity
 {
     public int InvoiceLineId { get; set; }
     public int ProductSerialId { get; set; }
-
+ 
     public InvoiceLineEntity? InvoiceLine { get; set; }
     public ProductSerialEntity? ProductSerial { get; set; }
 }
