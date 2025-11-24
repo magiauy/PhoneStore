@@ -17,4 +17,6 @@ public interface IProductCatalogService
     Task<IReadOnlyList<ProductCategory>> GetCategoriesAsync();
     Task<IReadOnlyList<ProductModel>> GetFilteredProductModelsAsync(IEnumerable<int>? brandIds = null, IEnumerable<int>? categoryIds = null);
     Task<IReadOnlyList<ProductCardViewModel>> GetFilteredProductsAsync(string? searchTerm = null, IEnumerable<int>? brandIds = null, IEnumerable<int>? categoryIds = null);
+    Task<Product?> GetProductBySkuAsync(string sku);
+    Task<ProductModel?> GetProductModelByIdAsync(int id);
 }

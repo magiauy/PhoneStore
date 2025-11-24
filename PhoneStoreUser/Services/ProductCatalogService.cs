@@ -416,6 +416,59 @@ public class ProductCatalogService : IProductCatalogService
         }, "load filtered products", Array.Empty<ProductCardViewModel>());
     }
 
+    public Task<Product?> GetProductBySkuAsync(string sku)
+    {
+        if (string.IsNullOrWhiteSpace(sku))
+        {
+            return Task.FromResult<Product?>(null);
+        }
+
+        return ExecuteAsync<Product?>(() =>
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            var query = from p in context.Products.AsNoTracking()
+                        where p.Sku.ToLower() == sku.ToLower()
+                        join b in context.Brands.AsNoTracking()
+                            on p.BrandId equals (int?)b.Id into pb
+                        from b in pb.DefaultIfEmpty()
+                        select new { P = p, BrandName = b != null ? b.Name : string.Empty };
+
+            var result = query.FirstOrDefault();
+            if (result == null) return null;
+
+            return new Product(
+                result.P.Id,
+                result.P.Sku,
+                result.P.Name,
+                result.P.CategoryId,
+                result.P.ModelId,
+                result.P.BrandId,
+                result.BrandName,
+                result.P.Price,
+                result.P.Cost,
+                result.P.IsSerialTracked,
+                result.P.WarrantyMonths,
+                result.P.Status,
+                result.P.CreatedAt,
+                null
+            );
+        }, $"load product {sku}", (Product?)null);
+    }
+
+    public Task<ProductModel?> GetProductModelByIdAsync(int id)
+    {
+        if (id <= 0)
+        {
+            return Task.FromResult<ProductModel?>(null);
+        }
+
+        return ExecuteAsync<ProductModel?>(() =>
+        {
+            var model = _productModelRepository.GetById(id);
+            return model == null ? null : MapProductModel(model);
+        }, $"load product model {id}", (ProductModel?)null);
+    }
+
     private Task<T> ExecuteAsync<T>(Func<T> action, string operationDescription, T? fallback)
     {
         return Task.Run(() =>
