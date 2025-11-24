@@ -1,0 +1,201 @@
+@page "/admin/products"
+@layout AdminLayout
+
+<div class="space-y-6 bg-gray-50/50 p-6 min-h-screen font-sans">
+    
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Danh mục sản phẩm</h1>
+            <p class="text-sm text-slate-500">Quản lý kho hàng, giá bán và cấu hình sản phẩm.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="relative flex-1 sm:flex-none">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input class="w-full sm:w-64 rounded-xl border border-slate-200 py-2.5 pl-9 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm" placeholder="Tìm kiếm tên, SKU..." />
+            </div>
+            <button class="hidden sm:inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 shadow-sm transition">
+                <i class="fa-solid fa-file-export"></i> Xuất Excel
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        
+        <section class="lg:col-span-2 flex flex-col gap-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+                <div class="flex items-center gap-2 px-2">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </span>
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-900">Hàng đang bán</h2>
+                        <p class="text-[10px] text-slate-500 font-medium">5 sản phẩm hiển thị</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <select class="rounded-lg border-0 bg-slate-50 py-1.5 pl-3 pr-8 text-xs font-medium text-slate-700 focus:ring-2 focus:ring-blue-500">
+                        <option>Tất cả hãng</option>
+                        <option>Apple</option>
+                        <option>Samsung</option>
+                    </select>
+                    <select class="rounded-lg border-0 bg-slate-50 py-1.5 pl-3 pr-8 text-xs font-medium text-slate-700 focus:ring-2 focus:ring-blue-500">
+                        <option>Kho tổng</option>
+                        <option>Chi nhánh Q1</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50/50 text-xs uppercase font-semibold text-slate-500">
+                            <tr>
+                                <th class="px-5 py-4">Sản phẩm</th>
+                                <th class="px-5 py-4">Phiên bản</th>
+                                <th class="px-5 py-4 text-center">Tồn kho</th>
+                                <th class="px-5 py-4 text-right">Giá bán</th>
+                                <th class="px-5 py-4 text-center">Trạng thái</th>
+                                <th class="px-5 py-4"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach (var product in ProductsData)
+                            {
+                                int stock = int.Parse(product.Stock);
+                                <tr class="hover:bg-slate-50/80 transition-colors group">
+                                    <td class="px-5 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="h-10 w-10 shrink-0 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
+                                                <i class="fa-solid fa-image"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-semibold text-slate-900">@product.Name</p>
+                                                <p class="text-xs font-mono text-slate-500">@product.Sku</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-5 py-4">
+                                        <span class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">
+                                            @product.Variant
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-4 text-center">
+                                        <span class="@(stock < 10 ? "text-rose-600 font-bold" : "text-slate-700")">
+                                            @product.Stock
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-4 text-right font-medium text-slate-900 tabular-nums">
+                                        @product.Price
+                                    </td>
+                                    <td class="px-5 py-4 text-center">
+                                        <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset @(product.Status == "Sẵn hàng" ? "bg-emerald-50 text-emerald-700 ring-emerald-600/20" : "bg-blue-50 text-blue-700 ring-blue-600/20")">
+                                            <i class="mr-1.5 h-1.5 w-1.5 rounded-full @(product.Status == "Sẵn hàng" ? "bg-emerald-600" : "bg-blue-600")"></i>
+                                            @product.Status
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-4 text-right">
+                                        <button class="rounded-lg p-2 text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                 <div class="border-t border-slate-200 p-4">
+                    <button class="w-full rounded-lg border border-dashed border-slate-300 py-2 text-sm text-slate-500 hover:border-blue-500 hover:text-blue-600 transition">
+                        Xem thêm sản phẩm
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="flex flex-col gap-4">
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm h-fit sticky top-6">
+                <div class="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Thêm nhanh</h2>
+                        <p class="text-xs text-slate-500">Tạo sản phẩm mới vào kho</p>
+                    </div>
+                    <div class="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                        <i class="fa-solid fa-plus text-sm"></i>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="group relative flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 hover:border-blue-400 hover:bg-blue-50/50 transition">
+                        <div class="text-center">
+                            <i class="fa-solid fa-cloud-arrow-up text-xl text-slate-400 group-hover:text-blue-500 transition"></i>
+                            <p class="mt-2 text-xs font-medium text-slate-500 group-hover:text-blue-600">Tải ảnh sản phẩm</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Tên sản phẩm <span class="text-rose-500">*</span></label>
+                        <input class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Ví dụ: iPhone 15 Pro Max" />
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">SKU</label>
+                            <input class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-mono placeholder:font-sans focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Mã SP" />
+                        </div>
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Tồn kho</label>
+                            <input type="number" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value="10" />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Giá bán</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">₫</span>
+                                <input class="w-full rounded-xl border border-slate-200 py-2.5 pl-6 pr-3 text-sm font-medium text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="0" />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Danh mục</label>
+                            <select class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                <option>Điện thoại</option>
+                                <option>Tablet</option>
+                                <option>Phụ kiện</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Ghi chú</label>
+                        <textarea rows="3" class="w-full resize-none rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Mô tả ngắn hoặc ghi chú nội bộ..."></textarea>
+                    </div>
+
+                    <div class="flex items-center justify-between rounded-lg bg-slate-50 p-3">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="publish" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" checked />
+                            <label for="publish" class="text-sm font-medium text-slate-700 select-none">Hiển thị ngay</label>
+                        </div>
+                        <span class="rounded bg-white px-1.5 py-0.5 text-[10px] font-mono text-slate-400 border border-slate-100">PUBLIC</span>
+                    </div>
+
+                    <button class="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-save"></i> Lưu sản phẩm
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    private List<ProductRow> ProductsData = new()
+    {
+        new("iPhone 15 Pro Max", "GZ-IP15PM-256", "256GB Titan", "24", "₫28.990.000", "Đang bán"),
+        new("Galaxy S24 Ultra", "GZ-S24U-512", "512GB Titanium", "15", "₫31.990.000", "Đang bán"),
+        new("Xiaomi 14 Ultra", "GZ-XM14U-12", "12GB/512GB", "4", "₫19.990.000", "Sẵn hàng"),
+        new("iPad Air M2", "GZ-IPADAIR-256", "256GB WiFi", "17", "₫18.490.000", "Đang bán"),
+        new("AirPods Pro 2 USB-C", "GZ-AP2-23", "Chính hãng VN/A", "34", "₫5.990.000", "Sẵn hàng"),
+    };
+
+    private record ProductRow(string Name, string Sku, string Variant, string Stock, string Price, string Status);
+}

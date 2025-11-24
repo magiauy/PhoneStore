@@ -1,0 +1,83 @@
+@page "/admin/orders"
+@using PhoneStoreUser.Components.Layout
+@using PhoneStoreUser.Components.UI.Admin.Order
+@using PhoneStoreUser.Components.ViewModels
+@using PhoneStoreUser.Services
+@layout AdminLayout
+@inject IAdminOrderService AdminOrderService
+
+<div class="flex h-[calc(100vh-10rem)] gap-6 bg-gray-50/50 p-6 font-sans">
+    <OrderListSidebar Invoices="Invoices" 
+                      IsLoading="IsListLoading"
+                      SelectedInvoiceId="SelectedInvoice?.InvoiceId"
+                      OnSelect="HandleInvoiceSelected"
+                      OnFilterStatus="HandleFilterStatus" />
+
+    <OrderDetailPanel Detail="SelectedInvoiceDetail" 
+                      IsLoading="IsDetailLoading"
+                      OnDataChange="LoadOrders" />
+</div>
+
+@code {
+    private List<AdminOrderDto> Invoices = new();
+    private AdminOrderDto? SelectedInvoice;
+    private AdminOrderDetailDto? SelectedInvoiceDetail;
+    private string? CurrentStatusFilter = null;
+    
+    private bool IsListLoading = true;
+    private bool IsDetailLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOrders();
+    }
+
+    private async Task LoadOrders()
+    {
+        IsListLoading = true;
+        // Giữ lại ID đang chọn để reload chi tiết nếu cần
+        int? currentSelectedId = SelectedInvoice?.InvoiceId;
+        
+        Invoices = await AdminOrderService.GetPendingOrdersAsync(CurrentStatusFilter);
+        
+        IsListLoading = false;
+
+        // Nếu đang chọn đơn hàng nào đó, reload luôn chi tiết để cập nhật trạng thái mới nhất
+        if (currentSelectedId.HasValue)
+        {
+             // Kiểm tra xem đơn đó còn trong list sau khi filter không
+             var stillExists = Invoices.FirstOrDefault(i => i.InvoiceId == currentSelectedId.Value);
+             if (stillExists != null)
+             {
+                 SelectedInvoice = stillExists;
+                 await LoadOrderDetail(stillExists.InvoiceId);
+             }
+             else 
+             {
+                 SelectedInvoiceDetail = null;
+                 SelectedInvoice = null;
+             }
+        }
+    }
+
+    private async Task HandleFilterStatus(string? status)
+    {
+        CurrentStatusFilter = status;
+        SelectedInvoice = null; 
+        SelectedInvoiceDetail = null;
+        await LoadOrders();
+    }
+
+    private async Task HandleInvoiceSelected(AdminOrderDto invoice)
+    {
+        SelectedInvoice = invoice;
+        await LoadOrderDetail(invoice.InvoiceId);
+    }
+
+    private async Task LoadOrderDetail(int invoiceId)
+    {
+        IsDetailLoading = true;
+        SelectedInvoiceDetail = await AdminOrderService.GetOrderDetailAsync(invoiceId);
+        IsDetailLoading = false;
+    }
+}

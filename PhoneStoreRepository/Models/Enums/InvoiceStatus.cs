@@ -5,6 +5,7 @@ namespace PhoneStoreRepository.Models.Enums
         UNPAID,
         PAID,
         REFUNDED,
-        CANCELLED
+        CANCELLED,
+        COMPLETED
     }
 }

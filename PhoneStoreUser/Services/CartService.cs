@@ -16,7 +16,7 @@ public class CartService : ICartService
 #if DEBUG
     private void Log(string message)
     {
-        Console.WriteLine($"[CartService] {message}");
+        // Console.WriteLine($"[CartService] {message}");
     }
 #else
     private void Log(string message) { }

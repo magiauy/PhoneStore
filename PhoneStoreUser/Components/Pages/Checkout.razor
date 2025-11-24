@@ -1,0 +1,338 @@
+@page "/checkout"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using PhoneStoreUser.Services
+@using PhoneStoreUser.Components.Models
+@using PhoneStoreUser.Data
+@inject ICartService CartService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IUserProfileService UserProfileService
+@inject NavigationManager Navigation
+@inject IOrderService OrderService
+
+<!-- Lưu ý: Đảm bảo dự án của bạn đã nhúng FontAwesome trong _Layout.cshtml hoặc index.html -->
+<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> -->
+
+<style>
+    .input-icon {
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+</style>
+
+<div class="container mx-auto p-4 lg:p-8 max-w-6xl">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6 text-center uppercase">Xác Nhận Đơn Hàng</h1>
+
+    @if (cartItems == null || !cartItems.Any())
+    {
+        <div class="text-center py-10 bg-white rounded-lg shadow-sm">
+            <div class="text-gray-400 mb-4">
+                <i class="fa-solid fa-cart-arrow-down text-6xl"></i>
+            </div>
+            <p class="text-xl text-gray-600 mb-6">Giỏ hàng của bạn đang trống.</p>
+            <a href="/" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                <i class="fa-solid fa-arrow-left mr-2"></i> Quay lại mua sắm
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 lg:grid-cols-13 gap-6">
+            <!-- CỘT TRÁI: THÔNG TIN & THANH TOÁN -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- Step 1: Thông tin giao hàng -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">1</span>
+                        Thông tin giao hàng
+                    </h2>
+                    
+                    <EditForm Model="@checkoutModel" OnValidSubmit="HandleInfoSubmit">
+                        <DataAnnotationsValidator />
+                        <!-- Ẩn ValidationSummary mặc định để giao diện gọn hơn, chỉ hiện lỗi dưới input nếu cần -->
+                        <!-- <ValidationSummary /> -->
+
+                        <div class="space-y-4">
+                            <!-- Họ tên -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 input-icon text-gray-400">
+                                        <i class="fa-solid fa-user"></i>
+                                    </span>
+                                    <InputText @bind-Value="checkoutModel.FullName" placeholder="Nhập họ và tên" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" />
+                                </div>
+                                <ValidationMessage For="@(() => checkoutModel.FullName)" class="text-red-500 text-xs mt-1" />
+                            </div>
+
+                            <!-- Số điện thoại -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 input-icon text-gray-400">
+                                        <i class="fa-solid fa-phone"></i>
+                                    </span>
+                                    <InputText @bind-Value="checkoutModel.Phone" placeholder="Nhập số điện thoại" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" />
+                                </div>
+                                <ValidationMessage For="@(() => checkoutModel.Phone)" class="text-red-500 text-xs mt-1" />
+                            </div>
+
+                            <!-- Email -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 input-icon text-gray-400">
+                                        <i class="fa-solid fa-envelope"></i>
+                                    </span>
+                                    <InputText @bind-Value="checkoutModel.Email" placeholder="Nhập địa chỉ email" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" />
+                                </div>
+                                <ValidationMessage For="@(() => checkoutModel.Email)" class="text-red-500 text-xs mt-1" />
+                            </div>
+
+                            <!-- Địa chỉ -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ nhận hàng</label>
+                                <div class="relative">
+                                    <span class="absolute top-3 left-3 text-gray-400">
+                                        <i class="fa-solid fa-location-dot"></i>
+                                    </span>
+                                    <InputTextArea @bind-Value="checkoutModel.Address" rows="3" placeholder="Nhập địa chỉ chi tiết (Số nhà, đường, phường/xã...)" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition resize-none" />
+                                </div>
+                                <ValidationMessage For="@(() => checkoutModel.Address)" class="text-red-500 text-xs mt-1" />
+                            </div>
+
+                            <div class="text-right mt-4">
+                                @if (!isInfoConfirmed)
+                                {
+                                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition transform hover:scale-105 flex items-center inline-flex justify-center">
+                                        <i class="fa-solid fa-check mr-2"></i> Xác nhận thông tin
+                                    </button>
+                                }
+                                else
+                                {
+                                    <p class="text-green-600 text-sm font-medium cursor-pointer hover:underline" @onclick="EditInfo">
+                                        <i class="fa-solid fa-check-circle mr-1"></i> Thông tin đã được xác nhận (Chỉnh sửa)
+                                    </p>
+                                }
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+
+                <!-- Step 2: Phương thức thanh toán -->
+                @if (isInfoConfirmed)
+                {
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 animate-fade-in-up">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">2</span>
+                            Phương thức thanh toán
+                        </h2>
+
+                        <div class="space-y-3">
+                            <!-- COD Option -->
+                            <div class="@GetPaymentClass("COD") flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition relative group" 
+                                 @onclick="@(() => paymentMethod = "COD")">
+                                <div class="flex items-center h-5">
+                                    <input type="radio" name="payment" checked="@(paymentMethod == "COD")" class="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer" readonly />
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <div class="font-semibold text-gray-800 flex items-center">
+                                        <i class="fa-solid fa-money-bill-wave text-green-600 mr-2 text-lg w-6 text-center"></i>
+                                        Thanh toán khi nhận hàng (COD)
+                                    </div>
+                                    <div class="text-sm text-gray-500 mt-1 ml-8">Thanh toán bằng tiền mặt khi giao hàng</div>
+                                </div>
+                                @if(paymentMethod == "COD") {
+                                    <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-blue-600">
+                                        <i class="fa-solid fa-circle-check text-xl"></i>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- PayOS Option -->
+                            <div class="@GetPaymentClass("PayOS") flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition relative group"
+                                 @onclick="@(() => paymentMethod = "PayOS")">
+                                <div class="flex items-center h-5">
+                                    <input type="radio" name="payment" checked="@(paymentMethod == "PayOS")" class="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer" readonly />
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <div class="font-semibold text-gray-800 flex items-center">
+                                        <i class="fa-solid fa-credit-card text-blue-600 mr-2 text-lg w-6 text-center"></i>
+                                        Thanh toán Online qua PayOS
+                                    </div>
+                                    <div class="text-sm text-gray-500 mt-1 ml-8">Thẻ ATM, Visa, MasterCard, QR Code</div>
+                                </div>
+                                @if(paymentMethod == "PayOS") {
+                                    <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-blue-600">
+                                        <i class="fa-solid fa-circle-check text-xl"></i>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- CỘT PHẢI: ĐƠN HÀNG -->
+            <div class="lg:col-span-6">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-4">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Đơn hàng của bạn</h2>
+                    
+                    <!-- Danh sách sản phẩm -->
+                    <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar mb-4">
+                        @foreach (var item in cartItems)
+                        {
+                            <div class="group">
+                                <p class="text-gray-800 font-medium group-hover:text-blue-600 transition mb-1">@item.Product.Name</p>
+                                <div class="flex justify-between items-center">
+                                    <p class="text-sm text-gray-500">Số lượng: @item.Quantity</p>
+                                    <div class="font-semibold text-gray-800">@((item.Product.Price * item.Quantity).ToString("N0")) ₫</div>
+                                </div>
+                            </div>
+                            <hr class="border-dashed border-gray-200">
+                        }
+                    </div>
+
+                    <!-- Tổng kết -->
+                    <div class="border-t border-gray-200 mt-4 pt-4 space-y-2">
+                        <div class="flex justify-between items-center text-gray-600">
+                            <span>Tạm tính:</span>
+                            <span class="font-medium">@Total.ToString("N0") ₫</span>
+                        </div>
+                        <div class="flex justify-between items-center text-gray-600">
+                            <span>Phí vận chuyển:</span>
+                            <span class="text-green-600 font-medium">Miễn phí</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xl font-bold text-blue-700 pt-2 border-t border-dashed border-gray-200 mt-2">
+                            <span>Tổng cộng:</span>
+                            <span>@Total.ToString("N0") ₫</span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                            @errorMessage
+                        </div>
+                    }
+
+                    <!-- Nút đặt hàng -->
+                    @if (isInfoConfirmed)
+                    {
+                        <button @onclick="ProcessPayment" disabled="@isProcessing" class="w-full mt-6 bg-green-600 hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg shadow-md transition transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center text-lg gap-2">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            @if (isProcessing)
+                            {
+                                <span>Đang xử lý...</span>
+                            }
+                            else
+                            {
+                                <span>Đặt hàng @(paymentMethod == "PayOS" ? "qua PayOS" : "")</span>
+                            }
+                        </button>
+                    }
+                    else
+                    {
+                         <button disabled class="w-full mt-6 bg-gray-300 text-gray-500 font-bold py-4 rounded-lg cursor-not-allowed flex items-center justify-center text-lg">
+                            Vui lòng xác nhận thông tin
+                        </button>
+                    }
+
+                    <p class="text-xs text-center text-gray-500 mt-4">
+                        Bằng cách đặt hàng, bạn đồng ý với <a href="#" class="text-blue-600 hover:underline">điều khoản sử dụng</a> của chúng tôi.
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<CartItem> cartItems = new();
+    private CheckoutModel checkoutModel = new();
+    private bool isInfoConfirmed = false;
+    private string paymentMethod = "COD";
+    private ClaimsPrincipal? currentUser;
+    private int? personId;
+    private bool isProcessing;
+    private string? errorMessage;
+
+    private decimal Total => cartItems.Sum(i => i.Product.Price * i.Quantity);
+
+    protected override async Task OnInitializedAsync()
+    {
+        cartItems = await CartService.GetCartItems();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        currentUser = authState.User;
+
+        if (currentUser?.Identity?.IsAuthenticated == true
+            && int.TryParse(currentUser.FindFirst("person_id")?.Value, out var parsedPersonId))
+        {
+            personId = parsedPersonId;
+            var profile = await UserProfileService.GetProfileAsync(parsedPersonId);
+            if (profile != null)
+            {
+                checkoutModel.FullName = profile.FullName;
+                checkoutModel.Email = profile.Email;
+                checkoutModel.Phone = profile.Phone;
+                checkoutModel.Address = profile.Address;
+            }
+        }
+    }
+
+    private void HandleInfoSubmit()
+    {
+        isInfoConfirmed = true;
+    }
+
+    private void EditInfo()
+    {
+        isInfoConfirmed = false;
+    }
+
+    // Hàm helper để lấy class CSS cho phương thức thanh toán đang chọn
+    private string GetPaymentClass(string method)
+    {
+        return paymentMethod == method 
+            ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500 shadow-sm" 
+            : "border-gray-300";
+    }
+
+    private async Task ProcessPayment()
+    {
+        if (!cartItems.Any())
+        {
+            return;
+        }
+
+        isProcessing = true;
+        errorMessage = null;
+
+        try
+        {
+            var orderId = await OrderService.CreateOrderAsync(personId, cartItems, checkoutModel, paymentMethod);
+            await CartService.ClearCart();
+            Navigation.NavigateTo($"/order-success?OrderId={orderId}");
+        }
+        catch (Exception)
+        {
+            errorMessage = "Không thể tạo đơn hàng. Vui lòng thử lại.";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+}
