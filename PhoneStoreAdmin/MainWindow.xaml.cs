@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using PhoneStoreRepository.Models;
 using PhoneStoreAdmin.View;
+using PhoneStore.Services;
 using System;
 using System.Linq;
 
@@ -20,6 +21,9 @@ namespace PhoneStoreAdmin
         {
             InitializeComponent();
             (Application.Current as App)!.CurrentWindow = this;
+
+            // Register MainWindow as a service so other components can access it
+            ServiceContainer.RegisterSingleton<MainWindow>(this);
 
             // Set window icon using logo
             AppWindow.SetIcon("Assets/logo.png");

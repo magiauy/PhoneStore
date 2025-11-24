@@ -7,6 +7,7 @@
 @inject NavigationManager NavigationManager
 @inject IUserProfileService UserProfileService
 @inject IAuthService AuthService
+@using Microsoft.AspNetCore.Components.Web
 
 <header class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur shadow-sm">
     <div class="max-w-6xl mx-auto px-4">
@@ -29,7 +30,7 @@
                     <svg class="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 4.5a6 6 0 1 1 0 12a6 6 0 0 1 0-12zm7 12l3.5 3.5" />
                     </svg>
-                    <input id="site-search" type="search" placeholder="Tìm kiếm iPhone 15 Pro Max..." class="w-full bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none" />
+                    <input id="site-search" type="search" placeholder="Tìm kiếm iPhone 15 Pro Max..." class="w-full bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none" @bind="SearchValue" @bind:event="oninput" @onkeydown="HandleSearchKeyDown" />
                 </div>
             </div>
 
@@ -120,9 +121,6 @@
         OnClose="@CloseProfileDialog"
         OnSave="@HandleUpdateProfile" />
 }
-@if (IsProfileDialogOpen && ActiveSession is not null)
-{
-   }
 
 @if (IsChangePasswordDialogOpen)
 {
@@ -143,6 +141,7 @@
     private bool IsChangePasswordDialogOpen = false;
     private bool IsSavingPassword = false;
     private bool IsChangePasswordSuccess = false;
+    private string SearchValue { get; set; } = string.Empty;
 
     private readonly List<NavigationItem> NavigationItems = new()
     {
@@ -318,6 +317,18 @@
         {
             IsSavingPassword = false;
             IsChangePasswordSuccess = false;
+        }
+    }
+
+    private void HandleSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            var searchTerm = SearchValue?.Trim();
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                NavigationManager.NavigateTo($"/products?search={Uri.EscapeDataString(searchTerm)}");
+            }
         }
     }
 }
