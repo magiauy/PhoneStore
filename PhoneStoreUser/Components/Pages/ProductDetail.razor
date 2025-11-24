@@ -1,4 +1,4 @@
-@page "/product/{slug}"
+@page "/product/{slug}/{sku?}"
 @using PhoneStoreUser.Components.Models
 @using Microsoft.Extensions.Logging
 @using Microsoft.AspNetCore.WebUtilities
@@ -110,6 +110,7 @@
 
 @code {
     [Parameter] public string? Slug { get; set; }
+    [Parameter] public string? Sku { get; set; }
 
     private ProductModel? ProductModel { get; set; }
     private List<Product> Products { get; set; } = new();
@@ -141,43 +142,72 @@
         SelectedProduct = null;
         CurrentImageUrl = string.Empty;
 
-        if (string.IsNullOrWhiteSpace(Slug))
+        if (!string.IsNullOrWhiteSpace(Sku))
         {
-            IsLoading = false;
-            return;
-        }
+            var product = await ProductCatalogService.GetProductBySkuAsync(Sku);
+            if (product != null)
+            {
+                ProductModel = await ProductCatalogService.GetProductModelByIdAsync(product.ModelId);
+                if (ProductModel != null)
+                {
+                    Products = (await ProductCatalogService.GetProductsByModelAsync(ProductModel.Id)).ToList();
+                    var productIds = Products.Select(p => p.Id).ToList();
+                    Attributes = (await ProductCatalogService.GetAttributesForModelAsync(ProductModel.Id)).ToList();
+                    AttributeValues = productIds.Count > 0
+                        ? (await ProductCatalogService.GetAttributeValuesForProductsAsync(productIds)).ToList()
+                        : new List<ProductAttributeValue>();
 
-        ProductModel = await ProductCatalogService.GetProductModelBySlugAsync(Slug);
-        if (ProductModel == null)
+                    var attributeIds = Attributes.Select(a => a.Id).Distinct().ToList();
+                    AttributeOptionLookup = attributeIds.Count > 0
+                        ? (await ProductCatalogService.GetAttributeOptionsForAttributesAsync(attributeIds)).ToDictionary(pair => pair.Key, pair => pair.Value)
+                        : new Dictionary<int, IReadOnlyList<ProductAttributeOption>>();
+
+                    BuildAttributeChoices();
+
+                    // Set default selection to the product matching the SKU
+                    SelectedProduct = Products.FirstOrDefault(p => p.Id == product.Id) ?? Products.FirstOrDefault();
+                    if (SelectedProduct != null)
+                    {
+                        ApplySelectedProductAttributes(SelectedProduct, replaceExisting: true);
+                    }
+
+                    // Parse query parameters and update selection if matches found
+                    ParseQueryParameters();
+                    FindMatchingProduct();
+                }
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(Slug))
         {
-            IsLoading = false;
-            return;
+            ProductModel = await ProductCatalogService.GetProductModelBySlugAsync(Slug);
+            if (ProductModel != null)
+            {
+                Products = (await ProductCatalogService.GetProductsByModelAsync(ProductModel.Id)).ToList();
+                var productIds = Products.Select(p => p.Id).ToList();
+                Attributes = (await ProductCatalogService.GetAttributesForModelAsync(ProductModel.Id)).ToList();
+                AttributeValues = productIds.Count > 0
+                    ? (await ProductCatalogService.GetAttributeValuesForProductsAsync(productIds)).ToList()
+                    : new List<ProductAttributeValue>();
+
+                var attributeIds = Attributes.Select(a => a.Id).Distinct().ToList();
+                AttributeOptionLookup = attributeIds.Count > 0
+                    ? (await ProductCatalogService.GetAttributeOptionsForAttributesAsync(attributeIds)).ToDictionary(pair => pair.Key, pair => pair.Value)
+                    : new Dictionary<int, IReadOnlyList<ProductAttributeOption>>();
+
+                BuildAttributeChoices();
+
+                // Set default selection to the first product
+                SelectedProduct = Products.FirstOrDefault();
+                if (SelectedProduct != null)
+                {
+                    ApplySelectedProductAttributes(SelectedProduct, replaceExisting: true);
+                }
+
+                // Parse query parameters and update selection if matches found
+                ParseQueryParameters();
+                FindMatchingProduct();
+            }
         }
-
-        Products = (await ProductCatalogService.GetProductsByModelAsync(ProductModel.Id)).ToList();
-        var productIds = Products.Select(p => p.Id).ToList();
-        Attributes = (await ProductCatalogService.GetAttributesForModelAsync(ProductModel.Id)).ToList();
-        AttributeValues = productIds.Count > 0
-            ? (await ProductCatalogService.GetAttributeValuesForProductsAsync(productIds)).ToList()
-            : new List<ProductAttributeValue>();
-
-        var attributeIds = Attributes.Select(a => a.Id).Distinct().ToList();
-        AttributeOptionLookup = attributeIds.Count > 0
-            ? (await ProductCatalogService.GetAttributeOptionsForAttributesAsync(attributeIds)).ToDictionary(pair => pair.Key, pair => pair.Value)
-            : new Dictionary<int, IReadOnlyList<ProductAttributeOption>>();
-
-        BuildAttributeChoices();
-
-        // Set default selection to first product
-        SelectedProduct = Products.FirstOrDefault();
-        if (SelectedProduct != null)
-        {
-            ApplySelectedProductAttributes(SelectedProduct, replaceExisting: true);
-        }
-
-        // Parse query parameters and update selection if matches found
-        ParseQueryParameters();
-        FindMatchingProduct();
         
         IsLoading = false;
     }
