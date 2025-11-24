@@ -1,0 +1,135 @@
+@page "/admin/products"
+@layout AdminLayout
+
+<div class="space-y-4">
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-lg font-semibold text-gray-900">Danh mục sản phẩm</h1>
+            <p class="text-sm text-gray-500">Quản lý tồn kho và giá bán</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <input class="rounded-lg border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="Tìm sản phẩm..." />
+            <button class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition">Thêm sản phẩm</button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <section class="lg:col-span-2 rounded-xl border bg-white p-4 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <div>
+                    <h2 class="text-base font-semibold text-gray-900">Hàng đang bán</h2>
+                    <p class="text-sm text-gray-500">Tập trung dòng flagship</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <select class="rounded-lg border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-blue-500">
+                        <option>Tất cả hãng</option>
+                        <option>Apple</option>
+                        <option>Samsung</option>
+                        <option>Xiaomi</option>
+                    </select>
+                    <select class="rounded-lg border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-blue-500">
+                        <option>Kho tổng</option>
+                        <option>Chi nhánh Q1</option>
+                        <option>Chi nhánh Thủ Đức</option>
+                    </select>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-50 text-gray-700 text-sm font-medium">
+                        <tr>
+                            <th class="p-3 text-left">Sản phẩm</th>
+                            <th class="p-3 text-left">Phiên bản</th>
+                            <th class="p-3 text-left">Tồn</th>
+                            <th class="p-3 text-left">Giá</th>
+                            <th class="p-3 text-left">Trạng thái</th>
+                            <th class="p-3 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var product in ProductsData)
+                        {
+                            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                <td class="p-3">
+                                    <p class="text-sm font-semibold text-gray-900">@product.Name</p>
+                                    <p class="text-xs text-gray-500">@product.Sku</p>
+                                </td>
+                                <td class="p-3 text-gray-700">@product.Variant</td>
+                                <td class="p-3 text-gray-700">@product.Stock</td>
+                                <td class="p-3 text-blue-600 font-semibold">@product.Price</td>
+                                <td class="p-3">
+                                    <span class="rounded-full bg-blue-600/10 text-blue-600 px-2.5 py-1 text-xs font-medium">@product.Status</span>
+                                </td>
+                                <td class="p-3 text-right">
+                                    <button class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-blue-600 hover:text-blue-600 transition">Sửa</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="rounded-xl border bg-white p-4 shadow-sm space-y-3">
+            <div>
+                <h2 class="text-base font-semibold text-gray-900">Thêm nhanh sản phẩm</h2>
+                <p class="text-sm text-gray-500">Áp dụng hàng có sẵn</p>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-sm text-gray-600 font-medium mb-1 block">Tên sản phẩm</label>
+                    <input class="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="Ví dụ: iPhone 15 Pro Max" />
+                </div>
+                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <div>
+                        <label class="text-sm text-gray-600 font-medium mb-1 block">SKU</label>
+                        <input class="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="GZ-IP15PM-256" />
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 font-medium mb-1 block">Tồn kho</label>
+                        <input type="number" class="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-blue-500" value="10" />
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <div>
+                        <label class="text-sm text-gray-600 font-medium mb-1 block">Giá bán</label>
+                        <input class="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="₫0" />
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 font-medium mb-1 block">Danh mục</label>
+                        <select class="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-blue-500">
+                            <option>Flagship</option>
+                            <option>Mid-range</option>
+                            <option>Phụ kiện</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-sm text-gray-600 font-medium mb-1 block">Mô tả ngắn</label>
+                    <textarea rows="3" class="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="Thông tin nổi bật, chương trình kèm theo"></textarea>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked />
+                        <span class="text-sm text-gray-700">Hiển thị trên trang chủ</span>
+                    </div>
+                    <span class="text-xs text-gray-500">Tự động gắn tag mới</span>
+                </div>
+                <button class="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition">Lưu sản phẩm</button>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    private List<ProductRow> ProductsData = new()
+    {
+        new("iPhone 15 Pro Max", "GZ-IP15PM-256", "256GB Titan", "24", "₫28.990.000", "Đang bán"),
+        new("Galaxy S24 Ultra", "GZ-S24U-512", "512GB Titanium Gray", "15", "₫31.990.000", "Đang bán"),
+        new("Xiaomi 14 Ultra", "GZ-XM14U-12", "12GB/512GB", "8", "₫19.990.000", "Sẵn hàng"),
+        new("iPad Air M2", "GZ-IPADAIR-256", "256GB WiFi", "17", "₫18.490.000", "Đang bán"),
+        new("AirPods Pro 2 USB-C", "GZ-AP2-23", "Chính hãng VN/A", "34", "₫5.990.000", "Sẵn hàng"),
+    };
+
+    private record ProductRow(string Name, string Sku, string Variant, string Stock, string Price, string Status);
+}
