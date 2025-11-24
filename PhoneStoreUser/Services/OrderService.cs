@@ -127,7 +127,7 @@ public class OrderService : IOrderService
 
         var invoices = await dbContext.Invoices
             .Where(i => i.PersonId == personId)
-            .OrderByDescending(i => i.InvoiceDate)
+            .OrderByDescending(i => i.InvoiceDate ?? DateTime.MinValue)
             .ToListAsync();
 
         if (!invoices.Any())

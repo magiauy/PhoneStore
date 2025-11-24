@@ -33,7 +33,7 @@ public class AdminOrderService : IAdminOrderService
         }
 
         var invoices = await query
-            .OrderByDescending(i => i.InvoiceDate)
+            .OrderByDescending(i => i.InvoiceDate ?? DateTime.MinValue)
             .ToListAsync();
 
         if (!invoices.Any())
