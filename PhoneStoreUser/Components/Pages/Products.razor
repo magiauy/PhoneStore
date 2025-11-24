@@ -186,12 +186,25 @@
 
     private void ParseQueryParameters()
     {
+        SelectedBrandIds.Clear();
+        SelectedCategoryIds.Clear();
+
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var query = QueryHelpers.ParseQuery(uri.Query);
 
         if (query.TryGetValue("search", out var values) && values.Count > 0)
         {
             SearchTerm = values[0];
+        }
+
+        if (query.TryGetValue("branch", out var branchValues) && branchValues.Count > 0 && int.TryParse(branchValues[0], out var brandId))
+        {
+            SelectedBrandIds.Add(brandId);
+        }
+
+        if (query.TryGetValue("catalog", out var catalogValues) && catalogValues.Count > 0 && int.TryParse(catalogValues[0], out var categoryId))
+        {
+            SelectedCategoryIds.Add(categoryId);
         }
     }
 }
