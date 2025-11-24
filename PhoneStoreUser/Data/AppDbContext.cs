@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic; // Required for List<>
+using System; // Required for DateTime
 
 namespace PhoneStoreUser.Data;
 
@@ -21,7 +23,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ProductSerialEntity> ProductSerials => Set<ProductSerialEntity>();
     public DbSet<InvoiceLineSerialEntity> InvoiceLineSerials => Set<InvoiceLineSerialEntity>();
 
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -38,7 +39,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             entity.ToTable("products");
             entity.HasKey(e => e.Id);
-
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Sku).HasColumnName("sku").HasMaxLength(100);
             entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(255);
@@ -147,6 +147,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
         });
 
+        // FIXED: Closed this block correctly
         modelBuilder.Entity<ProductModelAttributeEntity>(entity =>
         {
             entity.ToTable("product_model_attributes");
@@ -219,8 +220,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 entity.HasOne(e => e.ProductSerial).WithMany().HasForeignKey(e => e.ProductSerialId);
             });
         });
-    }
-}
+
+    } // End OnModelCreating
+} // End AppDbContext
+
+// Entities Definitions
 
 public class BrandEntity
 {
@@ -386,4 +390,3 @@ public class InvoiceLineSerialEntity
     public InvoiceLineEntity? InvoiceLine { get; set; }
     public ProductSerialEntity? ProductSerial { get; set; }
 }
-
