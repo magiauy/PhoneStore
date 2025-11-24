@@ -28,7 +28,7 @@
                 </div>
                 <div class="flex gap-4 mt-1 text-xs text-slate-500">
                      <span class="flex items-center gap-1"><i class="fa-solid fa-user-tie"></i> @Detail.CreatedBy</span>
-                     <span class="flex items-center gap-1"><i class="fa-regular fa-clock"></i> @Detail.InvoiceDate.ToString("dd/MM/yyyy HH:mm")</span>
+                     <span class="flex items-center gap-1"><i class="fa-regular fa-clock"></i> @FormatFullTimestamp(Detail.InvoiceDate)</span>
                 </div>
             </div>
             <div class="flex gap-2">
@@ -216,6 +216,8 @@
         if (SerialErrors != null) SerialErrors.Clear();
         ValidSerials.Clear();
     }
+
+    private static string FormatFullTimestamp(DateTime? date) => date?.ToString("dd/MM/yyyy HH:mm") ?? "-";
 
     private string GetSerialInput(string key, string existingSerial)
     {

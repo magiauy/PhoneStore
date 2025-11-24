@@ -9,7 +9,7 @@ public record OrderHistoryPageDto(
 
 public record OrderHistoryItemDto(
     string Code,
-    DateTime Date,
+    DateTime? Date,
     string Customer,
     string Payment,
     string Status,

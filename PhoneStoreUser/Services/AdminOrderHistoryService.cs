@@ -43,7 +43,7 @@ public class AdminOrderHistoryService : IAdminOrderHistoryService
 
         // Apply pagination
         var invoices = await query
-            .OrderByDescending(i => i.InvoiceDate)
+            .OrderByDescending(i => i.InvoiceDate ?? DateTime.MinValue)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -80,11 +80,11 @@ public class AdminOrderHistoryService : IAdminOrderHistoryService
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
         // Default to last 30 days if not specified
-        startDate ??= DateTime.UtcNow.AddDays(-30);
-        endDate ??= DateTime.UtcNow;
+        var statsStart = startDate ?? DateTime.UtcNow.AddDays(-30);
+        var statsEnd = endDate ?? DateTime.UtcNow;
 
         var orders = await dbContext.Invoices
-            .Where(i => i.InvoiceDate >= startDate && i.InvoiceDate <= endDate)
+            .Where(i => i.InvoiceDate.HasValue && i.InvoiceDate.Value >= statsStart && i.InvoiceDate.Value <= statsEnd)
             .ToListAsync();
 
         var totalRevenue = orders
