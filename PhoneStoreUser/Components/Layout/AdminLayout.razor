@@ -6,24 +6,44 @@
             <div class="text-lg font-semibold tracking-tight">GuZone Admin</div>
             <p class="text-xs text-gray-400 mt-1">Quản trị cửa hàng</p>
         </div>
+
         <nav class="flex-1 px-3 py-4 space-y-1">
-            <NavLink href="/admin" Match="NavLinkMatch.All" class="nav-item" ActiveClass="active-item">
+            <NavLink href="/admin" Match="NavLinkMatch.All"
+                     class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800 transition-all duration-200"
+                     ActiveClass="bg-blue-600 text-white shadow-sm !text-white">
                 <i class="fa-solid fa-gauge-high text-sm"></i>
                 <span>Dashboard</span>
             </NavLink>
-            <NavLink href="/admin/orders" class="nav-item" ActiveClass="active-item">
+
+            <NavLink href="/admin/orders"
+                     class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800 transition-all duration-200"
+                     ActiveClass="bg-blue-600 text-white shadow-sm !text-white">
                 <i class="fa-solid fa-receipt text-sm"></i>
-                <span>Đơn hàng</span>
+                <span>Xử lý đơn hàng</span>
             </NavLink>
-            <NavLink href="/admin/products" class="nav-item" ActiveClass="active-item">
+
+            <NavLink href="/admin/orders-history"
+                     class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800 transition-all duration-200"
+                     ActiveClass="bg-blue-600 text-white shadow-sm !text-white">
+                <i class="fa-solid fa-receipt text-sm"></i>
+                <span>Thống kê đơn hàng</span>
+            </NavLink>
+
+            <NavLink href="/admin/products"
+                     class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800 transition-all duration-200"
+                     ActiveClass="bg-blue-600 text-white shadow-sm !text-white">
                 <i class="fa-solid fa-mobile-screen-button text-sm"></i>
                 <span>Sản phẩm</span>
             </NavLink>
-            <NavLink href="/admin/customers" class="nav-item" ActiveClass="active-item">
+
+            <NavLink href="/admin/customers"
+                     class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800 transition-all duration-200"
+                     ActiveClass="bg-blue-600 text-white shadow-sm !text-white">
                 <i class="fa-solid fa-user-group text-sm"></i>
                 <span>Khách hàng</span>
             </NavLink>
         </nav>
+
         <div class="px-4 py-3 border-t border-gray-800 text-xs text-gray-400">
             <p>GuZone • Control Center</p>
             <p class="mt-1">Phiên bản 1.0</p>
@@ -65,19 +85,10 @@
                 "admin/orders" => "Quản lý đơn hàng",
                 "admin/products" => "Danh mục sản phẩm",
                 "admin/customers" => "Khách hàng",
+                "admin/orders-history" => "Thống kê đơn hàng",
                 "admin" or "admin/index" or "admin/" => "Dashboard",
                 _ => "Bảng điều khiển"
             };
         }
     }
 }
-
-<style>
-    .nav-item {
-        @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800 transition-all duration-200;
-    }
-
-    .active-item {
-        @apply bg-blue-600 text-white shadow-sm;
-    }
-</style>
