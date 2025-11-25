@@ -1,0 +1,446 @@
+@page "/admin/suppliers"
+@layout AdminLayout
+@using PhoneStoreUser.Components.Models
+@using PhoneStoreUser.Helper
+@inject ISupplierService SupplierService
+@inject IJSRuntime JSRuntime
+
+<div class="space-y-6 bg-gray-50/50 p-6 min-h-screen font-sans">
+    
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Nhà cung cấp</h1>
+            <p class="text-sm text-slate-500">Quản lý thông tin nhà cung cấp và đối tác.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="relative flex-1 sm:flex-none">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input @bind="SearchTerm" @bind:event="oninput" @onkeyup="HandleSearch" class="w-full sm:w-72 rounded-xl border border-slate-200 py-2.5 pl-9 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm" placeholder="Tìm tên, SĐT, email..." />
+            </div>
+            <button @onclick="() => OpenModal()" class="hidden sm:inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 transition">
+                <i class="fa-solid fa-plus"></i> Thêm mới
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6">
+        
+        <section class="flex flex-col gap-4">
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col h-full">
+                <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                    <h2 class="text-base font-bold text-slate-900">Danh sách nhà cung cấp</h2>
+                </div>
+
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50/50 text-xs uppercase font-semibold text-slate-500">
+                            <tr>
+                                <th class="px-5 py-4">ID</th>
+                                <th class="px-5 py-4">Tên nhà cung cấp</th>
+                                <th class="px-5 py-4">Liên hệ</th>
+                                <th class="px-5 py-4">Mã số thuế</th>
+                                <th class="px-5 py-4">Trạng thái</th>
+                                <th class="px-5 py-4 text-right">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+    @if (IsLoading)
+    {
+        @for (int i = 0; i < PageSize; i++)
+        {
+            <tr class="animate-pulse">
+                <td class="px-5 py-4"><div class="h-4 w-8 rounded bg-slate-200"></div></td>
+                <td class="px-5 py-4"><div class="h-4 w-32 rounded bg-slate-200"></div></td>
+                <td class="px-5 py-4">
+                    <div class="space-y-2">
+                        <div class="h-3 w-24 rounded bg-slate-200"></div>
+                        <div class="h-3 w-32 rounded bg-slate-100"></div>
+                    </div>
+                </td>
+                <td class="px-5 py-4"><div class="h-4 w-24 rounded bg-slate-200"></div></td>
+                <td class="px-5 py-4"><div class="h-6 w-16 rounded bg-slate-200"></div></td>
+                <td class="px-5 py-4 text-right">
+                    <div class="flex justify-end gap-2">
+                        <div class="h-8 w-8 rounded bg-slate-100"></div>
+                        <div class="h-8 w-8 rounded bg-slate-100"></div>
+                    </div>
+                </td>
+            </tr>
+        }
+    }
+    else if (!SuppliersData.Any())
+    {
+        <tr>
+            <td colspan="6" class="px-5 py-12 text-center">
+                <div class="flex flex-col items-center justify-center gap-2 text-slate-500">
+                    <i class="fa-solid fa-box-open text-3xl text-slate-300"></i>
+                    <p>Không tìm thấy nhà cung cấp nào.</p>
+                </div>
+            </td>
+        </tr>
+    }
+    else
+    {
+        @foreach (var supplier in SuppliersData)
+        {
+            <tr class="hover:bg-slate-50/80 transition-colors group">
+                <td class="px-5 py-4 font-mono text-xs text-slate-500">#@supplier.Id</td>
+                <td class="px-5 py-4">
+                    <p class="font-semibold text-slate-900">@supplier.Name</p>
+                    <p class="text-xs text-slate-500 truncate max-w-[200px]" title="@supplier.Address">@supplier.Address</p>
+                </td>
+                <td class="px-5 py-4">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-xs flex items-center gap-1.5"><i class="fa-solid fa-phone text-slate-400 w-3"></i> @(string.IsNullOrEmpty(supplier.Phone) ? "-" : supplier.Phone)</span>
+                        <span class="text-xs flex items-center gap-1.5"><i class="fa-solid fa-envelope text-slate-400 w-3"></i> @(string.IsNullOrEmpty(supplier.Email) ? "-" : supplier.Email)</span>
+                    </div>
+                </td>
+                <td class="px-5 py-4 font-mono text-xs">
+                    @(string.IsNullOrEmpty(supplier.TaxNumber) ? "-" : supplier.TaxNumber)
+                </td>
+                <td class="px-5 py-4">
+                    @if (supplier.IsActive)
+                    {
+                        <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Hoạt động</span>
+                    }
+                    else
+                    {
+                        <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">Ngừng hoạt động</span>
+                    }
+                </td>
+                <td class="px-5 py-4 text-right">
+                    <button @onclick="() => OpenModal(supplier)" class="text-slate-400 hover:text-blue-600 transition p-2" title="Chỉnh sửa">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    @if (supplier.IsActive)
+                    {
+                        <button @onclick="() => ToggleActive(supplier)" class="text-slate-400 hover:text-red-600 transition p-2" title="Ngừng hoạt động">
+                            <i class="fa-solid fa-ban"></i>
+                        </button>
+                    }
+                    else
+                    {
+                        <button @onclick="() => ToggleActive(supplier)" class="text-slate-400 hover:text-green-600 transition p-2" title="Kích hoạt lại">
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                    }
+                </td>
+            </tr>
+        }
+    }
+</tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="border-t border-slate-100 px-5 py-4 text-sm text-slate-600 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-semibold text-slate-700">Rows per page:</label>
+                        <select @onchange="OnPageSizeChanged" 
+                                disabled="@IsLoading"
+                                class="h-8 rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50">
+                            <option value="10" selected="@(PageSize == 10)">10</option>
+                            <option value="20" selected="@(PageSize == 20)">20</option>
+                            <option value="50" selected="@(PageSize == 50)">50</option>
+                        </select>
+                    </div>
+
+                    <div class="text-sm font-medium text-slate-700">
+                        @DisplayFrom-@DisplayTo of @TotalRecords
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition text-slate-600"
+                                @onclick="GoToFirstPage"
+                                disabled="@(CurrentPage == 1 || IsLoading)"
+                                title="First Page">
+                            <i class="fa-solid fa-angles-left"></i>
+                        </button>
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition text-slate-600"
+                                @onclick="GoToPreviousPage"
+                                disabled="@(!CanGoPrevious || IsLoading)"
+                                title="Previous Page">
+                            <i class="fa-solid fa-angle-left"></i>
+                        </button>
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition text-slate-600"
+                                @onclick="GoToNextPage"
+                                disabled="@(!CanGoNext || IsLoading)"
+                                title="Next Page">
+                            <i class="fa-solid fa-angle-right"></i>
+                        </button>
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition text-slate-600"
+                                @onclick="GoToLastPage"
+                                disabled="@(CurrentPage == TotalPages || IsLoading)"
+                                title="Last Page">
+                            <i class="fa-solid fa-angles-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- Modal -->
+@if (ShowModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="w-full max-w-lg rounded-2xl bg-white shadow-xl animate-in fade-in zoom-in duration-200">
+            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                <h3 class="text-lg font-bold text-slate-900">@(EditingSupplier.Id == 0 ? "Thêm nhà cung cấp" : "Cập nhật nhà cung cấp")</h3>
+                <button @onclick="CloseModal" class="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <EditForm Model="@EditingSupplier" OnValidSubmit="HandleSaveSupplier">
+                <DataAnnotationsValidator />
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Tên nhà cung cấp <span class="text-red-500">*</span></label>
+                        <InputText @bind-Value="EditingSupplier.Name" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Nhập tên nhà cung cấp" />
+                        <ValidationMessage For="@(() => EditingSupplier.Name)" class="text-xs text-red-500 mt-1" />
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Số điện thoai</label>
+                            <InputText @bind-Value="EditingSupplier.Phone" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="09xx..." />
+                            <ValidationMessage For="@(() => EditingSupplier.Phone)" class="text-xs text-red-500 mt-1" />
+                        </div>
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Mã số thuế</label>
+                            <InputText @bind-Value="EditingSupplier.TaxNumber" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="MST..." />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Email</label>
+                        <InputText @bind-Value="EditingSupplier.Email" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="email@example.com" />
+                        <ValidationMessage For="@(() => EditingSupplier.Email)" class="text-xs text-red-500 mt-1" />
+                    </div>
+
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Địa chỉ</label>
+                        <InputTextArea @bind-Value="EditingSupplier.Address" rows="3" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none" placeholder="Địa chỉ..."></InputTextArea>
+                    </div>
+                    
+                    @if (EditingSupplier.Id != 0)
+                    {
+                        <div class="flex items-center gap-2">
+                            <InputCheckbox @bind-Value="EditingSupplier.IsActive" id="isActive" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                            <label for="isActive" class="text-sm font-medium text-slate-700">Đang hoạt động</label>
+                        </div>
+                    }
+                </div>
+
+                <div class="flex items-center justify-end gap-3 border-t border-slate-100 px-6 py-4 bg-slate-50 rounded-b-2xl">
+                    <button type="button" @onclick="CloseModal" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">Hủy bỏ</button>
+                    <button type="submit" disabled="@IsSaving" class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-500 transition flex items-center gap-2 disabled:opacity-50">
+                        @if (IsSaving)
+                        {
+                            <i class="fa-solid fa-spinner fa-spin"></i> <span>Đang lưu...</span>
+                        }
+                        else
+                        {
+                            <span>Lưu thay đổi</span>
+                        }
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Supplier> SuppliersData = new();
+    private Supplier EditingSupplier = new();
+    private bool IsLoading = true;
+    private bool IsSaving = false;
+    private bool ShowModal = false;
+    
+    // Pagination & Filter
+    private int CurrentPage = 1;
+    private int PageSize = 10;
+    private int TotalRecords;
+    private int TotalPages;
+    private string SearchTerm = "";
+
+    private int DisplayFrom => TotalRecords == 0 ? 0 : ((CurrentPage - 1) * PageSize) + 1;
+    private int DisplayTo => TotalRecords == 0 ? 0 : Math.Min(TotalRecords, ((CurrentPage - 1) * PageSize) + SuppliersData.Count);
+    private bool CanGoPrevious => CurrentPage > 1;
+    private bool CanGoNext => TotalPages > 0 && CurrentPage < TotalPages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSuppliers();
+    }
+
+    private async Task LoadSuppliers()
+    {
+        IsLoading = true;
+        try
+        {
+            // Note: The existing Service method GetSuppliersFiltered uses synchronous repository calls wrapped in the service.
+            // We should ideally have an async version, but for now we'll run it on a background thread to avoid blocking UI if it takes time.
+            // However, since it's EF Core, it might be fast enough. Let's wrap in Task.Run just in case or use directly if it was async.
+            // The service method signature is: SupplierResult GetSuppliersFiltered(...)
+            
+            await Task.Run(() =>
+            {
+                var result = SupplierService.GetSuppliersFiltered(
+                    name: SearchTerm,
+                    phone: SearchTerm,
+                    email: SearchTerm,
+                    address: null,
+                    taxNumber: null,
+                    isActive: null,
+                    page: CurrentPage,
+                    pageSize: PageSize
+                );
+
+                SuppliersData = result.Items.ToList();
+                TotalRecords = result.TotalCount;
+                TotalPages = result.TotalPages;
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading suppliers: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task HandleSearch()
+    {
+        // Debounce could be added here, but for now just reset page and load
+        CurrentPage = 1;
+        await LoadSuppliers();
+    }
+
+    private void OpenModal(Supplier? supplier = null)
+    {
+        if (supplier == null)
+        {
+            EditingSupplier = new Supplier();
+        }
+        else
+        {
+            // Clone to avoid editing the list item directly before saving
+            EditingSupplier = new Supplier
+            {
+                Id = supplier.Id,
+                Name = supplier.Name,
+                Phone = supplier.Phone,
+                Email = supplier.Email,
+                Address = supplier.Address,
+                TaxNumber = supplier.TaxNumber,
+                IsActive = supplier.IsActive
+            };
+        }
+        ShowModal = true;
+    }
+
+    private void CloseModal()
+    {
+        ShowModal = false;
+        EditingSupplier = new();
+    }
+
+    private async Task HandleSaveSupplier()
+    {
+        IsSaving = true;
+        try
+        {
+            bool success;
+            if (EditingSupplier.Id == 0)
+            {
+                success = await Task.Run(() => SupplierService.Insert(EditingSupplier));
+            }
+            else
+            {
+                success = await Task.Run(() => SupplierService.Update(EditingSupplier));
+            }
+
+            if (success)
+            {
+                CloseModal();
+                await LoadSuppliers();
+            }
+            else
+            {
+                // Show error (could use a toast service)
+                Console.WriteLine("Failed to save supplier");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving supplier: {ex.Message}");
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+
+    private async Task ToggleActive(Supplier supplier)
+    {
+        try
+        {
+            if (supplier.IsActive)
+            {
+                await Task.Run(() => SupplierService.DeactivateSupplier(supplier.Id));
+            }
+            else
+            {
+                await Task.Run(() => SupplierService.ActivateSupplier(supplier.Id));
+            }
+            await LoadSuppliers();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error toggling supplier status: {ex.Message}");
+        }
+    }
+
+    private async Task OnPageSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int newPageSize))
+        {
+            PageSize = newPageSize;
+            CurrentPage = 1;
+            await LoadSuppliers();
+        }
+    }
+
+    private async Task GoToPreviousPage()
+    {
+        if (!CanGoPrevious || IsLoading) return;
+        CurrentPage--;
+        await LoadSuppliers();
+    }
+
+    private async Task GoToNextPage()
+    {
+        if (!CanGoNext || IsLoading) return;
+        CurrentPage++;
+        await LoadSuppliers();
+    }
+
+    private async Task GoToFirstPage()
+    {
+        if (CurrentPage == 1 || IsLoading) return;
+        CurrentPage = 1;
+        await LoadSuppliers();
+    }
+
+    private async Task GoToLastPage()
+    {
+        if (CurrentPage == TotalPages || IsLoading) return;
+        CurrentPage = TotalPages;
+        await LoadSuppliers();
+    }
+}

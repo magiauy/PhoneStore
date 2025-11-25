@@ -1,3 +1,5 @@
+using System;
+
 namespace PhoneStoreUser.Components.Models;
 
 public record ProductAttributeValue(

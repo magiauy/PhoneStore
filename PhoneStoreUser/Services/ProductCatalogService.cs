@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using PhoneStoreRepository.Repositories.Interfaces;
 using PhoneStoreUser.Components.Models;
 using PhoneStoreUser.Components.ViewModels;
 using PhoneStoreUser.Data;
@@ -12,31 +11,13 @@ namespace PhoneStoreUser.Services;
 
 public class ProductCatalogService : IProductCatalogService
 {
-    private readonly IProductModelRepository _productModelRepository;
-    private readonly IProductRepository _productRepository;
-    private readonly IProductModelAttributeRepository _productModelAttributeRepository;
-    private readonly IProductAttributeRepository _productAttributeRepository;
-    private readonly IProductAttributeValueRepository _productAttributeValueRepository;
-    private readonly IProductAttributeOptionRepository _productAttributeOptionRepository;
     private readonly ILogger<ProductCatalogService> _logger;
     private readonly IDbContextFactory<AppDbContext> _dbContextFactory;
 
     public ProductCatalogService(
-        IProductModelRepository productModelRepository,
-        IProductRepository productRepository,
-        IProductModelAttributeRepository productModelAttributeRepository,
-        IProductAttributeRepository productAttributeRepository,
-        IProductAttributeValueRepository productAttributeValueRepository,
-        IProductAttributeOptionRepository productAttributeOptionRepository,
         ILogger<ProductCatalogService> logger,
         IDbContextFactory<AppDbContext> dbContextFactory)
     {
-        _productModelRepository = productModelRepository;
-        _productRepository = productRepository;
-        _productModelAttributeRepository = productModelAttributeRepository;
-        _productAttributeRepository = productAttributeRepository;
-        _productAttributeValueRepository = productAttributeValueRepository;
-        _productAttributeOptionRepository = productAttributeOptionRepository;
         _logger = logger;
         _dbContextFactory = dbContextFactory;
     }
@@ -45,13 +26,13 @@ public class ProductCatalogService : IProductCatalogService
     {
         return ExecuteAsync<IReadOnlyList<ProductModel>>(() =>
         {
-            var models = _productModelRepository.GetAll() ?? Enumerable.Empty<PhoneStoreRepository.Models.ProductModel>();
-            return models
-                .Select(MapProductModel)
+            using var context = _dbContextFactory.CreateDbContext();
+            var models = context.ProductModels.AsNoTracking()
                 .OrderByDescending(m => m.UpdatedAt ?? m.CreatedAt)
                 .ThenBy(m => m.Name)
-                .ToList()
-                .AsReadOnly();
+                .ToList();
+
+            return models.Select(MapProductModel).ToList().AsReadOnly();
         }, "load product models", Array.Empty<ProductModel>());
     }
 
@@ -64,7 +45,8 @@ public class ProductCatalogService : IProductCatalogService
 
         return ExecuteAsync<ProductModel?>(() =>
         {
-            var model = _productModelRepository.FindBySlug(slug);
+            using var context = _dbContextFactory.CreateDbContext();
+            var model = context.ProductModels.AsNoTracking().FirstOrDefault(m => m.Slug == slug);
             return model == null ? null : MapProductModel(model);
         }, $"load product model {slug}", (ProductModel?)null);
     }
@@ -100,15 +82,13 @@ public class ProductCatalogService : IProductCatalogService
                 return Array.Empty<ProductModel>();
             }
 
-            var allModels = _productModelRepository.GetAll() ?? Enumerable.Empty<PhoneStoreRepository.Models.ProductModel>();
-
-            return allModels
+            var models = context.ProductModels.AsNoTracking()
                 .Where(m => modelIds.Contains(m.Id))
-                .Select(MapProductModel)
                 .OrderByDescending(m => m.UpdatedAt ?? m.CreatedAt)
                 .ThenBy(m => m.Name)
-                .ToList()
-                .AsReadOnly();
+                .ToList();
+
+            return models.Select(MapProductModel).ToList().AsReadOnly();
         }, $"load product models for category {categorySlug}", Array.Empty<ProductModel>());
     }
 
@@ -164,30 +144,24 @@ public class ProductCatalogService : IProductCatalogService
 
         return ExecuteAsync<IReadOnlyList<ProductAttribute>>(() =>
         {
-            var attributeIds = _productModelAttributeRepository.GetAttributeIdsByModel(modelId)?.Distinct().ToList();
-            if (attributeIds == null || attributeIds.Count == 0)
+            using var context = _dbContextFactory.CreateDbContext();
+            var attributeIds = context.ProductModelAttributes.AsNoTracking()
+                .Where(pma => pma.ModelId == modelId)
+                .Select(pma => pma.AttributeId)
+                .Distinct()
+                .ToList();
+
+            if (attributeIds.Count == 0)
             {
                 return Array.Empty<ProductAttribute>() as IReadOnlyList<ProductAttribute>;
             }
 
-            var attributes = new List<ProductAttribute>(attributeIds.Count);
-            foreach (var attributeId in attributeIds)
-            {
-                try
-                {
-                    var attribute = _productAttributeRepository.GetById(attributeId);
-                    attributes.Add(MapProductAttribute(attribute));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to load attribute {AttributeId} for model {ModelId}", attributeId, modelId);
-                }
-            }
-
-            return attributes
+            var attributes = context.ProductAttributes.AsNoTracking()
+                .Where(a => attributeIds.Contains(a.Id))
                 .OrderBy(a => a.Id)
-                .ToList()
-                .AsReadOnly();
+                .ToList();
+
+            return attributes.Select(MapProductAttribute).ToList().AsReadOnly();
         }, $"load attributes for model {modelId}", Array.Empty<ProductAttribute>());
     }
 
@@ -206,15 +180,12 @@ public class ProductCatalogService : IProductCatalogService
 
         return ExecuteAsync<IReadOnlyList<ProductAttributeValue>>(() =>
         {
-            var values = new List<ProductAttributeValue>();
-            foreach (var productId in distinctIds)
-            {
-                var attributeValues = _productAttributeValueRepository.GetByProductId(productId)
-                                     ?? Enumerable.Empty<PhoneStoreRepository.Models.ProductAttributeValue>();
-                values.AddRange(attributeValues.Select(MapProductAttributeValue));
-            }
+            using var context = _dbContextFactory.CreateDbContext();
+            var attributeValues = context.ProductAttributeValues.AsNoTracking()
+                .Where(av => distinctIds.Contains(av.ProductId))
+                .ToList();
 
-            return values.AsReadOnly();
+            return attributeValues.Select(MapProductAttributeValue).ToList().AsReadOnly();
         }, "load attribute values for products", Array.Empty<ProductAttributeValue>());
     }
 
@@ -233,27 +204,23 @@ public class ProductCatalogService : IProductCatalogService
 
         return ExecuteAsync<IReadOnlyDictionary<int, IReadOnlyList<ProductAttributeOption>>>(() =>
         {
-            var lookup = _productAttributeOptionRepository.GetByAttributeIds(ids)
-                ?? new Dictionary<int, IReadOnlyList<PhoneStoreRepository.Models.ProductAttributeOption>>();
+            using var context = _dbContextFactory.CreateDbContext();
+            var options = context.ProductAttributeOptions.AsNoTracking()
+                .Where(o => ids.Contains(o.AttributeId))
+                .ToList();
 
             var result = new Dictionary<int, IReadOnlyList<ProductAttributeOption>>();
             foreach (var id in ids)
             {
-                if (lookup.TryGetValue(id, out var options) && options != null)
-                {
-                    var mapped = options
-                        .Select(MapProductAttributeOption)
-                        .OrderBy(o => o.SortOrder)
-                        .ThenBy(o => o.DisplayValue, StringComparer.OrdinalIgnoreCase)
-                        .ToList()
-                        .AsReadOnly();
+                var attributeOptions = options
+                    .Where(o => o.AttributeId == id)
+                    .Select(MapProductAttributeOption)
+                    .OrderBy(o => o.SortOrder)
+                    .ThenBy(o => o.DisplayValue, StringComparer.OrdinalIgnoreCase)
+                    .ToList()
+                    .AsReadOnly();
 
-                    result[id] = mapped;
-                }
-                else
-                {
-                    result[id] = Array.Empty<ProductAttributeOption>();
-                }
+                result[id] = attributeOptions;
             }
 
             return (IReadOnlyDictionary<int, IReadOnlyList<ProductAttributeOption>>)result;
@@ -306,15 +273,13 @@ public class ProductCatalogService : IProductCatalogService
                 return Array.Empty<ProductModel>();
             }
 
-            var allModels = _productModelRepository.GetAll() ?? Enumerable.Empty<PhoneStoreRepository.Models.ProductModel>();
-
-            return allModels
+            var models = context.ProductModels.AsNoTracking()
                 .Where(m => modelIds.Contains(m.Id))
-                .Select(MapProductModel)
                 .OrderByDescending(m => m.UpdatedAt ?? m.CreatedAt)
                 .ThenBy(m => m.Name)
-                .ToList()
-                .AsReadOnly();
+                .ToList();
+
+            return models.Select(MapProductModel).ToList().AsReadOnly();
         }, "load filtered product models", Array.Empty<ProductModel>());
     }
 
@@ -464,7 +429,8 @@ public class ProductCatalogService : IProductCatalogService
 
         return ExecuteAsync<ProductModel?>(() =>
         {
-            var model = _productModelRepository.GetById(id);
+            using var context = _dbContextFactory.CreateDbContext();
+            var model = context.ProductModels.AsNoTracking().FirstOrDefault(m => m.Id == id);
             return model == null ? null : MapProductModel(model);
         }, $"load product model {id}", (ProductModel?)null);
     }
@@ -485,17 +451,17 @@ public class ProductCatalogService : IProductCatalogService
         });
     }
 
-    private static ProductModel MapProductModel(PhoneStoreRepository.Models.ProductModel model) =>
+    private static ProductModel MapProductModel(PhoneStoreUser.Data.ProductModelEntity model) =>
         new(
             Id: model.Id,
-            Name: model.Name,
-            Slug: model.Slug,
+            Name: model.Name ?? string.Empty,
+            Slug: model.Slug ?? string.Empty,
             Description: model.Description,
             Image: model.DefaultImageUrl,
             CreatedAt: model.CreatedAt,
             UpdatedAt: model.UpdatedAt);
 
-    private static Product MapProduct(PhoneStoreRepository.Models.Product product) =>
+    private static Product MapProduct(PhoneStoreUser.Data.ProductEntity product) =>
         new(
             Id: product.Id,
             Sku: product.Sku,
@@ -511,14 +477,14 @@ public class ProductCatalogService : IProductCatalogService
             Status: product.Status.ToString().ToLowerInvariant(),
             CreatedAt: product.CreatedAt);
 
-    private static ProductAttribute MapProductAttribute(PhoneStoreRepository.Models.ProductAttribute attribute) =>
+    private static ProductAttribute MapProductAttribute(PhoneStoreUser.Data.ProductAttributeEntity attribute) =>
         new(
             Id: attribute.Id,
             Name: attribute.Name,
             DataType: attribute.DataType.ToString().ToLowerInvariant(),
             Note: attribute.Note);
 
-    private static ProductAttributeValue MapProductAttributeValue(PhoneStoreRepository.Models.ProductAttributeValue attributeValue) =>
+    private static ProductAttributeValue MapProductAttributeValue(PhoneStoreUser.Data.ProductAttributeValueEntity attributeValue) =>
         new(
             Id: attributeValue.Id,
             ProductId: attributeValue.ProductId,
@@ -529,14 +495,14 @@ public class ProductCatalogService : IProductCatalogService
             ValueDate: attributeValue.ValueDate,
             ValueBool: attributeValue.ValueBool);
 
-    private static ProductAttributeOption MapProductAttributeOption(PhoneStoreRepository.Models.ProductAttributeOption option) =>
+    private static ProductAttributeOption MapProductAttributeOption(PhoneStoreUser.Data.ProductAttributeOptionEntity option) =>
         new(
             Id: option.Id,
             AttributeId: option.AttributeId,
             DisplayValue: option.DisplayValue,
-            NormalizedValue: option.NormalizedValue,
+            NormalizedValue: option.NormalizedValue.ToString(),
             SortOrder: option.SortOrder,
-            IsActive: option.IsActive,
+            IsActive: option.IsActive != 0,
             CreatedAt: option.CreatedAt,
             UpdatedAt: option.UpdatedAt);
 }
