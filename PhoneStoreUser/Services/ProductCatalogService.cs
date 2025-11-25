@@ -500,9 +500,9 @@ public class ProductCatalogService : IProductCatalogService
             Id: option.Id,
             AttributeId: option.AttributeId,
             DisplayValue: option.DisplayValue,
-            NormalizedValue: option.NormalizedValue.ToString(),
+            NormalizedValue: option.NormalizedValue?.ToString(),
             SortOrder: option.SortOrder,
-            IsActive: option.IsActive != 0,
+            IsActive: (option.IsActive ?? 1) != 0,
             CreatedAt: option.CreatedAt,
             UpdatedAt: option.UpdatedAt);
 }
