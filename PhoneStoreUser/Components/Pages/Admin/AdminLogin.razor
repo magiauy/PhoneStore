@@ -1,0 +1,125 @@
+@page "/admin"
+@using PhoneStoreUser.Components.Models
+@using PhoneStoreUser.Components.Layout
+@layout LoginLayout
+@rendermode InteractiveServer
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+
+<PageTitle>GuZone Admin Login</PageTitle>
+
+<div class="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div class="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg p-6 sm:p-8">
+        <div class="space-y-2 text-center mb-8">
+            <div class="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-slate-900 text-white mb-4 shadow-lg shadow-slate-900/20">
+                <i class="fa-solid fa-shield-halved text-xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Admin Portal</h1>
+            <p class="text-sm text-slate-500">Đăng nhập dành cho quản trị viên & nhân viên</p>
+        </div>
+
+        <form method="post" action="/admin/login" class="space-y-5">
+            <AntiforgeryToken />
+            
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 flex items-start gap-3">
+                    <i class="fa-solid fa-circle-exclamation mt-0.5 shrink-0"></i>
+                    <span>@ErrorMessage</span>
+                </div>
+            }
+
+            <div class="space-y-4">
+                <div class="space-y-1.5">
+                    <label for="username" class="text-sm font-semibold text-slate-700">Tên đăng nhập</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-user text-sm"></i>
+                        </div>
+                        <input
+                            id="username"
+                            name="EmailOrUsername"
+                            value="@Model.EmailOrUsername"
+                            class="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition shadow-sm placeholder:text-slate-400"
+                            placeholder="username"
+                            autocomplete="username"
+                            required />
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="password" class="text-sm font-semibold text-slate-700">Mật khẩu</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-lock text-sm"></i>
+                        </div>
+                        <input
+                            id="password"
+                            type="password"
+                            name="Password"
+                            class="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition shadow-sm placeholder:text-slate-400"
+                            placeholder="••••••••"
+                            autocomplete="current-password"
+                            required />
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                    <label class="inline-flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none group">
+                        <input
+                            type="checkbox"
+                            name="RememberMe"
+                            value="true"
+                            class="h-4 w-4 text-slate-900 border-slate-300 rounded focus:ring-slate-900 cursor-pointer"
+                            checked="@Model.RememberMe" />
+                        <span class="group-hover:text-slate-900 transition">Ghi nhớ đăng nhập</span>
+                    </label>
+                </div>
+
+                <button
+                    type="submit"
+                    class="w-full bg-slate-900 text-white font-semibold py-3 rounded-xl text-sm flex items-center justify-center gap-2 hover:bg-slate-800 active:scale-[0.98] transition shadow-md shadow-slate-900/10 mt-2">
+                    <span>Đăng nhập hệ thống</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </form>
+        
+        <div class="mt-8 text-center">
+            <p class="text-xs text-slate-400">
+                &copy; @DateTime.Now.Year GuZone Admin System. All rights reserved.
+            </p>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    public LoginModel Model { get; set; } = new();
+
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? Error { get; set; }
+
+    private string? ErrorMessage => Error switch
+    {
+        "missing_credentials" => "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.",
+        "invalid_credentials" => "Tên đăng nhập hoặc mật khẩu không chính xác.",
+        "unauthorized" => "Tài khoản không có quyền truy cập trang quản trị.",
+        _ => null
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity is { IsAuthenticated: true } && user.IsInRole("EMPLOYEE"))
+        {
+            NavigationManager.NavigateTo("/admin/dashboard", true);
+        }
+    }
+}
