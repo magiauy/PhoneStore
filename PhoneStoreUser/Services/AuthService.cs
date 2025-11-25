@@ -1,8 +1,8 @@
 using System;
 using Microsoft.EntityFrameworkCore;
-using PhoneStoreRepository.Utils;
 using PhoneStoreUser.Components.Models;
 using PhoneStoreUser.Data;
+using PhoneStoreUser.Utils;
 
 namespace PhoneStoreUser.Services;
 
