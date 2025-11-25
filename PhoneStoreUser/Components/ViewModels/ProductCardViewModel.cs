@@ -15,7 +15,7 @@ namespace PhoneStoreUser.Components.ViewModels
         bool IsSerialTracked,
         int WarrantyMonths,
         string Status,
-        DateTime CreatedAt,
+        DateTime? CreatedAt,
         ICollection<ProductAttributeValue>? ProductAttributeValues,
         string Slug
     );

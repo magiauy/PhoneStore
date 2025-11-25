@@ -1,186 +1,195 @@
 @page "/admin/products"
 @layout AdminLayout
+@using System
+@using PhoneStoreUser.Components.Models
+@using PhoneStoreUser.Data
+@using PhoneStoreUser.Services
+@using PhoneStoreUser.Components.ViewModels
+@inject IProductService ProductService
+@inject NavigationManager NavigationManager
 
 <div class="space-y-6 bg-gray-50/50 p-6 min-h-screen font-sans">
     
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Danh mục sản phẩm</h1>
-            <p class="text-sm text-slate-500">Quản lý kho hàng, giá bán và cấu hình sản phẩm.</p>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Sản phẩm</h1>
+            <p class="text-sm text-slate-500">Quản lý danh mục sản phẩm và kho hàng.</p>
         </div>
         <div class="flex items-center gap-3">
             <div class="relative flex-1 sm:flex-none">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                <input class="w-full sm:w-64 rounded-xl border border-slate-200 py-2.5 pl-9 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm" placeholder="Tìm kiếm tên, SKU..." />
+                <input @bind="SearchTerm" @bind:event="oninput" @onkeyup="HandleSearch" class="w-full sm:w-72 rounded-xl border border-slate-200 py-2.5 pl-9 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm" placeholder="Tìm tên, SKU..." />
             </div>
-            <button class="hidden sm:inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 shadow-sm transition">
-                <i class="fa-solid fa-file-export"></i> Xuất Excel
-            </button>
+            <a href="/admin/products/create" class="hidden sm:inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 transition">
+                <i class="fa-solid fa-plus"></i> Thêm mới
+            </a>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-6">
         
-        <section class="lg:col-span-2 flex flex-col gap-4">
-            <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
-                <div class="flex items-center gap-2 px-2">
-                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                        <i class="fa-solid fa-layer-group"></i>
-                    </span>
-                    <div>
-                        <h2 class="text-sm font-bold text-slate-900">Hàng đang bán</h2>
-                        <p class="text-[10px] text-slate-500 font-medium">5 sản phẩm hiển thị</p>
-                    </div>
+        <section class="flex flex-col gap-4">
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col h-full">
+                <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                    <h2 class="text-base font-bold text-slate-900">Danh sách sản phẩm</h2>
                 </div>
-                <div class="flex items-center gap-2">
-                    <select class="rounded-lg border-0 bg-slate-50 py-1.5 pl-3 pr-8 text-xs font-medium text-slate-700 focus:ring-2 focus:ring-blue-500">
-                        <option>Tất cả hãng</option>
-                        <option>Apple</option>
-                        <option>Samsung</option>
-                    </select>
-                    <select class="rounded-lg border-0 bg-slate-50 py-1.5 pl-3 pr-8 text-xs font-medium text-slate-700 focus:ring-2 focus:ring-blue-500">
-                        <option>Kho tổng</option>
-                        <option>Chi nhánh Q1</option>
-                    </select>
-                </div>
-            </div>
 
-            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto flex-1">
                     <table class="w-full text-left text-sm text-slate-600">
                         <thead class="bg-slate-50/50 text-xs uppercase font-semibold text-slate-500">
                             <tr>
+                                <th class="px-5 py-4">ID</th>
                                 <th class="px-5 py-4">Sản phẩm</th>
-                                <th class="px-5 py-4">Phiên bản</th>
-                                <th class="px-5 py-4 text-center">Tồn kho</th>
-                                <th class="px-5 py-4 text-right">Giá bán</th>
-                                <th class="px-5 py-4 text-center">Trạng thái</th>
-                                <th class="px-5 py-4"></th>
+                                <th class="px-5 py-4">Giá bán</th>
+                                <th class="px-5 py-4">Danh mục</th>
+                                <th class="px-5 py-4">Trạng thái</th>
+                                <th class="px-5 py-4 text-right">Hành động</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            @foreach (var product in ProductsData)
-                            {
-                                int stock = int.Parse(product.Stock);
-                                <tr class="hover:bg-slate-50/80 transition-colors group">
-                                    <td class="px-5 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="h-10 w-10 shrink-0 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
-                                                <i class="fa-solid fa-image"></i>
-                                            </div>
-                                            <div>
-                                                <p class="font-semibold text-slate-900">@product.Name</p>
-                                                <p class="text-xs font-mono text-slate-500">@product.Sku</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-5 py-4">
-                                        <span class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">
-                                            @product.Variant
-                                        </span>
-                                    </td>
-                                    <td class="px-5 py-4 text-center">
-                                        <span class="@(stock < 10 ? "text-rose-600 font-bold" : "text-slate-700")">
-                                            @product.Stock
-                                        </span>
-                                    </td>
-                                    <td class="px-5 py-4 text-right font-medium text-slate-900 tabular-nums">
-                                        @product.Price
-                                    </td>
-                                    <td class="px-5 py-4 text-center">
-                                        <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset @(product.Status == "Sẵn hàng" ? "bg-emerald-50 text-emerald-700 ring-emerald-600/20" : "bg-blue-50 text-blue-700 ring-blue-600/20")">
-                                            <i class="mr-1.5 h-1.5 w-1.5 rounded-full @(product.Status == "Sẵn hàng" ? "bg-emerald-600" : "bg-blue-600")"></i>
-                                            @product.Status
-                                        </span>
-                                    </td>
-                                    <td class="px-5 py-4 text-right">
-                                        <button class="rounded-lg p-2 text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition">
-                                            <i class="fa-solid fa-pen-to-square"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+    @if (IsLoading)
+    {
+        @for (int i = 0; i < PageSize; i++)
+        {
+            <tr class="animate-pulse">
+                <td class="px-5 py-4"><div class="h-4 w-8 rounded bg-slate-200"></div></td>
+                <td class="px-5 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="h-10 w-10 rounded bg-slate-200"></div>
+                        <div class="space-y-2">
+                            <div class="h-3 w-32 rounded bg-slate-200"></div>
+                            <div class="h-3 w-20 rounded bg-slate-100"></div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-5 py-4"><div class="h-4 w-24 rounded bg-slate-200"></div></td>
+                <td class="px-5 py-4"><div class="h-4 w-24 rounded bg-slate-200"></div></td>
+                <td class="px-5 py-4"><div class="h-6 w-16 rounded bg-slate-200"></div></td>
+                <td class="px-5 py-4 text-right">
+                    <div class="flex justify-end gap-2">
+                        <div class="h-8 w-8 rounded bg-slate-100"></div>
+                        <div class="h-8 w-8 rounded bg-slate-100"></div>
+                    </div>
+                </td>
+            </tr>
+        }
+    }
+    else if (!ProductsData.Any())
+    {
+        <tr>
+            <td colspan="6" class="px-5 py-12 text-center">
+                <div class="flex flex-col items-center justify-center gap-2 text-slate-500">
+                    <i class="fa-solid fa-box-open text-3xl text-slate-300"></i>
+                    <p>Không tìm thấy sản phẩm nào.</p>
+                </div>
+            </td>
+        </tr>
+    }
+    else
+    {
+        @foreach (var product in ProductsData)
+        {
+            <tr class="hover:bg-slate-50/80 transition-colors group">
+                <td class="px-5 py-4 font-mono text-xs text-slate-500">#@product.Id</td>
+                <td class="px-5 py-4">
+                    <div class="flex items-center gap-3">
+                        @{
+                            var imageUrl = GetProductImageUrl(product);
+                        }
+                        @if (!string.IsNullOrEmpty(imageUrl))
+                        {
+                            <img src="@imageUrl" alt="@product.Name" class="h-10 w-10 rounded object-cover border border-slate-200" />
+                        }
+                        else
+                        {
+                            <div class="h-10 w-10 rounded bg-slate-100 flex items-center justify-center text-slate-400">
+                                <i class="fa-solid fa-image"></i>
+                            </div>
+                        }
+                        <div>
+                            <p class="font-semibold text-slate-900">@product.Name</p>
+                            <p class="text-xs text-slate-500">SKU: @product.Sku</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-5 py-4 font-medium text-slate-900">
+                    @product.Price.ToString("N0") ₫
+                </td>
+                <td class="px-5 py-4 text-slate-600">
+                    @(product.Category?.Name ?? "-")
+                </td>
+                <td class="px-5 py-4">
+                    @if (product.Status == "active")
+                    {
+                        <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Đang bán</span>
+                    }
+                    else if (product.Status == "inactive")
+                    {
+                        <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">Ngừng bán</span>
+                    }
+                    else
+                    {
+                        <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">@product.Status</span>
+                    }
+                </td>
+                <td class="px-5 py-4 text-right">
+                    <a href="/admin/products/edit/@product.Id" class="text-slate-400 hover:text-blue-600 transition p-2" title="Chỉnh sửa">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </a>
+                    <button @onclick="() => DeleteProduct(product.Id)" class="text-slate-400 hover:text-red-600 transition p-2" title="Xóa">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        }
+    }
+</tbody>
                     </table>
                 </div>
-                 <div class="border-t border-slate-200 p-4">
-                    <button class="w-full rounded-lg border border-dashed border-slate-300 py-2 text-sm text-slate-500 hover:border-blue-500 hover:text-blue-600 transition">
-                        Xem thêm sản phẩm
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <section class="flex flex-col gap-4">
-            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm h-fit sticky top-6">
-                <div class="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
-                    <div>
-                        <h2 class="text-base font-bold text-slate-900">Thêm nhanh</h2>
-                        <p class="text-xs text-slate-500">Tạo sản phẩm mới vào kho</p>
-                    </div>
-                    <div class="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                        <i class="fa-solid fa-plus text-sm"></i>
-                    </div>
-                </div>
-
-                <div class="space-y-4">
-                    <div class="group relative flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 hover:border-blue-400 hover:bg-blue-50/50 transition">
-                        <div class="text-center">
-                            <i class="fa-solid fa-cloud-arrow-up text-xl text-slate-400 group-hover:text-blue-500 transition"></i>
-                            <p class="mt-2 text-xs font-medium text-slate-500 group-hover:text-blue-600">Tải ảnh sản phẩm</p>
-                        </div>
+                
+                <!-- Pagination -->
+                <div class="border-t border-slate-100 px-5 py-4 text-sm text-slate-600 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-semibold text-slate-700">Rows per page:</label>
+                        <select @onchange="OnPageSizeChanged" 
+                                disabled="@IsLoading"
+                                class="h-8 rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50">
+                            <option value="10" selected="@(PageSize == 10)">10</option>
+                            <option value="20" selected="@(PageSize == 20)">20</option>
+                            <option value="50" selected="@(PageSize == 50)">50</option>
+                        </select>
                     </div>
 
-                    <div>
-                        <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Tên sản phẩm <span class="text-rose-500">*</span></label>
-                        <input class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Ví dụ: iPhone 15 Pro Max" />
+                    <div class="text-sm font-medium text-slate-700">
+                        @DisplayFrom-@DisplayTo of @TotalRecords
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">SKU</label>
-                            <input class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-mono placeholder:font-sans focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Mã SP" />
-                        </div>
-                        <div>
-                            <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Tồn kho</label>
-                            <input type="number" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value="10" />
-                        </div>
+                    <div class="flex items-center gap-1">
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition text-slate-600"
+                                @onclick="GoToFirstPage"
+                                disabled="@(CurrentPage == 1 || IsLoading)"
+                                title="First Page">
+                            <i class="fa-solid fa-angles-left"></i>
+                        </button>
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition text-slate-600"
+                                @onclick="GoToPreviousPage"
+                                disabled="@(!CanGoPrevious || IsLoading)"
+                                title="Previous Page">
+                            <i class="fa-solid fa-angle-left"></i>
+                        </button>
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition text-slate-600"
+                                @onclick="GoToNextPage"
+                                disabled="@(!CanGoNext || IsLoading)"
+                                title="Next Page">
+                            <i class="fa-solid fa-angle-right"></i>
+                        </button>
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition text-slate-600"
+                                @onclick="GoToLastPage"
+                                disabled="@(CurrentPage == TotalPages || IsLoading)"
+                                title="Last Page">
+                            <i class="fa-solid fa-angles-right"></i>
+                        </button>
                     </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Giá bán</label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">₫</span>
-                                <input class="w-full rounded-xl border border-slate-200 py-2.5 pl-6 pr-3 text-sm font-medium text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="0" />
-                            </div>
-                        </div>
-                        <div>
-                            <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Danh mục</label>
-                            <select class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                                <option>Điện thoại</option>
-                                <option>Tablet</option>
-                                <option>Phụ kiện</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Ghi chú</label>
-                        <textarea rows="3" class="w-full resize-none rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Mô tả ngắn hoặc ghi chú nội bộ..."></textarea>
-                    </div>
-
-                    <div class="flex items-center justify-between rounded-lg bg-slate-50 p-3">
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" id="publish" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" checked />
-                            <label for="publish" class="text-sm font-medium text-slate-700 select-none">Hiển thị ngay</label>
-                        </div>
-                        <span class="rounded bg-white px-1.5 py-0.5 text-[10px] font-mono text-slate-400 border border-slate-100">PUBLIC</span>
-                    </div>
-
-                    <button class="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700 transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-save"></i> Lưu sản phẩm
-                    </button>
                 </div>
             </div>
         </section>
@@ -188,14 +197,113 @@
 </div>
 
 @code {
-    private List<ProductRow> ProductsData = new()
-    {
-        new("iPhone 15 Pro Max", "GZ-IP15PM-256", "256GB Titan", "24", "₫28.990.000", "Đang bán"),
-        new("Galaxy S24 Ultra", "GZ-S24U-512", "512GB Titanium", "15", "₫31.990.000", "Đang bán"),
-        new("Xiaomi 14 Ultra", "GZ-XM14U-12", "12GB/512GB", "4", "₫19.990.000", "Sẵn hàng"),
-        new("iPad Air M2", "GZ-IPADAIR-256", "256GB WiFi", "17", "₫18.490.000", "Đang bán"),
-        new("AirPods Pro 2 USB-C", "GZ-AP2-23", "Chính hãng VN/A", "34", "₫5.990.000", "Sẵn hàng"),
-    };
+    private List<ProductEntity> ProductsData = new();
+    private bool IsLoading = true;
+    
+    // Pagination & Filter
+    private int CurrentPage = 1;
+    private int PageSize = 10;
+    private int TotalRecords;
+    private int TotalPages;
+    private string SearchTerm = "";
 
-    private record ProductRow(string Name, string Sku, string Variant, string Stock, string Price, string Status);
+    private int DisplayFrom => TotalRecords == 0 ? 0 : ((CurrentPage - 1) * PageSize) + 1;
+    private int DisplayTo => TotalRecords == 0 ? 0 : Math.Min(TotalRecords, ((CurrentPage - 1) * PageSize) + ProductsData.Count);
+    private bool CanGoPrevious => CurrentPage > 1;
+    private bool CanGoNext => TotalPages > 0 && CurrentPage < TotalPages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        IsLoading = true;
+        try
+        {
+            var result = await ProductService.GetProductsAsync(SearchTerm, CurrentPage, PageSize);
+            ProductsData = result.Items;
+            TotalRecords = result.TotalCount;
+            TotalPages = result.TotalPages;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading products: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task HandleSearch()
+    {
+        CurrentPage = 1;
+        await LoadProducts();
+    }
+
+    private async Task DeleteProduct(int id)
+    {
+        if (await ProductService.DeleteProductAsync(id))
+        {
+            await LoadProducts();
+        }
+    }
+
+    private async Task OnPageSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int newPageSize))
+        {
+            PageSize = newPageSize;
+            CurrentPage = 1;
+            await LoadProducts();
+        }
+    }
+
+    private async Task GoToPreviousPage()
+    {
+        if (!CanGoPrevious || IsLoading) return;
+        CurrentPage--;
+        await LoadProducts();
+    }
+
+    private async Task GoToNextPage()
+    {
+        if (!CanGoNext || IsLoading) return;
+        CurrentPage++;
+        await LoadProducts();
+    }
+
+    private async Task GoToFirstPage()
+    {
+        if (CurrentPage == 1 || IsLoading) return;
+        CurrentPage = 1;
+        await LoadProducts();
+    }
+
+    private async Task GoToLastPage()
+    {
+        if (CurrentPage == TotalPages || IsLoading) return;
+        CurrentPage = TotalPages;
+        await LoadProducts();
+    }
+
+    private static string? GetProductImageUrl(ProductEntity product)
+    {
+        var brand = product.Brand?.Name?.Trim();
+        var slug = product.Model?.Slug?.Trim();
+        var sku = product.Sku?.Trim();
+
+        if (!string.IsNullOrEmpty(brand) && !string.IsNullOrEmpty(slug) && !string.IsNullOrEmpty(sku))
+        {
+            var brandSegment = Uri.EscapeDataString(brand.ToLowerInvariant());
+            var slugSegment = Uri.EscapeDataString(slug);
+            var skuSegment = Uri.EscapeDataString(sku);
+
+            return $"https://res.cloudinary.com/dstytmxfh/image/upload/v1763457477/mobileguzone/{brandSegment}/{slugSegment}/{skuSegment}.webp";
+        }
+
+        return product.Model?.DefaultImageUrl;
+    }
 }

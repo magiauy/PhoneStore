@@ -258,7 +258,11 @@ public class ProductEntity
     public bool IsSerialTracked { get; set; }
     public int WarrantyMonths { get; set; }
     public string Status { get; set; } = "active";
-    public DateTime CreatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
+
+    public CategoryEntity? Category { get; set; }
+    public BrandEntity? Brand { get; set; }
+    public ProductModelEntity? Model { get; set; }
 }
 
 public class ProductModelEntity
@@ -268,7 +272,7 @@ public class ProductModelEntity
     public string? Slug { get; set; }
     public string? Description { get; set; }
     public string? DefaultImageUrl { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
 
@@ -336,10 +340,10 @@ public class ProductAttributeOptionEntity
     public int Id { get; set; }
     public int AttributeId { get; set; }
     public string DisplayValue { get; set; } = string.Empty;
-    public int NormalizedValue { get; set; }
+    public int? NormalizedValue { get; set; }
     public int SortOrder { get; set; }
-    public int IsActive { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public int? IsActive { get; set; }
+    public DateTime? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
 
