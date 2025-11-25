@@ -3,24 +3,42 @@
 
 <div class="container mx-auto p-8 max-w-2xl text-center">
     <div class="bg-white p-10 rounded-2xl shadow-lg border border-gray-100">
-        <div class="mb-6">
-            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <i class="fa-solid fa-check text-5xl text-green-600"></i>
+        @if (IsCancelled)
+        {
+            <div class="mb-6">
+                <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                    <i class="fa-solid fa-xmark text-5xl text-red-600"></i>
+                </div>
             </div>
-        </div>
-        
-        <h1 class="text-3xl font-bold text-gray-800 mb-4">Đặt Hàng Thành Công!</h1>
-        
-        <p class="text-gray-600 mb-8 text-lg">
-            Cảm ơn bạn đã mua sắm tại PhoneStore. <br/>
-            Đơn hàng của bạn đang được xử lý và sẽ sớm được giao đến bạn.
-        </p>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">Thanh Toán Đã Hủy</h1>
+            
+            <p class="text-gray-600 mb-8 text-lg">
+                Giao dịch thanh toán của bạn đã bị hủy. <br/>
+                Đơn hàng đã được tạo nhưng chưa thanh toán.
+            </p>
+        }
+        else
+        {
+            <div class="mb-6">
+                <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                    <i class="fa-solid fa-check text-5xl text-green-600"></i>
+                </div>
+            </div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">Đặt Hàng Thành Công!</h1>
+            
+            <p class="text-gray-600 mb-8 text-lg">
+                Cảm ơn bạn đã mua sắm tại PhoneStore. <br/>
+                Đơn hàng của bạn đang được xử lý và sẽ sớm được giao đến bạn.
+            </p>
+        }
 
-        @if (!string.IsNullOrEmpty(OrderId))
+        @if (!string.IsNullOrEmpty(DisplayOrderId))
         {
             <div class="bg-gray-50 p-4 rounded-lg mb-8 inline-block">
                 <span class="text-gray-500">Mã đơn hàng:</span>
-                <span class="font-mono font-bold text-gray-800 ml-2">#@OrderId</span>
+                <span class="font-mono font-bold text-gray-800 ml-2">#@DisplayOrderId</span>
             </div>
         }
 
@@ -38,4 +56,17 @@
 @code {
     [SupplyParameterFromQuery]
     public string? OrderId { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? OrderCode { get; set; }
+
+    [SupplyParameterFromQuery]
+    public bool? Cancel { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? Status { get; set; }
+
+    private bool IsCancelled => (Cancel.HasValue && Cancel.Value) || Status == "CANCELLED";
+
+    private string? DisplayOrderId => !string.IsNullOrEmpty(OrderId) ? OrderId : OrderCode;
 }
