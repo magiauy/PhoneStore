@@ -5,13 +5,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using PhoneStoreRepository.Data;
-using PhoneStoreRepository.Models.Enums;
-using PhoneStoreRepository.Repositories.Implementations;
-using PhoneStoreRepository.Repositories.Interfaces;
 using PhoneStoreUser.Components;
 using PhoneStoreUser.Components.Models;
 using PhoneStoreUser.Data;
+using PhoneStoreUser.Data.Enums;
 using PhoneStoreUser.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,14 +22,6 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddSingleton<DataSource>(sp => new DataSource(sp.GetRequiredService<IConfiguration>()));
-builder.Services.AddScoped<IProductModelRepository, ProductModelRepository>();
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IProductModelAttributeRepository, ProductModelAttributeRepository>();
-builder.Services.AddScoped<IProductAttributeRepository, ProductAttributeRepository>();
-builder.Services.AddScoped<IProductAttributeValueRepository, ProductAttributeValueRepository>();
-builder.Services.AddScoped<IProductAttributeOptionRepository, ProductAttributeOptionRepository>();
-builder.Services.AddScoped<IAuthRepository, AuthRepository>();
-builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 builder.Services.AddScoped<IProductCatalogService, ProductCatalogService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
@@ -41,6 +30,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAdminOrderService, AdminOrderService>();
 builder.Services.AddScoped<IAdminOrderHistoryService, AdminOrderHistoryService>();
 builder.Services.AddScoped<IAdminCustomerService, AdminCustomerService>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 builder.Services.AddCascadingAuthenticationState();
@@ -125,21 +115,31 @@ app.UseAntiforgery();
 app.MapPost("/login", async (
     [Microsoft.AspNetCore.Mvc.FromForm] LoginModel model,
     HttpContext context,
-    IAuthRepository authRepository,
-    IPersonRepository personRepository) =>
+    IDbContextFactory<AppDbContext> dbContextFactory) =>
 {
     if (string.IsNullOrWhiteSpace(model.EmailOrUsername) || string.IsNullOrWhiteSpace(model.Password))
     {
         return Results.Redirect("/login?error=missing_credentials");
     }
 
-    var account = await authRepository.AuthenticateAsync(model.EmailOrUsername.Trim(), model.Password);
+    using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+    // Find account
+    var account = await dbContext.Accounts.FirstOrDefaultAsync(a =>
+        (a.Username == model.EmailOrUsername.Trim()) && a.IsActive);
+
     if (account is null)
     {
         return Results.Redirect("/login?error=invalid_credentials");
     }
 
-    var person = await personRepository.GetByIdAsync(account.PersonId);
+    // Verify password
+    if (!PhoneStoreUser.Utils.PasswordHasher.VerifyPassword(model.Password, account.Password))
+    {
+        return Results.Redirect("/login?error=invalid_credentials");
+    }
+
+    var person = await dbContext.Persons.FindAsync(account.PersonId);
     var principal = CreatePrincipal(account, person, defaultScheme);
     var authProperties = new AuthenticationProperties
     {
@@ -170,22 +170,32 @@ adminRoutes.RequireAuthorization("AdminOnly");
 adminRoutes.MapPost("/login", async (
     [Microsoft.AspNetCore.Mvc.FromForm] LoginModel model,
     HttpContext context,
-    IAuthRepository authRepository,
-    IPersonRepository personRepository) =>
+    IDbContextFactory<AppDbContext> dbContextFactory) =>
 {
     if (string.IsNullOrWhiteSpace(model.EmailOrUsername) || string.IsNullOrWhiteSpace(model.Password))
     {
         return Results.Redirect("/admin/login?error=missing_credentials");
     }
 
-    var account = await authRepository.AuthenticateAsync(model.EmailOrUsername.Trim(), model.Password);
+    using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+    // Find account
+    var account = await dbContext.Accounts.FirstOrDefaultAsync(a =>
+        (a.Username == model.EmailOrUsername.Trim()) && a.IsActive);
+
     if (account is null)
     {
         return Results.Redirect("/admin/login?error=invalid_credentials");
     }
 
-    var person = await personRepository.GetByIdAsync(account.PersonId);
-    if (person?.PersonType != PersonType.EMPLOYEE)
+    // Verify password
+    if (!PhoneStoreUser.Utils.PasswordHasher.VerifyPassword(model.Password, account.Password))
+    {
+        return Results.Redirect("/admin/login?error=invalid_credentials");
+    }
+
+    var person = await dbContext.Persons.FindAsync(account.PersonId);
+    if (person?.PersonType != "EMPLOYEE")
     {
         return Results.Redirect("/admin/login?error=unauthorized");
     }
@@ -220,7 +230,7 @@ app.MapRazorComponents<App>()
 
 app.Run();
 
-ClaimsPrincipal CreatePrincipal(PhoneStoreRepository.Models.Account account, PhoneStoreRepository.Models.Person? person, string authenticationScheme)
+ClaimsPrincipal CreatePrincipal(AccountEntity account, PersonEntity? person, string authenticationScheme)
 {
     var claims = new List<Claim>
     {
@@ -234,9 +244,9 @@ ClaimsPrincipal CreatePrincipal(PhoneStoreRepository.Models.Account account, Pho
         claims.Add(new Claim(ClaimTypes.Email, person.Email));
     }
 
-    var roleName = person?.PersonType == PersonType.EMPLOYEE
+    var roleName = person?.PersonType == "EMPLOYEE"
         ? adminRoleName
-        : person?.PersonType.ToString() ?? "Customer";
+        : person?.PersonType ?? "Customer";
 
     claims.Add(new Claim(ClaimTypes.Role, roleName));
 
