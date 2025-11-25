@@ -322,13 +322,38 @@
 
         try
         {
-            var orderId = await OrderService.CreateOrderAsync(personId, cartItems, checkoutModel, paymentMethod);
-            await CartService.ClearCart();
-            Navigation.NavigateTo($"/order-success?OrderId={orderId}");
+            if (paymentMethod == "PayOS")
+            {
+                // Create order and get PayOS payment link
+                var result = await OrderService.CreateOrderWithPaymentAsync(
+                    personId, 
+                    cartItems, 
+                    checkoutModel);
+                
+                if (!string.IsNullOrEmpty(result.paymentUrl))
+                {
+                    // Clear cart before redirecting
+                    await CartService.ClearCart();
+                    
+                    // Redirect to PayOS checkout page
+                    Navigation.NavigateTo(result.paymentUrl, forceLoad: true);
+                }
+                else
+                {
+                    errorMessage = "Không thể tạo link thanh toán PayOS. Vui lòng thử lại hoặc chọn phương thức thanh toán khác.";
+                }
+            }
+            else // COD
+            {
+                // Existing COD flow
+                var orderId = await OrderService.CreateOrderAsync(personId, cartItems, checkoutModel, paymentMethod);
+                await CartService.ClearCart();
+                Navigation.NavigateTo($"/order-success?OrderId={orderId}");
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            errorMessage = "Không thể tạo đơn hàng. Vui lòng thử lại.";
+            errorMessage = $"Không thể tạo đơn hàng. Vui lòng thử lại.";
         }
         finally
         {

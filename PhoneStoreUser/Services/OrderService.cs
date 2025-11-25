@@ -7,10 +7,14 @@ namespace PhoneStoreUser.Services;
 public class OrderService : IOrderService
 {
     private readonly IDbContextFactory<AppDbContext> _dbContextFactory;
+    private readonly IPayOSService _payOSService;
 
-    public OrderService(IDbContextFactory<AppDbContext> dbContextFactory)
+    public OrderService(
+        IDbContextFactory<AppDbContext> dbContextFactory,
+        IPayOSService payOSService)
     {
         _dbContextFactory = dbContextFactory;
+        _payOSService = payOSService;
     }
 
     public async Task<int> CreateOrderAsync(int? personId, List<CartItem> items, CheckoutModel model, string paymentMethod)
@@ -94,7 +98,7 @@ public class OrderService : IOrderService
             PersonId = finalPersonId,
             CreatedBy = finalPersonId,
             InvoiceDate = DateTime.UtcNow,
-            Status = string.Equals(paymentMethod, "PayOS", StringComparison.OrdinalIgnoreCase) ? "paid" : "unpaid",
+            Status = "unpaid", // Always start as unpaid
             TotalAmount = totalAmount,
             DiscountAmount = 0,
             FinalAmount = totalAmount,
@@ -119,6 +123,37 @@ public class OrderService : IOrderService
         await dbContext.SaveChangesAsync();
 
         return invoice.Id;
+    }
+
+    public async Task<(int invoiceId, string? paymentUrl)> CreateOrderWithPaymentAsync(
+        int? personId,
+        List<CartItem> items,
+        CheckoutModel model)
+    {
+        // Create the order with PayOS payment method
+        var invoiceId = await CreateOrderAsync(personId, items, model, "PayOS");
+
+        // Create PayOS payment link
+        // PayOS requires orderCode to be an integer, so use invoiceId directly
+        var orderCode = invoiceId;
+        var totalAmount = items.Sum(i => i.Product.Price * i.Quantity);
+        var description = $"Thanh toan don hang #{invoiceId}";
+
+        var paymentResponse = await _payOSService.CreatePaymentLinkAsync(
+            orderCode,
+            totalAmount,
+            description,
+            model.FullName ?? "Customer",
+            model.Email ?? "",
+            model.Phone ?? "",
+            model.Address ?? "");
+
+        if (paymentResponse?.Data?.CheckoutUrl != null)
+        {
+            return (invoiceId, paymentResponse.Data.CheckoutUrl);
+        }
+
+        return (invoiceId, null);
     }
 
     public async Task<List<InvoiceEntity>> GetOrdersAsync(int personId)

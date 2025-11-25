@@ -9,6 +9,7 @@ using PhoneStoreUser.Components;
 using PhoneStoreUser.Components.Models;
 using PhoneStoreUser.Data;
 using PhoneStoreUser.Data.Enums;
+using PhoneStoreUser.Models;
 using PhoneStoreUser.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +18,11 @@ const string defaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 const string adminScheme = "guzone.admin";
 const string adminRoleName = nameof(PersonType.EMPLOYEE);
 
+// Configure PayOS
+builder.Services.Configure<PayOSConfig>(builder.Configuration.GetSection("PayOS"));
+
 // Add services to the container.
+builder.Services.AddControllers(); // Enable API controllers for PayOS callback
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -29,10 +34,10 @@ builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAdminOrderService, AdminOrderService>();
-builder.Services.AddScoped<IAdminOrderService, AdminOrderService>();
 builder.Services.AddScoped<IAdminOrderHistoryService, AdminOrderHistoryService>();
 builder.Services.AddScoped<IAdminCustomerService, AdminCustomerService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<IPayOSService, PayOSService>();
 builder.Services.AddSingleton<ICloudinaryService, CloudinaryService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
@@ -227,6 +232,9 @@ adminRoutes.MapGet("/logout", async (HttpContext context) =>
     await context.SignOutAsync(adminScheme);
     return Results.Redirect("/admin");
 }).RequireAuthorization("AdminOnly");
+
+// Map controllers for API endpoints (PayOS callback)
+app.MapControllers();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
