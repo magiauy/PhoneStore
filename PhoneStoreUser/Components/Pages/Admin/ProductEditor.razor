@@ -45,8 +45,14 @@
                                 <ValidationMessage For="@(() => Product.Sku)" class="text-xs text-red-500 mt-1" />
                             </div>
                             <div>
-                                <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Model ID</label>
-                                <InputNumber @bind-Value="Product.ModelId" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="ID Model" />
+                                <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Model</label>
+                                <InputSelect Value="Product.ModelId" ValueExpression="@(() => Product.ModelId)" ValueChanged="@((int value) => OnModelChanged(value))" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                    <option value="0">-- Chọn Model --</option>
+                                    @foreach (var model in ProductModels)
+                                    {
+                                        <option value="@model.Id">@model.Name</option>
+                                    }
+                                </InputSelect>
                             </div>
                         </div>
 
@@ -60,6 +66,45 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Attributes Section -->
+                @if (Product.ModelId != 0 && ModelAttributes.Any())
+                {
+                    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <h2 class="mb-4 text-base font-bold text-slate-900">Thông số kỹ thuật</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            @foreach (var attr in ModelAttributes)
+                            {
+                                var attrValue = AttributeValues.FirstOrDefault(v => v.AttributeId == attr.Id) 
+                                                ?? new ProductAttributeValueEntity { AttributeId = attr.Id };
+                                
+                                <div>
+                                    <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">@attr.Name</label>
+                                    
+                                    @if (AttributeOptions.ContainsKey(attr.Id) && AttributeOptions[attr.Id].Any())
+                                    {
+                                        <select @onchange="@(e => UpdateAttributeValue(attr.Id, e.Value?.ToString(), true))" 
+                                                class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                            <option value="">-- Chọn @attr.Name --</option>
+                                            @foreach (var opt in AttributeOptions[attr.Id])
+                                            {
+                                                <option value="@opt.Id" selected="@(attrValue.OptionId == opt.Id)">@opt.DisplayValue</option>
+                                            }
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        <input type="text" 
+                                               value="@attrValue.ValueText" 
+                                               @onchange="@(e => UpdateAttributeValue(attr.Id, e.Value?.ToString(), false))"
+                                               class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+                                               placeholder="Nhập @attr.Name" />
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
 
                 <!-- Pricing -->
                 <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -177,6 +222,13 @@
     private ProductEntity Product = new() { Status = "active" };
     private List<CategoryEntity> Categories = new();
     private List<BrandEntity> Brands = new();
+    private List<ProductModelEntity> ProductModels = new();
+    
+    // Attribute handling
+    private List<ProductAttributeEntity> ModelAttributes = new();
+    private Dictionary<int, List<ProductAttributeOptionEntity>> AttributeOptions = new();
+    private List<ProductAttributeValueEntity> AttributeValues = new();
+
     private string? UploadedImageUrl;
     private bool IsUploading = false;
     private bool IsSaving = false;
@@ -191,6 +243,12 @@
             if (existing != null)
             {
                 Product = existing;
+                // Load attributes for this product
+                if (Product.ModelId != 0)
+                {
+                    await LoadModelAttributes(Product.ModelId);
+                    AttributeValues = await ProductService.GetProductAttributeValuesAsync(Id);
+                }
             }
         }
 
@@ -204,6 +262,89 @@
         using var context = await DbContextFactory.CreateDbContextAsync();
         Categories = await context.Categories.ToListAsync();
         Brands = await context.Brands.ToListAsync();
+        ProductModels = await ProductService.GetProductModelsAsync();
+    }
+
+    private async Task OnModelChanged(int modelId)
+    {
+        Product.ModelId = modelId;
+        
+        // Auto-fill name and SKU when model is selected
+        if (modelId != 0)
+        {
+            var selectedModel = ProductModels.FirstOrDefault(m => m.Id == modelId);
+            if (selectedModel != null)
+            {
+                // Auto-fill name with model name if current name is empty
+                if (string.IsNullOrWhiteSpace(Product.Name))
+                {
+                    Product.Name = selectedModel.Name;
+                }
+                
+                // Generate SKU suggestion based on model slug and timestamp
+                if (string.IsNullOrWhiteSpace(Product.Sku))
+                {
+                    var slug = selectedModel.Slug ?? GenerateSlug(selectedModel.Name ?? "");
+                    Product.Sku = $"{slug}".ToUpperInvariant();
+                }
+            }
+        }
+        
+        await LoadModelAttributes(modelId);
+    }
+
+    private async Task LoadModelAttributes(int modelId)
+    {
+        if (modelId == 0)
+        {
+            ModelAttributes.Clear();
+            return;
+        }
+
+        ModelAttributes = await ProductService.GetAttributesByModelIdAsync(modelId);
+        
+        // Load options for these attributes
+        AttributeOptions.Clear();
+        foreach (var attr in ModelAttributes)
+        {
+            var options = await ProductService.GetAttributeOptionsAsync(attr.Id);
+            if (options.Any())
+            {
+                AttributeOptions[attr.Id] = options;
+            }
+        }
+    }
+
+    private void UpdateAttributeValue(int attributeId, string? value, bool isOption)
+    {
+        var existing = AttributeValues.FirstOrDefault(v => v.AttributeId == attributeId);
+        if (existing == null)
+        {
+            existing = new ProductAttributeValueEntity
+            {
+                AttributeId = attributeId,
+                ProductId = Product.Id
+            };
+            AttributeValues.Add(existing);
+        }
+
+        if (isOption)
+        {
+            if (int.TryParse(value, out int optionId))
+            {
+                existing.OptionId = optionId;
+                existing.ValueText = null; // Clear text if option selected
+            }
+            else
+            {
+                existing.OptionId = null;
+            }
+        }
+        else
+        {
+            existing.ValueText = value;
+            existing.OptionId = null;
+        }
     }
 
     private async Task HandleImageUpload(InputFileChangeEventArgs e)
@@ -227,26 +368,16 @@
             }
 
             string slugSegment;
-            if (Product.Model != null && !string.IsNullOrWhiteSpace(Product.Model.Slug))
+            // Use selected model slug if available
+            var selectedModel = ProductModels.FirstOrDefault(m => m.Id == Product.ModelId);
+            if (selectedModel != null && !string.IsNullOrWhiteSpace(selectedModel.Slug))
             {
-                slugSegment = Product.Model.Slug;
+                slugSegment = selectedModel.Slug;
             }
             else
             {
-                slugSegment = GenerateSlug(Product.Name);
-                if (Product.Model == null)
-                {
-                    Product.Model = new ProductModelEntity
-                    {
-                        Name = Product.Name,
-                        Slug = slugSegment,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                }
-                else if (string.IsNullOrWhiteSpace(Product.Model.Slug))
-                {
-                    Product.Model.Slug = slugSegment;
-                }
+                // Fallback or if no model selected (though model is now preferred)
+                 slugSegment = GenerateSlug(Product.Name);
             }
 
             var skuSegment = Uri.EscapeDataString(Product.Sku.Trim());
@@ -258,10 +389,9 @@
             if (!string.IsNullOrEmpty(url))
             {
                 UploadedImageUrl = url;
-                if (Product.Model != null)
-                {
-                    Product.Model.DefaultImageUrl = url;
-                }
+                // If we want to update the model default image, we can do it here, 
+                // but since multiple products share a model, maybe we shouldn't overwrite it automatically 
+                // unless explicitly requested. For now, we just update the local view.
                 ImageLoadFailed = false;
             }
         }
@@ -285,19 +415,13 @@
             return;
         }
 
-        // Extract publicId from URL
-        // Example: https://res.cloudinary.com/cloudname/image/upload/vREMOVED_SECRET7890/mobileguzone/apple/iphone-15/sku123.webp
-        // PublicId: mobileguzone/apple/iphone-15/sku123
-        
         try 
         {
             var uri = new Uri(UploadedImageUrl);
             var pathSegments = uri.AbsolutePath.Split('/');
-            // Find index of 'upload'
             var uploadIndex = Array.IndexOf(pathSegments, "upload");
             if (uploadIndex != -1 && uploadIndex + 2 < pathSegments.Length)
             {
-                // Skip 'upload' and version (e.g., vREMOVED_SECRET7890)
                 var publicIdSegments = pathSegments.Skip(uploadIndex + 2);
                 var publicIdWithExtension = string.Join("/", publicIdSegments);
                 var publicId = System.IO.Path.ChangeExtension(publicIdWithExtension, null);
@@ -307,10 +431,6 @@
                 {
                     UploadedImageUrl = null;
                     ImageLoadFailed = false;
-                    if (Product.Model != null)
-                    {
-                        Product.Model.DefaultImageUrl = null;
-                    }
                 }
                 else
                 {
@@ -321,13 +441,8 @@
         catch (Exception ex)
         {
              Console.WriteLine($"Delete failed: {ex.Message}");
-             // Fallback: just clear from UI if parsing fails, but warn user
              UploadedImageUrl = null;
              ImageLoadFailed = false;
-             if (Product.Model != null)
-             {
-                 Product.Model.DefaultImageUrl = null;
-             }
         }
     }
 
@@ -336,7 +451,6 @@
         if (string.IsNullOrWhiteSpace(name)) return string.Empty;
         
         var str = name.ToLowerInvariant();
-        // Simple slug generation: replace spaces with dashes, remove special chars
         str = System.Text.RegularExpressions.Regex.Replace(str, @"[^a-z0-9\s-]", "");
         str = System.Text.RegularExpressions.Regex.Replace(str, @"\s+", "-").Trim('-');
         return str;
@@ -351,10 +465,29 @@
             if (Id == 0)
             {
                 success = await ProductService.CreateProductAsync(Product);
+                // We need the ID to save attributes. 
+                // But CreateProductAsync returns bool. 
+                // We might need to refactor CreateProductAsync to return the ID or the created entity.
+                // Or we can fetch the product by SKU after creation.
+                if (success)
+                {
+                    // Fetch the newly created product to get its ID
+                    // Assuming SKU is unique
+                    var products = await ProductService.GetProductsAsync(Product.Sku, 1, 1);
+                    var createdProduct = products.Items.FirstOrDefault();
+                    if (createdProduct != null)
+                    {
+                        await ProductService.SaveProductAttributeValuesAsync(createdProduct.Id, AttributeValues);
+                    }
+                }
             }
             else
             {
                 success = await ProductService.UpdateProductAsync(Product);
+                if (success)
+                {
+                    await ProductService.SaveProductAttributeValuesAsync(Product.Id, AttributeValues);
+                }
             }
 
             if (success)
@@ -379,7 +512,18 @@
     private string? BuildCloudinaryImageUrl()
     {
         var brandName = Brands.FirstOrDefault(b => b.Id == Product.BrandId)?.Name ?? Product.Brand?.Name;
-        var slug = Product.Model?.Slug;
+        
+        string? slug = null;
+        var selectedModel = ProductModels.FirstOrDefault(m => m.Id == Product.ModelId);
+        if (selectedModel != null)
+        {
+            slug = selectedModel.Slug;
+        }
+        else 
+        {
+            slug = Product.Model?.Slug;
+        }
+
         var sku = Product.Sku;
 
         if (string.IsNullOrWhiteSpace(brandName) || string.IsNullOrWhiteSpace(slug) || string.IsNullOrWhiteSpace(sku))

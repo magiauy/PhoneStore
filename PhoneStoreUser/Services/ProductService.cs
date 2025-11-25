@@ -109,4 +109,64 @@ public class ProductService : IProductService
         context.Products.Remove(product);
         return await context.SaveChangesAsync() > 0;
     }
+
+    public async Task<List<ProductModelEntity>> GetProductModelsAsync()
+    {
+        using var context = await _dbContextFactory.CreateDbContextAsync();
+        return await context.ProductModels.OrderBy(m => m.Name).ToListAsync();
+    }
+
+    public async Task<List<ProductAttributeEntity>> GetAttributesByModelIdAsync(int modelId)
+    {
+        using var context = await _dbContextFactory.CreateDbContextAsync();
+        // Get attribute IDs linked to this model
+        var attributeIds = await context.ProductModelAttributes
+            .Where(pma => pma.ModelId == modelId)
+            .Select(pma => pma.AttributeId)
+            .ToListAsync();
+
+        // Fetch the actual attributes
+        return await context.ProductAttributes
+            .Where(pa => attributeIds.Contains(pa.Id))
+            .ToListAsync();
+    }
+
+    public async Task<List<ProductAttributeOptionEntity>> GetAttributeOptionsAsync(int attributeId)
+    {
+        using var context = await _dbContextFactory.CreateDbContextAsync();
+        return await context.ProductAttributeOptions
+            .Where(o => o.AttributeId == attributeId && (o.IsActive == null || o.IsActive == 1))
+            .OrderBy(o => o.SortOrder)
+            .ToListAsync();
+    }
+
+    public async Task<List<ProductAttributeValueEntity>> GetProductAttributeValuesAsync(int productId)
+    {
+        using var context = await _dbContextFactory.CreateDbContextAsync();
+        return await context.ProductAttributeValues
+            .Where(pav => pav.ProductId == productId)
+            .ToListAsync();
+    }
+
+    public async Task SaveProductAttributeValuesAsync(int productId, List<ProductAttributeValueEntity> values)
+    {
+        using var context = await _dbContextFactory.CreateDbContextAsync();
+
+        // Remove existing values for this product
+        var existingValues = await context.ProductAttributeValues
+            .Where(pav => pav.ProductId == productId)
+            .ToListAsync();
+
+        context.ProductAttributeValues.RemoveRange(existingValues);
+
+        // Add new values
+        foreach (var val in values)
+        {
+            val.ProductId = productId; // Ensure ProductId is set
+            val.Id = 0; // Ensure it's treated as new
+            context.ProductAttributeValues.Add(val);
+        }
+
+        await context.SaveChangesAsync();
+    }
 }
