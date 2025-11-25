@@ -8,7 +8,7 @@
         </div>
 
         <nav class="flex-1 px-3 py-4 space-y-1">
-            <NavLink href="/admin" Match="NavLinkMatch.All"
+            <NavLink href="/admin/dashboard" Match="NavLinkMatch.All"
                      class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800 transition-all duration-200"
                      ActiveClass="bg-blue-600 text-white shadow-sm !text-white">
                 <i class="fa-solid fa-gauge-high text-sm"></i>
@@ -34,6 +34,13 @@
                      ActiveClass="bg-blue-600 text-white shadow-sm !text-white">
                 <i class="fa-solid fa-mobile-screen-button text-sm"></i>
                 <span>Sản phẩm</span>
+            </NavLink>
+
+            <NavLink href="/admin/suppliers"
+                     class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800 transition-all duration-200"
+                     ActiveClass="bg-blue-600 text-white shadow-sm !text-white">
+                <i class="fa-solid fa-truck-field text-sm"></i>
+                <span>Nhà cung cấp</span>
             </NavLink>
 
             <NavLink href="/admin/customers"
@@ -84,9 +91,10 @@
             {
                 "admin/orders" => "Quản lý đơn hàng",
                 "admin/products" => "Danh mục sản phẩm",
+                "admin/suppliers" => "Nhà cung cấp",
                 "admin/customers" => "Khách hàng",
                 "admin/orders-history" => "Thống kê đơn hàng",
-                "admin" or "admin/index" or "admin/" => "Dashboard",
+                "admin/dashboard" => "Dashboard",
                 _ => "Bảng điều khiển"
             };
         }

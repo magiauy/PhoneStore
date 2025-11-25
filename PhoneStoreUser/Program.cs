@@ -63,8 +63,8 @@ builder.Services.AddAuthentication(options =>
     })
     .AddCookie(adminScheme, options =>
     {
-        options.LoginPath = "/admin/login";
-        options.AccessDeniedPath = "/admin/login";
+        options.LoginPath = "/admin";
+        options.AccessDeniedPath = "/admin";
         options.Cookie.Name = adminScheme;
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
@@ -174,7 +174,7 @@ adminRoutes.MapPost("/login", async (
 {
     if (string.IsNullOrWhiteSpace(model.EmailOrUsername) || string.IsNullOrWhiteSpace(model.Password))
     {
-        return Results.Redirect("/admin/login?error=missing_credentials");
+        return Results.Redirect("/admin?error=missing_credentials");
     }
 
     using var dbContext = await dbContextFactory.CreateDbContextAsync();
@@ -185,31 +185,32 @@ adminRoutes.MapPost("/login", async (
 
     if (account is null)
     {
-        return Results.Redirect("/admin/login?error=invalid_credentials");
+        return Results.Redirect("/admin?error=invalid_credentials");
     }
-
+    Console.WriteLine(account?.Username);
     // Verify password
     if (!PhoneStoreUser.Utils.PasswordHasher.VerifyPassword(model.Password, account.Password))
     {
-        return Results.Redirect("/admin/login?error=invalid_credentials");
+        return Results.Redirect("/admin?error=invalid_credentials");
     }
-
+    Console.WriteLine(account?.PersonId);
     var person = await dbContext.Persons.FindAsync(account.PersonId);
-    if (person?.PersonType != "EMPLOYEE")
+    Console.WriteLine(person?.PersonType);
+    if (!string.Equals(person?.PersonType, "EMPLOYEE", StringComparison.OrdinalIgnoreCase))
     {
-        return Results.Redirect("/admin/login?error=unauthorized");
+        return Results.Redirect("/admin?error=unauthorized");
     }
 
     var principal = CreatePrincipal(account, person, adminScheme);
     var authProperties = new AuthenticationProperties
     {
         IsPersistent = model.RememberMe,
-        RedirectUri = "/admin"
+        RedirectUri = "/admin/dashboard"
     };
 
     await context.SignInAsync(adminScheme, principal, authProperties);
 
-    return Results.Redirect("/admin");
+    return Results.Redirect("/admin/dashboard");
 }).AllowAnonymous().DisableAntiforgery();
 
 adminRoutes.MapPost("/logout", async (HttpContext context) =>
@@ -221,7 +222,7 @@ adminRoutes.MapPost("/logout", async (HttpContext context) =>
 adminRoutes.MapGet("/logout", async (HttpContext context) =>
 {
     await context.SignOutAsync(adminScheme);
-    return Results.Redirect("/admin/login");
+    return Results.Redirect("/admin");
 }).RequireAuthorization("AdminOnly");
 
 app.MapRazorComponents<App>()
@@ -244,7 +245,7 @@ ClaimsPrincipal CreatePrincipal(AccountEntity account, PersonEntity? person, str
         claims.Add(new Claim(ClaimTypes.Email, person.Email));
     }
 
-    var roleName = person?.PersonType == "EMPLOYEE"
+    var roleName = string.Equals(person?.PersonType, "EMPLOYEE", StringComparison.OrdinalIgnoreCase)
         ? adminRoleName
         : person?.PersonType ?? "Customer";
 
