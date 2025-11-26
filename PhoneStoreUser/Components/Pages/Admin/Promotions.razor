@@ -1,0 +1,156 @@
+@page "/admin/promotions"
+@using PhoneStoreUser.Data
+@using PhoneStoreUser.Services
+@using PhoneStoreUser.Components.ViewModels
+@inject IAdminPromotionService PromotionService
+@inject NavigationManager Navigation
+@layout Layout.AdminLayout
+
+<div class="container mx-auto p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Quản lý Khuyến mãi</h1>
+        <a href="/admin/promotions/create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow transition">
+            <i class="fa-solid fa-plus mr-2"></i> Tạo mới
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+            <div class="relative w-64">
+                <input type="text" @bind="searchTerm" @bind:event="oninput" @onkeyup="HandleSearch" placeholder="Tìm kiếm khuyến mãi..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" />
+                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                    <i class="fa-solid fa-search"></i>
+                </span>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-700 font-semibold uppercase text-sm">
+                        <th class="p-4 border-b">ID</th>
+                        <th class="p-4 border-b">Tên chương trình</th>
+                        <th class="p-4 border-b">Thời gian</th>
+                        <th class="p-4 border-b">Trạng thái</th>
+                        <th class="p-4 border-b text-center">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-600">
+                    @if (promotions == null)
+                    {
+                        <tr>
+                            <td colspan="5" class="p-4 text-center">Đang tải...</td>
+                        </tr>
+                    }
+                    else if (!promotions.Items.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="p-4 text-center">Không tìm thấy chương trình khuyến mãi nào.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in promotions.Items)
+                        {
+                            <tr class="hover:bg-gray-50 transition border-b last:border-b-0">
+                                <td class="p-4">@item.Id</td>
+                                <td class="p-4 font-medium text-gray-800">
+                                    @item.Name
+                                    <div class="text-xs text-gray-500 mt-1">@item.Description</div>
+                                </td>
+                                <td class="p-4 text-sm">
+                                    <div><span class="font-semibold">Bắt đầu:</span> @item.StartDate.ToString("dd/MM/yyyy HH:mm")</div>
+                                    <div><span class="font-semibold">Kết thúc:</span> @item.EndDate.ToString("dd/MM/yyyy HH:mm")</div>
+                                </td>
+                                <td class="p-4">
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full">Đang hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="bg-red-100 text-red-800 text-xs font-semibold px-2 py-1 rounded-full">Ngừng hoạt động</span>
+                                    }
+                                </td>
+                                <td class="p-4 text-center">
+                                    <a href="/admin/promotions/edit/@item.Id" class="text-blue-600 hover:text-blue-800 mx-2" title="Chỉnh sửa">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    <button @onclick="() => DeletePromotion(item.Id)" class="text-red-600 hover:text-red-800 mx-2" title="Xóa">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (promotions != null && promotions.TotalPages > 1)
+        {
+            <div class="p-4 border-t border-gray-200 flex justify-center">
+                <nav class="flex gap-2">
+                    <button @onclick="() => LoadPage(promotions.Page - 1)" disabled="@(!promotions.HasPreviousPage)" class="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50">Trước</button>
+                    @for (int i = 1; i <= promotions.TotalPages; i++)
+                    {
+                        var pageNum = i;
+                        <button @onclick="() => LoadPage(pageNum)" class="px-3 py-1 border rounded hover:bg-gray-100 @(promotions.Page == pageNum ? "bg-blue-600 text-white" : "")">@i</button>
+                    }
+                    <button @onclick="() => LoadPage(promotions.Page + 1)" disabled="@(!promotions.HasNextPage)" class="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50">Sau</button>
+                </nav>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private PagedResult<PromotionEntity>? promotions;
+    private string searchTerm = "";
+    private int currentPage = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPromotions();
+    }
+
+    private async Task LoadPromotions()
+    {
+        promotions = await PromotionService.GetPromotionsAsync(searchTerm, currentPage);
+        if (promotions != null)
+        {
+            currentPage = promotions.Page;
+        }
+    }
+
+    private async Task HandleSearch()
+    {
+        currentPage = 1;
+        await LoadPromotions();
+    }
+
+    private async Task LoadPage(int page)
+    {
+        if (promotions == null)
+        {
+            return;
+        }
+
+        if (page < 1 || page > promotions.TotalPages)
+        {
+            return;
+        }
+
+        currentPage = page;
+        await LoadPromotions();
+    }
+
+    private async Task DeletePromotion(int id)
+    {
+        if (await PromotionService.DeletePromotionAsync(id))
+        {
+            await LoadPromotions();
+        }
+    }
+}
