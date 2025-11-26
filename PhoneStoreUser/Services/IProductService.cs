@@ -10,6 +10,7 @@ public interface IProductService
     Task<bool> CreateProductAsync(ProductEntity product);
     Task<bool> UpdateProductAsync(ProductEntity product);
     Task<bool> DeleteProductAsync(int id);
+    Task<List<ProductEntity>> GetAllProductsAsync();
 
     // New methods for Product Model and Attributes
     Task<List<ProductModelEntity>> GetProductModelsAsync();

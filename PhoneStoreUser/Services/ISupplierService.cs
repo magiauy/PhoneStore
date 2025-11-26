@@ -1,9 +1,14 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using PhoneStoreUser.Components.Models;
+using PhoneStoreUser.Data;
 
 namespace PhoneStoreUser.Services
 {
     public interface ISupplierService
     {
+        Task<List<SupplierEntity>> GetAllSuppliersAsync();
+        Task<(IReadOnlyList<SupplierEntity> Items, int TotalCount)> SearchSuppliersAsync(string? keyword, int skip, int take);
         IEnumerable<Supplier> GetAll();
         Supplier? GetSupplierById(int id);
         bool Insert(Supplier supplier);

@@ -112,6 +112,15 @@ public class ProductService : IProductService
         return await context.SaveChangesAsync() > 0;
     }
 
+    public async Task<List<ProductEntity>> GetAllProductsAsync()
+    {
+        using var context = await _dbContextFactory.CreateDbContextAsync();
+        return await context.Products
+            .AsNoTracking()
+            .OrderBy(p => p.Name)
+            .ToListAsync();
+    }
+
     public async Task<List<ProductModelEntity>> GetProductModelsAsync()
     {
         using var context = await _dbContextFactory.CreateDbContextAsync();
