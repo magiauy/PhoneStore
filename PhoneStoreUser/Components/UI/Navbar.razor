@@ -9,6 +9,7 @@
 @inject NavigationManager NavigationManager
 @inject IUserProfileService UserProfileService
 @inject IAuthService AuthService
+@inject IProductCatalogService ProductCatalogService
 @using Microsoft.AspNetCore.Components.Web
 
 <header class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur shadow-sm">
@@ -121,7 +122,8 @@
         </div>
 
         <nav class="hidden md:flex items-center gap-3 border-t border-gray-100 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
-            @foreach (var item in NavigationItems)
+            <!-- Categories -->
+            @foreach (var item in TopCategories)
             {
                 <a class="rounded-full border border-transparent px-3 py-1 text-gray-600 hover:border-[#2563EB]/30 hover:bg-[#2563EB]/5 hover:text-[#2563EB] transition" href="@item.Href">@item.Label</a>
             }
@@ -161,15 +163,10 @@
     private bool IsChangePasswordSuccess = false;
     private string SearchValue { get; set; } = string.Empty;
 
-    private readonly List<NavigationItem> NavigationItems = new()
-    {
-        new("Flagship", "#flagship"),
-        new("Apple", "#apple"),
-        new("Samsung", "#samsung"),
-        new("Android cao cấp", "#android"),
-        new("Tablet", "#tablet"),
-        new("Phụ kiện", "#accessories")
-    };
+    private List<NavigationItem> TopCategories = new();
+
+    // Priority lists
+    private readonly string[] PriorityCategoryNames = { "Điện thoại", "PhoneFlagShip", "Phụ kiện", "Laptop", "Đồng hồ", "Âm thanh" };
 
     private record NavigationItem(string Label, string Href);
 
@@ -180,7 +177,60 @@
 
         await UpdateCartCount();
         await LoadActiveUserAsync();
+        await LoadNavigationItems();
     }
+
+    private async Task LoadNavigationItems()
+    {
+        try
+        {
+            var categories = await ProductCatalogService.GetCategoriesAsync();
+            var brands = await ProductCatalogService.GetBrandsAsync();
+
+            TopCategories = GetPrioritizedItems(
+                categories.Select(c => new { c.Name, c.Id }),
+                PriorityCategoryNames,
+                item => new NavigationItem(item.Name, $"/products?catalog={item.Id}")
+        );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading navigation items: {ex.Message}");
+        }
+    }
+
+    private List<NavigationItem> GetPrioritizedItems<T>(
+        IEnumerable<T> sourceItems, 
+        string[] priorityNames, 
+        Func<T, NavigationItem> mapToNavItem)
+    {
+        var result = new List<NavigationItem>();
+        var itemsList = sourceItems.ToList();
+        var itemsByName = itemsList.ToDictionary(
+            i => (i.GetType().GetProperty("Name")?.GetValue(i) as string)?.ToLowerInvariant() ?? "", 
+            i => i
+        );
+
+        // 1. Add priority items if they exist
+        foreach (var name in priorityNames)
+        {
+            if (itemsByName.TryGetValue(name.ToLowerInvariant(), out var item))
+            {
+                result.Add(mapToNavItem(item));
+                itemsList.Remove(item); // Remove to avoid duplicates
+            }
+        }
+
+        // 2. Fill remaining slots up to 6
+        foreach (var item in itemsList)
+        {
+            if (result.Count >= 6) break;
+            result.Add(mapToNavItem(item));
+        }
+
+        return result;
+    }
+
     private void HandleCartChanged()
     {
         _ = UpdateCartCount();

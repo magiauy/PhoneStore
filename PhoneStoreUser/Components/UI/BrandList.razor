@@ -1,3 +1,8 @@
+@using PhoneStoreUser.Services
+@using PhoneStoreUser.Components.Models
+@inject IProductCatalogService ProductCatalogService
+@inject NavigationManager NavigationManager
+
 @if (Brands?.Any() == true)
 {
     <section class="rounded-3xl border border-gray-200 bg-white p-4 shadow-sm">
@@ -11,7 +16,7 @@
         <div class="flex gap-3 overflow-x-auto pb-1 pt-1">
             @foreach (var brand in Brands)
             {
-                <button class="flex min-w-[140px] flex-1 items-center gap-3 rounded-2xl border border-gray-200 bg-gray-50/60 px-3 py-2 text-left transition hover:-translate-y-0.5 hover:border-[#2563EB] hover:bg-white">
+                <button @onclick="() => NavigateToBrand(brand.Id)" class="flex min-w-[140px] flex-1 items-center gap-3 rounded-2xl border border-gray-200 bg-gray-50/60 px-3 py-2 text-left cursor-pointer transition hover:-translate-y-0.5 hover:border-[#2563EB] hover:bg-white group">
                     @if (!string.IsNullOrEmpty(brand.LogoUrl))
                     {
                         <img src="@brand.LogoUrl" alt="@brand.Name logo" class="h-10 w-10 rounded-full border border-gray-200 bg-white object-contain p-1" />
@@ -31,5 +36,65 @@
 }
 
 @code {
-    [Parameter] public IEnumerable<BrandBadgeModel>? Brands { get; set; }
+    private List<BrandBadgeModel> Brands { get; set; } = new();
+
+    private readonly string[] PriorityBrandNames = { "Apple", "Samsung", "Xiaomi", "Oppo", "Tecno", "Sony" };
+
+    // Metadata mapping for UI presentation
+    private readonly Dictionary<string, (string Tagline, string Initial, string? LogoUrl)> BrandMetadata = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { "Apple", ("iPhone, iPad", "A", "/images/brand-logo/apple.png") },
+        { "Samsung", ("Galaxy AI", "S", "/images/brand-logo/samsung.png") },
+        { "Xiaomi", ("HyperOS", "Mi", "/images/brand-logo/xiaomi.png") },
+        { "Oppo", ("Tốc độ 240W", "O", "/images/brand-logo/oppo.png") },
+        { "Tecno", ("Camera ZEISS", "T", "/images/brand-logo/tecno.png") },
+        { "Sony", ("Camera Pro", "S", null) },
+        { "Nokia", ("Connecting People", "N", null) }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBrands();
+    }
+
+    private async Task LoadBrands()
+    {
+        try
+        {
+            var allBrands = await ProductCatalogService.GetBrandsAsync();
+            
+            // Prioritize brands
+            var prioritizedBrands = new List<Brand>();
+            var remainingBrands = allBrands.ToList();
+
+            foreach (var name in PriorityBrandNames)
+            {
+                var brand = remainingBrands.FirstOrDefault(b => b.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                if (brand != null)
+                {
+                    prioritizedBrands.Add(brand);
+                    remainingBrands.Remove(brand);
+                }
+            }
+
+            // Fill up to 6 items
+            prioritizedBrands.AddRange(remainingBrands.Take(6 - prioritizedBrands.Count));
+
+            // Map to ViewModel
+            Brands = prioritizedBrands.Select(b => 
+            {
+                var meta = BrandMetadata.TryGetValue(b.Name, out var m) ? m : ("Chính hãng", b.Name[0].ToString().ToUpper(), null);
+                return new BrandBadgeModel(b.Id, b.Name, meta.Tagline, meta.Initial, meta.LogoUrl);
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading brands in BrandList: {ex.Message}");
+        }
+    }
+
+    private void NavigateToBrand(int brandId)
+    {
+        NavigationManager.NavigateTo($"/products?branch={brandId}");
+    }
 }
