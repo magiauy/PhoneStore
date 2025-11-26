@@ -1,0 +1,30 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "AllowedHosts": "*",
+  "Database": {
+    "Host": "localhost",
+    "Port": "3306",
+    "Database": "bandienthoai",
+    "User": "root",
+    "Password": ""
+  },
+  "Cloudinary": {
+    "CloudName": "Cloudinary-CloudName-Here",
+    "ApiKey": "Cloudinary-ApiKey-Here",
+    "ApiSecret": "Cloudinary-ApiSecret-Here"
+  },
+  "PayOS": {
+    "ClientId": "PayOS-ClientId-Here",
+    "ApiKey": "PayOS-ApiKey-Here",
+    "ChecksumKey": "PayOS-ChecksumKey-Here",
+    "ApiUrl": "https://api-merchant.payos.vn",
+    "ReturnUrl": "https://localhost:5002/api/payos/return",
+    "CallbackUrl": "https://localhost:5002/api/payos/callback"
+  }
+}
