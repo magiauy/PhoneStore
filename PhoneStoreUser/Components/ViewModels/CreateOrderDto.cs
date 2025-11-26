@@ -5,6 +5,8 @@ namespace PhoneStoreUser.Components.ViewModels;
 public class CreateOrderDto
 {
     public int? CustomerId { get; set; }
+    public string? CustomerPhone { get; set; }
+    public string? CustomerName { get; set; }
     
     [Required(ErrorMessage = "Vui lòng chọn ít nhất một sản phẩm")]
     [MinLength(1, ErrorMessage = "Vui lòng chọn ít nhất một sản phẩm")]
@@ -27,3 +29,5 @@ public class CreateOrderLineDto
     // List of serials entered by user. Count must match Quantity if IsSerialTracked is true.
     public List<string> SerialNumbers { get; set; } = new();
 }
+
+public record CustomerLookupResult(int PersonId, string FullName, string Phone);

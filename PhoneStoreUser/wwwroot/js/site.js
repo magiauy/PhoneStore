@@ -32,3 +32,8 @@ window.toggleBodyScroll = function (disable) {
             : originalPostMessage.call(this, message, targetOrigin);
     };
 })();
+
+window.phoneStore = window.phoneStore || {};
+window.phoneStore.printInvoice = function () {
+    window.print();
+};

@@ -320,10 +320,60 @@ public class AdminOrderService : IAdminOrderService
 
         try
         {
+            var normalizedPhone = dto.CustomerPhone?.Trim();
+            dto.CustomerPhone = normalizedPhone;
+            dto.CustomerName = dto.CustomerName?.Trim();
+            var customerId = dto.CustomerId;
+
+            if (customerId == null && !string.IsNullOrWhiteSpace(normalizedPhone))
+            {
+                var existingCustomer = await dbContext.Persons
+                    .FirstOrDefaultAsync(p => p.Phone == normalizedPhone && p.PersonType == "CUSTOMER");
+
+                if (existingCustomer != null)
+                {
+                    customerId = existingCustomer.Id;
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(dto.CustomerName))
+                    {
+                        throw new InvalidOperationException("Vui l�ng nh?p t�n kh�ch h�ng.");
+                    }
+
+                    var newPerson = new PersonEntity
+                    {
+                        FullName = dto.CustomerName!,
+                        Phone = normalizedPhone,
+                        Email = null,
+                        PersonType = "CUSTOMER",
+                        CreatedAt = DateTime.UtcNow,
+                        IsActive = true,
+                        Code = await GenerateCustomerCode(dbContext)
+                    };
+
+                    dbContext.Persons.Add(newPerson);
+                    await dbContext.SaveChangesAsync();
+
+                    var newCustomer = new CustomerEntity
+                    {
+                        PersonId = newPerson.Id,
+                        Address = dto.Note,
+                        LastOrderDate = DateTime.UtcNow,
+                        TotalSpend = 0
+                    };
+
+                    dbContext.Customers.Add(newCustomer);
+                    await dbContext.SaveChangesAsync();
+
+                    customerId = newPerson.Id;
+                }
+            }
+
             // 1. Create Invoice
             var invoice = new InvoiceEntity
             {
-                PersonId = dto.CustomerId,
+                PersonId = customerId,
                 CreatedBy = 1, // TODO: Get current user ID. For now hardcode to 1 (admin) or need to inject UserSession
                 InvoiceDate = DateTime.UtcNow,
                 Status = "completed",
@@ -413,5 +463,43 @@ public class AdminOrderService : IAdminOrderService
             await transaction.RollbackAsync();
             throw;
         }
+    }
+
+    public async Task<CustomerLookupResult?> FindCustomerByPhoneAsync(string phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone))
+        {
+            return null;
+        }
+
+        var normalizedPhone = phone.Trim();
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        var person = await dbContext.Persons
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.PersonType == "CUSTOMER" && p.Phone == normalizedPhone);
+
+        if (person == null)
+        {
+            return null;
+        }
+
+        return new CustomerLookupResult(person.Id, person.FullName, person.Phone ?? normalizedPhone);
+    }
+
+    private static async Task<string> GenerateCustomerCode(AppDbContext context)
+    {
+        var lastPerson = await context.Persons
+            .Where(p => p.PersonType == "CUSTOMER" && p.Code != null && p.Code.StartsWith("KH"))
+            .OrderByDescending(p => p.Id)
+            .FirstOrDefaultAsync();
+
+        var nextNum = 1;
+        if (lastPerson?.Code is string code && code.Length > 2 && int.TryParse(code.Substring(2), out var currentNum))
+        {
+            nextNum = currentNum + 1;
+        }
+
+        return $"KH{nextNum:D6}";
     }
 }
