@@ -1,0 +1,557 @@
+@page "/admin/purchase-orders/create"
+@page "/admin/purchase-orders/edit/{Id:int}"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using PhoneStoreUser.Data
+@using PhoneStoreUser.Models
+@using PhoneStoreUser.Services
+@inject IPurchaseOrderService PurchaseOrderService
+@inject ISupplierService SupplierService
+@inject IProductService ProductService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@layout Layout.AdminLayout
+@attribute [Authorize(Policy = "AdminOnly")]
+
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">
+            @(Id.HasValue ? $"Chi tiết phiếu nhập #{Id}" : "Tạo phiếu nhập mới")
+        </h1>
+        <button @onclick="GoBack" class="text-gray-600 hover:text-gray-800">
+            <i class="fas fa-arrow-left mr-2"></i>Quay lại
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-10">
+            <div class="spinner-border text-blue-600" role="status">
+                <span class="sr-only">Đang tải...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <EditForm Model="purchaseOrder" OnValidSubmit="SaveDraft">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-lg font-semibold mb-4">Thông tin chung</h2>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Nhà cung cấp</label>
+                        <div class="flex items-center justify-between gap-3 rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                            <span class="text-gray-800 font-medium">
+                                @(string.IsNullOrWhiteSpace(purchaseOrder.SupplierName) ? "Chưa chọn nhà cung cấp" : purchaseOrder.SupplierName)
+                            </span>
+                            @if (IsEditable)
+                            {
+                                <button type="button" class="text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1 rounded shadow" @onclick="OpenSupplierModal">
+                                    Chọn
+                                </button>
+                            }
+                        </div>
+                        <InputNumber @bind-Value="purchaseOrder.SupplierId" class="hidden" />
+                        <ValidationMessage For="@(() => purchaseOrder.SupplierId)" />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Ghi chú</label>
+                        <InputTextArea @bind-Value="purchaseOrder.Note" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="3" disabled="@(!IsEditable)" />
+                    </div>
+                    @if (Id.HasValue)
+                    {
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Trạng thái</label>
+                            <span class="px-3 py-1 rounded-full text-sm font-semibold @GetStatusClass(purchaseOrder.Status)">
+                                @purchaseOrder.Status
+                            </span>
+                        </div>
+                    }
+                </div>
+
+                <div class="bg-white shadow rounded-lg p-6 md:col-span-2">
+                    <h2 class="text-lg font-semibold mb-4">Chi tiết nhập hàng</h2>
+
+                    @if (IsEditable)
+                    {
+                        <div class="flex gap-4 mb-4">
+                            <div class="flex-grow">
+                                <select @bind="selectedProductId" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                    <option value="0">-- Chọn sản phẩm --</option>
+                                    @foreach (var product in products)
+                                    {
+                                        <option value="@product.Id">@product.Name (@product.Sku)</option>
+                                    }
+                                </select>
+                            </div>
+                            <button type="button" @onclick="AddProduct" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                                <i class="fas fa-plus"></i> Thêm
+                            </button>
+                        </div>
+                    }
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full leading-normal">
+                            <thead>
+                                <tr>
+                                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Sản phẩm</th>
+                                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">Số lượng</th>
+                                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-32">Đơn giá</th>
+                                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Thành tiền</th>
+                                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Serial</th>
+                                    @if (IsEditable)
+                                    {
+                                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"></th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @* FIX: Thêm @key để tránh lỗi hiển thị khi xóa dòng *@
+                                @foreach (var line in purchaseOrder.Lines)
+                                {
+                                    <tr @key="line.ProductId"> 
+                                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                            <p class="text-gray-900 whitespace-no-wrap">@line.ProductName</p>
+                                            <p class="text-gray-500 text-xs">@line.ProductSku</p>
+                                        </td>
+                                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                            <InputNumber @bind-Value="line.Quantity" class="w-full border rounded px-2 py-1" disabled="@(!IsEditable)" />
+                                        </td>
+                                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                            <InputNumber @bind-Value="line.UnitCost" class="w-full border rounded px-2 py-1" disabled="@(!IsEditable)" />
+                                        </td>
+                                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                            @((line.Quantity * line.UnitCost).ToString("N0")) ₫
+                                        </td>
+                                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                            @if (line.IsSerialTracked)
+                                            {
+                                                <button type="button" @onclick="() => OpenSerialModal(line)" class="text-blue-600 hover:text-blue-900 underline">
+                                                    @(line.Serials.Count)/@line.Quantity Serial
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-gray-400">N/A</span>
+                                            }
+                                        </td>
+                                        @if (IsEditable)
+                                        {
+                                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-right">
+                                                <button type="button" @onclick="() => RemoveLine(line)" class="text-red-600 hover:text-red-900">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                                <tr>
+                                    <td colspan="3" class="px-5 py-5 border-b border-gray-200 bg-gray-50 text-right font-bold">Tổng cộng:</td>
+                                    <td colspan="3" class="px-5 py-5 border-b border-gray-200 bg-gray-50 font-bold text-blue-600">
+                                        @purchaseOrder.Lines.Sum(l => l.Quantity * l.UnitCost).ToString("N0") ₫
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-4">
+                @if (IsEditable)
+                {
+                    <button type="submit" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                        <i class="fas fa-save mr-2"></i>Lưu nháp
+                    </button>
+                }
+
+                @if (Id.HasValue && purchaseOrder.Status == "DRAFT")
+                {
+                    <button type="button" @onclick="CompleteOrder" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        <i class="fas fa-check mr-2"></i>Hoàn tất nhập hàng
+                    </button>
+                    <button type="button" @onclick="CancelOrder" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                        <i class="fas fa-times mr-2"></i>Hủy phiếu
+                    </button>
+                }
+            </div>
+        </EditForm>
+    }
+</div>
+
+@if (showSupplierModal)
+{
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="bg-white rounded-lg shadow-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">Chọn nhà cung cấp</h3>
+                    <button class="text-gray-500 hover:text-gray-700" @onclick="CloseSupplierModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="mb-4">
+                    <input type="text"
+                           class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Tìm nhà cung cấp theo tên..."
+                           value="@supplierSearchTerm"
+                           @oninput="SupplierSearchInput" />
+                </div>
+
+                <div class="border rounded max-h-96 overflow-y-auto">
+                    <Virtualize Context="supplier"
+                                @ref="supplierVirtualize"
+                                ItemsProvider="LoadSuppliers"
+                                ItemSize="60">
+                        <div class="px-4 py-3 border-b last:border-b-0 hover:bg-blue-50 cursor-pointer"
+                             @onclick="() => SelectSupplier(supplier)">
+                            <div class="font-semibold text-gray-900">@supplier.Name</div>
+                            <div class="text-sm text-gray-600">
+                                <span>@(string.IsNullOrWhiteSpace(supplier.Phone) ? "Không có SĐT" : supplier.Phone)</span>
+                                <span class="ml-4">@((string.IsNullOrWhiteSpace(supplier.Email) ? "Không có email" : supplier.Email))</span>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(supplier.Address))
+                            {
+                                <div class="text-xs text-gray-500 mt-1">@supplier.Address</div>
+                            }
+                        </div>
+                    </Virtualize>
+                </div>
+
+                <div class="mt-4 flex justify-end">
+                    <button type="button" class="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50" @onclick="CloseSupplierModal">
+                        Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showSerialModal && currentLine != null)
+{
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+        <div class="relative p-5 border w-11/12 md:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Nhập Serial cho @currentLine.ProductName</h3>
+                <div class="mb-4 text-sm text-gray-600">
+                    Cần nhập: @currentLine.Quantity serials.
+                </div>
+
+                <div class="max-h-96 overflow-y-auto pr-2">
+                    @* FIX: Dùng vòng lặp cơ bản và @bind trực tiếp vì List đã được chuẩn bị sẵn trong OpenSerialModal *@
+                    @for (int i = 0; i < currentLine.Serials.Count; i++)
+                    {
+                        // Capture index để tránh lỗi closure
+                        var index = i; 
+                        var serialItem = currentLine.Serials[index];
+
+                        <div class="mb-4 p-4 border rounded bg-gray-50">
+                            <div class="flex justify-between mb-2">
+                                <span class="font-bold text-xs text-gray-500">Item #@(index + 1)</span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Serial Number</label>
+                                    <input type="text" @bind="serialItem.SerialNumber" @bind:event="oninput" 
+                                           class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
+                                           disabled="@(!IsEditable)" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">IMEI 1 (Optional)</label>
+                                    <input type="text" @bind="serialItem.Imei1" @bind:event="oninput"
+                                           class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
+                                           disabled="@(!IsEditable)" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="flex justify-end mt-4">
+                    <button @onclick="CloseSerialModal" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none">
+                        Đóng / Lưu tạm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private PurchaseOrderDTO purchaseOrder = new();
+    private List<ProductEntity> products = new();
+    private bool isLoading = true;
+    private int selectedProductId;
+    
+    private bool showSupplierModal = false;
+    private string supplierSearchTerm = string.Empty;
+    private Virtualize<SupplierEntity>? supplierVirtualize;
+
+    private bool showSerialModal = false;
+    private PurchaseOrderLineDTO? currentLine;
+
+    private bool IsEditable => !Id.HasValue || purchaseOrder.Status == "DRAFT";
+
+    private void OpenSupplierModal()
+    {
+        if (!IsEditable)
+        {
+            return;
+        }
+
+        showSupplierModal = true;
+    }
+
+    private void CloseSupplierModal()
+    {
+        showSupplierModal = false;
+    }
+
+    private async Task SupplierSearchInput(ChangeEventArgs args)
+    {
+        supplierSearchTerm = args.Value?.ToString() ?? string.Empty;
+        if (supplierVirtualize != null)
+        {
+            await supplierVirtualize.RefreshDataAsync();
+        }
+    }
+
+    private void SelectSupplier(SupplierEntity supplier)
+    {
+        purchaseOrder.SupplierId = supplier.Id;
+        purchaseOrder.SupplierName = supplier.Name;
+        showSupplierModal = false;
+    }
+
+    private async ValueTask<ItemsProviderResult<SupplierEntity>> LoadSuppliers(ItemsProviderRequest request)
+    {
+        const int defaultBatchSize = 50;
+        var take = Math.Max(defaultBatchSize, request.Count);
+        var (items, totalCount) = await SupplierService.SearchSuppliersAsync(supplierSearchTerm, request.StartIndex, take);
+        return new ItemsProviderResult<SupplierEntity>(items, totalCount);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        try 
+        {
+            products = await ProductService.GetAllProductsAsync();
+
+            if (Id.HasValue)
+            {
+                var po = await PurchaseOrderService.GetPurchaseOrderByIdAsync(Id.Value);
+                if (po != null)
+                {
+                    purchaseOrder = po;
+                    if (purchaseOrder.SupplierId > 0 && string.IsNullOrWhiteSpace(purchaseOrder.SupplierName))
+                    {
+                        var supplierInfo = SupplierService.GetSupplierById(purchaseOrder.SupplierId);
+                        if (supplierInfo != null)
+                        {
+                            purchaseOrder.SupplierName = supplierInfo.Name;
+                        }
+                    }
+                    // Đảm bảo list lines không null
+                    if(purchaseOrder.Lines == null) purchaseOrder.Lines = new List<PurchaseOrderLineDTO>();
+                }
+                else
+                {
+                    Navigation.NavigateTo("/admin/purchase-orders");
+                }
+            }
+            else
+            {
+                purchaseOrder = new PurchaseOrderDTO
+                {
+                    OrderDate = DateTime.Now,
+                    CreatedBy = 1,
+                    Lines = new List<PurchaseOrderLineDTO>() // Khởi tạo list
+                };
+            }
+        }
+        catch(Exception ex)
+        {
+             await JSRuntime.InvokeVoidAsync("alert", $"Lỗi tải dữ liệu: {ex.Message}");
+        }
+        isLoading = false;
+    }
+
+    private void AddProduct()
+    {
+        if (selectedProductId == 0) return;
+
+        var product = products.FirstOrDefault(p => p.Id == selectedProductId);
+        if (product == null) return;
+
+        var existingLine = purchaseOrder.Lines.FirstOrDefault(l => l.ProductId == selectedProductId);
+        if (existingLine != null)
+        {
+            existingLine.Quantity++;
+        }
+        else
+        {
+            purchaseOrder.Lines.Add(new PurchaseOrderLineDTO
+            {
+                ProductId = product.Id,
+                ProductName = product.Name,
+                ProductSku = product.Sku,
+                IsSerialTracked = product.IsSerialTracked,
+                Quantity = 1,
+                UnitCost = product.Cost,
+                Serials = new List<ProductSerialDTO>()
+            });
+        }
+        selectedProductId = 0;
+    }
+
+    private void RemoveLine(PurchaseOrderLineDTO line)
+    {
+        purchaseOrder.Lines.Remove(line);
+    }
+
+    // FIX LOGIC: Chuẩn bị dữ liệu trước khi hiển thị Modal
+    private void OpenSerialModal(PurchaseOrderLineDTO line)
+    {
+        currentLine = line;
+        
+        if (currentLine.Serials == null) currentLine.Serials = new List<ProductSerialDTO>();
+
+        // 1. Nếu số lượng Serial ít hơn Quantity -> Thêm mới
+        while (currentLine.Serials.Count < currentLine.Quantity)
+        {
+            currentLine.Serials.Add(new ProductSerialDTO 
+            { 
+                ProductId = currentLine.ProductId,
+                Status = "rma", // Hoặc "in_stock" tùy logic
+                SerialNumber = "",
+                Imei1 = ""
+            });
+        }
+
+        // 2. Nếu số lượng Serial nhiều hơn Quantity -> Xóa bớt phần thừa (tùy chọn)
+        while (currentLine.Serials.Count > currentLine.Quantity)
+        {
+            currentLine.Serials.RemoveAt(currentLine.Serials.Count - 1);
+        }
+
+        showSerialModal = true;
+    }
+
+    private void CloseSerialModal()
+    {
+        // Có thể thêm validate ở đây nếu cần bắt buộc nhập đủ
+        showSerialModal = false;
+        currentLine = null;
+    }
+
+    // Không cần hàm UpdateSerial thủ công nữa vì đã dùng @bind
+
+    private async Task SaveDraft()
+    {
+        try
+        {
+            if (purchaseOrder.SupplierId <= 0)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Vui lòng chọn nhà cung cấp trước khi lưu.");
+                showSupplierModal = true;
+                StateHasChanged();
+                return;
+            }
+
+            if (Id.HasValue)
+            {
+                await PurchaseOrderService.UpdatePurchaseOrderAsync(purchaseOrder);
+                await JSRuntime.InvokeVoidAsync("alert", "Cập nhật thành công!");
+            }
+            else
+            {
+                var newId = await PurchaseOrderService.CreatePurchaseOrderAsync(purchaseOrder);
+                Navigation.NavigateTo($"/admin/purchase-orders/edit/{newId}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Lỗi: {ex.Message}");
+        }
+    }
+
+    private async Task CompleteOrder()
+    {
+        if (!Id.HasValue) return;
+        
+        foreach (var line in purchaseOrder.Lines)
+        {
+            if (line.IsSerialTracked)
+            {
+                // Kiểm tra serial rỗng
+                if (line.Serials.Count < line.Quantity || line.Serials.Any(s => string.IsNullOrWhiteSpace(s.SerialNumber)))
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", $"Sản phẩm {line.ProductName} chưa nhập đủ Serial hoặc có Serial trống.");
+                    return;
+                }
+            }
+        }
+
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn hoàn tất phiếu nhập?"))
+        {
+            return;
+        }
+
+        try
+        {
+            await PurchaseOrderService.CompletePurchaseOrderAsync(Id.Value);
+            purchaseOrder.Status = "RECEIVED";
+            await JSRuntime.InvokeVoidAsync("alert", "Nhập hàng thành công!");
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Lỗi: {ex.Message}");
+        }
+    }
+
+    private async Task CancelOrder()
+    {
+        if (!Id.HasValue) return;
+
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn hủy phiếu nhập này?"))
+        {
+            return;
+        }
+
+        try
+        {
+            await PurchaseOrderService.CancelPurchaseOrderAsync(Id.Value);
+            purchaseOrder.Status = "CANCELLED";
+            await JSRuntime.InvokeVoidAsync("alert", "Đã hủy phiếu nhập!");
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Lỗi: {ex.Message}");
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/admin/purchase-orders");
+    }
+
+    private string GetStatusClass(string status)
+    {
+        return status switch
+        {
+            "DRAFT" => "bg-yellow-200 text-yellow-800",
+            "RECEIVED" => "bg-green-200 text-green-800",
+            "CANCELLED" => "bg-red-200 text-red-800",
+            _ => "bg-gray-200 text-gray-800"
+        };
+    }
+}

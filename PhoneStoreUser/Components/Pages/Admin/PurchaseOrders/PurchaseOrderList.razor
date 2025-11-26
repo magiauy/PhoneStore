@@ -1,0 +1,112 @@
+@page "/admin/purchase-orders"
+@using PhoneStoreUser.Models
+@using PhoneStoreUser.Services
+@inject IPurchaseOrderService PurchaseOrderService
+@inject NavigationManager Navigation
+@layout Layout.AdminLayout
+@attribute [Authorize(Policy = "AdminOnly")]
+
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Danh sách phiếu nhập</h1>
+        <a href="/admin/purchase-orders/create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow">
+            <i class="fas fa-plus mr-2"></i>Tạo phiếu nhập
+        </a>
+    </div>
+
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <table class="min-w-full leading-normal">
+            <thead>
+                <tr>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        ID
+                    </th>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Nhà cung cấp
+                    </th>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Ngày tạo
+                    </th>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Tổng tiền
+                    </th>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Trạng thái
+                    </th>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Hành động
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (purchaseOrders == null)
+                {
+                    <tr>
+                        <td colspan="6" class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">
+                            Đang tải...
+                        </td>
+                    </tr>
+                }
+                else if (!purchaseOrders.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">
+                            Không có phiếu nhập nào.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var po in purchaseOrders)
+                    {
+                        <tr>
+                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                <p class="text-gray-900 whitespace-no-wrap">#@po.Id</p>
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                <p class="text-gray-900 whitespace-no-wrap">@po.SupplierName</p>
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                <p class="text-gray-900 whitespace-no-wrap">@po.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                <p class="text-gray-900 whitespace-no-wrap">@po.TotalAmount.ToString("N0") ₫</p>
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                <span class="relative inline-block px-3 py-1 font-semibold leading-tight @GetStatusClass(po.Status)">
+                                    <span aria-hidden="true" class="absolute inset-0 opacity-50 rounded-full"></span>
+                                    <span class="relative">@po.Status</span>
+                                </span>
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                <a href="/admin/purchase-orders/edit/@po.Id" class="text-blue-600 hover:text-blue-900 mr-3">
+                                    <i class="fas fa-edit"></i> Chi tiết
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private List<PurchaseOrderDTO>? purchaseOrders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        purchaseOrders = await PurchaseOrderService.GetPurchaseOrdersAsync();
+    }
+
+    private string GetStatusClass(string status)
+    {
+        return status switch
+        {
+            "DRAFT" => "text-yellow-900 bg-yellow-200",
+            "RECEIVED" => "text-green-900 bg-green-200",
+            "CANCELLED" => "text-red-900 bg-red-200",
+            _ => "text-gray-900 bg-gray-200"
+        };
+    }
+}
