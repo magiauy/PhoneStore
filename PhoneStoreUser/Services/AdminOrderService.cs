@@ -307,4 +307,111 @@ public class AdminOrderService : IAdminOrderService
 
         return new SerialValidationResult(true, "Hợp lệ");
     }
+
+    public async Task CreateCompletedOrderAsync(CreateOrderDto dto)
+    {
+        if (dto.Lines == null || !dto.Lines.Any())
+        {
+            throw new InvalidOperationException("Order must have at least one item");
+        }
+
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        try
+        {
+            // 1. Create Invoice
+            var invoice = new InvoiceEntity
+            {
+                PersonId = dto.CustomerId,
+                CreatedBy = 1, // TODO: Get current user ID. For now hardcode to 1 (admin) or need to inject UserSession
+                InvoiceDate = DateTime.UtcNow,
+                Status = "completed",
+                PaymentMethod = dto.PaymentMethod,
+                Note = dto.Note,
+                TotalAmount = 0,
+                DiscountAmount = 0,
+                FinalAmount = 0
+            };
+
+            dbContext.Invoices.Add(invoice);
+            await dbContext.SaveChangesAsync();
+
+            decimal totalAmount = 0;
+
+            // 2. Create Invoice Lines
+            foreach (var lineDto in dto.Lines)
+            {
+                var lineTotal = lineDto.Quantity * lineDto.UnitPrice;
+                totalAmount += lineTotal;
+
+                var line = new InvoiceLineEntity
+                {
+                    InvoiceId = invoice.Id,
+                    ProductId = lineDto.ProductId,
+                    Quantity = lineDto.Quantity,
+                    UnitPrice = lineDto.UnitPrice,
+                    DiscountPct = 0,
+                    TotalPrice = lineTotal
+                };
+
+                dbContext.InvoiceLines.Add(line);
+                await dbContext.SaveChangesAsync();
+
+                // 3. Handle Serials
+                if (lineDto.IsSerialTracked)
+                {
+                    if (lineDto.SerialNumbers.Count != lineDto.Quantity)
+                    {
+                        throw new InvalidOperationException($"Product {lineDto.ProductName} requires {lineDto.Quantity} serials, but {lineDto.SerialNumbers.Count} provided.");
+                    }
+
+                    foreach (var serial in lineDto.SerialNumbers)
+                    {
+                        // Validate and Reserve/Sell serial
+                        var productSerial = await dbContext.ProductSerials
+                            .FirstOrDefaultAsync(ps => ps.SerialNumber == serial || ps.Imei1 == serial || ps.Imei2 == serial);
+
+                        if (productSerial == null)
+                        {
+                            throw new InvalidOperationException($"Serial {serial} not found for product {lineDto.ProductName}");
+                        }
+
+                        if (productSerial.ProductId != lineDto.ProductId)
+                        {
+                            throw new InvalidOperationException($"Serial {serial} does not belong to product {lineDto.ProductName}");
+                        }
+
+                        if (productSerial.Status != "in_stock")
+                        {
+                            throw new InvalidOperationException($"Serial {serial} is not available (Status: {productSerial.Status})");
+                        }
+
+                        // Update status to sold
+                        productSerial.Status = "sold";
+                        
+                        // Link to invoice line
+                        var lineSerial = new InvoiceLineSerialEntity
+                        {
+                            InvoiceLineId = line.Id,
+                            ProductSerialId = productSerial.Id
+                        };
+                        dbContext.InvoiceLineSerials.Add(lineSerial);
+                    }
+                }
+            }
+
+            // 4. Update Invoice Totals
+            invoice.TotalAmount = totalAmount;
+            invoice.FinalAmount = totalAmount; // No discount logic for now
+            
+            await dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
 }

@@ -11,11 +11,18 @@
                       IsLoading="IsListLoading"
                       SelectedInvoiceId="SelectedInvoice?.InvoiceId"
                       OnSelect="HandleInvoiceSelected"
-                      OnFilterStatus="HandleFilterStatus" />
+                      OnFilterStatus="HandleFilterStatus"
+                      OnCreateClick="() => ShowCreateModal = true" />
 
     <OrderDetailPanel Detail="SelectedInvoiceDetail" 
                       IsLoading="IsDetailLoading"
                       OnDataChange="LoadOrders" />
+
+    @if (ShowCreateModal)
+    {
+        <CreateOrderModal OnClose="() => ShowCreateModal = false" 
+                          OnOrderCreated="HandleOrderCreated" />
+    }
 </div>
 
 @code {
@@ -26,6 +33,7 @@
     
     private bool IsListLoading = true;
     private bool IsDetailLoading = false;
+    private bool ShowCreateModal = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -79,5 +87,11 @@
         IsDetailLoading = true;
         SelectedInvoiceDetail = await AdminOrderService.GetOrderDetailAsync(invoiceId);
         IsDetailLoading = false;
+    }
+
+    private async Task HandleOrderCreated()
+    {
+        ShowCreateModal = false;
+        await LoadOrders();
     }
 }
