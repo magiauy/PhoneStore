@@ -39,6 +39,7 @@ builder.Services.AddScoped<IAdminCustomerService, AdminCustomerService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IPayOSService, PayOSService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddSingleton<ICloudinaryService, CloudinaryService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
