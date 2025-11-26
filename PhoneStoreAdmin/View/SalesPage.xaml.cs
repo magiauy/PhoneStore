@@ -1,12 +1,21 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using MySql.Data.MySqlClient;
+using PhoneStore.Services.Interfaces;
+using PhoneStore.Services.ViewModels;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
+using PhoneStoreRepository.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace PhoneStoreAdmin.View
 {
@@ -20,6 +29,12 @@ namespace PhoneStoreAdmin.View
         private decimal _subtotal = 0;
         private decimal _vatAmount = 0;
         private decimal _total = 0;
+        private bool _isLoaded;
+        private readonly IProductService _productService;
+        private readonly IProductRepository _productRepository;
+        private readonly IInvoiceService _invoiceService;
+        private readonly IBrandRepository _brandRepository;
+        private readonly IProductCategoryRepository _categoryRepository;
 
         // Collections
         public ObservableCollection<SalesItem> AllProducts { get; set; }
@@ -27,6 +42,7 @@ namespace PhoneStoreAdmin.View
         public ObservableCollection<InvoiceLineItem> InvoiceItems { get; set; }
         public ObservableCollection<string> Categories { get; set; }
         public ObservableCollection<string> Brands { get; set; }
+        public ObservableCollection<ProductModelListItemViewModel> ProductModels { get; } = new();
 
         // Properties for binding
         public string CustomerName
@@ -77,19 +93,24 @@ namespace PhoneStoreAdmin.View
         public SalesPage()
         {
             this.InitializeComponent();
-            
+            this.DataContext = this;
+            _productService = App.GetService<IProductService>();
+            _productRepository = App.GetService<IProductRepository>();
+            _invoiceService = App.GetService<IInvoiceService>();
+            _brandRepository = App.GetService<IBrandRepository>();
+            _categoryRepository = App.GetService<IProductCategoryRepository>();
+
             // Initialize collections
             AllProducts = new ObservableCollection<SalesItem>();
             FilteredProducts = new ObservableCollection<SalesItem>();
             InvoiceItems = new ObservableCollection<InvoiceLineItem>();
             Categories = new ObservableCollection<string>();
             Brands = new ObservableCollection<string>();
-
-            // Generate sample data
-            LoadSampleData();
             
             // Generate invoice number
             GenerateInvoiceNumber();
+
+            _isLoaded = false;
 
             // Subscribe to collection changes
             InvoiceItems.CollectionChanged += (s, e) => {
@@ -98,11 +119,23 @@ namespace PhoneStoreAdmin.View
             };
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
+        protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
+            Debug.WriteLine("OnNavigatedTo ENTER. _isLoaded = " + _isLoaded);
             base.OnNavigatedTo(e);
-            // Load actual data from services here
+
+            if (!_isLoaded)
+            {
+                Debug.WriteLine("Calling LoadInitialData()");
+                _isLoaded = true;
+                LoadInitialData();               
+            }
+            else
+            {
+                Debug.WriteLine("Skipped LoadInitialData because _isLoaded is true");
+            }
         }
+
 
         // Event Handlers
         public void OnSearchTextChanged(object sender, TextChangedEventArgs e)
@@ -145,8 +178,43 @@ namespace PhoneStoreAdmin.View
             }
 
             // Process sale logic here
-            ShowMessage($"Đã tạo hóa đơn {InvoiceNumber} thành công!\nTổng tiền: {Total:C}", "Thành công");
-            
+            // Chuẩn bị dữ liệu hóa đơn (Header)
+            var newInvoice = new Invoice
+            {
+                InvoiceDate = DateTime.Now,
+                CreatedBy = 1,
+                Status = InvoiceStatus.PAID,
+                PaymentMethod = PaymentMethod.CASH,
+                Note = $"Bán hàng tại quầy - {DateTime.Now:HH:mm}",
+                DiscountAmount = 0
+            };
+
+            // Chuyển đổi (Map) từ UI Item sang Entity Line
+            var invoiceLines = InvoiceItems.Select(item => new InvoiceLine
+            {
+                ProductId = item.ProductId,
+                Quantity = item.Quantity,
+                UnitPrice = item.UnitPrice,
+                DiscountPct = 0,
+                // Tính toán TotalPrice cho Entity
+                TotalPrice = item.UnitPrice * item.Quantity
+            }).ToList();
+
+            try
+            {
+                // Gọi Service với danh sách InvoiceLine đã chuyển đổi
+                _invoiceService.CreateFullInvoice(newInvoice, invoiceLines, CustomerName, CustomerPhone);
+
+                ShowMessage($"Đã thanh toán thành công!\nMã HĐ: {newInvoice.Id}\nTổng tiền: {FormatPrice(newInvoice.FinalAmount)}", "Thành công");
+
+                OnClearInvoice(sender, e);
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Lỗi khi thanh toán: {ex.Message}", "Lỗi hệ thống");
+                Debug.WriteLine(ex.ToString());
+            }
+
             // Clear invoice after successful sale
             OnClearInvoice(sender, e);
         }
@@ -160,42 +228,315 @@ namespace PhoneStoreAdmin.View
             CalculateInvoiceTotal();
         }
 
-        // Helper Methods
-        private void LoadSampleData()
+        public void OnRefreshFilters(object sender, RoutedEventArgs e)
         {
-            // Sample categories and brands
-            Categories.Add("Smartphone");
-            Categories.Add("Tablet");
-            Categories.Add("Phụ kiện");
-            Categories.Add("Laptop");
+            SearchTextBox.Text = string.Empty;
+            CategoryComboBox.SelectedItem = null;
+            BrandComboBox.SelectedItem = null;
 
-            Brands.Add("Apple");
-            Brands.Add("Samsung");
-            Brands.Add("Xiaomi");
-            Brands.Add("Oppo");
-            Brands.Add("Vivo");
+            FilterProducts();
+        }
+        
 
-            // Sample products
-            var sampleProducts = new List<SalesItem>
+        private void LoadInitialData(int? selectedModelId = null)
+        {
+            Debug.WriteLine("LoadInitialData START");
+
+            try
             {
-                new SalesItem { Id = 1, ProductName = "iPhone 15 Pro Max 256GB", BrandName = "Apple", CategoryName = "Smartphone", Price = 34990000, StockQuantity = 50 },
-                new SalesItem { Id = 2, ProductName = "Samsung Galaxy S24 Ultra", BrandName = "Samsung", CategoryName = "Smartphone", Price = 31990000, StockQuantity = 30 },
-                new SalesItem { Id = 3, ProductName = "Xiaomi 14 Ultra", BrandName = "Xiaomi", CategoryName = "Smartphone", Price = 24990000, StockQuantity = 25 },
-                new SalesItem { Id = 4, ProductName = "iPad Pro 12.9 inch M2", BrandName = "Apple", CategoryName = "Tablet", Price = 28990000, StockQuantity = 20 },
-                new SalesItem { Id = 5, ProductName = "Samsung Galaxy Tab S9", BrandName = "Samsung", CategoryName = "Tablet", Price = 18990000, StockQuantity = 15 },
-                new SalesItem { Id = 6, ProductName = "AirPods Pro 2", BrandName = "Apple", CategoryName = "Phụ kiện", Price = 6290000, StockQuantity = 100 },
-                new SalesItem { Id = 7, ProductName = "Samsung Galaxy Buds2 Pro", BrandName = "Samsung", CategoryName = "Phụ kiện", Price = 4990000, StockQuantity = 80 },
-                new SalesItem { Id = 8, ProductName = "Oppo Find X6 Pro", BrandName = "Oppo", CategoryName = "Smartphone", Price = 22990000, StockQuantity = 35 },
-                new SalesItem { Id = 9, ProductName = "Vivo X100 Pro", BrandName = "Vivo", CategoryName = "Smartphone", Price = 21990000, StockQuantity = 40 },
-                new SalesItem { Id = 10, ProductName = "MacBook Pro 14 inch M3", BrandName = "Apple", CategoryName = "Laptop", Price = 49990000, StockQuantity = 10 }
+                if (_productService == null)
+                {
+                    Debug.WriteLine("LoadInitialData: _productService == null");
+                    return;
+                }
+
+                var summaries = _productService.GetProductModelSummaries();
+                Debug.WriteLine($"LoadInitialData: summaries is {(summaries == null ? "NULL" : "NOT NULL")}");
+
+                if (summaries == null)
+                {
+                    return;
+                }
+
+                var list = summaries.ToList();
+                Debug.WriteLine($"LoadInitialData: summaries.Count = {list.Count}");
+
+                ProductModels.Clear();
+                foreach (var model in list)
+                {
+                    Debug.WriteLine($" - model.Id={model.Id}, model.Name={model.Name ?? "<no name>"}");
+                    ProductModels.Add(model);
+                }
+
+                ProductModelListItemViewModel? selected = null;
+                if (selectedModelId.HasValue)
+                {
+                    selected = ProductModels.FirstOrDefault(m => m.Id == selectedModelId.Value);
+                    Debug.WriteLine("SelectedModelId provided: " + selectedModelId.Value + " -> selected is " + (selected == null ? "NULL" : "FOUND"));
+                }
+
+                if (selected == null)
+                {
+                    selected = ProductModels.FirstOrDefault();
+                    Debug.WriteLine("Selected is null, take first -> " + (selected == null ? "NULL" : $"Id={selected.Id}"));
+                }
+
+                if (selected != null)
+                {
+                    Debug.WriteLine("Calling LoadModelDetail for id=" + selected.Id);
+                    LoadModelDetail(selected.Id);
+                }
+                else
+                {
+                    Debug.WriteLine("No product models available -> SelectedModelDetail = null");
+                    SelectedModelDetail = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("LoadInitialData EXCEPTION: " + ex);
+            }
+
+            Debug.WriteLine("LoadInitialData END");
+        }
+
+        private async Task LoadModelDetail(int modelId)
+        {
+            Debug.WriteLine("LoadModelDetail START modelId=" + modelId);
+            try
+            {
+                var detail = _productService.GetProductModelDetail(modelId);
+
+                if (detail != null && _productRepository != null)
+                {
+                    
+                    Debug.WriteLine("FALLBACK: Calling GetAll() on IProductRepository.");
+                    var allProductEntities = _productRepository.GetAll();
+
+                    
+                    var variantEntities = allProductEntities
+                        .Where(p => (p.ModelId == modelId)) 
+                        .ToList();
+
+                    var variantViewModels = variantEntities.Select(MapToProductListItemViewModel).ToList();
+
+                    detail = new ProductModelDetailViewModel(
+                        detail.Model,
+                        variantViewModels,
+                        detail.Attributes
+                    );
+                }
+
+                SelectedModelDetail = detail;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("LoadModelDetail EXCEPTION: " + ex);
+                SelectedModelDetail = null;
+            }
+            Debug.WriteLine("LoadModelDetail END");
+        }
+
+        private ProductListItemViewModel MapToProductListItemViewModel(object productEntity)
+        {
+            dynamic product = productEntity;
+
+            return new ProductListItemViewModel
+            {
+                Id = (int)product.Id,
+                Name = product.Name ?? string.Empty,
+                Price = product.Price
+            };
+        }
+
+        private ProductModelDetailViewModel? _selectedModelDetail;
+        private bool _usingSyntheticVariants;
+        public bool UsingSyntheticVariants
+        {
+            get => _usingSyntheticVariants;
+            private set => SetProperty(ref _usingSyntheticVariants, value);
+        }
+
+        public ProductModelDetailViewModel? SelectedModelDetail
+        {
+            get => _selectedModelDetail;
+            private set
+            {
+                Debug.WriteLine("SelectedModelDetail SETTER ENTER");
+                if (_selectedModelDetail == value)
+                {
+                    Debug.WriteLine("SelectedModelDetail unchanged -> exit");
+                    return;
+                }
+
+                _selectedModelDetail = value;
+                Debug.WriteLine("SelectedModelDetail assigned: " + (_selectedModelDetail == null ? "NULL" : "NOT NULL"));
+
+                UpdateVariantMetadataSummaries();
+
+                PopulateProductsFromRepository();
+
+                // Thông báo thay đổi cho các property liên quan
+                OnPropertyChanged(nameof(SelectedModelDetail));
+                OnPropertyChanged(nameof(SelectedModelVariants));
+                OnPropertyChanged(nameof(AllProducts));
+                OnPropertyChanged(nameof(FilteredProducts));
+                OnPropertyChanged(nameof(Brands));
+                OnPropertyChanged(nameof(Categories));
+                OnPropertyChanged(nameof(HasInvoiceItems));
+
+                // cập nhật trạng thái synthetic (getter SelectedModelVariants sẽ set UsingSyntheticVariants)
+                var _ = SelectedModelVariants;
+
+                Debug.WriteLine("SelectedModelDetail SETTER EXIT");
+            }
+        }
+
+        private void PopulateProductsFromRepository()
+        {
+            Debug.WriteLine("PopulateProductsFromRepository START");
+
+            AllProducts.Clear();
+            FilteredProducts.Clear();
+            Categories.Clear();
+            Brands.Clear();
+
+            if (_productRepository == null)
+            {
+                Debug.WriteLine("PopulateProductsFromRepository: _productRepository == null -> abort");
+                return;
+            }
+
+            try
+            {
+                var products = _productRepository.GetAll()?.ToList() ?? new List<Product>();
+
+                Debug.WriteLine($"PopulateProductsFromRepository: fetched products.Count = {products.Count}");
+                var brands = _brandRepository?.GetAll()?.ToDictionary(b => b.Id, b => b.Name) ?? new Dictionary<int, string>();
+                var categories = _categoryRepository?.GetAll()?.ToDictionary(c => c.Id, c => c.Name) ?? new Dictionary<int, string>();
+
+                var brandSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var categorySet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var p in products)
+                {
+                    string brandName = "Unknown";
+                    if (p.BrandId.HasValue && brands.TryGetValue(p.BrandId.Value, out var bName))
+                    {
+                        brandName = bName;
+                    }
+
+                    string categoryName = "Unknown";
+                    if (p.CategoryId != 0 && categories.TryGetValue(p.CategoryId, out var cName))
+                    {
+                        categoryName = cName;
+                    }
+                    // Map repository Product -> SalesItem
+                    var item = new SalesItem
+                    {
+                        Id = p.Id,
+                        ProductName = p.Name ?? string.Empty,
+                        BrandId = p.BrandId,
+                        BrandName = brandName,
+                        CategoryName = categoryName,
+                        Price = p.Price,
+                        StockQuantity = 0, // nếu repo có stock field, sử dụng nó; nếu không, để 0 hoặc query thêm
+                        ParentPage = this
+                    };
+
+                    AllProducts.Add(item);
+
+                    if (!string.IsNullOrWhiteSpace(item.BrandName) && brandSet.Add(item.BrandName))
+                        Brands.Add(item.BrandName);
+
+                    if (!string.IsNullOrWhiteSpace(item.CategoryName) && categorySet.Add(item.CategoryName))
+                        Categories.Add(item.CategoryName);
+                }
+
+                // Populate filtered list initially with all products
+                foreach (var p in AllProducts) FilteredProducts.Add(p);
+
+                // Notify bindings (thường ObservableCollection tự notify nhưng vẫn an toàn)
+                OnPropertyChanged(nameof(AllProducts));
+                OnPropertyChanged(nameof(FilteredProducts));
+                OnPropertyChanged(nameof(Brands));
+                OnPropertyChanged(nameof(Categories));
+
+                Debug.WriteLine($"PopulateProductsFromRepository END: AllProducts={AllProducts.Count}, FilteredProducts={FilteredProducts.Count}, Brands={Brands.Count}, Categories={Categories.Count}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("PopulateProductsFromRepository EXCEPTION: " + ex);
+            }
+        }
+         
+        private readonly List<string> _selectedBrandNames = new();
+        private readonly List<string> _selectedCategoryNames = new();
+        private void UpdateVariantMetadataSummaries()
+        {
+            _selectedBrandNames.Clear();
+            _selectedCategoryNames.Clear();
+
+            if (_selectedModelDetail?.Variants == null)
+            {
+                return;
+            }
+
+            var brandSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var categorySet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var variant in _selectedModelDetail.Variants)
+            {
+                if (!string.IsNullOrWhiteSpace(variant.BrandName) && brandSet.Add(variant.BrandName!))
+                {
+                    _selectedBrandNames.Add(variant.BrandName!);
+                }
+
+                if (!string.IsNullOrWhiteSpace(variant.CategoryName) && categorySet.Add(variant.CategoryName))
+                {
+                    _selectedCategoryNames.Add(variant.CategoryName);
+                }
+            }
+
+            _selectedBrandNames.Sort(StringComparer.OrdinalIgnoreCase);
+            _selectedCategoryNames.Sort(StringComparer.OrdinalIgnoreCase);
+        }
+
+        public IReadOnlyList<ProductListItemViewModel>? SelectedModelVariants
+        {
+            get
+            {
+                // Nếu có variants thực thì trả về
+                if (_selectedModelDetail?.Variants != null && _selectedModelDetail.Variants.Any())
+                {
+                    UsingSyntheticVariants = false;
+                    return _selectedModelDetail.Variants;
+                }
+
+                // Không có variants -> trả về danh sách giả lập
+                UsingSyntheticVariants = true;
+                return CreateListFromModel(_selectedModelDetail);
+            }
+        }
+
+        private IReadOnlyList<ProductListItemViewModel> CreateListFromModel(ProductModelDetailViewModel? detail)
+        {
+            var list = new List<ProductListItemViewModel>();
+
+            if (detail?.Model == null)
+                return list;
+
+            var model = detail.Model;
+
+            var item = new ProductListItemViewModel
+            {
+                Id = model.Id,
+                Name = model.Name ?? "<No name>",
+                SerialCount = 0 // hoặc gán theo logic riêng của bạn
             };
 
-            foreach (var product in sampleProducts)
-            {
-                product.ParentPage = this;
-                AllProducts.Add(product);
-                FilteredProducts.Add(product);
-            }
+            list.Add(item);
+            return list;
         }
 
         private void FilterProducts()
@@ -308,6 +649,7 @@ namespace PhoneStoreAdmin.View
 
         public int Id { get; set; }
         public string ProductName { get; set; } = string.Empty;
+        public int? BrandId { get; set; }
         public string BrandName { get; set; } = string.Empty;
         public string CategoryName { get; set; } = string.Empty;
         public decimal Price { get; set; }
