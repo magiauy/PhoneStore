@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PhoneStoreUser.Components.Models;
 using PhoneStoreUser.Data;
@@ -14,6 +15,51 @@ namespace PhoneStoreUser.Services
         public SupplierService(IDbContextFactory<AppDbContext> dbContextFactory)
         {
             _dbContextFactory = dbContextFactory ?? throw new ArgumentNullException(nameof(dbContextFactory));
+        }
+
+        public async Task<List<SupplierEntity>> GetAllSuppliersAsync()
+        {
+            try
+            {
+                using var context = await _dbContextFactory.CreateDbContextAsync();
+                return await context.Suppliers
+                    .AsNoTracking()
+                    .OrderBy(s => s.Name)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to load suppliers: {ex.Message}");
+                return new List<SupplierEntity>();
+            }
+        }
+
+        public async Task<(IReadOnlyList<SupplierEntity> Items, int TotalCount)> SearchSuppliersAsync(string? keyword, int skip, int take)
+        {
+            try
+            {
+                using var context = await _dbContextFactory.CreateDbContextAsync();
+                var query = context.Suppliers.AsNoTracking().AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(keyword))
+                {
+                    query = query.Where(s => s.Name.Contains(keyword));
+                }
+
+                var totalCount = await query.CountAsync();
+                var items = await query
+                    .OrderBy(s => s.Name)
+                    .Skip(Math.Max(0, skip))
+                    .Take(Math.Max(1, take))
+                    .ToListAsync();
+
+                return (items, totalCount);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to search suppliers: {ex.Message}");
+                return (Array.Empty<SupplierEntity>(), 0);
+            }
         }
 
         public IEnumerable<Supplier> GetAll()
