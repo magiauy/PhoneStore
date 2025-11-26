@@ -1,0 +1,388 @@
+@using PhoneStoreUser.Components.ViewModels
+@using PhoneStoreUser.Services
+@inject IProductCatalogService ProductCatalogService
+@inject IAdminOrderService AdminOrderService
+@inject IJSRuntime JS
+
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4 backdrop-blur-sm transition-opacity">
+    <div class="flex h-full max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+        
+        <div class="flex items-center justify-between border-b border-gray-100 bg-white px-6 py-4">
+            <div>
+                <h3 class="text-xl font-bold text-gray-800">Tạo đơn hàng mới</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Nhập thông tin sản phẩm và khách hàng</p>
+            </div>
+            <button @onclick="OnClose" class="h-8 w-8 rounded-full bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div class="flex flex-1 flex-col overflow-hidden lg:flex-row">
+            
+            <div class="flex flex-1 flex-col overflow-y-auto bg-gray-50/50 p-6">
+                
+                <div class="relative mb-6 z-20">
+                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-500">Tìm kiếm sản phẩm</label>
+                    <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <i class="fa-solid fa-magnifying-glass text-gray-400 group-focus-within:text-blue-500"></i>
+                        </div>
+                        <input type="text"
+                               class="block w-full rounded-xl border border-gray-200 bg-white py-3 pl-10 pr-4 text-sm shadow-sm transition-all placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none"
+                               placeholder="Nhập tên sản phẩm, mã SKU..."
+                               @bind="SearchTerm"
+                               @bind:event="oninput"
+                               @onkeyup="HandleSearch" />
+                        
+                        @if (SearchResults.Any())
+                        {
+                            <div class="absolute mt-2 w-full origin-top-right overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5 z-30">
+                                <div class="max-h-64 overflow-y-auto py-1">
+                                    @foreach (var product in SearchResults)
+                                    {
+                                        <button class="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-blue-50/50 transition-colors border-b border-gray-50 last:border-0"
+                                                @onclick="() => AddProduct(product)">
+                                            <div>
+                                                <div class="font-medium text-gray-900">@product.Name</div>
+                                                <div class="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                                                    <span class="bg-gray-100 px-1.5 py-0.5 rounded text-gray-600 font-mono">@product.Sku</span>
+                                                    <span>•</span>
+                                                    <span><i class="fa-solid fa-box mr-1"></i>@(product.IsSerialTracked ? "Serial" : "Thường")</span>
+                                                </div>
+                                            </div>
+                                            <div class="text-sm font-bold text-blue-600">
+                                                @product.Price.ToString("N0") ₫
+                                            </div>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    @if (OrderDto.Lines.Any())
+                    {
+                        @foreach (var line in OrderDto.Lines)
+                        {
+                            <div class="group relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-blue-200">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="flex items-start gap-3">
+                                        <div class="mt-1 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                                            <i class="fa-solid fa-mobile-screen"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-gray-900">@line.ProductName</h4>
+                                            <p class="text-xs text-gray-500 mt-0.5">SKU: @line.Sku</p>
+                                        </div>
+                                    </div>
+                                    <button @onclick="() => RemoveLine(line)" 
+                                            class="h-8 w-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all" 
+                                            title="Xóa sản phẩm">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </button>
+                                </div>
+
+                                <div class="mt-2 grid grid-cols-12 gap-4 items-end">
+                                    
+                                    <div class="col-span-4 sm:col-span-3">
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Số lượng</label>
+                                        <div class="flex items-center rounded-lg border border-gray-200 bg-white shadow-sm ring-1 ring-gray-900/5 overflow-hidden">
+                                            <button class="flex h-9 w-8 items-center justify-center bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-red-500 transition-colors border-r border-gray-100 disabled:opacity-50"
+                                                    disabled="@(line.Quantity <= 1)"
+                                                    @onclick="@(() => UpdateQuantity(line, line.Quantity - 1))">
+                                                <i class="fa-solid fa-minus text-xs"></i>
+                                            </button>
+
+                                            <input type="number" min="1"
+                                                class="h-9 w-full border-none bg-transparent p-0 text-center text-sm font-semibold text-gray-900 focus:ring-0 appearance-none"
+                                                value="@line.Quantity"
+                                                @onchange="@(e => UpdateQuantity(line, int.Parse(e.Value?.ToString() ?? "1")))" />
+
+                                            <button class="flex h-9 w-8 items-center justify-center bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors border-l border-gray-100"
+                                                    @onclick="@(() => UpdateQuantity(line, line.Quantity + 1))">
+                                                <i class="fa-solid fa-plus text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-span-8 sm:col-span-5">
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Đơn giá</label>
+                                        <div class="relative rounded-lg shadow-sm">
+                                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                <span class="text-gray-400 sm:text-sm">₫</span>
+                                            </div>
+                                            
+                                            <input type="number"
+                                                class="block w-full rounded-lg border-gray-200 pl-7 pr-3 py-2 text-right font-mono text-sm font-semibold text-gray-900 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
+                                                placeholder="0"
+                                                @bind="line.UnitPrice" 
+                                                @bind:event="oninput" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-span-12 sm:col-span-4 sm:text-right pt-2 sm:pt-0 flex justify-between sm:block items-center border-t border-dashed border-gray-100 sm:border-0 mt-2 sm:mt-0">
+                                        <div class="text-[10px] font-medium text-gray-400 sm:mb-1">Thành tiền</div>
+                                        <div class="text-base font-bold text-blue-600">
+                                            @((line.Quantity * line.UnitPrice).ToString("N0")) <span class="text-xs font-normal text-blue-400">₫</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if (line.IsSerialTracked)
+                                {
+                                    <div class="mt-4 rounded-lg bg-blue-50/50 p-3 border border-blue-100">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <label class="text-xs font-semibold text-blue-700 flex items-center gap-1.5">
+                                                <i class="fa-solid fa-barcode"></i>
+                                                Nhập Serial / IMEI
+                                            </label>
+                                            <span class="text-[10px] font-medium px-2 py-0.5 bg-white rounded-full border border-blue-200 text-blue-600">
+                                                @line.SerialNumbers.Count / @line.Quantity
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            @for (int i = 0; i < line.Quantity; i++)
+                                            {
+                                                var index = i;
+                                                <div class="relative">
+                                                    <input type="text"
+                                                           class="w-full rounded border border-blue-200 px-3 py-1.5 pl-8 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none placeholder-blue-300/70 bg-white"
+                                                           placeholder="#@(index + 1) Serial..."
+                                                           value="@(index < line.SerialNumbers.Count ? line.SerialNumbers[index] : "")"
+                                                           @onchange="@(e => UpdateSerial(line, index, e.Value?.ToString()))" />
+                                                    <div class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-blue-300">
+                                                        <i class="fa-solid fa-qrcode text-[10px]"></i>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+                            <div class="bg-white h-16 w-16 flex items-center justify-center rounded-full shadow-sm mb-3 text-gray-300">
+                                <i class="fa-solid fa-box-open text-3xl"></i>
+                            </div>
+                            <h3 class="text-sm font-medium text-gray-900">Chưa có sản phẩm</h3>
+                            <p class="text-xs text-gray-500 mt-1">Tìm kiếm sản phẩm bên trên để thêm vào đơn hàng</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-gray-100 bg-white p-6 flex flex-col justify-between shadow-lg z-10">
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-receipt text-blue-600"></i>
+                            Thông tin thanh toán
+                        </h4>
+                        
+                        <div class="mb-4">
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Hình thức thanh toán</label>
+                            <div class="relative">
+                                <select @bind="OrderDto.PaymentMethod" 
+                                        class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 pr-8 text-sm font-medium text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                                    <option value="cash">Tiền mặt</option>
+                                    <option value="bank">Chuyển khoản</option>
+                                    <option value="card">Thẻ tín dụng</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Ghi chú đơn hàng</label>
+                            <textarea @bind="OrderDto.Note" rows="3"
+                                      class="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none resize-none placeholder:text-gray-400"
+                                      placeholder="Ví dụ: Giao hàng giờ hành chính..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 space-y-4">
+                    @if (!string.IsNullOrEmpty(ErrorMessage))
+                    {
+                        <div class="rounded-lg bg-red-50 p-3 text-xs font-medium text-red-600 border border-red-100 flex items-start gap-2">
+                            <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+                            <span>@ErrorMessage</span>
+                        </div>
+                    }
+
+                    <div class="border-t border-dashed border-gray-200 pt-4">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-sm text-gray-500">Tạm tính</span>
+                            <span class="text-sm font-semibold text-gray-900">@OrderDto.Lines.Sum(l => l.Quantity * l.UnitPrice).ToString("N0") ₫</span>
+                        </div>
+                        <div class="flex items-center justify-between text-blue-600 mt-2 pt-2 border-t border-gray-100">
+                            <span class="text-base font-bold">Tổng cộng</span>
+                            <span class="text-xl font-extrabold">@OrderDto.Lines.Sum(l => l.Quantity * l.UnitPrice).ToString("N0") ₫</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <button @onclick="OnClose" class="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 hover:text-gray-900 transition-all">
+                            Hủy bỏ
+                        </button>
+                        <button @onclick="SubmitOrder" 
+                                disabled="@(IsSubmitting || !OrderDto.Lines.Any())"
+                                class="w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 hover:bg-blue-700 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
+                            @if (IsSubmitting)
+                            {
+                                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-check"></i>
+                            }
+                            <span>Tạo đơn</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnOrderCreated { get; set; }
+
+    private CreateOrderDto OrderDto { get; set; } = new();
+    private string SearchTerm { get; set; } = "";
+    private List<ProductCardViewModel> SearchResults { get; set; } = new();
+    private bool IsSubmitting { get; set; } = false;
+    private string? ErrorMessage { get; set; }
+    private System.Timers.Timer? _debounceTimer;
+
+    protected override void OnInitialized()
+    {
+        _debounceTimer = new System.Timers.Timer(300);
+        _debounceTimer.Elapsed += async (sender, e) => await InvokeAsync(PerformSearch);
+        _debounceTimer.AutoReset = false;
+    }
+
+    private void HandleSearch(KeyboardEventArgs e)
+    {
+        _debounceTimer?.Stop();
+        _debounceTimer?.Start();
+    }
+
+    private async Task PerformSearch()
+    {
+        if (string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            SearchResults.Clear();
+            StateHasChanged();
+            return;
+        }
+
+        SearchResults = (await ProductCatalogService.GetFilteredProductsAsync(SearchTerm)).Take(5).ToList();
+        StateHasChanged();
+    }
+
+    private void AddProduct(ProductCardViewModel product)
+    {
+        if (OrderDto.Lines.Any(l => l.ProductId == product.Id))
+        {
+            return; // Already added
+        }
+
+        OrderDto.Lines.Add(new CreateOrderLineDto
+        {
+            ProductId = product.Id,
+            ProductName = product.Name,
+            Sku = product.Sku,
+            UnitPrice = product.Price,
+            Quantity = 1,
+            IsSerialTracked = product.IsSerialTracked,
+            SerialNumbers = new List<string>()
+        });
+
+        SearchTerm = "";
+        SearchResults.Clear();
+    }
+
+    private void RemoveLine(CreateOrderLineDto line)
+    {
+        OrderDto.Lines.Remove(line);
+    }
+
+    private void UpdateQuantity(CreateOrderLineDto line, int newQuantity)
+    {
+        if (newQuantity < 1) newQuantity = 1;
+        line.Quantity = newQuantity;
+        
+        // Adjust serials list size if needed
+        if (line.IsSerialTracked)
+        {
+            // If quantity increased, we just wait for user to input more
+            // If quantity decreased, we might need to trim, but let's keep existing inputs for now to be safe, 
+            // or just trim the end. Let's trim the end to match quantity.
+            if (line.SerialNumbers.Count > newQuantity)
+            {
+                line.SerialNumbers = line.SerialNumbers.Take(newQuantity).ToList();
+            }
+        }
+    }
+
+    private void UpdateSerial(CreateOrderLineDto line, int index, string? value)
+    {
+        // Ensure list has enough capacity
+        while (line.SerialNumbers.Count <= index)
+        {
+            line.SerialNumbers.Add("");
+        }
+        
+        line.SerialNumbers[index] = value?.Trim() ?? "";
+    }
+
+    private async Task SubmitOrder()
+    {
+        IsSubmitting = true;
+        ErrorMessage = null;
+
+        try
+        {
+            // Basic validation
+            if (!OrderDto.Lines.Any())
+            {
+                throw new Exception("Vui lòng chọn ít nhất một sản phẩm.");
+            }
+
+            foreach (var line in OrderDto.Lines)
+            {
+                if (line.IsSerialTracked)
+                {
+                    var filledSerials = line.SerialNumbers.Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+                    if (filledSerials.Count != line.Quantity)
+                    {
+                        throw new Exception($"Sản phẩm {line.ProductName} cần nhập đủ {line.Quantity} serial/IMEI.");
+                    }
+                    // Update the list to remove any potential empty slots if logic was weird, but here we just use the filled ones
+                    line.SerialNumbers = filledSerials;
+                }
+            }
+
+            await AdminOrderService.CreateCompletedOrderAsync(OrderDto);
+            await OnOrderCreated.InvokeAsync();
+            await OnClose.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsSubmitting = false;
+        }
+    }
+}
