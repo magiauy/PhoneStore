@@ -254,9 +254,7 @@
             }
         }
 
-        var initialUrl = BuildCloudinaryImageUrl();
-        UploadedImageUrl = string.IsNullOrEmpty(initialUrl) ? null : initialUrl;
-        ImageLoadFailed = false;
+        await LoadInitialImageAsync();
     }
 
     private async Task LoadMetadata()
@@ -362,8 +360,8 @@
         {
             var file = e.File;
 
-            var brandSegment = GetBrandSegment();
-            if (brandSegment == null)
+            var brandName = GetBrandName();
+            if (brandName == null)
             {
                 await JS.InvokeVoidAsync("alert", "Khong the xac dinh thuong hieu. Vui long thu lai.");
                 return;
@@ -382,16 +380,17 @@
                  slugSegment = GenerateSlug(Product.Name);
             }
 
-            var skuSegment = Uri.EscapeDataString(Product.Sku.Trim());
+            var skuValue = Product.Sku.Trim();
 
-            var folder = $"mobileguzone/{brandSegment}/{Uri.EscapeDataString(slugSegment)}";
-            var publicId = skuSegment;
+            var folder = $"mobileguzone/{Uri.EscapeDataString(brandName.ToLowerInvariant())}/{Uri.EscapeDataString(slugSegment)}";
+            var publicId = Uri.EscapeDataString(skuValue);
 
             var url = await CloudinaryService.UploadImageAsync(file, folder, publicId);
             if (!string.IsNullOrEmpty(url))
             {
                 UploadedImageUrl = url;
-                UploadedPublicId = $"{folder}/{publicId}";
+                UploadedPublicId = CloudinaryService.BuildPublicId(brandName, slugSegment, skuValue) ?? $"{folder}/{publicId}";
+                Product.UpdatedAt = DateTime.UtcNow;
                 // If we want to update the model default image, we can do it here, 
                 // but since multiple products share a model, maybe we shouldn't overwrite it automatically 
                 // unless explicitly requested. For now, we just update the local view.
@@ -529,38 +528,27 @@
             IsSaving = false;
         }
     }
-
-    private string? BuildCloudinaryImageUrl()
+    private async Task LoadInitialImageAsync()
     {
-        var brandName = Brands.FirstOrDefault(b => b.Id == Product.BrandId)?.Name ?? Product.Brand?.Name;
-        
-        string? slug = null;
-        var selectedModel = ProductModels.FirstOrDefault(m => m.Id == Product.ModelId);
-        if (selectedModel != null)
-        {
-            slug = selectedModel.Slug;
-        }
-        else 
-        {
-            slug = Product.Model?.Slug;
-        }
-
+        var brandName = GetBrandName();
+        var slug = GetSlugValue();
         var sku = Product.Sku;
 
         if (string.IsNullOrWhiteSpace(brandName) || string.IsNullOrWhiteSpace(slug) || string.IsNullOrWhiteSpace(sku))
         {
-            return null;
+            UploadedImageUrl = null;
+            UploadedPublicId = null;
+            ImageLoadFailed = false;
+            return;
         }
 
-        var brandSegment = Uri.EscapeDataString(brandName.Trim().ToLowerInvariant());
-        var slugSegment = Uri.EscapeDataString(slug.Trim());
-        var skuSegment = Uri.EscapeDataString(sku.Trim());
+        var cacheKey = (Product.UpdatedAt ?? Product.CreatedAt)?.Ticks.ToString();
+        UploadedImageUrl = await CloudinaryService.GetImageUrlAsync(brandName, slug, sku, cacheKey);
+        UploadedPublicId = CloudinaryService.BuildPublicId(brandName, slug, sku);
+        ImageLoadFailed = false;
+    }
 
-        // Thêm vào đuôi ảnh
-        return $"https://res.cloudinary.com/REMOVED_SECRET/image/upload/mobileguzone/{brandSegment}/{slugSegment}/{skuSegment}.webp";    
-        }
-
-    private string? GetBrandSegment()
+    private string? GetBrandName()
     {
         var brandName = Brands.FirstOrDefault(b => b.Id == Product.BrandId)?.Name ?? Product.Brand?.Name;
         if (string.IsNullOrWhiteSpace(brandName))
@@ -568,7 +556,23 @@
             return null;
         }
 
-        return Uri.EscapeDataString(brandName.Trim().ToLowerInvariant());
+        return brandName.Trim();
+    }
+
+    private string? GetSlugValue()
+    {
+        var selectedModel = ProductModels.FirstOrDefault(m => m.Id == Product.ModelId);
+        if (!string.IsNullOrWhiteSpace(selectedModel?.Slug))
+        {
+            return selectedModel.Slug;
+        }
+
+        if (!string.IsNullOrWhiteSpace(Product.Model?.Slug))
+        {
+            return Product.Model.Slug;
+        }
+
+        return null;
     }
 
     private void HandlePreviewImageError()

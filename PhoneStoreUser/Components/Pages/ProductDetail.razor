@@ -2,12 +2,14 @@
 @using PhoneStoreUser.Components.Models
 @using Microsoft.Extensions.Logging
 @using Microsoft.AspNetCore.WebUtilities
+@using PhoneStoreUser.Services
 @rendermode InteractiveServer
 @inject IProductCatalogService ProductCatalogService
 @inject ICartService CartService
 @inject NavigationManager NavigationManager
 @inject ILogger<ProductDetail> Logger
 @inject IReviewService ReviewService
+@inject ICloudinaryService CloudinaryService
 
 <PageTitle>@ProductModel?.Name - GuZone</PageTitle>
 
@@ -173,7 +175,8 @@
     private Dictionary<int, List<AttributeChoice>> AttributeChoices { get; set; } = new();
     private Dictionary<int, AttributeChoice> SelectedAttributes { get; set; } = new();
     private Product? SelectedProduct { get; set; }
-    private string CurrentImageUrl { get; set; } = string.Empty;
+    private Dictionary<int, string?> ProductImageUrls { get; set; } = new();
+    private const string ProductImageTransformation = "w_800,h_800,c_fill,f_auto,q_auto";
     private bool IsLoading { get; set; } = true;
     private bool ShowToast { get; set; } = false;
     private PhoneStoreUser.Components.UI.ReviewList? reviewList;
@@ -197,7 +200,7 @@
         AttributeChoices.Clear();
         SelectedAttributes.Clear();
         SelectedProduct = null;
-        CurrentImageUrl = string.Empty;
+        ProductImageUrls.Clear();
 
         if (!string.IsNullOrWhiteSpace(Sku))
         {
@@ -274,6 +277,11 @@
             }
         }
         
+        if (ProductModel != null && Products.Count > 0)
+        {
+            await PopulateProductImagesAsync();
+        }
+
         IsLoading = false;
     }
 
@@ -330,20 +338,40 @@
             {
                 SelectedProduct = product;
                 ApplySelectedProductAttributes(product, replaceExisting: false);
-                @* UpdateImageUrl(); *@
                 return;
             }
         }
     }
 
-    private void UpdateImageUrl()
+    private async Task PopulateProductImagesAsync()
     {
+        ProductImageUrls.Clear();
 
+        if (ProductModel == null || Products.Count == 0)
+        {
+            return;
+        }
 
-        CurrentImageUrl = !string.IsNullOrEmpty(ProductModel?.Image)
-            ? ProductModel!.Image!
-            @* : "/images/hero/iphone-17-pm-2.png"; *@
-            : $"https://res.cloudinary.com/REMOVED_SECRET/image/upload/e_upscale,w_1200/v1763457477/mobileguzone/{SelectedProduct?.BrandName.ToLower()}/{ProductModel?.Slug}/{SelectedProduct?.Sku}.webp";
+        var slug = ProductModel.Slug ?? string.Empty;
+
+        var tasks = Products.Select(async product =>
+        {
+            var cacheKey = (product.UpdatedAt ?? product.CreatedAt)?.Ticks.ToString();
+            var url = await CloudinaryService.GetImageUrlAsync(
+                product.BrandName ?? string.Empty,
+                slug,
+                product.Sku,
+                cacheKey,
+                format: "webp",
+                transformation: ProductImageTransformation);
+            return (product.Id, url);
+        }).ToList();
+
+        var results = await Task.WhenAll(tasks);
+        foreach (var result in results)
+        {
+            ProductImageUrls[result.Item1] = result.Item2;
+        }
     }
 
     private string GetAttributeButtonClass(AttributeChoice choice)
@@ -452,26 +480,25 @@
     }
     private string GetProductImageUrl(Product product)
     {
-        // Ưu tiên logic Cloudinary cho từng variant (SKU)
-        // Nếu logic cũ của bạn ưu tiên ProductModel.Image thì đảo ngược lại điều kiện if
-        
-        // Giả sử bạn muốn ưu tiên ảnh theo SKU (variant) để đổi màu sắc:
-        if (product != null && ProductModel != null)
+        if (product == null)
         {
-             return $"https://res.cloudinary.com/REMOVED_SECRET/image/upload/w_800,h_800,c_fill,f_auto,q_auto/v1763457477/mobileguzone/{product.BrandName.ToLower()}/{ProductModel.Slug}/{product.Sku}.webp";
+            return ProductModel?.Image ?? string.Empty;
         }
 
-        // Fallback nếu không tạo được link variant
-        return ProductModel?.Image ?? "";
+        if (ProductImageUrls.TryGetValue(product.Id, out var cachedUrl) && !string.IsNullOrEmpty(cachedUrl))
+        {
+            return cachedUrl;
+        }
+
+        return ProductModel?.Image ?? string.Empty;
     }
 
     private async Task AddToCart()
     {
         if (SelectedProduct != null)
         {
-            // Ensure CurrentImageUrl is up to date or calculate it here
-            var imgUrl = !string.IsNullOrEmpty(CurrentImageUrl) ? CurrentImageUrl : GetProductImageUrl(SelectedProduct);
-            
+            var imgUrl = GetProductImageUrl(SelectedProduct);
+
             await CartService.AddToCart(SelectedProduct, imgUrl);
             
             ShowToast = true;
