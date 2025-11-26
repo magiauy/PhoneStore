@@ -260,13 +260,16 @@ public class AdminOrderService : IAdminOrderService
     private List<string> GetValidStatusTransitions(string currentStatus, string paymentMethod)
     {
         // Online orders (bank): unpaid → paid → delivering → completed
-        // COD orders (cash): pending → delivering → completed
+        // COD orders (cod/cash): pending → delivering → completed
 
-        return (currentStatus, paymentMethod) switch
+        var normalizedStatus = currentStatus?.ToLowerInvariant() ?? string.Empty;
+        var normalizedPaymentMethod = paymentMethod?.ToLowerInvariant() ?? string.Empty;
+
+        return (normalizedStatus, normalizedPaymentMethod) switch
         {
             ("unpaid", "bank") => new List<string> { "paid", "cancelled" },
             ("paid", "bank") => new List<string> { "delivering", "cancelled" },
-            ("pending", "cash") => new List<string> { "delivering", "cancelled" },
+            ("pending", "cod") => new List<string> { "delivering", "cancelled" },
             ("delivering", _) => new List<string> { "completed", "refunded" },
             _ => new List<string>()
         };

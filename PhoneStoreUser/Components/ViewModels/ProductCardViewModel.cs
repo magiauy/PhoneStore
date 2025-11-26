@@ -14,9 +14,10 @@ namespace PhoneStoreUser.Components.ViewModels
         decimal Cost,
         bool IsSerialTracked,
         int WarrantyMonths,
-        string Status,
-        DateTime? CreatedAt,
-        ICollection<ProductAttributeValue>? ProductAttributeValues,
-        string Slug
-    );
+    string Status,
+    DateTime? CreatedAt,
+    DateTime? UpdatedAt,
+    ICollection<ProductAttributeValue>? ProductAttributeValues,
+    string Slug
+);
 }

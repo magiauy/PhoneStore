@@ -145,10 +145,10 @@
 
                         <div class="space-y-3">
                             <!-- COD Option -->
-                            <div class="@GetPaymentClass("COD") flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition relative group" 
-                                 @onclick="@(() => paymentMethod = "COD")">
+                            <div class="@GetPaymentClass(PaymentMethodCod) flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition relative group" 
+                                 @onclick="@(() => paymentMethod = PaymentMethodCod)">
                                 <div class="flex items-center h-5">
-                                    <input type="radio" name="payment" checked="@(paymentMethod == "COD")" class="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer" readonly />
+                                    <input type="radio" name="payment" checked="@(paymentMethod == PaymentMethodCod)" class="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer" readonly />
                                 </div>
                                 <div class="ml-4 flex-1">
                                     <div class="font-semibold text-gray-800 flex items-center">
@@ -157,7 +157,7 @@
                                     </div>
                                     <div class="text-sm text-gray-500 mt-1 ml-8">Thanh toán bằng tiền mặt khi giao hàng</div>
                                 </div>
-                                @if(paymentMethod == "COD") {
+                                @if(paymentMethod == PaymentMethodCod) {
                                     <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-blue-600">
                                         <i class="fa-solid fa-circle-check text-xl"></i>
                                     </div>
@@ -165,10 +165,10 @@
                             </div>
 
                             <!-- PayOS Option -->
-                            <div class="@GetPaymentClass("PayOS") flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition relative group"
-                                 @onclick="@(() => paymentMethod = "PayOS")">
+                            <div class="@GetPaymentClass(PaymentMethodBank) flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition relative group"
+                                 @onclick="@(() => paymentMethod = PaymentMethodBank)">
                                 <div class="flex items-center h-5">
-                                    <input type="radio" name="payment" checked="@(paymentMethod == "PayOS")" class="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer" readonly />
+                                    <input type="radio" name="payment" checked="@(paymentMethod == PaymentMethodBank)" class="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer" readonly />
                                 </div>
                                 <div class="ml-4 flex-1">
                                     <div class="font-semibold text-gray-800 flex items-center">
@@ -177,7 +177,7 @@
                                     </div>
                                     <div class="text-sm text-gray-500 mt-1 ml-8">Thẻ ATM, Visa, MasterCard, QR Code</div>
                                 </div>
-                                @if(paymentMethod == "PayOS") {
+                                @if(paymentMethod == PaymentMethodBank) {
                                     <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-blue-600">
                                         <i class="fa-solid fa-circle-check text-xl"></i>
                                     </div>
@@ -242,7 +242,7 @@
                             }
                             else
                             {
-                                <span>Đặt hàng @(paymentMethod == "PayOS" ? "qua PayOS" : "")</span>
+                                <span>Đặt hàng @(paymentMethod == PaymentMethodBank ? "qua PayOS" : "")</span>
                             }
                         </button>
                     }
@@ -280,10 +280,12 @@
 }
 
 @code {
+    private const string PaymentMethodCod = "cod";
+    private const string PaymentMethodBank = "bank";
     private List<CartItem> cartItems = new();
     private CheckoutModel checkoutModel = new();
     private bool isInfoConfirmed = false;
-    private string paymentMethod = "COD";
+    private string paymentMethod = PaymentMethodCod;
     private ClaimsPrincipal? currentUser;
     private int? personId;
     private bool isProcessing;
@@ -344,7 +346,7 @@
 
         try
         {
-                        if (paymentMethod == "PayOS")
+            if (paymentMethod == PaymentMethodBank)
             {
                 // Create order and get PayOS payment link
                 var result = await OrderService.CreateOrderWithPaymentAsync(
@@ -367,7 +369,8 @@
                 {
                     errorMessage = "Khong the tao link thanh toan PayOS. Vui long thu lai hoac chon phuong thuc thanh toan khac.";
                 }
-            }else // COD
+            }
+            else // COD
             {
                 // Existing COD flow
                 var orderId = await OrderService.CreateOrderAsync(personId, cartItems, checkoutModel, paymentMethod);

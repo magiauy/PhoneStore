@@ -139,7 +139,13 @@
         var skuSegment = Uri.EscapeDataString(sku);
         var slugSegment = !string.IsNullOrEmpty(slug) ? Uri.EscapeDataString(slug.ToLowerInvariant()) : "default";
 
-        return $"https://res.cloudinary.com/REMOVED_SECRET/image/upload/v1763457477/mobileguzone/{brandSegment}/{slugSegment}/{skuSegment}.webp";
+        // Giả sử bạn có biến lastUpdated lưu thời gian sửa đổi cuối cùng của sản phẩm
+        // Chuyển đổi sang Ticks hoặc định dạng số để làm version
+        var fallbackDate = product.UpdatedAt ?? product.CreatedAt ?? DateTime.UtcNow;
+        string versionParam = fallbackDate.Ticks.ToString();
+
+        // Thêm vào đuôi ảnh
+        return $"https://res.cloudinary.com/REMOVED_SECRET/image/upload/mobileguzone/{brandSegment}/{slugSegment}/{skuSegment}.webp?v={versionParam}";
     }
 
     private void HandleImageError()

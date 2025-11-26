@@ -348,6 +348,7 @@ public class ProductCatalogService : IProductCatalogService
                         x.P.WarrantyMonths,
                         (x.P.Status ?? "active").ToLower(),
                         x.P.CreatedAt,
+                        x.P.UpdatedAt,
                         null,
                         x.Model.Slug
                     ))
@@ -372,6 +373,7 @@ public class ProductCatalogService : IProductCatalogService
                         x.P.WarrantyMonths,
                         (x.P.Status ?? "active").ToLower(),
                         x.P.CreatedAt,
+                        x.P.UpdatedAt,
                         null,
                         x.Model.Slug
                     ))
