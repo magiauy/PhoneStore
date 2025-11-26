@@ -11,6 +11,7 @@ public interface IAdminOrderService
     Task AddSerialToOrderLineAsync(int invoiceLineId, string? serialNumber, string? imei1, string? imei2);
     Task<List<string>> GetOrderLineSerialsAsync(int invoiceLineId);
     Task<SerialValidationResult> ValidateSerialAsync(string serial, int productId);
+    Task CreateCompletedOrderAsync(CreateOrderDto dto);
 }
 
 public record SerialValidationResult(bool IsValid, string Message);
