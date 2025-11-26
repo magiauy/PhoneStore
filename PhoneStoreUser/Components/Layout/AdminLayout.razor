@@ -1,7 +1,7 @@
 @inherits LayoutComponentBase
 
-<div class="min-h-screen bg-gray-100 text-gray-800 flex">
-    <aside class="w-64 bg-gray-900 text-gray-100 flex flex-col">
+<div class="h-screen bg-gray-100 text-gray-800 flex overflow-hidden">
+    <aside class="w-64 bg-gray-900 text-gray-100 flex flex-col flex-shrink-0 h-full overflow-y-auto">
         <div class="px-6 py-4 border-b border-gray-800">
             <div class="text-lg font-semibold tracking-tight">GuZone Admin</div>
             <p class="text-xs text-gray-400 mt-1">Quản trị cửa hàng</p>
@@ -57,8 +57,8 @@
         </div>
     </aside>
 
-    <div class="flex-1 flex flex-col">
-        <header class="h-16 px-6 bg-white border-b border-gray-200 flex items-center justify-between">
+    <div class="flex-1 flex flex-col overflow-hidden min-h-0">
+        <header class="h-16 px-6 bg-white border-b border-gray-200 flex items-center justify-between flex-shrink-0">
             <div>
                 <p class="text-sm text-gray-500">Không gian quản trị</p>
                 <h1 class="text-lg font-semibold text-gray-900">@CurrentTitle</h1>
@@ -69,7 +69,7 @@
             </div>
         </header>
 
-        <main class="flex-1 p-6">
+        <main class="flex-1 p-6 overflow-y-auto min-h-0">
             <div class="bg-white rounded-xl border shadow-sm p-4">
                 @Body
             </div>
