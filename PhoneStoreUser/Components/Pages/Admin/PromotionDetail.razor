@@ -1,0 +1,322 @@
+@page "/admin/promotions/create"
+@page "/admin/promotions/edit/{Id:int}"
+@using PhoneStoreUser.Data
+@using PhoneStoreUser.Services
+@inject IAdminPromotionService PromotionService
+@inject NavigationManager Navigation
+@layout Layout.AdminLayout
+
+<div class="container mx-auto p-6">
+    <div class="flex items-center mb-6">
+        <a href="/admin/promotions" class="text-gray-500 hover:text-gray-700 mr-4">
+            <i class="fa-solid fa-arrow-left text-xl"></i>
+        </a>
+        <h1 class="text-2xl font-bold text-gray-800">@(Id.HasValue ? "Chỉnh sửa Khuyến mãi" : "Tạo Khuyến mãi mới")</h1>
+    </div>
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="mb-6 flex items-center justify-between rounded border border-green-200 bg-green-50 px-4 py-3 text-green-800">
+            <span>@successMessage</span>
+            <button type="button" class="text-green-700 hover:text-green-900" @onclick="() => successMessage = null" aria-label="Dong thong bao">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    }
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Promotion Info Form -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2">Thông tin chương trình</h2>
+                <EditForm Model="@promotion" OnValidSubmit="SavePromotion">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tên chương trình</label>
+                            <InputText @bind-Value="promotion.Name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
+                            <InputTextArea @bind-Value="promotion.Description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Ngày bắt đầu</label>
+                                <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="promotion.StartDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Ngày kết thúc</label>
+                                <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="promotion.EndDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
+                            </div>
+                        </div>
+
+                        <div class="flex items-center mt-2">
+                            <InputCheckbox @bind-Value="promotion.IsActive" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                            <label class="ml-2 block text-sm text-gray-900">Kích hoạt</label>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow transition">
+                            <i class="fa-solid fa-save mr-2"></i> Lưu
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+
+            <!-- Promotion Codes Section (Only visible when editing) -->
+            @if (Id.HasValue)
+            {
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-xl font-semibold">Danh sách Mã giảm giá</h2>
+                        <button @onclick="OpenAddCodeModal" class="bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded shadow transition">
+                            <i class="fa-solid fa-plus mr-1"></i> Thêm mã
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-700 font-semibold text-xs uppercase">
+                                    <th class="p-3 border-b">Mã</th>
+                                    <th class="p-3 border-b">Giảm giá</th>
+                                    <th class="p-3 border-b">Đơn tối thiểu</th>
+                                    <th class="p-3 border-b">Lượt dùng</th>
+                                    <th class="p-3 border-b">Trạng thái</th>
+                                    <th class="p-3 border-b text-center">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                @if (promotionCodes == null || !promotionCodes.Any())
+                                {
+                                    <tr>
+                                        <td colspan="6" class="p-4 text-center text-gray-500">Chưa có mã giảm giá nào.</td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    @foreach (var promoCode in promotionCodes)
+                                    {
+                                        <tr class="hover:bg-gray-50 border-b last:border-b-0">
+                                            <td class="p-3 font-medium">@promoCode.Code</td>
+                                            <td class="p-3 text-green-600 font-semibold">@promoCode.DiscountAmount.ToString("N0") ₫</td>
+                                            <td class="p-3">@promoCode.MinimumAmount.ToString("N0") ₫</td>
+                                            <td class="p-3">
+                                                @promoCode.UsedCount / @(promoCode.UsageLimit.HasValue ? promoCode.UsageLimit.Value.ToString() : "∞")
+                                            </td>
+                                            <td class="p-3">
+                                                @if (promoCode.IsActive)
+                                                {
+                                                    <span class="text-green-600"><i class="fa-solid fa-check-circle"></i></span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-red-500"><i class="fa-solid fa-times-circle"></i></span>
+                                                }
+                                            </td>
+                                            <td class="p-3 text-center">
+                                                <button @onclick="() => EditCode(promoCode)" class="text-blue-600 hover:text-blue-800 mx-1">
+                                                    <i class="fa-solid fa-pen"></i>
+                                                </button>
+                                                <button @onclick="() => DeleteCode(promoCode.Id)" class="text-red-600 hover:text-red-800 mx-1">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Helper / Instructions -->
+        <div class="lg:col-span-1">
+            <div class="bg-blue-50 p-6 rounded-lg border border-blue-100 sticky top-6">
+                <h3 class="text-lg font-semibold text-blue-800 mb-2">Hướng dẫn</h3>
+                <ul class="list-disc list-inside text-sm text-blue-700 space-y-2">
+                    <li>Tạo chương trình khuyến mãi trước khi thêm mã giảm giá.</li>
+                    <li>Mã giảm giá chỉ có hiệu lực trong thời gian diễn ra chương trình.</li>
+                    <li>Có thể tạo nhiều mã giảm giá cho cùng một chương trình với các mức giảm khác nhau.</li>
+                    <li>Giới hạn lượt dùng để kiểm soát số lượng mã được áp dụng.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Code Modal -->
+@if (showCodeModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h3 class="text-xl font-bold mb-4">@(currentCode.Id == 0 ? "Thêm Mã Giảm Giá" : "Cập nhật Mã Giảm Giá")</h3>
+            
+            <EditForm Model="@currentCode" OnValidSubmit="SaveCode">
+                <DataAnnotationsValidator />
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Mã Code</label>
+                        <InputText @bind-Value="currentCode.Code" class="w-full px-3 py-2 border border-gray-300 rounded-md uppercase" placeholder="VD: SALE50" />
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Số tiền giảm (VNĐ)</label>
+                        <InputNumber @bind-Value="currentCode.DiscountAmount" class="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Đơn hàng tối thiểu (VNĐ)</label>
+                        <InputNumber @bind-Value="currentCode.MinimumAmount" class="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Giới hạn lượt dùng (Để trống nếu không giới hạn)</label>
+                        <InputNumber @bind-Value="currentCode.UsageLimit" class="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <InputCheckbox @bind-Value="currentCode.IsActive" class="h-4 w-4 text-blue-600 border-gray-300 rounded" />
+                        <label class="ml-2 block text-sm text-gray-900">Kích hoạt</label>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" @onclick="CloseCodeModal" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Hủy</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Lưu</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private PromotionEntity promotion = new() { StartDate = DateTime.Now, EndDate = DateTime.Now.AddDays(7) };
+    private List<PromotionCodeEntity> promotionCodes = new();
+    private bool showCodeModal = false;
+    private PromotionCodeEntity currentCode = new();
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            var existing = await PromotionService.GetPromotionByIdAsync(Id.Value);
+            if (existing != null)
+            {
+                promotion = existing;
+                await LoadCodes();
+            }
+            else
+            {
+                Navigation.NavigateTo("/admin/promotions");
+            }
+        }
+    }
+
+    private async Task LoadCodes()
+    {
+        if (Id.HasValue)
+        {
+            promotionCodes = await PromotionService.GetCodesByPromotionIdAsync(Id.Value);
+        }
+    }
+
+    private async Task SavePromotion()
+    {
+        bool success;
+        if (Id.HasValue)
+        {
+            success = await PromotionService.UpdatePromotionAsync(promotion);
+        }
+        else
+        {
+            success = await PromotionService.CreatePromotionAsync(promotion);
+        }
+
+        if (!success)
+        {
+            return;
+        }
+
+        if (Id.HasValue)
+        {
+            successMessage = "Khuyến mãi đã được cập nhật thành công.";
+        }
+        else
+        {
+            successMessage = "Khuyến mãi mới đã được tạo thành công.";
+            Navigation.NavigateTo("/admin/promotions");
+        }
+    }
+
+    private void OpenAddCodeModal()
+    {
+        currentCode = new PromotionCodeEntity { PromotionId = Id!.Value, IsActive = true };
+        showCodeModal = true;
+    }
+
+    private void EditCode(PromotionCodeEntity promoCode)
+    {
+        currentCode = new PromotionCodeEntity
+        {
+            Id = promoCode.Id,
+            PromotionId = promoCode.PromotionId,
+            Code = promoCode.Code,
+            DiscountAmount = promoCode.DiscountAmount,
+            MinimumAmount = promoCode.MinimumAmount,
+            UsageLimit = promoCode.UsageLimit,
+            UsedCount = promoCode.UsedCount,
+            IsActive = promoCode.IsActive
+        };
+        showCodeModal = true;
+    }
+
+    private void CloseCodeModal()
+    {
+        showCodeModal = false;
+    }
+
+    private async Task SaveCode()
+    {
+        var isNew = currentCode.Id == 0;
+        bool success;
+        if (isNew)
+        {
+            success = await PromotionService.CreatePromotionCodeAsync(currentCode);
+        }
+        else
+        {
+            success = await PromotionService.UpdatePromotionCodeAsync(currentCode);
+        }
+
+        if (!success)
+        {
+            return;
+        }
+
+        await LoadCodes();
+        CloseCodeModal();
+        successMessage = isNew ? "Ma giam gia da duoc tao thanh cong." : "Ma giam gia da duoc cap nhat.";
+    }
+
+    private async Task DeleteCode(int id)
+    {
+        if (await PromotionService.DeletePromotionCodeAsync(id))
+        {
+            await LoadCodes();
+        }
+    }
+}
