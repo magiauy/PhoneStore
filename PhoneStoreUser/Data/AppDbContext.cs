@@ -23,6 +23,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ProductSerialEntity> ProductSerials => Set<ProductSerialEntity>();
     public DbSet<InvoiceLineSerialEntity> InvoiceLineSerials => Set<InvoiceLineSerialEntity>();
     public DbSet<SupplierEntity> Suppliers => Set<SupplierEntity>();
+    public DbSet<BatchEntity> Batches => Set<BatchEntity>();
+    public DbSet<BatchProductEntity> BatchProducts => Set<BatchProductEntity>();
+    public DbSet<PurchaseOrderEntity> PurchaseOrders => Set<PurchaseOrderEntity>();
+    public DbSet<PurchaseOrderLineEntity> PurchaseOrderLines => Set<PurchaseOrderLineEntity>();
     public DbSet<ReviewEntity> Reviews => Set<ReviewEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -251,6 +255,66 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.TaxNumber).HasColumnName("tax_number").HasMaxLength(50);
             entity.Property(e => e.IsActive).HasColumnName("is_active");
         });
+
+        modelBuilder.Entity<PurchaseOrderEntity>(entity =>
+        {
+            entity.ToTable("purchase_orders");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.SupplierId).HasColumnName("supplier_id");
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.OrderDate).HasColumnName("order_date");
+            entity.Property(e => e.Status).HasColumnName("status");
+            entity.Property(e => e.TotalAmount).HasColumnName("total_amount");
+            entity.Property(e => e.Note).HasColumnName("note");
+
+            entity.HasOne(e => e.Supplier).WithMany().HasForeignKey(e => e.SupplierId);
+            entity.HasMany(e => e.Lines).WithOne(l => l.PurchaseOrder).HasForeignKey(l => l.PurchaseOrderId);
+            entity.HasMany(e => e.Batches).WithOne(b => b.PurchaseOrder).HasForeignKey(b => b.PurchaseOrderId);
+        });
+
+        modelBuilder.Entity<PurchaseOrderLineEntity>(entity =>
+        {
+            entity.ToTable("purchase_order_lines");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PurchaseOrderId).HasColumnName("purchase_order_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.Quantity).HasColumnName("quantity");
+            entity.Property(e => e.UnitCost).HasColumnName("unit_cost");
+            entity.Property(e => e.TotalCost).HasColumnName("total_cost");
+
+            entity.HasOne(e => e.PurchaseOrder).WithMany(po => po.Lines).HasForeignKey(e => e.PurchaseOrderId);
+            entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId);
+        });
+
+        modelBuilder.Entity<BatchEntity>(entity =>
+        {
+            entity.ToTable("batches");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PurchaseOrderId).HasColumnName("purchase_order_id");
+            entity.Property(e => e.BatchCode).HasColumnName("batch_code").HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.Note).HasColumnName("note").HasMaxLength(255);
+
+            entity.HasOne(e => e.PurchaseOrder).WithMany(po => po.Batches).HasForeignKey(e => e.PurchaseOrderId);
+        });
+
+        modelBuilder.Entity<BatchProductEntity>(entity =>
+        {
+            entity.ToTable("batch_products");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.BatchId).HasColumnName("batch_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.Quantity).HasColumnName("quantity");
+            entity.Property(e => e.CostPrice).HasColumnName("cost_price");
+            entity.Property(e => e.SellingPrice).HasColumnName("selling_price");
+
+            entity.HasOne(e => e.Batch).WithMany(b => b.BatchProducts).HasForeignKey(e => e.BatchId);
+            entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId);
+        });
     }
 }
 
@@ -448,4 +512,57 @@ public class ReviewEntity
 
     public ProductEntity? Product { get; set; }
     public PersonEntity? Person { get; set; }
+}
+
+public class PurchaseOrderEntity
+{
+    public int Id { get; set; }
+    public int SupplierId { get; set; }
+    public int CreatedBy { get; set; }
+    public DateTime OrderDate { get; set; }
+    public string Status { get; set; } = "DRAFT";
+    public decimal TotalAmount { get; set; }
+    public string? Note { get; set; }
+
+    public SupplierEntity? Supplier { get; set; }
+    public List<PurchaseOrderLineEntity> Lines { get; set; } = new();
+    public List<BatchEntity> Batches { get; set; } = new();
+}
+
+public class PurchaseOrderLineEntity
+{
+    public int Id { get; set; }
+    public int PurchaseOrderId { get; set; }
+    public int ProductId { get; set; }
+    public int Quantity { get; set; }
+    public decimal UnitCost { get; set; }
+    public decimal TotalCost { get; set; }
+
+    public PurchaseOrderEntity? PurchaseOrder { get; set; }
+    public ProductEntity? Product { get; set; }
+}
+
+public class BatchEntity
+{
+    public int Id { get; set; }
+    public int PurchaseOrderId { get; set; }
+    public string BatchCode { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public string? Note { get; set; }
+
+    public PurchaseOrderEntity? PurchaseOrder { get; set; }
+    public List<BatchProductEntity> BatchProducts { get; set; } = new();
+}
+
+public class BatchProductEntity
+{
+    public int Id { get; set; }
+    public int BatchId { get; set; }
+    public int ProductId { get; set; }
+    public int Quantity { get; set; }
+    public decimal CostPrice { get; set; }
+    public decimal SellingPrice { get; set; }
+
+    public BatchEntity? Batch { get; set; }
+    public ProductEntity? Product { get; set; }
 }

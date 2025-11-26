@@ -1,0 +1,251 @@
+@page "/admin/inventory"
+@using PhoneStoreUser.Services
+@using PhoneStoreUser.Components.UI.Admin
+@inject IInventoryService InventoryService
+@attribute [Authorize(Policy = "AdminOnly")]
+@layout Layout.AdminLayout
+
+<div class="container mx-auto px-4 py-8">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Quản lý kho hàng</h1>
+            <p class="text-sm text-gray-500 mt-1">Theo dõi số lượng nhập và tồn hiện tại từng sản phẩm.</p>
+        </div>
+        <div class="relative w-full sm:w-72">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input @bind="SearchTerm"
+                   @bind:event="oninput"
+                   @onkeyup="HandleSearch"
+                   class="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm"
+                   placeholder="Tìm tên sản phẩm hoặc SKU..." />
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sản phẩm</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nhà cung cấp</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loại</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng tồn kho</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @if (IsLoading)
+                    {
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center">
+                                <div class="flex justify-center">
+                                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    else if (InventoryItems == null || !InventoryItems.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                Không tìm thấy sản phẩm nào.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in InventoryItems)
+                        {
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                            {
+                                                <img class="h-10 w-10 rounded-full object-cover" src="@item.ImageUrl" alt="@item.ProductName" />
+                                            }
+                                            else
+                                            {
+                                                <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                </div>
+                                            }
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">@item.ProductName</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @item.SupplierName
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <span class="@(item.IsSerialTracked ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800") px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                                        @(item.IsSerialTracked ? "Theo dõi Serial" : "Chỉ số lượng")
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold @(item.TotalQuantity > 0 ? "text-gray-900" : "text-red-600")">
+                                    @item.TotalQuantity
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button @onclick="() => OpenDetails(item)" class="text-blue-600 hover:text-blue-900 font-medium">
+                                        Xem chi tiết
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="border-t border-gray-100 px-6 py-4 text-sm text-gray-600 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center gap-2">
+                <label class="text-sm font-semibold text-gray-700">Số dòng/trang:</label>
+                <select @onchange="OnPageSizeChanged"
+                        disabled="@IsLoading"
+                        class="h-8 rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50">
+                    <option value="10" selected="@(PageSize == 10)">10</option>
+                    <option value="20" selected="@(PageSize == 20)">20</option>
+                    <option value="50" selected="@(PageSize == 50)">50</option>
+                </select>
+            </div>
+
+            <div class="text-sm font-medium text-gray-700">
+                @DisplayFrom-@DisplayTo trên @TotalItems sản phẩm
+            </div>
+
+            <div class="flex items-center gap-1">
+                <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent transition text-gray-600"
+                        @onclick="GoToFirstPage"
+                        disabled="@(CurrentPage == 1 || IsLoading)"
+                        title="Trang đầu">
+                    <i class="fa-solid fa-angles-left"></i>
+                </button>
+                <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent transition text-gray-600"
+                        @onclick="GoToPreviousPage"
+                        disabled="@(!CanGoPrevious || IsLoading)"
+                        title="Trang trước">
+                    <i class="fa-solid fa-angle-left"></i>
+                </button>
+                <span class="px-3 text-sm font-semibold text-gray-700">
+                    Trang @CurrentPage / @TotalPages
+                </span>
+                <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent transition text-gray-600"
+                        @onclick="GoToNextPage"
+                        disabled="@(!CanGoNext || IsLoading)"
+                        title="Trang sau">
+                    <i class="fa-solid fa-angle-right"></i>
+                </button>
+                <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent transition text-gray-600"
+                        @onclick="GoToLastPage"
+                        disabled="@(CurrentPage == TotalPages || IsLoading)"
+                        title="Trang cuối">
+                    <i class="fa-solid fa-angles-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<InventoryDetailModal @bind-IsVisible="IsModalVisible" 
+                      ProductId="SelectedProductId" 
+                      ProductName="@SelectedProductName" />
+
+@code {
+    private List<InventorySummaryDto> InventoryItems { get; set; } = new();
+    private bool IsLoading { get; set; } = true;
+    private int CurrentPage { get; set; } = 1;
+    private int PageSize { get; set; } = 10;
+    private int TotalPages { get; set; } = 1;
+    private int TotalItems { get; set; }
+    private string SearchTerm { get; set; } = string.Empty;
+
+    private int DisplayFrom => TotalItems == 0 ? 0 : ((CurrentPage - 1) * PageSize) + 1;
+    private int DisplayTo => TotalItems == 0 ? 0 : Math.Min(TotalItems, ((CurrentPage - 1) * PageSize) + InventoryItems.Count);
+    private bool CanGoPrevious => CurrentPage > 1;
+    private bool CanGoNext => TotalPages > 0 && CurrentPage < TotalPages;
+
+    // Modal state
+    private bool IsModalVisible { get; set; }
+    private int SelectedProductId { get; set; }
+    private string SelectedProductName { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInventoryAsync();
+    }
+
+    private async Task LoadInventoryAsync()
+    {
+        IsLoading = true;
+        try
+        {
+            var result = await InventoryService.GetInventorySummaryAsync(CurrentPage, PageSize, SearchTerm);
+            InventoryItems = result.Items;
+            TotalItems = result.TotalItems;
+            TotalPages = Math.Max(1, (int)Math.Ceiling(Math.Max(0, result.TotalItems) / (double)Math.Max(1, result.PageSize)));
+            CurrentPage = Math.Min(Math.Max(1, result.Page), TotalPages);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Lỗi tải kho hàng: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void OpenDetails(InventorySummaryDto item)
+    {
+        SelectedProductId = item.ProductId;
+        SelectedProductName = item.ProductName;
+        IsModalVisible = true;
+    }
+
+    private async Task HandleSearch()
+    {
+        CurrentPage = 1;
+        await LoadInventoryAsync();
+    }
+
+    private async Task OnPageSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var newSize) && newSize > 0)
+        {
+            PageSize = newSize;
+            CurrentPage = 1;
+            await LoadInventoryAsync();
+        }
+    }
+
+    private async Task GoToPreviousPage()
+    {
+        if (!CanGoPrevious || IsLoading) return;
+        CurrentPage--;
+        await LoadInventoryAsync();
+    }
+
+    private async Task GoToNextPage()
+    {
+        if (!CanGoNext || IsLoading) return;
+        CurrentPage++;
+        await LoadInventoryAsync();
+    }
+
+    private async Task GoToFirstPage()
+    {
+        if (CurrentPage == 1 || IsLoading) return;
+        CurrentPage = 1;
+        await LoadInventoryAsync();
+    }
+
+    private async Task GoToLastPage()
+    {
+        if (CurrentPage == TotalPages || IsLoading) return;
+        CurrentPage = TotalPages;
+        await LoadInventoryAsync();
+    }
+}
