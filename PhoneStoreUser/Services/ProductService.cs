@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 using PhoneStoreUser.Components.ViewModels;
 using PhoneStoreUser.Data;
@@ -79,6 +80,7 @@ public class ProductService : IProductService
         existing.IsSerialTracked = product.IsSerialTracked;
         existing.WarrantyMonths = product.WarrantyMonths;
         existing.Status = product.Status;
+        existing.UpdatedAt = DateTime.UtcNow;
 
         // Update Model if present
         if (product.Model != null)

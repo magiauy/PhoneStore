@@ -7,6 +7,7 @@
 @inject ICartService CartService
 @inject NavigationManager NavigationManager
 @inject ILogger<ProductDetail> Logger
+@inject IReviewService ReviewService
 
 <PageTitle>@ProductModel?.Name - GuZone</PageTitle>
 
@@ -46,6 +47,24 @@
                 <div>
                     <p class="text-sm text-gray-500 uppercase">GuZone</p>
                     <h1 class="text-3xl font-bold text-gray-900 mt-2">@ProductModel.Name</h1>
+                    
+                    <div class="flex items-center gap-2 mt-2">
+                        <div class="flex text-yellow-400 text-sm">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= Math.Round(AverageRating))
+                                {
+                                    <i class="fa-solid fa-star"></i>
+                                }
+                                else
+                                {
+                                    <i class="fa-regular fa-star text-gray-300"></i>
+                                }
+                            }
+                        </div>
+                        <span class="text-sm text-gray-500">(@TotalReviews đánh giá)</span>
+                    </div>
+
                     <p class="text-gray-600 mt-2">@ProductModel.Description</p>
                     
                     @if (SelectedProduct != null)
@@ -105,6 +124,40 @@
                 </div>
             </div>
         </div>
+
+<section class="mt-12 space-y-8">
+    <div class="flex items-center justify-between">
+        <h3 class="text-2xl font-bold text-gray-900">Đánh giá & Nhận xét</h3>
+        
+        @if (!ShowReviewForm)
+        {
+            <button @onclick="() => ShowReviewForm = true" 
+                    class="px-6 py-2.5 bg-[#2563EB] text-white font-semibold rounded-xl hover:bg-blue-700 transition shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square"></i>
+                Viết đánh giá
+            </button>
+        }
+    </div>
+
+    @if (ShowReviewForm)
+    {
+        <div class="animate-fade-in-down"> <div class="flex justify-between items-center mb-2">
+                <p class="text-gray-500 text-sm">Chia sẻ trải nghiệm của bạn về sản phẩm này</p>
+                <button @onclick="() => ShowReviewForm = false" class="text-gray-400 hover:text-red-500 text-sm">
+                    <i class="fa-solid fa-xmark mr-1"></i> Đóng lại
+                </button>
+            </div>
+            
+            @if (SelectedProduct != null)
+            {
+                <ReviewForm ProductId="SelectedProduct.Id" OnReviewSubmitted="HandleReviewSubmitted" />
+            }
+        </div>
+    }
+
+    <ReviewList @ref="reviewList" ProductModelId="ProductModel?.Id ?? 0" ProductId="SelectedProduct?.Id ?? 0" />
+</section>
+
     }
 </div>
 
@@ -123,6 +176,10 @@
     private string CurrentImageUrl { get; set; } = string.Empty;
     private bool IsLoading { get; set; } = true;
     private bool ShowToast { get; set; } = false;
+    private PhoneStoreUser.Components.UI.ReviewList? reviewList;
+    private double AverageRating { get; set; }
+    private int TotalReviews { get; set; }
+    private bool ShowReviewForm = false; // Mặc định là ẩn
 
     protected override async Task OnParametersSetAsync()
     {
@@ -150,6 +207,10 @@
                 ProductModel = await ProductCatalogService.GetProductModelByIdAsync(product.ModelId);
                 if (ProductModel != null)
                 {
+                    var summary = await ReviewService.GetReviewSummaryAsync(ProductModel.Id);
+                    AverageRating = summary.AverageRating;
+                    TotalReviews = summary.TotalReviews;
+
                     Products = (await ProductCatalogService.GetProductsByModelAsync(ProductModel.Id)).ToList();
                     var productIds = Products.Select(p => p.Id).ToList();
                     Attributes = (await ProductCatalogService.GetAttributesForModelAsync(ProductModel.Id)).ToList();
@@ -182,6 +243,10 @@
             ProductModel = await ProductCatalogService.GetProductModelBySlugAsync(Slug);
             if (ProductModel != null)
             {
+                var summary = await ReviewService.GetReviewSummaryAsync(ProductModel.Id);
+                AverageRating = summary.AverageRating;
+                TotalReviews = summary.TotalReviews;
+
                 Products = (await ProductCatalogService.GetProductsByModelAsync(ProductModel.Id)).ToList();
                 var productIds = Products.Select(p => p.Id).ToList();
                 Attributes = (await ProductCatalogService.GetAttributesForModelAsync(ProductModel.Id)).ToList();
@@ -417,6 +482,24 @@
         }
     }
 
+    private async Task HandleReviewSubmitted()
+    {
+        if (reviewList != null)
+        {
+            ShowReviewForm = false; // Gửi xong thì đóng form lại cho gọn
+            ShowToast = true; // Hiện thông báo (nếu có logic toast ở parent)
+            await reviewList.RefreshAsync(); // Reload lại list
+        }
+
+        if (ProductModel != null)
+        {
+            var summary = await ReviewService.GetReviewSummaryAsync(ProductModel.Id);
+            AverageRating = summary.AverageRating;
+            TotalReviews = summary.TotalReviews;
+            StateHasChanged();
+        }
+    }
+
     private void ParseQueryParameters()
     {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
@@ -437,6 +520,7 @@
             }
         }
     }
+
 
     private sealed record AttributeChoice(int AttributeId, int? OptionId, string DisplayValue, string? RawValueText);
 }

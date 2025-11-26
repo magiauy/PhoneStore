@@ -1,0 +1,97 @@
+@using PhoneStoreUser.Services
+@using PhoneStoreUser.Data
+@inject IReviewService ReviewService
+
+<div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+    <div class="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+        <h3 class="text-lg font-bold text-gray-900">Đánh giá từ khách hàng</h3>
+        <span class="px-3 py-1 rounded-lg bg-blue-100 text-[#2563EB] text-sm font-bold">
+            @Reviews.Count đánh giá
+        </span>
+    </div>
+
+    @if (Reviews.Count == 0)
+    {
+        <div class="p-10 text-center flex flex-col items-center justify-center">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-400">
+                <i class="fa-regular fa-comment-dots text-3xl"></i>
+            </div>
+            <p class="text-gray-500">Chưa có đánh giá nào cho phiên bản này.</p>
+        </div>
+    }
+    else
+    {
+        <div class="divide-y divide-gray-100">
+            @foreach (var review in Reviews)
+            {
+                <div class="p-6 hover:bg-gray-50 transition-colors duration-200">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0">
+                            <div class="h-10 w-10 rounded-full bg-gradient-to-br from-[#2563EB] to-blue-400 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                                @GetInitials(review.Person?.FullName)
+                            </div>
+                        </div>
+
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-1">
+                                <h4 class="font-bold text-gray-900 text-sm">@review.Person?.FullName</h4>
+                                <span class="text-xs text-gray-400">@review.CreatedAt.ToString("dd/MM/yyyy")</span>
+                            </div>
+
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="flex text-yellow-400 text-xs">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= review.Rating)
+                                        {
+                                            <i class="fa-solid fa-star"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-regular fa-star text-gray-300"></i>
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <p class="text-gray-700 text-sm leading-relaxed">@review.Comment</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int ProductId { get; set; }
+    [Parameter] public int ProductModelId { get; set; }
+    private List<ReviewEntity> Reviews = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadReviews();
+    }
+
+    public async Task RefreshAsync()
+    {
+        await LoadReviews();
+        StateHasChanged();
+    }
+
+    private async Task LoadReviews()
+    {
+        if (ProductModelId > 0)
+            Reviews = await ReviewService.GetReviewsByProductModelIdAsync(ProductModelId);
+        else if (ProductId > 0)
+            Reviews = await ReviewService.GetReviewsByProductIdAsync(ProductId);
+    }
+
+    private string GetInitials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "U";
+        var parts = name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "U";
+        return parts.Length == 1 ? parts[0][0].ToString().ToUpper() : $"{parts[0][0]}{parts[^1][0]}".ToUpper();
+    }
+}
