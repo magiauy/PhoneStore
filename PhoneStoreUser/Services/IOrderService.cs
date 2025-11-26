@@ -8,4 +8,5 @@ public interface IOrderService
     Task<int> CreateOrderAsync(int? personId, List<CartItem> items, CheckoutModel model, string paymentMethod);
     Task<(int invoiceId, string? paymentUrl)> CreateOrderWithPaymentAsync(int? personId, List<CartItem> items, CheckoutModel model);
     Task<List<InvoiceEntity>> GetOrdersAsync(int personId);
+    Task<InvoiceEntity?> GetOrderAsync(int invoiceId);
 }

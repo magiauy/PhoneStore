@@ -11,7 +11,8 @@ public interface IPayOSService
         string buyerName,
         string buyerEmail,
         string buyerPhone,
-        string buyerAddress);
+        string buyerAddress,
+        IReadOnlyCollection<PhoneStoreUser.Components.Models.CartItem> items);
     bool VerifyPaymentCallback(string signature, string data);
     Task<bool> VerifyPaymentStatusAsync(long orderCode);
 }
