@@ -3,6 +3,7 @@
 @using Microsoft.Extensions.Logging
 @using Microsoft.AspNetCore.WebUtilities
 @using PhoneStoreUser.Services
+@using System.Globalization
 @rendermode InteractiveServer
 @inject IProductCatalogService ProductCatalogService
 @inject ICartService CartService
@@ -11,7 +12,8 @@
 @inject IReviewService ReviewService
 @inject ICloudinaryService CloudinaryService
 
-<PageTitle>@ProductModel?.Name - GuZone</PageTitle>
+@* Xử lý hiển thị tiêu đề trang khi đang tải *@
+<PageTitle>@(ProductModel?.Name ?? "Chi tiết sản phẩm") - GuZone</PageTitle>
 
 <div class="container mx-auto px-4 py-8">
     @if (ShowToast)
@@ -20,17 +22,19 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
-            <span class="font-medium">Đã thêm sản phẩm vào giỏ hàng!</span>
+            <span class="font-medium">Thêm vào giỏ hàng thành công!</span>
         </div>
     }
+
     @if (IsLoading)
     {
-        <div class="rounded-2xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">Đang tải chi tiết sản phẩm...</div>
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
+            Đang tải thông tin sản phẩm...
+        </div>
     }
     else if (ProductModel != null)
     {
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <!-- Product Image -->
             <div class="bg-gray-50 rounded-2xl overflow-hidden aspect-square relative">
                 @foreach (var product in Products)
                 {
@@ -44,7 +48,6 @@
                 }
             </div>
 
-            <!-- Product Info -->
             <div class="space-y-6">
                 <div>
                     <p class="text-sm text-gray-500 uppercase">GuZone</p>
@@ -64,7 +67,7 @@
                                 }
                             }
                         </div>
-                        <span class="text-sm text-gray-500">(@TotalReviews đánh giá)</span>
+                        <span class="text-sm text-gray-500">(@TotalReviews lượt đánh giá)</span>
                     </div>
 
                     <p class="text-gray-600 mt-2">@ProductModel.Description</p>
@@ -73,13 +76,23 @@
                     {
                         <p class="text-2xl font-bold text-[#2563EB] mt-4">
                             @(SelectedProduct.Price > 0 
-                                ? $"{SelectedProduct.Price.ToString("N0", new System.Globalization.CultureInfo("vi-VN"))} ₫" 
+                                ? $"{SelectedProduct.Price.ToString("N0", new CultureInfo("vi-VN"))} ₫" 
                                 : "Liên hệ")
                         </p>
                     }
                 </div>
 
-                <!-- Attributes Selection -->
+                @if (SelectedAttributes.Count > 0)
+                {
+                    <div class="flex justify-end">
+                        <button type="button"
+                                class="text-sm text-[#2563EB] hover:text-blue-700 font-semibold underline-offset-4 hover:underline"
+                                @onclick="ResetSelections">
+                            Chọn lại
+                        </button>
+                    </div>
+                }
+
                 @foreach (var attr in Attributes)
                 {
                     var choices = GetAttributeChoices(attr.Id);
@@ -93,9 +106,11 @@
                                 @foreach (var choice in choices)
                                 {
                                     var capturedChoice = choice;
+                                    var isDisabled = !IsChoiceAvailable(capturedChoice);
                                     <button
                                         type="button"
-                                        class="@GetAttributeButtonClass(capturedChoice)"
+                                        class="@GetAttributeButtonClass(capturedChoice, isDisabled)"
+                                        disabled="@isDisabled"
                                         @onclick="@(() => SelectAttributeValue(capturedChoice))">
                                         @capturedChoice.DisplayValue
                                     </button>
@@ -104,21 +119,19 @@
                         }
                         else
                         {
-                            <p class="text-xs text-gray-500">Chưa có tuỳ chọn cho thuộc tính này.</p>
+                            <p class="text-xs text-gray-500">Không có tùy chọn khả dụng.</p>
                         }
                     </div>
                 }
 
-                <!-- Selected Product Info -->
                 @if (SelectedProduct != null)
                 {
                     <div class="border-t pt-6 space-y-3">
-                        <p class="text-sm text-gray-600">SKU: @SelectedProduct.Sku</p>
-                        <p class="text-sm text-gray-600">Bảo hành: @SelectedProduct.WarrantyMonths tháng</p>
+                        <p class="text-sm text-gray-600">Mã SKU: <span class="font-medium text-gray-900">@SelectedProduct.Sku</span></p>
+                        <p class="text-sm text-gray-600">Bảo hành: <span class="font-medium text-gray-900">@SelectedProduct.WarrantyMonths tháng</span></p>
                     </div>
                 }
 
-                <!-- Action Buttons -->
                 <div class="space-y-3">
                     <button class="w-full bg-[#2563EB] text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition" @onclick="AddToCart">
                         Thêm vào giỏ hàng
@@ -127,42 +140,41 @@
             </div>
         </div>
 
-<section class="mt-12 space-y-8">
-    <div class="flex items-center justify-between">
-        <h3 class="text-2xl font-bold text-gray-900">Đánh giá & Nhận xét</h3>
-        
-        @if (!ShowReviewForm)
-        {
-            <button @onclick="() => ShowReviewForm = true" 
-                    class="px-6 py-2.5 bg-[#2563EB] text-white font-semibold rounded-xl hover:bg-blue-700 transition shadow-sm flex items-center gap-2">
-                <i class="fa-solid fa-pen-to-square"></i>
-                Viết đánh giá
-            </button>
-        }
-    </div>
-
-    @if (ShowReviewForm)
-    {
-        <div class="animate-fade-in-down"> <div class="flex justify-between items-center mb-2">
-                <p class="text-gray-500 text-sm">Chia sẻ trải nghiệm của bạn về sản phẩm này</p>
-                <button @onclick="() => ShowReviewForm = false" class="text-gray-400 hover:text-red-500 text-sm">
-                    <i class="fa-solid fa-xmark mr-1"></i> Đóng lại
-                </button>
+        <section class="mt-12 space-y-8">
+            <div class="flex items-center justify-between">
+                <h3 class="text-2xl font-bold text-gray-900">Đánh giá & Nhận xét</h3>
+                
+                @if (!ShowReviewForm)
+                {
+                    <button @onclick="() => ShowReviewForm = true" 
+                            class="px-6 py-2.5 bg-[#2563EB] text-white font-semibold rounded-xl hover:bg-blue-700 transition shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        Viết đánh giá
+                    </button>
+                }
             </div>
-            
-            @if (SelectedProduct != null)
+
+            @if (ShowReviewForm)
             {
-                <ReviewForm ProductId="SelectedProduct.Id" OnReviewSubmitted="HandleReviewSubmitted" />
+                <div class="animate-fade-in-down"> 
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-gray-500 text-sm">Mời bạn chia sẻ cảm nhận về sản phẩm</p>
+                        <button @onclick="() => ShowReviewForm = false" class="text-gray-400 hover:text-red-500 text-sm transition-colors">
+                            <i class="fa-solid fa-xmark mr-1"></i> Đóng
+                        </button>
+                    </div>
+                    
+                    @if (SelectedProduct != null)
+                    {
+                        <ReviewForm ProductId="SelectedProduct.Id" OnReviewSubmitted="HandleReviewSubmitted" />
+                    }
+                </div>
             }
-        </div>
-    }
 
-    <ReviewList @ref="reviewList" ProductModelId="ProductModel?.Id ?? 0" ProductId="SelectedProduct?.Id ?? 0" />
-</section>
-
+            <ReviewList @ref="reviewList" ProductModelId="ProductModel?.Id ?? 0" ProductId="SelectedProduct?.Id ?? 0" />
+        </section>
     }
 </div>
-
 @code {
     [Parameter] public string? Slug { get; set; }
     [Parameter] public string? Sku { get; set; }
@@ -174,6 +186,8 @@
     private Dictionary<int, IReadOnlyList<ProductAttributeOption>> AttributeOptionLookup { get; set; } = new();
     private Dictionary<int, List<AttributeChoice>> AttributeChoices { get; set; } = new();
     private Dictionary<int, AttributeChoice> SelectedAttributes { get; set; } = new();
+    // Only attributes the user interacted with are used to tighten availability filtering.
+    private HashSet<int> UserSelectedAttributeIds { get; set; } = new();
     private Product? SelectedProduct { get; set; }
     private Dictionary<int, string?> ProductImageUrls { get; set; } = new();
     private const string ProductImageTransformation = "w_800,h_800,c_fill,f_auto,q_auto";
@@ -182,6 +196,7 @@
     private PhoneStoreUser.Components.UI.ReviewList? reviewList;
     private double AverageRating { get; set; }
     private int TotalReviews { get; set; }
+    private int? LastSelectedAttributeId { get; set; }
     private bool ShowReviewForm = false; // Mặc định là ẩn
 
     protected override async Task OnParametersSetAsync()
@@ -199,8 +214,10 @@
         AttributeOptionLookup = new Dictionary<int, IReadOnlyList<ProductAttributeOption>>();
         AttributeChoices.Clear();
         SelectedAttributes.Clear();
+        UserSelectedAttributeIds.Clear();
         SelectedProduct = null;
         ProductImageUrls.Clear();
+        LastSelectedAttributeId = null;
 
         if (!string.IsNullOrWhiteSpace(Sku))
         {
@@ -294,52 +311,64 @@
 
     private void SelectAttributeValue(AttributeChoice choice)
     {
+        if (!IsChoiceAvailable(choice))
+        {
+            return;
+        }
+
+        UserSelectedAttributeIds.Add(choice.AttributeId);
+        LastSelectedAttributeId = choice.AttributeId;
         SelectedAttributes[choice.AttributeId] = choice;
         FindMatchingProduct();
     }
 
     private void FindMatchingProduct()
     {
-        foreach (var product in Products)
+        var activeSelections = SelectedAttributes
+            .Where(kvp => UserSelectedAttributeIds.Contains(kvp.Key))
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        if (Products.Count == 0)
         {
-            var productAttrValues = AttributeValues.Where(av => av.ProductId == product.Id).ToList();
-            bool matches = true;
+            return;
+        }
 
-            foreach (var selected in SelectedAttributes)
+        if (activeSelections.Count == 0)
+        {
+            if (SelectedProduct == null)
             {
-                var attrValue = productAttrValues.FirstOrDefault(av => av.AttributeId == selected.Key);
-                if (attrValue == null)
+                SelectedProduct = Products.FirstOrDefault();
+                if (SelectedProduct != null)
                 {
-                    matches = false;
-                    break;
-                }
-
-                if (selected.Value.OptionId.HasValue)
-                {
-                    if (attrValue.OptionId != selected.Value.OptionId)
-                    {
-                        matches = false;
-                        break;
-                    }
-                }
-                else
-                {
-                    var normalized = attrValue.ValueText?.Trim();
-                    var expected = selected.Value.RawValueText ?? selected.Value.DisplayValue;
-                    if (!string.Equals(normalized, expected, StringComparison.OrdinalIgnoreCase))
-                    {
-                        matches = false;
-                        break;
-                    }
+                    ApplySelectedProductAttributes(SelectedProduct, replaceExisting: true);
                 }
             }
+            return;
+        }
 
-            if (matches)
-            {
-                SelectedProduct = product;
-                ApplySelectedProductAttributes(product, replaceExisting: false);
-                return;
-            }
+        var matchingProduct = Products.FirstOrDefault(product => DoesProductMatchSelection(product, activeSelections));
+
+        if (matchingProduct == null && LastSelectedAttributeId.HasValue
+            && SelectedAttributes.TryGetValue(LastSelectedAttributeId.Value, out var lastChoice))
+        {
+            matchingProduct = Products.FirstOrDefault(product =>
+                DoesChoiceMatchAttributeValue(
+                    lastChoice,
+                    AttributeValues.FirstOrDefault(av =>
+                        av.ProductId == product.Id && av.AttributeId == lastChoice.AttributeId)));
+        }
+
+        if (matchingProduct == null && SelectedProduct != null)
+        {
+            matchingProduct = SelectedProduct;
+        }
+
+        matchingProduct ??= Products.FirstOrDefault();
+
+        if (matchingProduct != null)
+        {
+            SelectedProduct = matchingProduct;
+            ApplySelectedProductAttributes(matchingProduct, replaceExisting: true);
         }
     }
 
@@ -374,8 +403,13 @@
         }
     }
 
-    private string GetAttributeButtonClass(AttributeChoice choice)
+    private string GetAttributeButtonClass(AttributeChoice choice, bool isDisabled)
     {
+        if (isDisabled)
+        {
+            return "px-4 py-2 rounded-lg border border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed";
+        }
+
         bool isSelected = SelectedAttributes.TryGetValue(choice.AttributeId, out var selectedValue)
             && selectedValue == choice;
         return isSelected
@@ -543,11 +577,75 @@
                 if (choice != null)
                 {
                     SelectedAttributes[attr.Id] = choice;
+                    UserSelectedAttributeIds.Add(attr.Id);
+                    LastSelectedAttributeId = attr.Id;
                 }
             }
         }
     }
 
+    private void ResetSelections()
+    {
+        SelectedAttributes.Clear();
+        UserSelectedAttributeIds.Clear();
+        LastSelectedAttributeId = null;
+
+        SelectedProduct = Products.FirstOrDefault();
+        if (SelectedProduct != null)
+        {
+            ApplySelectedProductAttributes(SelectedProduct, replaceExisting: true);
+        }
+    }
+
+    private bool IsChoiceAvailable(AttributeChoice choice)
+    {
+        if (Products.Count == 0)
+        {
+            return false;
+        }
+
+        var simulatedSelection = SelectedAttributes
+            .Where(kvp => kvp.Key != choice.AttributeId && UserSelectedAttributeIds.Contains(kvp.Key))
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        simulatedSelection[choice.AttributeId] = choice;
+
+        return Products.Any(product => DoesProductMatchSelection(product, simulatedSelection));
+    }
+
+    private bool DoesProductMatchSelection(Product product, IReadOnlyDictionary<int, AttributeChoice> selection)
+    {
+        var productAttrValues = AttributeValues.Where(av => av.ProductId == product.Id).ToList();
+
+        foreach (var selected in selection)
+        {
+            var attrValue = productAttrValues.FirstOrDefault(av => av.AttributeId == selected.Key);
+            if (!DoesChoiceMatchAttributeValue(selected.Value, attrValue))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool DoesChoiceMatchAttributeValue(AttributeChoice choice, ProductAttributeValue? attrValue)
+    {
+        if (attrValue == null)
+        {
+            return false;
+        }
+
+        if (choice.OptionId.HasValue)
+        {
+            return attrValue.OptionId == choice.OptionId;
+        }
+
+        var normalized = attrValue.ValueText?.Trim();
+        var expected = choice.RawValueText ?? choice.DisplayValue;
+        return !string.IsNullOrEmpty(normalized)
+            && string.Equals(normalized, expected, StringComparison.OrdinalIgnoreCase);
+    }
 
     private sealed record AttributeChoice(int AttributeId, int? OptionId, string DisplayValue, string? RawValueText);
 }
