@@ -126,7 +126,7 @@ public class ProductCatalogService : IProductCatalogService
                     x.P.WarrantyMonths,
                     (x.P.Status ?? "active").ToLower(),
                     x.P.CreatedAt,
-                    null
+                    x.P.UpdatedAt
                 ))
                 .ToList()
                 .AsReadOnly();
@@ -417,7 +417,7 @@ public class ProductCatalogService : IProductCatalogService
                 result.P.WarrantyMonths,
                 result.P.Status,
                 result.P.CreatedAt,
-                null
+                result.P.UpdatedAt
             );
         }, $"load product {sku}", (Product?)null);
     }
@@ -477,7 +477,8 @@ public class ProductCatalogService : IProductCatalogService
             IsSerialTracked: product.IsSerialTracked,
             WarrantyMonths: product.WarrantyMonths,
             Status: product.Status.ToString().ToLowerInvariant(),
-            CreatedAt: product.CreatedAt);
+            CreatedAt: product.CreatedAt,
+            UpdatedAt: product.UpdatedAt);
 
     private static ProductAttribute MapProductAttribute(PhoneStoreUser.Data.ProductAttributeEntity attribute) =>
         new(

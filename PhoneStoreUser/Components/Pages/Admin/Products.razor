@@ -7,6 +7,7 @@
 @using PhoneStoreUser.Components.ViewModels
 @inject IProductService ProductService
 @inject NavigationManager NavigationManager
+@inject ICloudinaryService CloudinaryService
 
 <div class="space-y-6 bg-gray-50/50 p-6 min-h-screen font-sans">
     
@@ -198,6 +199,7 @@
 
 @code {
     private List<ProductEntity> ProductsData = new();
+    private Dictionary<int, string?> ProductImageUrls = new();
     private bool IsLoading = true;
     
     // Pagination & Filter
@@ -220,12 +222,14 @@
     private async Task LoadProducts()
     {
         IsLoading = true;
+        ProductImageUrls.Clear();
         try
         {
             var result = await ProductService.GetProductsAsync(SearchTerm, CurrentPage, PageSize);
             ProductsData = result.Items;
             TotalRecords = result.TotalCount;
             TotalPages = result.TotalPages;
+            await LoadProductImagesAsync();
         }
         catch (Exception ex)
         {
@@ -234,6 +238,22 @@
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    private async Task LoadProductImagesAsync()
+    {
+        ProductImageUrls.Clear();
+
+        foreach (var product in ProductsData)
+        {
+            var brand = product.Brand?.Name ?? string.Empty;
+            var slug = product.Model?.Slug ?? string.Empty;
+            var sku = product.Sku;
+
+            var cacheKey = (product.UpdatedAt ?? product.CreatedAt)?.Ticks.ToString();
+            var url = await CloudinaryService.GetImageUrlAsync(brand, slug, sku, cacheKey);
+            ProductImageUrls[product.Id] = string.IsNullOrEmpty(url) ? product.Model?.DefaultImageUrl : url;
         }
     }
 
@@ -289,23 +309,12 @@
         await LoadProducts();
     }
 
-    private static string? GetProductImageUrl(ProductEntity product)
+    private string? GetProductImageUrl(ProductEntity product)
     {
-        var brand = product.Brand?.Name?.Trim();
-        var slug = product.Model?.Slug?.Trim();
-        var sku = product.Sku?.Trim();
-
-        if (!string.IsNullOrEmpty(brand) && !string.IsNullOrEmpty(slug) && !string.IsNullOrEmpty(sku))
+        if (ProductImageUrls.TryGetValue(product.Id, out var url) && !string.IsNullOrEmpty(url))
         {
-            var brandSegment = Uri.EscapeDataString(brand.ToLowerInvariant());
-            var slugSegment = Uri.EscapeDataString(slug);
-            var skuSegment = Uri.EscapeDataString(sku);
-
-        var fallbackDate = product.UpdatedAt ?? product.CreatedAt ?? DateTime.UtcNow;
-        string versionParam = fallbackDate.Ticks.ToString();
-
-        // Thêm vào đuôi ảnh
-        return $"https://res.cloudinary.com/dstytmxfh/image/upload/mobileguzone/{brandSegment}/{slugSegment}/{skuSegment}.webp?v={versionParam}";        }
+            return url;
+        }
 
         return product.Model?.DefaultImageUrl;
     }

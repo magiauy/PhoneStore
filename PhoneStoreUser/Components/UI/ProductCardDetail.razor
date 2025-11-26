@@ -2,8 +2,10 @@
 @using System.Collections.Generic
 @using PhoneStoreUser.Components.Models
 @using PhoneStoreUser.Components.ViewModels
+@using PhoneStoreUser.Services
 
 @inject IProductCatalogService ProductCatalogService
+@inject ICloudinaryService CloudinaryService
 
 <a href="@GetProductUrl()"
    class="group rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm transition hover:-translate-y-1 hover:shadow-lg block flex flex-col min-h-[350px]">
@@ -76,7 +78,7 @@
         Attributes = attributes;
 
         // Build image URL
-        var variantImageUrl = BuildVariantImageUrl(Product);
+        var variantImageUrl = await BuildVariantImageUrlAsync(Product);
         if (!string.IsNullOrEmpty(variantImageUrl))
         {
             ImageUrl = variantImageUrl;
@@ -119,33 +121,24 @@
         return string.Empty;
     }
 
-    private static string? BuildVariantImageUrl(ProductCardViewModel product)
+    private Task<string?> BuildVariantImageUrlAsync(ProductCardViewModel product)
     {
         if (product == null)
         {
-            return null;
+            return Task.FromResult<string?>(null);
         }
 
         var brand = product.BrandName?.Trim();
         var sku = product.Sku?.Trim();
-        var slug = product.Slug?.Trim();
+        var slugValue = string.IsNullOrWhiteSpace(product.Slug) ? "default" : product.Slug.Trim();
 
         if (string.IsNullOrEmpty(brand) || string.IsNullOrEmpty(sku))
         {
-            return null;
+            return Task.FromResult<string?>(null);
         }
 
-        var brandSegment = Uri.EscapeDataString(brand.ToLowerInvariant());
-        var skuSegment = Uri.EscapeDataString(sku);
-        var slugSegment = !string.IsNullOrEmpty(slug) ? Uri.EscapeDataString(slug.ToLowerInvariant()) : "default";
-
-        // Giả sử bạn có biến lastUpdated lưu thời gian sửa đổi cuối cùng của sản phẩm
-        // Chuyển đổi sang Ticks hoặc định dạng số để làm version
-        var fallbackDate = product.UpdatedAt ?? product.CreatedAt ?? DateTime.UtcNow;
-        string versionParam = fallbackDate.Ticks.ToString();
-
-        // Thêm vào đuôi ảnh
-        return $"https://res.cloudinary.com/dstytmxfh/image/upload/mobileguzone/{brandSegment}/{slugSegment}/{skuSegment}.webp?v={versionParam}";
+        var cacheKey = (product.UpdatedAt ?? product.CreatedAt)?.Ticks.ToString();
+        return CloudinaryService.GetImageUrlAsync(brand, slugValue, sku, cacheKey);
     }
 
     private void HandleImageError()
