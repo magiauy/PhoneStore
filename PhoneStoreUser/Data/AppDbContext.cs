@@ -28,10 +28,40 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<PurchaseOrderEntity> PurchaseOrders => Set<PurchaseOrderEntity>();
     public DbSet<PurchaseOrderLineEntity> PurchaseOrderLines => Set<PurchaseOrderLineEntity>();
     public DbSet<ReviewEntity> Reviews => Set<ReviewEntity>();
+    public DbSet<PromotionEntity> Promotions => Set<PromotionEntity>();
+    public DbSet<PromotionCodeEntity> PromotionCodes => Set<PromotionCodeEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<PromotionEntity>(entity =>
+        {
+            entity.ToTable("promotions");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(120);
+            entity.Property(e => e.Description).HasColumnName("description").HasMaxLength(255);
+            entity.Property(e => e.StartDate).HasColumnName("start_date");
+            entity.Property(e => e.EndDate).HasColumnName("end_date");
+            entity.Property(e => e.IsActive).HasColumnName("is_active");
+        });
+
+        modelBuilder.Entity<PromotionCodeEntity>(entity =>
+        {
+            entity.ToTable("promotion_codes");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PromotionId).HasColumnName("promotion_id");
+            entity.Property(e => e.Code).HasColumnName("code").HasMaxLength(50);
+            entity.Property(e => e.DiscountAmount).HasColumnName("discount_amount");
+            entity.Property(e => e.MinimumAmount).HasColumnName("minimum_amount");
+            entity.Property(e => e.UsageLimit).HasColumnName("usage_limit");
+            entity.Property(e => e.UsedCount).HasColumnName("used_count");
+            entity.Property(e => e.IsActive).HasColumnName("is_active");
+
+            entity.HasOne(e => e.Promotion).WithMany().HasForeignKey(e => e.PromotionId);
+        });
 
         modelBuilder.Entity<ReviewEntity>(entity =>
         {
@@ -565,4 +595,28 @@ public class BatchProductEntity
 
     public BatchEntity? Batch { get; set; }
     public ProductEntity? Product { get; set; }
+}
+
+public class PromotionEntity
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public bool IsActive { get; set; } = true;
+}
+
+public class PromotionCodeEntity
+{
+    public int Id { get; set; }
+    public int PromotionId { get; set; }
+    public string Code { get; set; } = string.Empty;
+    public decimal DiscountAmount { get; set; }
+    public decimal MinimumAmount { get; set; }
+    public int? UsageLimit { get; set; }
+    public int UsedCount { get; set; } = 0;
+    public bool IsActive { get; set; } = true;
+
+    public PromotionEntity? Promotion { get; set; }
 }
