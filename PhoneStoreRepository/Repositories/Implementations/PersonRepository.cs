@@ -81,7 +81,8 @@ namespace PhoneStoreRepository.Repositories.Implementations
             using var conn = _dataSource.GetConnection();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"INSERT INTO persons (Code, full_name, phone, email, person_type, created_at, is_active)
-                                VALUES (@code, @fullName, @phone, @email, @personType, @createdAt, @isActive);";
+                                VALUES (@code, @fullName, @phone, @email, @personType, @createdAt, @isActive);
+                                SELECT LAST_INSERT_ID();";
             cmd.Parameters.AddWithValue("@code", (object?)entity.Code ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@fullName", entity.FullName);
             cmd.Parameters.AddWithValue("@phone", (object?)entity.Phone ?? DBNull.Value);
@@ -90,7 +91,14 @@ namespace PhoneStoreRepository.Repositories.Implementations
             cmd.Parameters.AddWithValue("@createdAt", entity.CreatedAt);
             cmd.Parameters.AddWithValue("@isActive", entity.IsActive);
 
-            cmd.ExecuteNonQuery();
+            // ExecuteScalar: Thực thi và lấy giá trị của ô đầu tiên trong dòng đầu tiên (chính là ID)
+            var newId = cmd.ExecuteScalar();
+
+            // Gán ID mới vào object entity để tầng Service sử dụng tiếp
+            if (newId != null)
+            {
+                entity.Id = Convert.ToInt32(newId);
+            }
         }
 
     public virtual void Update(Person entity)

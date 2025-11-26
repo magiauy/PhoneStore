@@ -191,7 +191,6 @@ namespace PhoneStoreRepository.Repositories.Implementations
             return false;
         }
 
-
         #region Helper
         private static Invoice MapFromReader(MySqlDataReader reader)
         {
@@ -393,5 +392,91 @@ namespace PhoneStoreRepository.Repositories.Implementations
             return (int)Math.Ceiling((double)totalRecords / pageSize);
         }
         #endregion
+    }
+
+    public class InvoiceLineRepository(DataSource dataSource) : IInvoiceLineRepository
+    {
+        private readonly DataSource _dataSource = dataSource;
+
+        public void Insert(InvoiceLine entity)
+        {
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand(@"
+                INSERT INTO invoice_lines 
+                (invoice_id, product_id, quantity, unit_price, discount_pct, total_price)
+                VALUES 
+                (@invoiceId, @productId, @quantity, @unitPrice, @discountPct, @totalPrice);
+                SELECT LAST_INSERT_ID();", connection);
+
+            command.Parameters.AddWithValue("@invoiceId", entity.InvoiceId);
+            command.Parameters.AddWithValue("@productId", entity.ProductId);
+            command.Parameters.AddWithValue("@quantity", entity.Quantity);
+            command.Parameters.AddWithValue("@unitPrice", entity.UnitPrice);
+            command.Parameters.AddWithValue("@discountPct", entity.DiscountPct);
+            command.Parameters.AddWithValue("@totalPrice", entity.TotalPrice);
+
+            var id = Convert.ToInt32(command.ExecuteScalar());
+            entity.Id = id;
+        }
+
+        public IEnumerable<InvoiceLine> GetByInvoiceId(int invoiceId)
+        {
+            var lines = new List<InvoiceLine>();
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand(@"
+                SELECT * FROM invoice_lines 
+                WHERE invoice_id = @invoiceId", connection);
+
+            command.Parameters.AddWithValue("@invoiceId", invoiceId);
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                lines.Add(MapFromReader(reader));
+            }
+
+            return lines;
+        }
+
+        // Các hàm Update/Delete nếu cần thiết sau này
+        public void Update(InvoiceLine entity)
+        {
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand(@"
+                UPDATE invoice_lines SET
+                    product_id=@productId, quantity=@quantity, unit_price=@unitPrice, 
+                    discount_pct=@discountPct, total_price=@totalPrice
+                WHERE id=@id", connection);
+
+            // Add parameters tương tự như Insert...
+            command.Parameters.AddWithValue("@productId", entity.ProductId);
+            // ...
+            command.Parameters.AddWithValue("@id", entity.Id);
+
+            command.ExecuteNonQuery();
+        }
+
+        public void Delete(int id)
+        {
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand("DELETE FROM invoice_lines WHERE id = @id", connection);
+            command.Parameters.AddWithValue("@id", id);
+            command.ExecuteNonQuery();
+        }
+
+        // Helper map dữ liệu
+        private static InvoiceLine MapFromReader(MySqlDataReader reader)
+        {
+            return new InvoiceLine
+            {
+                Id = reader.GetInt32("id"),
+                InvoiceId = reader.GetInt32("invoice_id"),
+                ProductId = reader.GetInt32("product_id"),
+                Quantity = reader.GetInt32("quantity"),
+                UnitPrice = reader.GetDecimal("unit_price"),
+                DiscountPct = reader.GetDecimal("discount_pct"),
+                TotalPrice = reader.GetDecimal("total_price")
+            };
+        }
     }
 }
