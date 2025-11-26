@@ -10,15 +10,15 @@
         Subheading="Limited Launch"
         Description="Đặt trước iPhone 17 Pro Max với ưu đãi thu cũ + trợ giá đến 5 triệu. Số lượng mở bán đợt đầu có hạn."
         PrimaryCta="Đặt trước ngay"
-        PrimaryHref="#flagship"
+        PrimaryHref="/products?search=iphone%2017"
         SecondaryCta="Ưu đãi thu cũ"
         SecondaryHref="#care"
         HeroImage="/images/hero/iphone-17-pm-2.png" />
 
-    <BrandList Brands="BrandBadges" />
+    <BrandList />
 
     <section id="flagship" class="space-y-3">
-        <SectionTitle Title="Flagship nổi bật" Subtitle="Hàng mới về tuần này" ActionHref="#" />
+        <SectionTitle Title="Flagship nổi bật" Subtitle="Hàng mới về tuần này" ActionHref="/products?catalog=2" />
         @if (IsLoading)
         {
             <div class="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-500">Đang tải dữ liệu sản phẩm...</div>
@@ -34,7 +34,7 @@
     </section>
 
     <section id="android" class="space-y-3">
-        <SectionTitle Title="Android cao cấp" Subtitle="Mạnh mẽ - camera AI" ActionHref="#" />
+        <SectionTitle Title="Android cao cấp" Subtitle="Mạnh mẽ - camera AI" ActionHref="/products?catalog=3" />
         @if (IsLoading)
         {
             <div class="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-500">Đang tải...</div>
@@ -99,15 +99,6 @@
         
         IsLoading = false;
     }
-
-    private readonly List<BrandBadgeModel> BrandBadges = new()
-    {
-        new("Apple", "iPhone, iPad", "", "/images/brand-logo/apple.png"),
-        new("Samsung", "Galaxy AI", "S", "/images/brand-logo/samsung.png"),
-        new("Xiaomi", "HyperOS", "Mi", "/images/brand-logo/xiaomi.png"),
-        new("Oppo", "Tốc độ 240W", "O", "/images/brand-logo/oppo.png"),
-        new("Tecno", "Camera ZEISS", "T", "/images/brand-logo/tecno.png")
-    };
 
     private readonly List<ServiceFeature> ServiceFeatures = new()
     {
