@@ -12,6 +12,7 @@
 @inject IUserProfileService UserProfileService
 @inject NavigationManager Navigation
 @inject IOrderService OrderService
+@inject IPromotionService PromotionService
 @inject IOptions<PayOSConfig> PayOSConfigOptions
 
 <!-- Lưu ý: Đảm bảo dự án của bạn đã nhúng FontAwesome trong _Layout.cshtml hoặc index.html -->
@@ -208,6 +209,28 @@
                         }
                     </div>
 
+                    <!-- Mã khuyến mãi -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Mã khuyến mãi</label>
+                        <div class="flex gap-2">
+                            <input type="text" @bind="couponCode" placeholder="Nhập mã giảm giá" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" />
+                            <button @onclick="ApplyCoupon" disabled="@isApplyingCoupon" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-md transition disabled:bg-gray-400">
+                                @if (isApplyingCoupon)
+                                {
+                                    <span>...</span>
+                                }
+                                else
+                                {
+                                    <span>Áp dụng</span>
+                                }
+                            </button>
+                        </div>
+                        @if (!string.IsNullOrEmpty(couponMessage))
+                        {
+                            <p class="text-xs mt-1 @(isCouponValid ? "text-green-600" : "text-red-500")">@couponMessage</p>
+                        }
+                    </div>
+
                     <!-- Tổng kết -->
                     <div class="border-t border-gray-200 mt-4 pt-4 space-y-2">
                         <div class="flex justify-between items-center text-gray-600">
@@ -218,9 +241,16 @@
                             <span>Phí vận chuyển:</span>
                             <span class="text-green-600 font-medium">Miễn phí</span>
                         </div>
+                        @if (discountAmount > 0)
+                        {
+                            <div class="flex justify-between items-center text-green-600">
+                                <span>Giảm giá:</span>
+                                <span class="font-medium">-@discountAmount.ToString("N0") ₫</span>
+                            </div>
+                        }
                         <div class="flex justify-between items-center text-xl font-bold text-blue-700 pt-2 border-t border-dashed border-gray-200 mt-2">
                             <span>Tổng cộng:</span>
-                            <span>@Total.ToString("N0") ₫</span>
+                            <span>@FinalTotal.ToString("N0") ₫</span>
                         </div>
                     </div>
 
@@ -293,7 +323,16 @@
     private bool showPayOSIframe;
     private string? payOSUrl;
 
+    // Coupon fields
+    private string couponCode = "";
+    private bool isApplyingCoupon = false;
+    private string? couponMessage;
+    private bool isCouponValid = false;
+    private decimal discountAmount = 0;
+    private int? appliedPromotionCodeId;
+
     private decimal Total => cartItems.Sum(i => i.Product.Price * i.Quantity);
+    private decimal FinalTotal => Math.Max(0, Total - discountAmount);
 
     protected override async Task OnInitializedAsync()
     {
@@ -313,6 +352,48 @@
                 checkoutModel.Phone = profile.Phone;
                 checkoutModel.Address = profile.Address;
             }
+        }
+    }
+
+    private async Task ApplyCoupon()
+    {
+        if (string.IsNullOrWhiteSpace(couponCode))
+        {
+            couponMessage = "Vui lòng nhập mã khuyến mãi.";
+            isCouponValid = false;
+            return;
+        }
+
+        isApplyingCoupon = true;
+        couponMessage = null;
+
+        try
+        {
+            var result = await PromotionService.ValidateCouponAsync(couponCode, Total);
+            isCouponValid = result.isValid;
+            couponMessage = result.message;
+
+            if (result.isValid && result.code != null)
+            {
+                discountAmount = result.code.DiscountAmount;
+                appliedPromotionCodeId = result.code.Id;
+            }
+            else
+            {
+                discountAmount = 0;
+                appliedPromotionCodeId = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            couponMessage = "Có lỗi xảy ra khi kiểm tra mã.";
+            isCouponValid = false;
+            discountAmount = 0;
+            appliedPromotionCodeId = null;
+        }
+        finally
+        {
+            isApplyingCoupon = false;
         }
     }
 
@@ -352,7 +433,9 @@
                 var result = await OrderService.CreateOrderWithPaymentAsync(
                     personId,
                     cartItems,
-                    checkoutModel);
+                    checkoutModel,
+                    appliedPromotionCodeId,
+                    discountAmount);
 
                 if (!string.IsNullOrEmpty(result.paymentUrl))
                 {
@@ -373,7 +456,14 @@
             else // COD
             {
                 // Existing COD flow
-                var orderId = await OrderService.CreateOrderAsync(personId, cartItems, checkoutModel, paymentMethod);
+                var orderId = await OrderService.CreateOrderAsync(
+                    personId, 
+                    cartItems, 
+                    checkoutModel, 
+                    paymentMethod,
+                    appliedPromotionCodeId,
+                    discountAmount);
+
                 await CartService.ClearCart();
                 Navigation.NavigateTo($"/order-success?OrderId={orderId}");
             }
@@ -396,4 +486,5 @@
         // Navigation.NavigateTo("/history"); 
     }
 }
+
 

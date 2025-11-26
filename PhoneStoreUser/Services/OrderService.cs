@@ -17,7 +17,7 @@ public class OrderService : IOrderService
         _payOSService = payOSService;
     }
 
-    public async Task<int> CreateOrderAsync(int? personId, List<CartItem> items, CheckoutModel model, string paymentMethod)
+    public async Task<int> CreateOrderAsync(int? personId, List<CartItem> items, CheckoutModel model, string paymentMethod, int? promotionCodeId = null, decimal discountAmount = 0)
     {
         ArgumentNullException.ThrowIfNull(items);
         ArgumentNullException.ThrowIfNull(model);
@@ -103,6 +103,9 @@ public class OrderService : IOrderService
         var finalPersonId = resolvedPersonId ?? throw new InvalidOperationException("Unable to resolve customer information for the order.");
 
         var totalAmount = items.Sum(i => i.Product.Price * i.Quantity);
+        var appliedDiscountAmount = ResolveDiscountAmount(totalAmount, discountAmount);
+        var finalAmount = totalAmount - appliedDiscountAmount;
+
         var invoice = new InvoiceEntity
         {
             PersonId = finalPersonId,
@@ -110,10 +113,11 @@ public class OrderService : IOrderService
             InvoiceDate = DateTime.UtcNow,
             Status = paymentMethod?.ToLowerInvariant() == "cod" ? "pending" : "unpaid",
             TotalAmount = totalAmount,
-            DiscountAmount = 0,
-            FinalAmount = totalAmount,
+            DiscountAmount = appliedDiscountAmount,
+            FinalAmount = finalAmount,
             PaymentMethod = paymentMethod,
-            Note = model.Address
+            Note = model.Address,
+            PromotionCodeId = promotionCodeId
         };
 
         dbContext.Invoices.Add(invoice);
@@ -130,6 +134,17 @@ public class OrderService : IOrderService
         }).ToList();
 
         dbContext.InvoiceLines.AddRange(invoiceLines);
+        
+        // Update promotion usage count if applicable
+        if (promotionCodeId.HasValue)
+        {
+            var promoCode = await dbContext.PromotionCodes.FindAsync(promotionCodeId.Value);
+            if (promoCode != null)
+            {
+                promoCode.UsedCount++;
+            }
+        }
+
         await dbContext.SaveChangesAsync();
 
         return invoice.Id;
@@ -138,20 +153,25 @@ public class OrderService : IOrderService
     public async Task<(int invoiceId, string? paymentUrl)> CreateOrderWithPaymentAsync(
         int? personId,
         List<CartItem> items,
-        CheckoutModel model)
+        CheckoutModel model,
+        int? promotionCodeId = null,
+        decimal discountAmount = 0)
     {
         // Create the order with PayOS payment method
-        var invoiceId = await CreateOrderAsync(personId, items, model, "bank");
+        var invoiceId = await CreateOrderAsync(personId, items, model, "bank", promotionCodeId, discountAmount);
 
         // Create PayOS payment link
         // PayOS requires orderCode to be an integer, so use invoiceId directly
         var orderCode = invoiceId;
         var totalAmount = items.Sum(i => i.Product.Price * i.Quantity);
+        var appliedDiscountAmount = ResolveDiscountAmount(totalAmount, discountAmount);
+        var finalAmount = totalAmount - appliedDiscountAmount;
+
         var description = $"Thanh toan don hang #{invoiceId}";
 
         var paymentResponse = await _payOSService.CreatePaymentLinkAsync(
             orderCode,
-            totalAmount,
+            finalAmount, // Use final amount after discount
             description,
             model.FullName ?? "Customer",
             model.Email ?? "",
@@ -248,5 +268,15 @@ public class OrderService : IOrderService
 
         invoice.Lines = invoiceLines;
         return invoice;
+    }
+
+    private static decimal ResolveDiscountAmount(decimal totalAmount, decimal discountAmount)
+    {
+        if (discountAmount <= 0)
+        {
+            return 0;
+        }
+
+        return discountAmount > totalAmount ? totalAmount : discountAmount;
     }
 }
