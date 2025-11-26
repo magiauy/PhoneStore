@@ -2,14 +2,17 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
+@using Microsoft.Extensions.Options
 @using PhoneStoreUser.Services
 @using PhoneStoreUser.Components.Models
 @using PhoneStoreUser.Data
+@using PhoneStoreUser.Models
 @inject ICartService CartService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IUserProfileService UserProfileService
 @inject NavigationManager Navigation
 @inject IOrderService OrderService
+@inject IOptions<PayOSConfig> PayOSConfigOptions
 
 <!-- Lưu ý: Đảm bảo dự án của bạn đã nhúng FontAwesome trong _Layout.cshtml hoặc index.html -->
 <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> -->
@@ -259,6 +262,23 @@
     }
 </div>
 
+@if (showPayOSIframe && !string.IsNullOrEmpty(payOSUrl))
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="relative w-full h-full max-w-5xl max-h-[90vh] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b bg-gray-50">
+                <h3 class="text-lg font-bold text-gray-800">Thanh toán qua PayOS</h3>
+                <button @onclick="CloseIframe" class="text-gray-500 hover:text-red-600 transition">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+            <div class="flex-1 relative">
+                <iframe allow="clipboard-write" width="100%" height="100%" src="@payOSUrl" allowfullscreen="" style="border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<CartItem> cartItems = new();
     private CheckoutModel checkoutModel = new();
@@ -268,6 +288,8 @@
     private int? personId;
     private bool isProcessing;
     private string? errorMessage;
+    private bool showPayOSIframe;
+    private string? payOSUrl;
 
     private decimal Total => cartItems.Sum(i => i.Product.Price * i.Quantity);
 
@@ -322,28 +344,30 @@
 
         try
         {
-            if (paymentMethod == "PayOS")
+                        if (paymentMethod == "PayOS")
             {
                 // Create order and get PayOS payment link
                 var result = await OrderService.CreateOrderWithPaymentAsync(
-                    personId, 
-                    cartItems, 
+                    personId,
+                    cartItems,
                     checkoutModel);
-                
+
                 if (!string.IsNullOrEmpty(result.paymentUrl))
                 {
-                    // Clear cart before redirecting
+                    // Clear cart before redirecting to PayOS
                     await CartService.ClearCart();
-                    
-                    // Redirect to PayOS checkout page
-                    Navigation.NavigateTo(result.paymentUrl, forceLoad: true);
+
+                    // Use full-page redirect instead of embedded iframe to avoid PayOS iframe errors on cancel
+                    var returnUrl = PayOSConfigOptions.Value.ReturnUrl;
+                    var payOSNavigateUrl = $"{result.paymentUrl}?redirect_uri={Uri.EscapeDataString(returnUrl)}";
+                    Navigation.NavigateTo(payOSNavigateUrl, forceLoad: true);
+                    return;
                 }
                 else
                 {
-                    errorMessage = "Không thể tạo link thanh toán PayOS. Vui lòng thử lại hoặc chọn phương thức thanh toán khác.";
+                    errorMessage = "Khong the tao link thanh toan PayOS. Vui long thu lai hoac chon phuong thuc thanh toan khac.";
                 }
-            }
-            else // COD
+            }else // COD
             {
                 // Existing COD flow
                 var orderId = await OrderService.CreateOrderAsync(personId, cartItems, checkoutModel, paymentMethod);
@@ -360,4 +384,13 @@
             isProcessing = false;
         }
     }
+
+    private void CloseIframe()
+    {
+        showPayOSIframe = false;
+        payOSUrl = null;
+        // Optionally redirect to order history or show a message
+        // Navigation.NavigateTo("/history"); 
+    }
 }
+

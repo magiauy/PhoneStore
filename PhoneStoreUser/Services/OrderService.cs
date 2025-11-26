@@ -146,7 +146,8 @@ public class OrderService : IOrderService
             model.FullName ?? "Customer",
             model.Email ?? "",
             model.Phone ?? "",
-            model.Address ?? "");
+            model.Address ?? "",
+            items);
 
         if (paymentResponse?.Data?.CheckoutUrl != null)
         {
@@ -200,5 +201,42 @@ public class OrderService : IOrderService
         }
 
         return invoices;
+    }
+
+    public async Task<InvoiceEntity?> GetOrderAsync(int invoiceId)
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        var invoice = await dbContext.Invoices
+            .Where(i => i.Id == invoiceId)
+            .FirstOrDefaultAsync();
+
+        if (invoice == null)
+        {
+            return null;
+        }
+
+        var invoiceLines = await dbContext.InvoiceLines
+            .Where(line => line.InvoiceId == invoiceId)
+            .ToListAsync();
+
+        if (invoiceLines.Any())
+        {
+            var productIds = invoiceLines.Select(l => l.ProductId).Distinct().ToList();
+            var products = await dbContext.Products
+                .Where(p => productIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id);
+
+            foreach (var line in invoiceLines)
+            {
+                if (products.TryGetValue(line.ProductId, out var product))
+                {
+                    line.Product = product;
+                }
+            }
+        }
+
+        invoice.Lines = invoiceLines;
+        return invoice;
     }
 }
