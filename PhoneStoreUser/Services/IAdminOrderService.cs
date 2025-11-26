@@ -12,6 +12,7 @@ public interface IAdminOrderService
     Task<List<string>> GetOrderLineSerialsAsync(int invoiceLineId);
     Task<SerialValidationResult> ValidateSerialAsync(string serial, int productId);
     Task CreateCompletedOrderAsync(CreateOrderDto dto);
+    Task<CustomerLookupResult?> FindCustomerByPhoneAsync(string phone);
 }
 
 public record SerialValidationResult(bool IsValid, string Message);
