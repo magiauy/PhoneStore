@@ -2,6 +2,7 @@
 @page "/admin/products/edit/{Id:int}"
 @layout AdminLayout
 @using System
+@using System.Linq
 @using PhoneStoreUser.Components.Models
 @using PhoneStoreUser.Data
 @using PhoneStoreUser.Services
@@ -233,6 +234,7 @@
     private bool IsUploading = false;
     private bool IsSaving = false;
     private bool ImageLoadFailed = false;
+    private string? UploadedPublicId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -389,6 +391,7 @@
             if (!string.IsNullOrEmpty(url))
             {
                 UploadedImageUrl = url;
+                UploadedPublicId = $"{folder}/{publicId}";
                 // If we want to update the model default image, we can do it here, 
                 // but since multiple products share a model, maybe we shouldn't overwrite it automatically 
                 // unless explicitly requested. For now, we just update the local view.
@@ -417,31 +420,49 @@
 
         try 
         {
-            var uri = new Uri(UploadedImageUrl);
-            var pathSegments = uri.AbsolutePath.Split('/');
-            var uploadIndex = Array.IndexOf(pathSegments, "upload");
-            if (uploadIndex != -1 && uploadIndex + 2 < pathSegments.Length)
+            string? publicId = UploadedPublicId;
+            if (string.IsNullOrEmpty(publicId) && !string.IsNullOrEmpty(UploadedImageUrl))
             {
-                var publicIdSegments = pathSegments.Skip(uploadIndex + 2);
-                var publicIdWithExtension = string.Join("/", publicIdSegments);
-                var publicId = System.IO.Path.ChangeExtension(publicIdWithExtension, null);
+                var uri = new Uri(UploadedImageUrl);
+                var pathSegments = uri.AbsolutePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                var mobileIndex = Array.FindIndex(pathSegments, s => s.Equals("mobileguzone", StringComparison.OrdinalIgnoreCase));
+                if (mobileIndex >= 0 && mobileIndex < pathSegments.Length)
+                {
+                    var publicIdSegments = pathSegments.Skip(mobileIndex);
+                    var publicIdWithExtension = string.Join("/", publicIdSegments);
+                    publicId = System.IO.Path.ChangeExtension(publicIdWithExtension, null);
+                }
+            }
 
-                var success = await CloudinaryService.DeleteImageAsync(publicId);
-                if (success)
+            if (string.IsNullOrEmpty(publicId))
+            {
+                await JS.InvokeVoidAsync("alert", "Không thể xác định publicId của hình ảnh.");
+                return;
+            }
+
+            var success = await CloudinaryService.DeleteImageAsync(publicId);
+            if (success)
+            {
+                UploadedImageUrl = null;
+                UploadedPublicId = null;
+                ImageLoadFailed = false;
+                if (Product.Model != null)
                 {
-                    UploadedImageUrl = null;
-                    ImageLoadFailed = false;
+                    Product.Model.DefaultImageUrl = null;
                 }
-                else
-                {
-                     await JS.InvokeVoidAsync("alert", "Không thể xóa ảnh trên Cloudinary.");
-                }
+
+                StateHasChanged();
+            }
+            else
+            {
+                 await JS.InvokeVoidAsync("alert", "Không thể xóa ảnh trên Cloudinary.");
             }
         }
         catch (Exception ex)
         {
              Console.WriteLine($"Delete failed: {ex.Message}");
              UploadedImageUrl = null;
+             UploadedPublicId = null;
              ImageLoadFailed = false;
         }
     }
@@ -535,8 +556,9 @@
         var slugSegment = Uri.EscapeDataString(slug.Trim());
         var skuSegment = Uri.EscapeDataString(sku.Trim());
 
-        return $"https://res.cloudinary.com/dstytmxfh/image/upload/v1763457477/mobileguzone/{brandSegment}/{slugSegment}/{skuSegment}.webp";
-    }
+        // Thêm vào đuôi ảnh
+        return $"https://res.cloudinary.com/dstytmxfh/image/upload/mobileguzone/{brandSegment}/{slugSegment}/{skuSegment}.webp";    
+        }
 
     private string? GetBrandSegment()
     {

@@ -31,9 +31,9 @@ public class CloudinaryService : ICloudinaryService
             var uploadParams = new ImageUploadParams
             {
                 File = new FileDescription(file.Name, stream),
-                Folder = folder,
                 PublicId = publicId,
-                Overwrite = true
+                Overwrite = true,
+                Invalidate = true
             };
 
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
@@ -52,8 +52,12 @@ public class CloudinaryService : ICloudinaryService
 
         try
         {
-            var deletionParams = new DeletionParams(publicId);
+            var deletionParams = new DeletionParams(publicId){
+                Invalidate = true // QUAN TRỌNG: Lệnh này bắt CDN phải xóa ngay lập tức
+            };
+            Console.WriteLine($"Attempting to delete Cloudinary image with PublicId: {deletionParams.PublicId}");
             var result = await _cloudinary.DestroyAsync(deletionParams);
+            Console.WriteLine($"Cloudinary delete result: {result.Result}");
             return result.Result == "ok";
         }
         catch (Exception ex)

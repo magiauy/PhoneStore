@@ -301,8 +301,11 @@
             var slugSegment = Uri.EscapeDataString(slug);
             var skuSegment = Uri.EscapeDataString(sku);
 
-            return $"https://res.cloudinary.com/dstytmxfh/image/upload/v1763457477/mobileguzone/{brandSegment}/{slugSegment}/{skuSegment}.webp";
-        }
+        var fallbackDate = product.UpdatedAt ?? product.CreatedAt ?? DateTime.UtcNow;
+        string versionParam = fallbackDate.Ticks.ToString();
+
+        // Thêm vào đuôi ảnh
+        return $"https://res.cloudinary.com/dstytmxfh/image/upload/mobileguzone/{brandSegment}/{slugSegment}/{skuSegment}.webp?v={versionParam}";        }
 
         return product.Model?.DefaultImageUrl;
     }

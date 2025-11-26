@@ -30,6 +30,16 @@ public class OrderService : IOrderService
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
         int? resolvedPersonId = personId;
+        var phoneNumber = string.IsNullOrWhiteSpace(model.Phone) ? null : model.Phone.Trim();
+
+        if (resolvedPersonId is null && !string.IsNullOrWhiteSpace(phoneNumber))
+        {
+            var existingPerson = await dbContext.People.FirstOrDefaultAsync(p => p.Phone == phoneNumber);
+            if (existingPerson is not null)
+            {
+                resolvedPersonId = existingPerson.Id;
+            }
+        }
 
         if (resolvedPersonId is null)
         {
@@ -37,7 +47,7 @@ public class OrderService : IOrderService
             {
                 FullName = model.FullName ?? string.Empty,
                 Email = model.Email,
-                Phone = model.Phone
+                Phone = phoneNumber
             };
 
             dbContext.People.Add(newPerson);
@@ -66,9 +76,9 @@ public class OrderService : IOrderService
                     personEntity.Email = model.Email;
                 }
 
-                if (!string.IsNullOrWhiteSpace(model.Phone))
+                if (!string.IsNullOrWhiteSpace(phoneNumber))
                 {
-                    personEntity.Phone = model.Phone;
+                    personEntity.Phone = phoneNumber;
                 }
             }
 
@@ -98,7 +108,7 @@ public class OrderService : IOrderService
             PersonId = finalPersonId,
             CreatedBy = finalPersonId,
             InvoiceDate = DateTime.UtcNow,
-            Status = "unpaid", // Always start as unpaid
+            Status = paymentMethod?.ToLowerInvariant() == "cod" ? "pending" : "unpaid",
             TotalAmount = totalAmount,
             DiscountAmount = 0,
             FinalAmount = totalAmount,
@@ -131,7 +141,7 @@ public class OrderService : IOrderService
         CheckoutModel model)
     {
         // Create the order with PayOS payment method
-        var invoiceId = await CreateOrderAsync(personId, items, model, "PayOS");
+        var invoiceId = await CreateOrderAsync(personId, items, model, "bank");
 
         // Create PayOS payment link
         // PayOS requires orderCode to be an integer, so use invoiceId directly

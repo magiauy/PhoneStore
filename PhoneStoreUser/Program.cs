@@ -38,6 +38,7 @@ builder.Services.AddScoped<IAdminOrderHistoryService, AdminOrderHistoryService>(
 builder.Services.AddScoped<IAdminCustomerService, AdminCustomerService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IPayOSService, PayOSService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddSingleton<ICloudinaryService, CloudinaryService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
@@ -96,7 +97,7 @@ var port = dbSection["Port"] ?? "3306";
 var database = dbSection["Database"] ?? "bandienthoai";
 var user = dbSection["User"] ?? "root";
 var password = dbSection["Password"] ?? string.Empty;
-var connectionString = $"Server={host};Port={port};Database={database};User={user};Password={password};";
+var connectionString = $"Server={host};Port={port};Database={database};User={user};Password={password};AllowZeroDateTime=True;ConvertZeroDateTime=True;";
 
 builder.Services.AddDbContextFactory<AppDbContext>(options =>
 {

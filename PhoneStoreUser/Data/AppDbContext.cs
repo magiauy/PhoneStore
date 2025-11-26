@@ -23,10 +23,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ProductSerialEntity> ProductSerials => Set<ProductSerialEntity>();
     public DbSet<InvoiceLineSerialEntity> InvoiceLineSerials => Set<InvoiceLineSerialEntity>();
     public DbSet<SupplierEntity> Suppliers => Set<SupplierEntity>();
+    public DbSet<ReviewEntity> Reviews => Set<ReviewEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<ReviewEntity>(entity =>
+        {
+            entity.ToTable("product_reviews");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.PersonId).HasColumnName("person_id");
+            entity.Property(e => e.Rating).HasColumnName("rating");
+            entity.Property(e => e.Comment).HasColumnName("comment").HasMaxLength(1000);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+
+            entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId);
+            entity.HasOne(e => e.Person).WithMany().HasForeignKey(e => e.PersonId);
+        });
 
         modelBuilder.Entity<BrandEntity>(entity =>
         {
@@ -52,6 +68,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.WarrantyMonths).HasColumnName("warranty_months");
             entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(50);
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
         });
 
         modelBuilder.Entity<CategoryEntity>(entity =>
@@ -259,6 +276,7 @@ public class ProductEntity
     public int WarrantyMonths { get; set; }
     public string Status { get; set; } = "active";
     public DateTime? CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     public CategoryEntity? Category { get; set; }
     public BrandEntity? Brand { get; set; }
@@ -417,4 +435,17 @@ public class SupplierEntity
     public string? Address { get; set; }
     public string? TaxNumber { get; set; }
     public bool IsActive { get; set; } = true;
+}
+
+public class ReviewEntity
+{
+    public int Id { get; set; }
+    public int ProductId { get; set; }
+    public int PersonId { get; set; }
+    public int Rating { get; set; } // 1-5
+    public string? Comment { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public ProductEntity? Product { get; set; }
+    public PersonEntity? Person { get; set; }
 }
