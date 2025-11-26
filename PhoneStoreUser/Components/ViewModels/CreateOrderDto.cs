@@ -25,6 +25,7 @@ public class CreateOrderLineDto
     public decimal UnitPrice { get; set; }
     public int Quantity { get; set; } = 1;
     public bool IsSerialTracked { get; set; }
+    public int AvailableQuantity { get; set; } = -1;
     
     // List of serials entered by user. Count must match Quantity if IsSerialTracked is true.
     public List<string> SerialNumbers { get; set; } = new();

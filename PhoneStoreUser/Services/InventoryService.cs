@@ -252,4 +252,81 @@ public class InventoryService : IInventoryService
             .ThenBy(x => x.BatchCode)
             .ToList();
     }
+
+    public async Task<Dictionary<int, ProductAvailabilitySnapshot>> GetAvailabilityForProductsAsync(IEnumerable<int> productIds)
+    {
+        var idList = productIds?
+            .Where(id => id > 0)
+            .Distinct()
+            .ToList() ?? new List<int>();
+
+        if (idList.Count == 0)
+        {
+            return new Dictionary<int, ProductAvailabilitySnapshot>();
+        }
+
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        var products = await dbContext.Products
+            .Where(p => idList.Contains(p.Id))
+            .Select(p => new { p.Id, p.IsSerialTracked })
+            .ToListAsync();
+
+        var snapshots = products.ToDictionary(
+            p => p.Id,
+            p => new ProductAvailabilitySnapshot
+            {
+                ProductId = p.Id,
+                IsSerialTracked = p.IsSerialTracked,
+                AvailableQuantity = 0
+            });
+
+        foreach (var missingId in idList.Where(id => !snapshots.ContainsKey(id)))
+        {
+            snapshots[missingId] = new ProductAvailabilitySnapshot
+            {
+                ProductId = missingId,
+                IsSerialTracked = false,
+                AvailableQuantity = 0
+            };
+        }
+
+        var serialCounts = await dbContext.ProductSerials
+            .Where(ps => idList.Contains(ps.ProductId) && ps.Status == "in_stock")
+            .GroupBy(ps => ps.ProductId)
+            .Select(group => new
+            {
+                ProductId = group.Key,
+                Quantity = group.Count()
+            })
+            .ToListAsync();
+
+        foreach (var item in serialCounts)
+        {
+            if (snapshots.TryGetValue(item.ProductId, out var snapshot) && snapshot.IsSerialTracked)
+            {
+                snapshot.AvailableQuantity = item.Quantity;
+            }
+        }
+
+        var batchTotals = await dbContext.BatchProducts
+            .Where(bp => idList.Contains(bp.ProductId))
+            .GroupBy(bp => bp.ProductId)
+            .Select(group => new
+            {
+                ProductId = group.Key,
+                Quantity = group.Sum(bp => bp.Quantity)
+            })
+            .ToListAsync();
+
+        foreach (var item in batchTotals)
+        {
+            if (snapshots.TryGetValue(item.ProductId, out var snapshot) && !snapshot.IsSerialTracked)
+            {
+                snapshot.AvailableQuantity = item.Quantity;
+            }
+        }
+
+        return snapshots;
+    }
 }

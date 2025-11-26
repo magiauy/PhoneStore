@@ -1,16 +1,19 @@
 using Microsoft.EntityFrameworkCore;
 using PhoneStoreUser.Components.ViewModels;
 using PhoneStoreUser.Data;
+using System.Linq;
 
 namespace PhoneStoreUser.Services;
 
 public class AdminOrderService : IAdminOrderService
 {
     private readonly IDbContextFactory<AppDbContext> _dbContextFactory;
+    private readonly IInventoryService _inventoryService;
 
-    public AdminOrderService(IDbContextFactory<AppDbContext> dbContextFactory)
+    public AdminOrderService(IDbContextFactory<AppDbContext> dbContextFactory, IInventoryService inventoryService)
     {
         _dbContextFactory = dbContextFactory;
+        _inventoryService = inventoryService;
     }
 
     public async Task<List<AdminOrderDto>> GetPendingOrdersAsync(string? statusFilter = null)
@@ -135,22 +138,37 @@ public class AdminOrderService : IAdminOrderService
     public async Task UpdateOrderStatusAsync(int invoiceId, string newStatus)
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-
-        var invoice = await dbContext.Invoices.FirstOrDefaultAsync(i => i.Id == invoiceId);
-        if (invoice == null)
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+        try
         {
-            throw new InvalidOperationException($"Invoice {invoiceId} not found");
-        }
+            var invoice = await dbContext.Invoices.FirstOrDefaultAsync(i => i.Id == invoiceId);
+            if (invoice == null)
+            {
+                throw new InvalidOperationException($"Invoice {invoiceId} not found");
+            }
 
-        // Validate status transitions
-        var validTransitions = GetValidStatusTransitions(invoice.Status, invoice.PaymentMethod);
-        if (!validTransitions.Contains(newStatus))
+            // Validate status transitions
+            var validTransitions = GetValidStatusTransitions(invoice.Status, invoice.PaymentMethod);
+            if (!validTransitions.Contains(newStatus))
+            {
+                throw new InvalidOperationException($"Cannot transition from {invoice.Status} to {newStatus}");
+            }
+
+            invoice.Status = newStatus;
+
+            if (newStatus == "completed")
+            {
+                await AdjustInventoryForInvoiceAsync(dbContext, invoice.Id);
+            }
+
+            await dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch
         {
-            throw new InvalidOperationException($"Cannot transition from {invoice.Status} to {newStatus}");
+            await transaction.RollbackAsync();
+            throw;
         }
-
-        invoice.Status = newStatus;
-        await dbContext.SaveChangesAsync();
     }
 
     public async Task CancelOrderAsync(int invoiceId, string reason)
@@ -315,6 +333,21 @@ public class AdminOrderService : IAdminOrderService
             throw new InvalidOperationException("Order must have at least one item");
         }
 
+        var availabilityLookup = await _inventoryService
+            .GetAvailabilityForProductsAsync(dto.Lines.Select(l => l.ProductId));
+
+        foreach (var line in dto.Lines.Where(l => !l.IsSerialTracked))
+        {
+            var available = availabilityLookup.TryGetValue(line.ProductId, out var snapshot)
+                ? snapshot.AvailableQuantity
+                : 0;
+
+            if (line.Quantity > available)
+            {
+                throw new InvalidOperationException($"S?n ph?m {line.ProductName} ch? c�n {available} s?n ph?m trong kho.");
+            }
+        }
+
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
@@ -456,12 +489,80 @@ public class AdminOrderService : IAdminOrderService
             invoice.FinalAmount = totalAmount; // No discount logic for now
             
             await dbContext.SaveChangesAsync();
+            await AdjustInventoryForInvoiceAsync(dbContext, invoice.Id);
+            await dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
         }
         catch
         {
             await transaction.RollbackAsync();
             throw;
+        }
+    }
+
+    private static async Task AdjustInventoryForInvoiceAsync(AppDbContext dbContext, int invoiceId)
+    {
+        var lines = await dbContext.InvoiceLines
+            .Where(l => l.InvoiceId == invoiceId)
+            .Include(l => l.Product)
+            .Include(l => l.LineSerials)
+                .ThenInclude(ls => ls.ProductSerial)
+            .ToListAsync();
+
+        foreach (var line in lines)
+        {
+            if (line.Product?.IsSerialTracked == true)
+            {
+                foreach (var lineSerial in line.LineSerials)
+                {
+                    var serial = lineSerial.ProductSerial ?? await dbContext.ProductSerials.FindAsync(lineSerial.ProductSerialId);
+                    if (serial == null)
+                    {
+                        continue;
+                    }
+
+                    if (!string.Equals(serial.Status, "sold", StringComparison.OrdinalIgnoreCase))
+                    {
+                        serial.Status = "sold";
+                    }
+                }
+            }
+            else
+            {
+                await DeductBatchQuantityAsync(dbContext, line.ProductId, line.Quantity);
+            }
+        }
+    }
+
+    private static async Task DeductBatchQuantityAsync(AppDbContext dbContext, int productId, int quantity)
+    {
+        if (quantity <= 0)
+        {
+            return;
+        }
+
+        var remaining = quantity;
+        var batchProducts = await dbContext.BatchProducts
+            .Where(bp => bp.ProductId == productId && bp.Quantity > 0)
+            .OrderBy(bp => bp.BatchId)
+            .ThenBy(bp => bp.Id)
+            .ToListAsync();
+
+        foreach (var batchProduct in batchProducts)
+        {
+            if (remaining <= 0)
+            {
+                break;
+            }
+
+            var deduction = Math.Min(batchProduct.Quantity, remaining);
+            batchProduct.Quantity -= deduction;
+            remaining -= deduction;
+        }
+
+        if (remaining > 0)
+        {
+            throw new InvalidOperationException($"Kho kh�ng d? cho s?n ph?m ID {productId}. Thieu {remaining} s?n ph?m.");
         }
     }
 

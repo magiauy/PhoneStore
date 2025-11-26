@@ -1,7 +1,9 @@
+@using System.Linq
 @using PhoneStoreUser.Components.ViewModels
 @using PhoneStoreUser.Services
 @inject IProductCatalogService ProductCatalogService
 @inject IAdminOrderService AdminOrderService
+@inject IInventoryService InventoryService
 @inject IJSRuntime JS
 
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4 backdrop-blur-sm transition-opacity">
@@ -42,7 +44,7 @@
                                     @foreach (var product in SearchResults)
                                     {
                                         <button class="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-blue-50/50 transition-colors border-b border-gray-50 last:border-0"
-                                                @onclick="() => AddProduct(product)">
+                                                @onclick="async () => await AddProduct(product)">
                                             <div>
                                                 <div class="font-medium text-gray-900">@product.Name</div>
                                                 <div class="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
@@ -67,17 +69,50 @@
                     {
                         @foreach (var line in OrderDto.Lines)
                         {
-                            <div class="group relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-blue-200">
+                            // Logic kiểm tra trạng thái tồn kho để đổi màu giao diện
+                            var isOverStock = line.AvailableQuantity >= 0 && line.Quantity > line.AvailableQuantity;
+                            var isOutOfStock = line.AvailableQuantity == 0;
+                            
+                            // Class điều kiện cho viền khung (Border)
+                            var borderClass = isOverStock ? "border-red-300 ring-1 ring-red-100 bg-red-50/30" : "border-gray-200 bg-white hover:border-blue-300";
+
+                            <div class="group relative rounded-xl border p-4 shadow-sm transition-all @borderClass">
+                                
                                 <div class="flex items-start justify-between mb-4">
                                     <div class="flex items-start gap-3">
-                                        <div class="mt-1 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                                        <div class="mt-1 flex h-9 w-9 items-center justify-center rounded-lg @(isOverStock ? "bg-red-100 text-red-600" : "bg-blue-50 text-blue-600")">
                                             <i class="fa-solid fa-mobile-screen"></i>
                                         </div>
+                                        
                                         <div>
-                                            <h4 class="font-semibold text-gray-900">@line.ProductName</h4>
-                                            <p class="text-xs text-gray-500 mt-0.5">SKU: @line.Sku</p>
+                                            <h4 class="font-semibold text-gray-900 leading-tight">@line.ProductName</h4>
+                                            
+                                            <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                                                <span class="text-xs font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">
+                                                    @line.Sku
+                                                </span>
+
+                                                @if (line.AvailableQuantity >= 0)
+                                                {
+                                                    /* Logic màu badge tồn kho */
+                                                    var stockBadgeClass = isOverStock 
+                                                        ? "bg-red-100 text-red-700 border-red-200 font-bold" // Quá tồn
+                                                        : (line.AvailableQuantity < 5 
+                                                            ? "bg-amber-100 text-amber-700 border-amber-200 font-medium" // Sắp hết
+                                                            : "bg-emerald-50 text-emerald-700 border-emerald-100"); // Còn nhiều
+
+                                                    <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] uppercase tracking-wide @stockBadgeClass">
+                                                        @if(isOutOfStock) { <i class="fa-solid fa-circle-xmark"></i> }
+                                                        else if(isOverStock) { <i class="fa-solid fa-triangle-exclamation"></i> }
+                                                        else { <i class="fa-solid fa-box-archive"></i> }
+                                                        
+                                                        <span>Kho: @line.AvailableQuantity</span>
+                                                    </div>
+                                                }
+                                            </div>
                                         </div>
                                     </div>
+
                                     <button @onclick="() => RemoveLine(line)" 
                                             class="h-8 w-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all" 
                                             title="Xóa sản phẩm">
@@ -87,9 +122,9 @@
 
                                 <div class="mt-2 grid grid-cols-12 gap-4 items-end">
                                     
-                                    <div class="col-span-4 sm:col-span-3">
+                                    <div class="col-span-5 sm:col-span-3">
                                         <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Số lượng</label>
-                                        <div class="flex items-center rounded-lg border border-gray-200 bg-white shadow-sm ring-1 ring-gray-900/5 overflow-hidden">
+                                        <div class="flex items-center rounded-lg border bg-white shadow-sm ring-1 ring-gray-900/5 overflow-hidden @(isOverStock ? "border-red-300" : "border-gray-200")">
                                             <button class="flex h-9 w-8 items-center justify-center bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-red-500 transition-colors border-r border-gray-100 disabled:opacity-50"
                                                     disabled="@(line.Quantity <= 1)"
                                                     @onclick="@(() => UpdateQuantity(line, line.Quantity - 1))">
@@ -97,7 +132,7 @@
                                             </button>
 
                                             <input type="number" min="1"
-                                                class="h-9 w-full border-none bg-transparent p-0 text-center text-sm font-semibold text-gray-900 focus:ring-0 appearance-none"
+                                                class="h-9 w-full border-none bg-transparent p-0 text-center text-sm font-semibold focus:ring-0 appearance-none @(isOverStock ? "text-red-600" : "text-gray-900")"
                                                 value="@line.Quantity"
                                                 @onchange="@(e => UpdateQuantity(line, int.Parse(e.Value?.ToString() ?? "1")))" />
 
@@ -108,13 +143,12 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-span-8 sm:col-span-5">
+                                    <div class="col-span-7 sm:col-span-5">
                                         <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Đơn giá</label>
                                         <div class="relative rounded-lg shadow-sm">
                                             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                                 <span class="text-gray-400 sm:text-sm">₫</span>
                                             </div>
-                                            
                                             <input type="number"
                                                 class="block w-full rounded-lg border-gray-200 pl-7 pr-3 py-2 text-right font-mono text-sm font-semibold text-gray-900 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
                                                 placeholder="0"
@@ -130,6 +164,14 @@
                                         </div>
                                     </div>
                                 </div>
+                                
+                                @if (isOverStock)
+                                {
+                                    <div class="mt-3 flex items-center gap-2 text-xs font-medium text-red-600 bg-red-50 p-2 rounded-lg border border-red-100 animate-pulse">
+                                        <i class="fa-solid fa-circle-exclamation"></i>
+                                        <span>Số lượng đặt (@line.Quantity) vượt quá tồn kho hiện tại (@line.AvailableQuantity)!</span>
+                                    </div>
+                                }
 
                                 @if (line.IsSerialTracked)
                                 {
@@ -150,10 +192,10 @@
                                                 var index = i;
                                                 <div class="relative">
                                                     <input type="text"
-                                                           class="w-full rounded border border-blue-200 px-3 py-1.5 pl-8 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none placeholder-blue-300/70 bg-white"
-                                                           placeholder="#@(index + 1) Serial..."
-                                                           value="@(index < line.SerialNumbers.Count ? line.SerialNumbers[index] : "")"
-                                                           @onchange="@(e => UpdateSerial(line, index, e.Value?.ToString()))" />
+                                                        class="w-full rounded border border-blue-200 px-3 py-1.5 pl-8 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none placeholder-blue-300/70 bg-white"
+                                                        placeholder="#@(index + 1) Serial..."
+                                                        value="@(index < line.SerialNumbers.Count ? line.SerialNumbers[index] : "")"
+                                                        @onchange="@(e => UpdateSerial(line, index, e.Value?.ToString()))" />
                                                     <div class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-blue-300">
                                                         <i class="fa-solid fa-qrcode text-[10px]"></i>
                                                     </div>
@@ -387,7 +429,38 @@
         StateHasChanged();
     }
 
-    private void AddProduct(ProductCardViewModel product)
+    private async Task RefreshAvailabilityAsync()
+    {
+        var productIds = OrderDto.Lines.Select(l => l.ProductId).Distinct().ToList();
+        if (!productIds.Any())
+        {
+            return;
+        }
+
+        try
+        {
+            var availability = await InventoryService.GetAvailabilityForProductsAsync(productIds);
+            foreach (var line in OrderDto.Lines)
+            {
+                if (availability.TryGetValue(line.ProductId, out var snapshot))
+                {
+                    line.AvailableQuantity = snapshot.AvailableQuantity;
+                }
+                else
+                {
+                    line.AvailableQuantity = 0;
+                }
+            }
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Khong the cap nhat ton kho: {ex.Message}");
+        }
+    }
+
+    private async Task AddProduct(ProductCardViewModel product)
     {
         if (OrderDto.Lines.Any(l => l.ProductId == product.Id))
         {
@@ -402,11 +475,13 @@
             UnitPrice = product.Price,
             Quantity = 1,
             IsSerialTracked = product.IsSerialTracked,
-            SerialNumbers = new List<string>()
+            SerialNumbers = new List<string>(),
+            AvailableQuantity = -1
         });
 
         SearchTerm = "";
         SearchResults.Clear();
+        await RefreshAvailabilityAsync();
     }
 
     private void RemoveLine(CreateOrderLineDto line)
@@ -545,6 +620,10 @@
                     }
                     // Update the list to remove any potential empty slots if logic was weird, but here we just use the filled ones
                     line.SerialNumbers = filledSerials;
+                }
+                else if (line.AvailableQuantity >= 0 && line.Quantity > line.AvailableQuantity)
+                {
+                    throw new Exception($"San pham {line.ProductName} chi con {line.AvailableQuantity} san pham trong kho.");
                 }
             }
 
