@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PhoneStoreUser.Data;
@@ -28,15 +30,24 @@ public class PayOSCallbackController : ControllerBase
     /// Called by PayOS when payment status changes
     /// </summary>
     [HttpPost("callback")]
-    public async Task<IActionResult> HandleCallback([FromBody] dynamic data)
+    public async Task<IActionResult> HandleCallback([FromBody] JsonElement payload)
     {
         try
         {
             // TODO: Extract signature from headers and verify
             // For now, we'll trust the callback (should implement signature verification in production)
 
-            string orderCode = data.orderCode?.ToString() ?? "";
-            string status = data.status?.ToString() ?? "";
+            var orderCode = ResolveValue(payload, "orderCode")
+                ?? (payload.ValueKind == JsonValueKind.Object && payload.TryGetProperty("data", out var dataElement)
+                    ? ResolveValue(dataElement, "orderCode")
+                    : null)
+                ?? string.Empty;
+
+            var status = ResolveValue(payload, "status")
+                ?? (payload.ValueKind == JsonValueKind.Object && payload.TryGetProperty("data", out var dataElement2)
+                    ? ResolveValue(dataElement2, "status")
+                    : null)
+                ?? string.Empty;
 
             if (string.IsNullOrEmpty(orderCode))
             {
@@ -56,8 +67,12 @@ public class PayOSCallbackController : ControllerBase
 
             if (invoice == null)
             {
-                _logger.LogWarning("Invoice not found: {InvoiceId}", invoiceId);
-                return NotFound("Invoice not found");
+                _logger.LogInformation("Received PayOS callback for non-existent invoice {InvoiceId}", invoiceId);
+                return Ok(new
+                {
+                    success = false,
+                    message = "Invoice not found"
+                });
             }
 
             // Update status based on PayOS payment result
@@ -82,6 +97,39 @@ public class PayOSCallbackController : ControllerBase
     }
 
     /// <summary>
+    /// Simple GET endpoint so PayOS can ping the webhook URL to verify reachability.
+    /// </summary>
+    [HttpGet("callback")]
+    public IActionResult CallbackHealthCheck()
+    {
+        return Ok(new { success = true });
+    }
+
+    private static string? ResolveValue(JsonElement element, string property)
+    {
+        if (element.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        if (!element.TryGetProperty(property, out var valueElement))
+        {
+            return null;
+        }
+
+        return valueElement.ValueKind switch
+        {
+            JsonValueKind.String => valueElement.GetString(),
+            JsonValueKind.Number => valueElement.TryGetInt64(out var longValue)
+                ? longValue.ToString(CultureInfo.InvariantCulture)
+                : valueElement.GetRawText(),
+            JsonValueKind.True => bool.TrueString,
+            JsonValueKind.False => bool.FalseString,
+            _ => valueElement.GetRawText()
+        };
+    }
+
+    /// <summary>
     /// Return URL where PayOS redirects user after payment
     /// </summary>
     [HttpGet("return")]
@@ -90,29 +138,74 @@ public class PayOSCallbackController : ControllerBase
         [FromQuery] string? status,
         [FromQuery] bool? cancel)
     {
-        if (string.IsNullOrEmpty(orderCode))
+        if (string.IsNullOrEmpty(orderCode) || !int.TryParse(orderCode, out var invoiceId))
         {
             return Redirect("/order-error");
         }
 
-        // Extract invoice ID from order code
-        if (int.TryParse(orderCode, out int invoiceId))
+        _ = Task.Run(async () =>
         {
-            var redirectUrl = $"/order-success?OrderId={invoiceId}";
-
-            if (cancel == true)
+            try
             {
-                redirectUrl += "&Cancel=true";
+                await UpdateInvoiceStatusFromReturnAsync(invoiceId, status, cancel);
             }
-
-            if (!string.IsNullOrEmpty(status))
+            catch (Exception ex)
             {
-                redirectUrl += $"&Status={status}";
+                _logger.LogWarning(ex, "Failed to update invoice {InvoiceId} status from return URL", invoiceId);
             }
+        });
 
-            return Redirect(redirectUrl);
+        var redirectUrl = $"/order-success?OrderId={invoiceId}";
+
+        if (cancel == true)
+        {
+            redirectUrl += "&Cancel=true";
         }
 
-        return Redirect("/order-error");
+        if (!string.IsNullOrEmpty(status))
+        {
+            redirectUrl += $"&Status={status}";
+        }
+
+        return Redirect(redirectUrl);
+    }
+
+    private async Task UpdateInvoiceStatusFromReturnAsync(int invoiceId, string? status, bool? cancel)
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        var invoice = await dbContext.Invoices.FindAsync(invoiceId);
+
+        if (invoice == null)
+        {
+            _logger.LogInformation("Return URL hit for non-existent invoice {InvoiceId}", invoiceId);
+            return;
+        }
+
+        var normalizedStatus = cancel == true
+            ? "cancelled"
+            : status?.ToLowerInvariant();
+
+        if (string.IsNullOrEmpty(normalizedStatus))
+        {
+            // If no explicit status, ask PayOS to confirm
+            var isPaid = await _payOSService.VerifyPaymentStatusAsync(invoiceId);
+            normalizedStatus = isPaid ? "paid" : null;
+        }
+        else
+        {
+            normalizedStatus = normalizedStatus switch
+            {
+                "paid" or "success" => "paid",
+                "cancelled" or "canceled" => "cancelled",
+                _ => normalizedStatus
+            };
+        }
+
+        if (!string.IsNullOrEmpty(normalizedStatus) && !string.Equals(invoice.Status, normalizedStatus, StringComparison.OrdinalIgnoreCase))
+        {
+            invoice.Status = normalizedStatus;
+            await dbContext.SaveChangesAsync();
+            _logger.LogInformation("Updated invoice {InvoiceId} status to {Status} from return URL", invoiceId, invoice.Status);
+        }
     }
 }

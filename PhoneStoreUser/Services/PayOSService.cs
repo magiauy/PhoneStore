@@ -34,11 +34,22 @@ public class PayOSService : IPayOSService
         string buyerName,
         string buyerEmail,
         string buyerPhone,
-        string buyerAddress)
+        string buyerAddress,
+        IReadOnlyCollection<PhoneStoreUser.Components.Models.CartItem> items)
     {
         try
         {
-            int amountInt = (int)amount; // Convert to integer first
+            // Use detailed line items to build both the PayOS payload and the total amount
+            var itemPayloads = items.Select(i => new
+            {
+                name = i.Product.Name,
+                quantity = i.Quantity,
+                price = (int)i.Product.Price
+            }).ToList();
+
+            var amountInt = itemPayloads.Sum(i => i.price * i.quantity);
+
+            var expiredAt = DateTimeOffset.UtcNow.AddMinutes(30).ToUnixTimeSeconds();
 
             // Build signature data string according to PayOS format
             // Must use integer amount in signature, sorted alphabetically
@@ -50,19 +61,12 @@ public class PayOSService : IPayOSService
                 orderCode = orderCode,
                 amount = amountInt,
                 description = description,
+                expiredAt = expiredAt,
                 buyerName = buyerName,
                 buyerEmail = buyerEmail,
                 buyerPhone = buyerPhone,
                 buyerAddress = buyerAddress,
-                items = new[]
-                {
-                    new
-                    {
-                        name = description,
-                        quantity = 1,
-                        price = amountInt
-                    }
-                },
+                items = itemPayloads,
                 cancelUrl = _config.ReturnUrl,
                 returnUrl = _config.ReturnUrl,
                 signature = signature
