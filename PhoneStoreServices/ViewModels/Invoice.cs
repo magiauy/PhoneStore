@@ -120,5 +120,16 @@ namespace PhoneStore.Services.ViewModels
             Info = info;
         }
     }
+
+    /// <summary>
+    /// ViewModel for top selling product statistics
+    /// </summary>
+    public class TopProductStatViewModel
+    {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; } = string.Empty;
+        public int QuantitySold { get; set; }
+        public decimal TotalRevenue { get; set; }
+    }
 }
 

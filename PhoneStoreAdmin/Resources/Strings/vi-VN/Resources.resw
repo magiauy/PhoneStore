@@ -2209,6 +2209,127 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="Reports_ChartTooltip_Orders" xml:space="preserve">
     <value>đơn hàng</value>
   </data>
+  <!-- Sales Statistics -->
+  <data name="Reports_TotalInvoicesLabel.Text" xml:space="preserve">
+    <value>Tổng hóa đơn</value>
+  </data>
+  <data name="Reports_TotalRevenueLabel.Text" xml:space="preserve">
+    <value>Doanh thu</value>
+  </data>
+  <data name="Reports_PaidInvoicesLabel.Text" xml:space="preserve">
+    <value>Đã thanh toán</value>
+  </data>
+  <data name="Reports_PendingInvoicesLabel.Text" xml:space="preserve">
+    <value>Chờ xử lý</value>
+  </data>
+  <data name="Reports_SalesMonthlyTrendTitle.Text" xml:space="preserve">
+    <value>Xu hướng doanh thu theo tháng</value>
+  </data>
+  <data name="Reports_TopCustomersTitle.Text" xml:space="preserve">
+    <value>Khách hàng hàng đầu</value>
+  </data>
+  <data name="Reports_TopProductsTitle.Text" xml:space="preserve">
+    <value>Sản phẩm bán chạy</value>
+  </data>
+  <data name="Reports_InvoicesCount.Text" xml:space="preserve">
+    <value>hóa đơn</value>
+  </data>
+  <data name="Reports_UnitsSold.Text" xml:space="preserve">
+    <value>sản phẩm đã bán</value>
+  </data>
+  <data name="Reports_PendingStatus.Content" xml:space="preserve">
+    <value>Chờ xử lý</value>
+  </data>
+  <data name="Reports_UnpaidStatus.Content" xml:space="preserve">
+    <value>Chưa thanh toán</value>
+  </data>
+  <data name="Reports_PaidStatus.Content" xml:space="preserve">
+    <value>Đã thanh toán</value>
+  </data>
+  <data name="Reports_CompletedStatus.Content" xml:space="preserve">
+    <value>Hoàn thành</value>
+  </data>
+  <data name="Reports_ExportExcelButton.Text" xml:space="preserve">
+    <value>Xuất Excel</value>
+  </data>
+  <data name="Reports_ExportSuccess" xml:space="preserve">
+    <value>Thành công</value>
+  </data>
+  <data name="Reports_ExportSuccessMessage" xml:space="preserve">
+    <value>Xuất báo cáo Excel thành công!</value>
+  </data>
+  <data name="Reports_ExportError" xml:space="preserve">
+    <value>Lỗi</value>
+  </data>
+  <data name="Reports_ExportErrorMessage" xml:space="preserve">
+    <value>Không thể xuất báo cáo</value>
+  </data>
+  <data name="Reports_NoDataToExport" xml:space="preserve">
+    <value>Không có dữ liệu để xuất</value>
+  </data>
+  <data name="Reports_PurchaseOrdersReportTitle" xml:space="preserve">
+    <value>BÁO CÁO ĐƠN NHẬP HÀNG</value>
+  </data>
+  <data name="Reports_SalesReportTitle" xml:space="preserve">
+    <value>BÁO CÁO BÁN HÀNG</value>
+  </data>
+  <data name="Reports_OrderIdHeader" xml:space="preserve">
+    <value>Mã đơn</value>
+  </data>
+  <data name="Reports_SupplierHeader" xml:space="preserve">
+    <value>Nhà cung cấp</value>
+  </data>
+  <data name="Reports_OrderDateHeader" xml:space="preserve">
+    <value>Ngày đặt</value>
+  </data>
+  <data name="Reports_ReceivedDateHeader" xml:space="preserve">
+    <value>Ngày nhận</value>
+  </data>
+  <data name="Reports_StatusHeader" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="Reports_TotalAmountHeader" xml:space="preserve">
+    <value>Tổng tiền</value>
+  </data>
+  <data name="Reports_CreatedByHeader" xml:space="preserve">
+    <value>Người tạo</value>
+  </data>
+  <data name="Reports_TotalLabel" xml:space="preserve">
+    <value>TỔNG CỘNG:</value>
+  </data>
+  <data name="Reports_InvoiceIdHeader" xml:space="preserve">
+    <value>Mã hóa đơn</value>
+  </data>
+  <data name="Reports_CustomerHeader" xml:space="preserve">
+    <value>Khách hàng</value>
+  </data>
+  <data name="Reports_InvoiceDateHeader" xml:space="preserve">
+    <value>Ngày tạo</value>
+  </data>
+  <data name="Reports_PaymentMethodHeader" xml:space="preserve">
+    <value>Thanh toán</value>
+  </data>
+  <data name="Reports_CashPayment" xml:space="preserve">
+    <value>Tiền mặt</value>
+  </data>
+  <data name="Reports_CreditCardPayment" xml:space="preserve">
+    <value>Thẻ tín dụng</value>
+  </data>
+  <data name="Reports_BankTransferPayment" xml:space="preserve">
+    <value>Chuyển khoản</value>
+  </data>
+  <data name="Reports_EWalletPayment" xml:space="preserve">
+    <value>Ví điện tử</value>
+  </data>
+  <data name="Reports_DeliveringStatus" xml:space="preserve">
+    <value>Đang giao</value>
+  </data>
+  <data name="Reports_RefundedStatus" xml:space="preserve">
+    <value>Đã hoàn tiền</value>
+  </data>
+  <data name="Reports_NoteHeader" xml:space="preserve">
+    <value>Ghi chú</value>
+  </data>
   <data name="HeaderTitleProduct.Text" xml:space="preserve">
     <value>Quản lý sản phẩm</value>
   </data>
