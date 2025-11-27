@@ -2839,6 +2839,15 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="InvoiceStatus_CANCELLED" xml:space="preserve">
     <value>Đã hủy</value>
   </data>
+    <data name="InvoiceStatus_COMPLETED" xml:space="preserve">
+    <value>Đã hoàn thành</value>
+  </data>
+  <data name="InvoiceStatus_DELIVERING" xml:space="preserve">
+    <value>Đang giao hàng</value>
+  </data>
+    <data name="InvoiceStatus_PENDING" xml:space="preserve">
+    <value>Đang chờ xử lý</value>
+  </data>
   <data name="BtnFilterInvoice.Text" xml:space="preserve">
     <value>Lọc</value>
   </data>
@@ -2895,5 +2904,11 @@ Bạn muốn thêm bao nhiêu máy?</value>
   </data>
   <data name="DialogAddInvoice" xml:space="preserve">
     <value>Thêm</value>
+  </data>
+  <data name="Sales_HeaderTitle.Text" xml:space="preserve">
+    <value>Bán Hàng</value>
+  </data>
+  <data name="Sales_HeaderSubtitle.Text" xml:space="preserve">
+    <value>Tạo đơn hàng và thanh toán</value>
   </data>
 </root>

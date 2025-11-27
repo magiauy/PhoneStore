@@ -2839,6 +2839,15 @@ How many devices do you want to add?</value>
   <data name="InvoiceStatus_CANCELLED" xml:space="preserve">
     <value>Cancelled</value>
   </data>
+      <data name="InvoiceStatus_COMPLETED" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="InvoiceStatus_DELIVERING" xml:space="preserve">
+    <value>Delivering</value>
+  </data>
+    <data name="InvoiceStatus_PENDING" xml:space="preserve">
+    <value>Pending</value>
+  </data>
   <data name="BtnFilterInvoice.Text" xml:space="preserve">
     <value>Filter</value>
   </data>
@@ -2895,5 +2904,11 @@ How many devices do you want to add?</value>
   </data>
   <data name="DialogAddInvoice" xml:space="preserve">
     <value>Add</value>
+  </data>
+  <data name="Sales_HeaderTitle.Text" xml:space="preserve">
+    <value>Sales</value>
+  </data>
+  <data name="Sales_HeaderSubtitle.Text" xml:space="preserve">
+    <value>Create orders and process payments</value>
   </data>
 </root>
