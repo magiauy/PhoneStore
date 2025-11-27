@@ -62,6 +62,7 @@ namespace PhoneStore.Services
             RegisterSingleton<IPermissionRepository>(() => new PermissionRepository(GetService<DataSource>()));
             RegisterSingleton<IInvoiceRepository>(() => new InvoiceRepository(ServiceContainer.GetService<DataSource>()));
             RegisterSingleton<IInvoiceLineRepository>(() => new InvoiceLineRepository(ServiceContainer.GetService<DataSource>()));
+            RegisterSingleton<IInvoiceLineSerialRepository>(() => new InvoiceLineSerialRepository(ServiceContainer.GetService<DataSource>()));
             // Register services
             RegisterSingleton<IPromotionCodeService>(() => new PromotionCodeService(GetService<IPromotionCodeRepository>(), GetService<IPromotionRepository>()      ));
             RegisterSingleton<IAuthService>(() => new AuthService(GetService<IAuthRepository>()));
@@ -107,7 +108,10 @@ namespace PhoneStore.Services
                 GetService<IPersonRepository>(),
                 GetService<IEmployeeRepository>(),
                 GetService<ISupplierRepository>(),
-                GetService<IInvoiceLineRepository>()
+                GetService<IInvoiceLineRepository>(),
+                GetService<IProductSerialRepository>(),
+                GetService<IBatchProductRepository>(),
+                GetService<IInvoiceLineSerialRepository>()
             ));
 
             // Register UserSession singleton
