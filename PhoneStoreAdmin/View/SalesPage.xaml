@@ -130,11 +130,11 @@
                 <Grid Grid.Row="0" Margin="0,0,0,16" ColumnDefinitions="*, Auto, Auto, Auto" ColumnSpacing="12">
                     
                     <StackPanel Grid.Column="0" Spacing="4">
-                        <TextBlock Text="Tìm kiếm" Style="{ThemeResource CaptionTextBlockStyle}"/>
+                        <TextBlock x:Uid="Sales_SearchLabel" Style="{ThemeResource CaptionTextBlockStyle}"/>
                         <Grid>
                             <TextBox
                                 x:Name="SearchTextBox"
-                                PlaceholderText="Tìm tên sản phẩm..."
+                                x:Uid="Sales_SearchTextBox"
                                 Padding="36,10,10,10"
                                 TextChanged="{x:Bind OnSearchTextChanged}" />
                             <FontIcon 
@@ -151,18 +151,16 @@
                         x:Name="CategoryComboBox"
                         Grid.Column="1"
                         MinWidth="140"
-                        Header="Danh mục"
+                        x:Uid="Sales_CategoryComboBox"
                         ItemsSource="{x:Bind Categories, Mode=OneWay}"
-                        PlaceholderText="Tất cả"
                         SelectionChanged="{x:Bind OnCategorySelectionChanged}" />
 
                     <ComboBox
                         x:Name="BrandComboBox"
                         Grid.Column="2"
                         MinWidth="140"
-                        Header="Thương hiệu"
+                        x:Uid="Sales_BrandComboBox"
                         ItemsSource="{x:Bind Brands, Mode=OneWay}"
-                        PlaceholderText="Tất cả"
                         SelectionChanged="{x:Bind OnBrandSelectionChanged}" />
 
                     <Button
@@ -171,7 +169,7 @@
                         VerticalAlignment="Bottom"
                         Margin="0,0,0,1"
                         Click="{x:Bind OnRefreshFilters}"
-                        ToolTipService.ToolTip="Làm mới bộ lọc">
+                        x:Uid="Sales_RefreshFilterButton">
                         <FontIcon Glyph="&#xE72C;" />
                     </Button>
                 </Grid>
@@ -263,7 +261,7 @@
                                             Click="{x:Bind AddToInvoice}"
                                             Style="{ThemeResource AccentButtonStyle}"
                                             Background="{ThemeResource BrushPrimary}"
-                                            ToolTipService.ToolTip="Thêm vào hóa đơn">
+                                            x:Uid="Sales_AddToInvoiceButton">
                                             <FontIcon FontSize="14" Glyph="&#xE710;" />
                                         </Button>
                                     </StackPanel>
@@ -293,7 +291,7 @@
                        <StackPanel Grid.Row="0" Spacing="16">
                             <Grid ColumnDefinitions="*,Auto">
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Hóa đơn" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                                    <TextBlock x:Uid="Sales_InvoiceTitle" Style="{ThemeResource SubtitleTextBlockStyle}" />
                                     <TextBlock
                                         Text="{x:Bind sys:String.Format(x:Null, '#{0}', InvoiceNumber)}"
                                         Style="{ThemeResource CaptionTextBlockStyle}"
@@ -306,7 +304,7 @@
                                     VerticalAlignment="Top"
                                     Click="{x:Bind OnClearInvoice}"
                                     Style="{ThemeResource SubtleButtonStyle}"
-                                    ToolTipService.ToolTip="Xóa làm mới">
+                                    x:Uid="Sales_ClearInvoiceButton">
                                     <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
                                 </Button>
                             </Grid>
@@ -318,9 +316,8 @@
         <TextBox
             x:Name="CustomerPhoneTextBox"
             Grid.Column="0"
-            Header="Số điện thoại"
+            x:Uid="Sales_CustomerPhoneTextBox"
             InputScope="Number"
-            PlaceholderText="Nhập SĐT khách hàng..."
             Text="{x:Bind CustomerPhone, Mode=TwoWay}"
             TextChanged="{x:Bind OnCheckPhoneNumberChanged}" />
 
@@ -330,9 +327,9 @@
             Click="{x:Bind OnCheckPhoneNumberClick}"
             Style="{ThemeResource AccentButtonStyle}"
             Background="{ThemeResource BrushPrimary}"
-            ToolTipService.ToolTip="Kiểm tra khách hàng">
+            x:Uid="Sales_CheckCustomerButton">
             <StackPanel Orientation="Horizontal" Spacing="6">
-                <FontIcon FontSize="14" Glyph="&#xE721;" /> <TextBlock Text="Kiểm tra"/>
+                <FontIcon FontSize="14" Glyph="&#xE721;" /> <TextBlock x:Uid="Sales_CheckButtonText"/>
             </StackPanel>
         </Button>
     </Grid>
@@ -354,9 +351,9 @@
                     Foreground="{ThemeResource SystemFillColorSuccessBrush}"
                     Glyph="&#xE930;" /> <StackPanel Grid.Column="1" Margin="12,0,0,0">
                     <TextBlock
+                        x:Uid="Sales_CustomerFoundMessage"
                         Foreground="{ThemeResource SystemFillColorSuccessBrush}"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        Text="Đã tìm thấy khách hàng thành viên" />
+                        Style="{ThemeResource CaptionTextBlockStyle}" />
                     <TextBlock
                         Style="{ThemeResource BodyStrongTextBlockStyle}"
                         Text="{x:Bind ExistingCustomerName, Mode=OneWay}" />
@@ -366,14 +363,13 @@
 
         <TextBox
             x:Name="CustomerNameTextBox"
-            Header="Tên khách hàng"
-            PlaceholderText="Nhập tên khách hàng mới"
+            x:Uid="Sales_CustomerNameTextBox"
             Text="{x:Bind CustomerName, Mode=TwoWay}"
             Visibility="{x:Bind ManualCustomerNameVisibility, Mode=OneWay}" />
     </StackPanel>
 </StackPanel>
                             
-                            <TextBlock Text="Sản phẩm" Style="{ThemeResource BodyStrongTextBlockStyle}" Margin="0,8,0,0"/>
+                            <TextBlock x:Uid="Sales_ProductsLabel" Style="{ThemeResource BodyStrongTextBlockStyle}" Margin="0,8,0,0"/>
                         </StackPanel>
 
                         <ListView
@@ -474,7 +470,7 @@
                     Margin="0,6,0,0">
                     <StackPanel Spacing="6">
                         <TextBlock
-                            Text="SERIAL / IMEI"
+                            x:Uid="Sales_SerialImeiLabel"
                             FontWeight="SemiBold"
                             FontSize="12"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
@@ -536,16 +532,16 @@
                                 Padding="16">
                                 <StackPanel Spacing="8">
                                     <Grid>
-                                        <TextBlock Text="Tạm tính" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBlock x:Uid="Sales_SubtotalLabel" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                         <TextBlock Text="{x:Bind FormatPrice(Subtotal), Mode=OneWay}" HorizontalAlignment="Right"/>
                                     </Grid>
                                     <Grid>
-                                        <TextBlock Text="VAT (10%)" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBlock x:Uid="Sales_VatLabel" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                         <TextBlock Text="{x:Bind FormatPrice(VatAmount), Mode=OneWay}" HorizontalAlignment="Right"/>
                                     </Grid>
                                     <Rectangle Height="1" Fill="{ThemeResource SurfaceStrokeColorDefaultBrush}" Margin="0,4"/>
                                     <Grid>
-                                        <TextBlock Text="TỔNG CỘNG" Style="{ThemeResource BodyStrongTextBlockStyle}" VerticalAlignment="Center"/>
+                                        <TextBlock x:Uid="Sales_TotalLabel" Style="{ThemeResource BodyStrongTextBlockStyle}" VerticalAlignment="Center"/>
                                         <TextBlock
                                             Text="{x:Bind FormatPrice(Total), Mode=OneWay}"
                                             Style="{ThemeResource TitleTextBlockStyle}"
@@ -564,7 +560,7 @@
                                 Height="44">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE8A7;" />
-                                    <TextBlock Text="THANH TOÁN NGAY" FontWeight="SemiBold" />
+                                    <TextBlock x:Uid="Sales_PayNowButtonText" FontWeight="SemiBold" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>

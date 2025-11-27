@@ -204,7 +204,7 @@ namespace PhoneStoreAdmin.View
         }
 
         public string HeaderDescriptionText => string.IsNullOrWhiteSpace(HeaderSubtitle)
-            ? "Subtitle hiển thị ở đây"
+            ? _resourceLoader.GetString("ProductManagement_SubtitlePlaceholder") ?? "Subtitle"
             : HeaderSubtitle;
 
         public string SelectedProductSummary
@@ -226,9 +226,10 @@ namespace PhoneStoreAdmin.View
             get
             {
                 var product = SelectedProductDetail?.Product;
+                var placeholder = _resourceLoader.GetString("ProductManagement_VariationPlaceholder") ?? "128GB - Black";
                 if (product == null)
                 {
-                    return "128GB - Black";
+                    return placeholder;
                 }
 
                 var parts = new List<string>();
@@ -247,11 +248,12 @@ namespace PhoneStoreAdmin.View
                     parts.Add(product.Sku);
                 }
 
-                return parts.Count == 0 ? "128GB - Black" : string.Join(" • ", parts);
+                return parts.Count == 0 ? placeholder : string.Join(" • ", parts);
             }
         }
 
-        public string SelectedStatusText => SelectedProductDetail?.Product?.StatusText ?? "Đang bán";
+        public string SelectedStatusText => SelectedProductDetail?.Product?.StatusText 
+            ?? (_resourceLoader.GetString("ProductManagement_StatusPlaceholder") ?? "Active");
 
         public string SerialCountStat
         {
