@@ -1,6 +1,6 @@
-using PhoneStoreRepository.Models;
-using MySqlConnector;
 using System.Collections.Generic;
+using MySqlConnector;
+using PhoneStoreRepository.Models;
 
 namespace PhoneStoreRepository.Repositories.Interfaces
 {
@@ -29,5 +29,7 @@ namespace PhoneStoreRepository.Repositories.Interfaces
         /// Delete batch products by batch ID using an existing transaction
         /// </summary>
         void DeleteByBatchId(int batchId, MySqlConnection connection, MySqlTransaction transaction);
+
+        IDictionary<int, int> GetQuantitiesByProductIds(IEnumerable<int> productIds);
     }
 }
