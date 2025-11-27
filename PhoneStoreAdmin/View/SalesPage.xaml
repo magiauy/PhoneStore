@@ -6,10 +6,13 @@
     xmlns:globalization="using:System.Globalization"
     xmlns:local="using:PhoneStoreAdmin.View"
     xmlns:sys="using:System"
+    xmlns:converters="using:PhoneStoreAdmin.View.Converters"
     Background="{ThemeResource LayerFillColorDefaultBrush}">
 
     <Page.Resources>
         <ThemeShadow x:Key="SharedShadow" />
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <SolidColorBrush x:Key="SerialFieldBackgroundBrush" Color="#FFFDF4D1" />
 
         <Style x:Key="ProductItemContainerStyle" TargetType="ListViewItem">
             <Setter Property="Padding" Value="0" />
@@ -290,88 +293,133 @@
     SelectionMode="None">
     <ListView.ItemTemplate>
         <DataTemplate x:DataType="local:InvoiceLineItem">
-            <Grid Margin="0,0,0,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="110" />
-                    <ColumnDefinition Width="110" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+            <StackPanel Margin="0,0,0,8" Spacing="4">
+                <Grid Margin="0,0,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="110" />
+                        <ColumnDefinition Width="110" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0">
-                    <TextBlock
-                        Style="{ThemeResource BodyTextBlockStyle}"
-                        Text="{x:Bind ProductName}"
-                        TextTrimming="CharacterEllipsis" />
-                    <TextBlock
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        Text="{x:Bind FormatPrice(UnitPrice)}" />
-                </StackPanel>
-
-                <StackPanel
-                    Grid.Column="1"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal"
-                    Spacing="4">
-                    
-                    <Button
-                        Width="32"
-                        Height="32"
-                        Padding="0"
-                        Click="{x:Bind DecreaseQuantity}"
-                        CornerRadius="16"
-                        IsEnabled="{x:Bind CanDecrease, Mode=OneWay}"
-                        Style="{ThemeResource SubtleButtonStyle}">
-                        <FontIcon FontSize="12" Glyph="&#xE738;" />
-                    </Button>
-
-                    <Border
-                        MinWidth="24"
-                        Padding="4,0"
-                        Background="{ThemeResource LayerFillColorDefaultBrush}"
-                        CornerRadius="4">
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0">
                         <TextBlock
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            FontSize="13"
-                            FontWeight="SemiBold"
-                            Text="{x:Bind Quantity, Mode=OneWay}" />
-                    </Border>
+                            Style="{ThemeResource BodyTextBlockStyle}"
+                            Text="{x:Bind ProductName}"
+                            TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="{x:Bind FormatPrice(UnitPrice)}" />
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Column="1"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="4">
+
+                        <Button
+                            Width="32"
+                            Height="32"
+                            Padding="0"
+                            Click="{x:Bind DecreaseQuantity}"
+                            CornerRadius="16"
+                            IsEnabled="{x:Bind CanDecrease, Mode=OneWay}"
+                            Style="{ThemeResource SubtleButtonStyle}">
+                            <FontIcon FontSize="12" Glyph="&#xE738;" />
+                        </Button>
+
+                        <Border
+                            MinWidth="24"
+                            Padding="4,0"
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"
+                            CornerRadius="4">
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Text="{x:Bind Quantity, Mode=OneWay}" />
+                        </Border>
+
+                        <Button
+                            Width="32"
+                            Height="32"
+                            Padding="0"
+                            Click="{x:Bind IncreaseQuantity}"
+                            CornerRadius="16"
+                            IsEnabled="{x:Bind CanIncrease, Mode=OneWay}"
+                            Style="{ThemeResource SubtleButtonStyle}">
+                            <FontIcon FontSize="12" Glyph="&#xE710;" />
+                        </Button>
+                    </StackPanel>
+
+                    <TextBlock
+                        Grid.Column="2"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                        Text="{x:Bind FormatPrice(TotalPrice), Mode=OneWay}" />
 
                     <Button
-                        Width="32"
-                        Height="32"
-                        Padding="0"
-                        Click="{x:Bind IncreaseQuantity}"
-                        CornerRadius="16"
+                        Grid.Column="3"
+                        Margin="8,0,0,0"
+                        Padding="6"
+                        Click="{x:Bind RemoveFromInvoice}"
                         Style="{ThemeResource SubtleButtonStyle}">
-                        <FontIcon FontSize="12" Glyph="&#xE710;" />
+                        <FontIcon Glyph="&#xE711;" FontSize="10" />
                     </Button>
-                </StackPanel>
+                </Grid>
 
-                <TextBlock
-                    Grid.Column="2"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
-                    Style="{ThemeResource BodyStrongTextBlockStyle}"
-                    Text="{x:Bind FormatPrice(TotalPrice), Mode=OneWay}" />
-
-                <Button
-                    Grid.Column="3"
-                    Margin="8,0,0,0"
-                    Padding="6"
-                    Click="{x:Bind RemoveFromInvoice}"
-                    Style="{ThemeResource SubtleButtonStyle}"
-                    ToolTipService.ToolTip="Xóa khỏi hóa đơn">
-                    <FontIcon
-                        FontSize="12"
-                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                        Glyph="&#xE74D;" />
-                </Button>
-            </Grid>
+                <Border
+                    Visibility="{x:Bind IsSerialTracked, Converter={StaticResource BoolToVisibilityConverter}}"
+                    Background="{StaticResource SerialFieldBackgroundBrush}"
+                    BorderBrush="{x:Bind SerialContainerBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="12"
+                    Margin="0,6,0,0">
+                    <StackPanel Spacing="6">
+                        <TextBlock
+                            Text="SERIAL / IMEI"
+                            FontWeight="SemiBold"
+                            FontSize="12"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <ItemsControl ItemsSource="{x:Bind SerialEntries}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="local:SerialEntryViewModel">
+                                    <StackPanel Margin="0,4,0,0" Spacing="4">
+                                        <Grid ColumnDefinitions="*, Auto" ColumnSpacing="8">
+                                            <TextBox
+                                                PlaceholderText="Nhập serial..."
+                                                Text="{x:Bind SerialInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                BorderBrush="{x:Bind BorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="4"
+                                                LostFocus="{x:Bind OnLostFocus}" />
+                                            <FontIcon
+                                                Grid.Column="1"
+                                                Glyph="&#xE73E;"
+                                                Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                                VerticalAlignment="Center"
+                                                Visibility="{x:Bind IconVisibility}" />
+                                        </Grid>
+                                        <TextBlock
+                                            Text="{x:Bind Message}"
+                                            Foreground="{x:Bind MessageForeground}"
+                                            Visibility="{x:Bind MessageVisibility}"
+                                            FontSize="11" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
         </DataTemplate>
+
     </ListView.ItemTemplate>
 </ListView>
 
