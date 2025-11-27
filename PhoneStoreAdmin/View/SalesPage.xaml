@@ -390,27 +390,42 @@
                         <ItemsControl ItemsSource="{x:Bind SerialEntries}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="local:SerialEntryViewModel">
-                                    <StackPanel Margin="0,4,0,0" Spacing="4">
-                                        <Grid ColumnDefinitions="*, Auto" ColumnSpacing="8">
+                                    <StackPanel Margin="0,4,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
                                             <TextBox
-                                                PlaceholderText="Nhập serial..."
+                                                Grid.Column="0"
+                                                Grid.ColumnSpan="2"
+                                                PlaceholderText="{x:Bind PlaceholderText}"
                                                 Text="{x:Bind SerialInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                BorderBrush="{x:Bind BorderBrush}"
+                                                BorderBrush="{x:Bind BorderBrush, Mode=OneWay}"
                                                 BorderThickness="1"
                                                 CornerRadius="4"
-                                                LostFocus="{x:Bind OnLostFocus}" />
+                                                LostFocus="{x:Bind OnLostFocus}"
+                                                Padding="10,8,30,8"/>
                                             <FontIcon
                                                 Grid.Column="1"
-                                                Glyph="&#xE73E;"
-                                                Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                                Glyph="{x:Bind StatusIcon, Mode=OneWay}"
+                                                Foreground="{x:Bind StatusColor, Mode=OneWay}"
+                                                FontSize="12"
+                                                Margin="0,0,10,0"
+                                                HorizontalAlignment="Right"
                                                 VerticalAlignment="Center"
-                                                Visibility="{x:Bind IconVisibility}" />
+                                                IsHitTestVisible="False"
+                                                Visibility="{x:Bind IconVisibility, Mode=OneWay}" />
                                         </Grid>
+
                                         <TextBlock
-                                            Text="{x:Bind Message}"
-                                            Foreground="{x:Bind MessageForeground}"
-                                            Visibility="{x:Bind MessageVisibility}"
-                                            FontSize="11" />
+                                            Text="{x:Bind Message, Mode=OneWay}"
+                                            Foreground="{StaticResource SystemFillColorCriticalBrush}"
+                                            Visibility="{x:Bind MessageVisibility, Mode=OneWay}"
+                                            FontSize="11"
+                                            Margin="2,2,0,0"
+                                            TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
