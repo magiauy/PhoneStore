@@ -211,6 +211,90 @@ namespace PhoneStore.Services.Implementations
             }
         }
 
+        public async Task<EmployeeResult> GetEmployeesFilteredAsync(string? searchTerm, int page = 1, int pageSize = 10, EmployeeFilterCriteria? filterCriteria = null)
+        {
+            try
+            {
+                Logger.Info($"Getting employees filtered async: search='{searchTerm}', page={page}, pageSize={pageSize}, filter='{filterCriteria?.GetCacheKey() ?? "none"}'");
+
+                var allEmployeesResult = await GetAllEmployeesAsync();
+                var allEmployees = allEmployeesResult?.ToList() ?? new List<Employee>();
+
+                // Apply search filter
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    var searchLower = searchTerm.ToLower();
+                    allEmployees = allEmployees.Where(e =>
+                        (e.FullName?.ToLower().Contains(searchLower) ?? false) ||
+                        (e.Email?.ToLower().Contains(searchLower) ?? false) ||
+                        (e.Phone?.ToLower().Contains(searchLower) ?? false) ||
+                        (e.Code?.ToLower().Contains(searchLower) ?? false)
+                    ).ToList();
+                }
+
+                if (filterCriteria != null)
+                {
+                    switch (filterCriteria.Status)
+                    {
+                        case "Active":
+                            allEmployees = allEmployees.Where(e => e.IsActive).ToList();
+                            break;
+                        case "Inactive":
+                            allEmployees = allEmployees.Where(e => !e.IsActive).ToList();
+                            break;
+                    }
+
+                    if (filterCriteria.HireDateFrom.HasValue)
+                    {
+                        var fromDate = filterCriteria.HireDateFrom.Value.Date;
+                        allEmployees = allEmployees
+                            .Where(e => e.HireDate.HasValue && e.HireDate.Value.Date >= fromDate)
+                            .ToList();
+                    }
+
+                    if (filterCriteria.HireDateTo.HasValue)
+                    {
+                        var toDate = filterCriteria.HireDateTo.Value.Date;
+                        allEmployees = allEmployees
+                            .Where(e => e.HireDate.HasValue && e.HireDate.Value.Date <= toDate)
+                            .ToList();
+                    }
+
+                    if (filterCriteria.HasEmail == true)
+                    {
+                        allEmployees = allEmployees
+                            .Where(e => !string.IsNullOrWhiteSpace(e.Email))
+                            .ToList();
+                    }
+
+                    if (filterCriteria.HasPhone == true)
+                    {
+                        allEmployees = allEmployees
+                            .Where(e => !string.IsNullOrWhiteSpace(e.Phone))
+                            .ToList();
+                    }
+                }
+
+                var totalRecords = allEmployees.Count;
+                var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
+
+                // Apply pagination
+                var employees = allEmployees
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                var info = new InfoTable(totalRecords, totalPages);
+
+                return new EmployeeResult(employees, info);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to get employees filtered async", ex);
+                return new EmployeeResult(new List<Employee>(), new InfoTable(0, 0));
+            }
+        }
+
         public async Task<List<Employee>?> GetEmployeesWithoutAccountAsync()
         {
             try
