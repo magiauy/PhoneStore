@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
@@ -39,6 +40,7 @@ namespace PhoneStoreAdmin.View
         private readonly IProductSerialRepository _productSerialRepository;
         private readonly IBatchProductRepository _batchProductRepository;
         private readonly ICustomerService _customerService;
+        private readonly HashSet<string> _usedSerialNumbers = new(StringComparer.OrdinalIgnoreCase);
         private Guid _customerLookupRequestId = Guid.Empty;
         private int? _selectedCustomerId;
         private bool _isExistingCustomer;
@@ -717,7 +719,7 @@ namespace PhoneStoreAdmin.View
             InvoiceNumber = $"HD{DateTime.Now:yyyyMMddHHmmss}";
         }
 
-        private void CalculateInvoiceTotal()
+            public void CalculateInvoiceTotal()
         {
             Subtotal = InvoiceItems.Sum(item => item.TotalPrice);
             VatAmount = Subtotal * 0.1m; // 10% VAT
@@ -855,6 +857,13 @@ namespace PhoneStoreAdmin.View
                     Quantity = 1,
                     ParentPage = this
                 };
+                newItem.IsSerialTracked = product.IsSerialTracked;
+                if (product.IsSerialTracked)
+                {
+                    newItem.IsSerialTracked = true;
+                    newItem.InitializeSerialEntries();
+                    newItem.ForceQuantityValue(0);
+                }
                 InvoiceItems.Add(newItem);
             }
         }
@@ -876,6 +885,24 @@ namespace PhoneStoreAdmin.View
                 return;
             }
 
+            if (item.IsSerialTracked)
+            {
+                if (desiredQuantity > item.ValidSerialCount)
+                {
+                    ShowMessage("Bạn cần nhập đủ serial hợp lệ trước khi tăng số lượng.", "Thông báo");
+                    return;
+                }
+
+                if (!EnsureStockAvailability(item.ProductId, desiredQuantity, showAlert: true, out _))
+                {
+                    return;
+                }
+
+                item.Quantity = desiredQuantity;
+                CalculateInvoiceTotal();
+                return;
+            }
+
             if (!EnsureStockAvailability(item.ProductId, desiredQuantity, showAlert: true, out _))
             {
                 return;
@@ -885,12 +912,112 @@ namespace PhoneStoreAdmin.View
             CalculateInvoiceTotal();
         }
 
+        public async Task HandleSerialEntryAsync(InvoiceLineItem item, SerialEntryViewModel entry)
+        {
+            if (item == null || entry == null)
+            {
+                return;
+            }
+
+            var serialText = entry.SerialInput?.Trim() ?? string.Empty;
+            Debug.WriteLine($"Validate serial='{serialText}' for productId={item.ProductId}");
+
+            if (!string.IsNullOrWhiteSpace(entry.LastValidSerial) && !string.Equals(entry.LastValidSerial, serialText, StringComparison.OrdinalIgnoreCase))
+            {
+                RemoveSerialUsage(new[] { entry.LastValidSerial });
+                entry.LastValidSerial = null;
+            }
+
+            if (string.IsNullOrWhiteSpace(serialText))
+            {
+                Debug.WriteLine("Serial entry empty.");
+                entry.SetValidation(false, "Vui lòng nhập serial hợp lệ.");
+                item.UpdateQuantityFromSerials();
+                return;
+            }
+
+            if (_usedSerialNumbers.Contains(serialText))
+            {
+                Debug.WriteLine("Serial already used in invoice.");
+                entry.SetValidation(false, "Serial đã được sử dụng trong hóa đơn.");
+                return;
+            }
+
+            if (_productSerialRepository == null)
+            {
+                Debug.WriteLine("Product serial repository unavailable.");
+                entry.SetValidation(false, "Không thể kiểm tra serial lúc này.");
+                return;
+            }
+
+            ProductSerial? serialEntity;
+            try
+            {
+                serialEntity = _productSerialRepository.TryGetBySerialNumber(serialText);
+                Debug.WriteLine($"Lookup result: {(serialEntity != null ? serialEntity.SerialNumber : "<null>")} status={(serialEntity?.Status.ToString() ?? "<none>")}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Serial lookup failed: " + ex);
+                entry.SetValidation(false, "Lỗi khi kiểm tra serial.");
+                return;
+            }
+
+            if (serialEntity == null)
+            {
+                Debug.WriteLine("Serial not found.");
+                entry.SetValidation(false, "Serial không tồn tại.");
+                return;
+            }
+
+            if (serialEntity.ProductId != item.ProductId)
+            {
+                Debug.WriteLine($"Serial product mismatch: expected {item.ProductId}, got {serialEntity.ProductId}.");
+                entry.SetValidation(false, "Serial không khớp với sản phẩm.");
+                return;
+            }
+
+            if (serialEntity.Status != SerialStatus.IN_STOCK)
+            {
+                Debug.WriteLine($"Serial status invalid: {serialEntity.Status}.");
+                entry.SetValidation(false, "Serial không được phép sử dụng (không phải in_stock).");
+                return;
+            }
+
+            entry.SetValidation(true, string.Empty);
+            entry.LastValidSerial = serialText;
+            _usedSerialNumbers.Add(serialText);
+            item.UpdateQuantityFromSerials();
+            item.EnsureSerialEntry();
+            CalculateInvoiceTotal();
+            await Task.CompletedTask;
+        }
+
+        private void RemoveSerialUsage(IEnumerable<string?> serials)
+        {
+            if (serials == null)
+            {
+                return;
+            }
+
+            foreach (var serial in serials)
+            {
+                if (string.IsNullOrWhiteSpace(serial))
+                {
+                    continue;
+                }
+
+                _usedSerialNumbers.Remove(serial);
+            }
+        }
+
         public void RemoveProductFromInvoice(InvoiceLineItem item)
         {
+            RemoveSerialUsage(item?.SerialEntries.Select(entry => entry.LastValidSerial));
             InvoiceItems.Remove(item);
         }
 
-        private async void ShowMessage(string content, string title)
+        public async void ShowMessage(string content, string title)
         {
             ContentDialog dialog = new ContentDialog()
             {
@@ -1019,30 +1146,90 @@ namespace PhoneStoreAdmin.View
     public class InvoiceLineItem : INotifyPropertyChanged
     {
         private int _quantity = 1;
+        private readonly ObservableCollection<SerialEntryViewModel> _serialEntries = new();
+
+        public InvoiceLineItem()
+        {
+            _serialEntries.CollectionChanged += OnSerialEntriesChanged;
+        }
 
         public int ProductId { get; set; }
         public string ProductName { get; set; } = string.Empty;
         public decimal UnitPrice { get; set; }
         public SalesPage? ParentPage { get; set; }
+        public bool IsSerialTracked { get; set; }
+
+        public ObservableCollection<SerialEntryViewModel> SerialEntries => _serialEntries;
 
         public int Quantity
         {
             get => _quantity;
             set
             {
-                SetProperty(ref _quantity, value);
-                OnPropertyChanged(nameof(TotalPrice));
-                OnPropertyChanged(nameof(CanDecrease));
+                if (IsSerialTracked)
+                {
+                    return;
+                }
+
+                SetQuantityValue(value);
             }
         }
 
         public decimal TotalPrice => UnitPrice * Quantity;
 
         public bool CanDecrease => Quantity > 1;
+        public bool CanIncrease => !IsSerialTracked;
 
         public string FormatPrice(decimal price)
         {
-            return price.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
+            return ParentPage?.FormatPrice(price) ?? price.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
+        }
+
+        public Brush SerialContainerBorderBrush => SerialEntries.Any(entry => entry.HasError)
+            ? (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"]
+            : SerialEntries.Any(entry => entry.IsValid)
+                ? (Brush)Application.Current.Resources["SystemFillColorSuccessBrush"]
+                : (Brush)Application.Current.Resources["SurfaceStrokeColorDefaultBrush"];
+
+        public void InitializeSerialEntries()
+        {
+            _serialEntries.Clear();
+            EnsureSerialEntry();
+        }
+
+        public void EnsureSerialEntry()
+        {
+            if (_serialEntries.Count == 0 || _serialEntries.All(entry => !string.IsNullOrWhiteSpace(entry.SerialInput)))
+            {
+                _serialEntries.Add(new SerialEntryViewModel(this));
+            }
+        }
+
+        public int ValidSerialCount => SerialEntries.Count(entry => entry.IsValid);
+
+        public void UpdateQuantityFromSerials()
+        {
+            if (IsSerialTracked)
+            {
+                var validCount = ValidSerialCount;
+                SetQuantityValue(validCount);
+                ParentPage?.CalculateInvoiceTotal();
+            }
+        }
+
+        public void ForceQuantityValue(int value)
+        {
+            SetQuantityValue(value);
+        }
+
+        private void SetQuantityValue(int value)
+        {
+            if (SetProperty(ref _quantity, value))
+            {
+                OnPropertyChanged(nameof(TotalPrice));
+            }
+
+            OnPropertyChanged(nameof(CanDecrease));
         }
 
         public void RemoveFromInvoice(object sender, RoutedEventArgs e)
@@ -1052,12 +1239,47 @@ namespace PhoneStoreAdmin.View
 
         public void IncreaseQuantity(object sender, RoutedEventArgs e)
         {
+            if (IsSerialTracked)
+            {
+                ParentPage?.ShowMessage("Serial-tracked products require serial entry rather than manual quantity adjustments.", "Thông báo");
+                return;
+            }
+
             ParentPage?.ChangeInvoiceItemQuantity(this, Quantity + 1);
         }
 
         public void DecreaseQuantity(object sender, RoutedEventArgs e)
         {
             ParentPage?.ChangeInvoiceItemQuantity(this, Quantity - 1);
+        }
+
+        private void OnSerialEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems != null)
+            {
+                foreach (SerialEntryViewModel entry in e.NewItems)
+                {
+                    entry.PropertyChanged += SerialEntryOnPropertyChanged;
+                }
+            }
+
+            if (e.OldItems != null)
+            {
+                foreach (SerialEntryViewModel entry in e.OldItems)
+                {
+                    entry.PropertyChanged -= SerialEntryOnPropertyChanged;
+                }
+            }
+
+            OnPropertyChanged(nameof(SerialContainerBorderBrush));
+        }
+
+        private void SerialEntryOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName is nameof(SerialEntryViewModel.IsValid) or nameof(SerialEntryViewModel.Message))
+            {
+                OnPropertyChanged(nameof(SerialContainerBorderBrush));
+            }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -1073,6 +1295,93 @@ namespace PhoneStoreAdmin.View
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public class SerialEntryViewModel : INotifyPropertyChanged
+    {
+        private string _serialInput = string.Empty;
+        private string _message = string.Empty;
+        private bool _isValid;
+
+        public InvoiceLineItem Owner { get; }
+
+        public SerialEntryViewModel(InvoiceLineItem owner)
+        {
+            Owner = owner ?? throw new ArgumentNullException(nameof(owner));
+        }
+
+        public string SerialInput
+        {
+            get => _serialInput;
+            set
+            {
+                if (SetProperty(ref _serialInput, value))
+                {
+                    IsValid = false;
+                    Message = string.Empty;
+                    LastValidSerial = null;
+                }
+            }
+        }
+
+        public bool IsValid
+        {
+            get => _isValid;
+            private set => SetProperty(ref _isValid, value);
+        }
+
+        public string Message
+        {
+            get => _message;
+            private set => SetProperty(ref _message, value);
+        }
+
+        public string? LastValidSerial { get; set; }
+
+        public bool HasError => !IsValid && !string.IsNullOrWhiteSpace(Message);
+
+        public Brush BorderBrush => IsValid
+            ? (Brush)Application.Current.Resources["SystemFillColorSuccessBrush"]
+            : string.IsNullOrWhiteSpace(Message)
+                ? (Brush)Application.Current.Resources["SurfaceStrokeColorDefaultBrush"]
+                : (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
+
+        public Visibility IconVisibility => IsValid
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        public Visibility MessageVisibility => string.IsNullOrWhiteSpace(Message)
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+
+        public Brush MessageForeground => IsValid
+            ? (Brush)Application.Current.Resources["SystemFillColorSuccessBrush"]
+            : (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
+
+        public async void OnLostFocus(object sender, RoutedEventArgs e)
+        {
+            await Owner.ParentPage?.HandleSerialEntryAsync(Owner, this);
+        }
+
+        public void SetValidation(bool valid, string message)
+        {
+            IsValid = valid;
+            Message = message;
+            if (!valid)
+            {
+                LastValidSerial = null;
+            }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            return true;
         }
     }
 }
