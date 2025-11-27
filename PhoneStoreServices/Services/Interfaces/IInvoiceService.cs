@@ -33,5 +33,10 @@ namespace PhoneStore.Services.Interfaces
         void MarkAsPaid(int id);
 
         void CancelInvoice(int id);
+        void CreateFullInvoice(
+            Invoice invoice,
+            List<InvoiceLine> uiItems,
+            string customerName,
+            string customerPhone);
     }
 }

@@ -101,13 +101,24 @@
                             MinWidth="150"
                             Header="Danh mục"
                             PlaceholderText="Tất cả danh mục"
+                            ItemsSource="{x:Bind Categories, Mode=OneWay}"
                             SelectionChanged="{x:Bind OnCategorySelectionChanged}" />
                         <ComboBox
                             x:Name="BrandComboBox"
                             MinWidth="150"
                             Header="Thương hiệu"
                             PlaceholderText="Tất cả thương hiệu"
+                            ItemsSource="{x:Bind Brands, Mode=OneWay}"
                             SelectionChanged="{x:Bind OnBrandSelectionChanged}" />
+                        <Button
+                            x:Name="RefreshFilterButton"
+                            VerticalAlignment="Bottom"
+                            Click="{x:Bind OnRefreshFilters}"
+                            ToolTipService.ToolTip="Xóa bộ lọc và tìm kiếm">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE72C;" FontSize="16" /> <TextBlock Text="Làm mới" />
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
 
                     <!--  Products ListView  -->
@@ -290,7 +301,7 @@
                                     x:Name="SubtotalText"
                                     Grid.Column="1"
                                     Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind FormatPrice(Subtotal)}" />
+                                    Text="{x:Bind FormatPrice(Subtotal),Mode=OneWay}" />
                             </Grid>
                             <Grid ColumnDefinitions="*,Auto">
                                 <TextBlock
@@ -301,7 +312,7 @@
                                     x:Name="VatText"
                                     Grid.Column="1"
                                     Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind FormatPrice(VatAmount)}" />
+                                    Text="{x:Bind FormatPrice(VatAmount),Mode=OneWay}" />
                             </Grid>
                             <Rectangle
                                 Height="1"
@@ -317,7 +328,7 @@
                                     Grid.Column="1"
                                     Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                                     Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                    Text="{x:Bind FormatPrice(Total)}" />
+                                    Text="{x:Bind FormatPrice(Total),Mode=OneWay}" />
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -328,7 +339,7 @@
                             x:Name="ProcessSaleButton"
                             HorizontalAlignment="Stretch"
                             Click="{x:Bind OnProcessSale}"
-                            IsEnabled="{x:Bind HasInvoiceItems}"
+                            IsEnabled="{x:Bind HasInvoiceItems, Mode=OneWay}"
                             Style="{ThemeResource AccentButtonStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon FontSize="16" Glyph="&#xE8A7;" />

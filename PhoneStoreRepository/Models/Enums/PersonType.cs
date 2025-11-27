@@ -2,7 +2,7 @@ namespace PhoneStoreRepository.Models.Enums
 {
     public enum PersonType
     {
-        EMPLOYEE,
-        CUSTOMER
+        EMPLOYEE = 1,
+        CUSTOMER = 2
     }
 }

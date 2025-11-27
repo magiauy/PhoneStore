@@ -1,51 +1,35 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
-using MySqlConnector;
+﻿using MySqlConnector;
 using PhoneStoreRepository.Data;
 using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Models.Enums;
 using PhoneStoreRepository.Repositories.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
 
 namespace PhoneStoreRepository.Repositories.Implementations
 {
     public class InvoiceRepository(DataSource dataSource) : IInvoiceRepository
     {
         private readonly DataSource _dataSource = dataSource;
-        private const string BaseInvoiceSelect = @"
-            SELECT
-                i.*,
-                p.full_name AS customer_name,
-                c.full_name AS creator_name,
-                pr.code AS promotion_code
-            FROM invoices i
-            LEFT JOIN persons p ON i.person_id = p.id
-            LEFT JOIN persons c ON i.created_by = c.id
-            LEFT JOIN promotion_codes pr ON i.promotion_code_id = pr.id";
-
-        private IEnumerable<Invoice> ExecuteInvoiceQuery(string sql, Action<MySqlCommand>? configureParameters = null)
-        {
-            var invoices = new List<Invoice>();
-            using var connection = _dataSource.GetConnection();
-            using var command = new MySqlCommand(sql, connection);
-            configureParameters?.Invoke(command);
-            using var reader = command.ExecuteReader();
-
-            while (reader.Read())
-            {
-                invoices.Add(MapFromReader(reader));
-            }
-
-            return invoices;
-        }
 
         public Invoice? GetById(int id)
         {
             using var connection = _dataSource.GetConnection();
 
             // Lấy hóa đơn
-            using var command = new MySqlCommand($"{BaseInvoiceSelect}\n                WHERE i.id = @id", connection);
+            using var command = new MySqlCommand(@"
+                SELECT 
+                    i.*, 
+                    p.full_name AS customer_name, 
+                    c.full_name AS creator_name,
+                    pr.code AS promotion_code
+                FROM invoices i
+                LEFT JOIN persons p ON i.person_id = p.id
+                LEFT JOIN persons c ON i.created_by = c.id
+                LEFT JOIN promotion_codes pr ON i.promotion_code_id = pr.id
+                WHERE i.id = @id", connection);
 
             command.Parameters.AddWithValue("@id", id);
 
@@ -90,8 +74,30 @@ namespace PhoneStoreRepository.Repositories.Implementations
 
         public IEnumerable<Invoice> GetAll()
         {
-            var sql = $"{BaseInvoiceSelect}\n                ORDER BY i.id ASC";
-            return ExecuteInvoiceQuery(sql);
+            var invoices = new List<Invoice>();
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand(@"
+                SELECT 
+                    i.*, 
+                    p.full_name AS customer_name, 
+                    c.full_name AS creator_name
+                FROM invoices i
+                LEFT JOIN persons p ON i.person_id = p.id
+                LEFT JOIN persons c ON i.created_by = c.id
+                ORDER BY i.id ASC", connection);
+            using var reader = command.ExecuteReader();
+
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                Console.WriteLine(reader.GetName(i));
+            }
+
+            while (reader.Read())
+            {
+                invoices.Add(MapFromReader(reader));
+            }
+
+            return invoices;
         }
 
         public void Insert(Invoice entity)
@@ -153,38 +159,27 @@ namespace PhoneStoreRepository.Repositories.Implementations
 
         public void Delete(int id)
         {
-            using var connection = _dataSource.GetConnection();
-            using var command = new MySqlCommand("DELETE FROM invoices WHERE id = @id", connection);
-            command.Parameters.AddWithValue("@id", id);
-            command.ExecuteNonQuery();
+            throw new NotImplementedException();
         }
 
         public IEnumerable<Invoice> GetByCustomer(int customerId)
         {
-            var sql = $"{BaseInvoiceSelect}\n                WHERE i.person_id = @customerId\n                ORDER BY i.invoice_date DESC";
-            return ExecuteInvoiceQuery(sql, cmd => cmd.Parameters.AddWithValue("@customerId", customerId));
+            throw new NotImplementedException();
         }
 
         public IEnumerable<Invoice> GetByDateRange(DateTime from, DateTime to)
         {
-            var sql = $"{BaseInvoiceSelect}\n                WHERE i.invoice_date BETWEEN @from AND @to\n                ORDER BY i.invoice_date DESC";
-            return ExecuteInvoiceQuery(sql, cmd =>
-            {
-                cmd.Parameters.AddWithValue("@from", from);
-                cmd.Parameters.AddWithValue("@to", to);
-            });
+            throw new NotImplementedException();
         }
 
-        public IEnumerable<Invoice> GetByStatus(InvoiceStatus status)
+        public IEnumerable<Invoice> GetByStatus(PhoneStoreRepository.Models.Enums.InvoiceStatus status)
         {
-            var sql = $"{BaseInvoiceSelect}\n                WHERE i.status = @status\n                ORDER BY i.invoice_date DESC";
-            return ExecuteInvoiceQuery(sql, cmd => cmd.Parameters.AddWithValue("@status", status.ToString()));
+            throw new NotImplementedException();
         }
 
         public IEnumerable<Invoice> GetByCreatedBy(int createdBy)
         {
-            var sql = $"{BaseInvoiceSelect}\n                WHERE i.created_by = @createdBy\n                ORDER BY i.invoice_date DESC";
-            return ExecuteInvoiceQuery(sql, cmd => cmd.Parameters.AddWithValue("@createdBy", createdBy));
+            throw new NotImplementedException();
         }
         private static bool HasColumn(MySqlDataReader reader, string columnName)
         {
@@ -195,7 +190,6 @@ namespace PhoneStoreRepository.Repositories.Implementations
             }
             return false;
         }
-
 
         #region Helper
         private static Invoice MapFromReader(MySqlDataReader reader)
@@ -398,5 +392,91 @@ namespace PhoneStoreRepository.Repositories.Implementations
             return (int)Math.Ceiling((double)totalRecords / pageSize);
         }
         #endregion
+    }
+
+    public class InvoiceLineRepository(DataSource dataSource) : IInvoiceLineRepository
+    {
+        private readonly DataSource _dataSource = dataSource;
+
+        public void Insert(InvoiceLine entity)
+        {
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand(@"
+                INSERT INTO invoice_lines 
+                (invoice_id, product_id, quantity, unit_price, discount_pct, total_price)
+                VALUES 
+                (@invoiceId, @productId, @quantity, @unitPrice, @discountPct, @totalPrice);
+                SELECT LAST_INSERT_ID();", connection);
+
+            command.Parameters.AddWithValue("@invoiceId", entity.InvoiceId);
+            command.Parameters.AddWithValue("@productId", entity.ProductId);
+            command.Parameters.AddWithValue("@quantity", entity.Quantity);
+            command.Parameters.AddWithValue("@unitPrice", entity.UnitPrice);
+            command.Parameters.AddWithValue("@discountPct", entity.DiscountPct);
+            command.Parameters.AddWithValue("@totalPrice", entity.TotalPrice);
+
+            var id = Convert.ToInt32(command.ExecuteScalar());
+            entity.Id = id;
+        }
+
+        public IEnumerable<InvoiceLine> GetByInvoiceId(int invoiceId)
+        {
+            var lines = new List<InvoiceLine>();
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand(@"
+                SELECT * FROM invoice_lines 
+                WHERE invoice_id = @invoiceId", connection);
+
+            command.Parameters.AddWithValue("@invoiceId", invoiceId);
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                lines.Add(MapFromReader(reader));
+            }
+
+            return lines;
+        }
+
+        // Các hàm Update/Delete nếu cần thiết sau này
+        public void Update(InvoiceLine entity)
+        {
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand(@"
+                UPDATE invoice_lines SET
+                    product_id=@productId, quantity=@quantity, unit_price=@unitPrice, 
+                    discount_pct=@discountPct, total_price=@totalPrice
+                WHERE id=@id", connection);
+
+            // Add parameters tương tự như Insert...
+            command.Parameters.AddWithValue("@productId", entity.ProductId);
+            // ...
+            command.Parameters.AddWithValue("@id", entity.Id);
+
+            command.ExecuteNonQuery();
+        }
+
+        public void Delete(int id)
+        {
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand("DELETE FROM invoice_lines WHERE id = @id", connection);
+            command.Parameters.AddWithValue("@id", id);
+            command.ExecuteNonQuery();
+        }
+
+        // Helper map dữ liệu
+        private static InvoiceLine MapFromReader(MySqlDataReader reader)
+        {
+            return new InvoiceLine
+            {
+                Id = reader.GetInt32("id"),
+                InvoiceId = reader.GetInt32("invoice_id"),
+                ProductId = reader.GetInt32("product_id"),
+                Quantity = reader.GetInt32("quantity"),
+                UnitPrice = reader.GetDecimal("unit_price"),
+                DiscountPct = reader.GetDecimal("discount_pct"),
+                TotalPrice = reader.GetDecimal("total_price")
+            };
+        }
     }
 }

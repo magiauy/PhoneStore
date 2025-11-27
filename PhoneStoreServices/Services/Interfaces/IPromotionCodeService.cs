@@ -1,4 +1,4 @@
-using PhoneStoreRepository.Models;
+﻿using PhoneStoreRepository.Models;
 using PhoneStore.Services.ViewModels;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -11,7 +11,6 @@ namespace PhoneStore.Services.Interfaces
         bool Insert(PromotionCode promotionCode);
         bool Update(PromotionCode promotionCode);
         IEnumerable<PromotionCode> GetAll();
-        Task<IEnumerable<PromotionCode>> GetAllPromotionCodesAsync();
         
         PromotionCodeResult GetPromotionCodesFiltered(
             string? code,
@@ -45,3 +44,4 @@ namespace PhoneStore.Services.Interfaces
         void DeactivatePromotionCode(int promotionCodeId);
     }
 }
+
