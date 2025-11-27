@@ -272,18 +272,47 @@ namespace PhoneStoreAdmin.View
                 DiscountAmount = 0
             };
 
-            var invoiceLines = InvoiceItems.Select(item => new InvoiceLine
+            var invoiceLines = new List<InvoiceLine>();
+            var serialLineRequests = new List<InvoiceLineSerialRequest>();
+
+            foreach (var item in InvoiceItems)
             {
-                ProductId = item.ProductId,
-                Quantity = item.Quantity,
-                UnitPrice = item.UnitPrice,
-                DiscountPct = 0,
-                TotalPrice = item.UnitPrice * item.Quantity
-            }).ToList();
+                var line = new InvoiceLine
+                {
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice,
+                    DiscountPct = 0,
+                    TotalPrice = item.UnitPrice * item.Quantity
+                };
+
+                invoiceLines.Add(line);
+
+                if (!item.IsSerialTracked)
+                {
+                    continue;
+                }
+
+                var serialNumbers = item.SerialEntries
+                    .Where(entry => entry.IsValid && !string.IsNullOrWhiteSpace(entry.LastValidSerial))
+                    .Select(entry => entry.LastValidSerial!.Trim())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Take(item.Quantity)
+                    .ToList();
+
+                if (serialNumbers.Count > 0)
+                {
+                    serialLineRequests.Add(new InvoiceLineSerialRequest
+                    {
+                        Line = line,
+                        SerialNumbers = serialNumbers
+                    });
+                }
+            }
 
             try
             {
-                _invoiceService.CreateFullInvoice(newInvoice, invoiceLines, invoiceCustomerName, CustomerPhone?.Trim());
+                _invoiceService.CreateFullInvoice(newInvoice, invoiceLines, invoiceCustomerName, CustomerPhone?.Trim(), serialLineRequests);
 
                 ShowMessage($"Da thanh toan thanh cong!\nMa HD: {newInvoice.Id}\nTong tien: {FormatPrice(newInvoice.FinalAmount)}", "Thanh cong");
 

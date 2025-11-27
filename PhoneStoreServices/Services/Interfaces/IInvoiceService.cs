@@ -37,6 +37,7 @@ namespace PhoneStore.Services.Interfaces
             Invoice invoice,
             List<InvoiceLine> uiItems,
             string customerName,
-            string customerPhone);
+            string customerPhone,
+            List<InvoiceLineSerialRequest>? serialRequests = null);
     }
 }
