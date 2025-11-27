@@ -80,6 +80,7 @@ namespace PhoneStoreAdmin
 
         private async System.Threading.Tasks.Task PerformLoginInternalAsync()
         {
+            
             // Bỏ qua toàn bộ kiểm tra & xác thực
             Logger.Info("Login bypassed - auto redirecting to MainWindow");
 
@@ -96,6 +97,7 @@ namespace PhoneStoreAdmin
             var mainWindow = new MainWindow();
             mainWindow.Activate();
             this.Close();
+            
             /*
             // Validate input
             if (string.IsNullOrWhiteSpace(UsernameTextBox.Text))
@@ -131,15 +133,15 @@ namespace PhoneStoreAdmin
 
                     var mainWindow = new MainWindow();
         
-   // Register MainWindow in ServiceContainer for dependency injection
- ServiceContainer.RegisterSingleton<MainWindow>(mainWindow);
+                    // Register MainWindow in ServiceContainer for dependency injection
+                    ServiceContainer.RegisterSingleton<MainWindow>(mainWindow);
      
-               // Update App.CurrentWindow to point to MainWindow
-       (Application.Current as App)?.SetCurrentWindow(mainWindow);
+                    // Update App.CurrentWindow to point to MainWindow
+                    (Application.Current as App)?.SetCurrentWindow(mainWindow);
   
- mainWindow.Activate();
-         this.Close();
-    }
+                    mainWindow.Activate();
+                    this.Close();
+                }
                 else
                 {
                     Logger.LogAuth(UsernameTextBox.Text, false);
