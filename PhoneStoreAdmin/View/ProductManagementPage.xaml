@@ -159,11 +159,11 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="6">
-                                <TextBlock Text="IMEI1" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                <TextBlock x:Uid="ProductManagement_Imei1Label" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
                                 <TextBlock Text="{x:Bind Imei1}" FontSize="14" />
                             </StackPanel>
                             <StackPanel Grid.Column="1" Spacing="6">
-                                <TextBlock Text="IMEI2" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                <TextBlock x:Uid="ProductManagement_Imei2Label" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
                                 <TextBlock Text="{x:Bind Imei2}" FontSize="14" />
                             </StackPanel>
                         </Grid>
@@ -236,7 +236,7 @@
                         FontSize="34"
                         FontWeight="Bold"
                         TextWrapping="WrapWholeWords" />
-                    <TextBlock Text="Quản lý sản phẩm" FontSize="16" FontStyle="Italic" Foreground="{StaticResource BrushTextSecondary}" />
+                    <TextBlock x:Uid="ProductManagement_HeaderSubtitle" FontSize="16" FontStyle="Italic" Foreground="{StaticResource BrushTextSecondary}" />
                     <TextBlock
                         Text="{x:Bind HeaderDescriptionText, Mode=OneWay}"
                         FontSize="14"
@@ -266,7 +266,7 @@
             <Border Grid.Column="0" Margin="0,0,16,0" Style="{StaticResource GlassPanelStyle}" Shadow="{StaticResource SharedShadow}">
                 <StackPanel Spacing="20">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center">
-                        <TextBlock Text="Variants" FontSize="22" FontWeight="SemiBold" />
+                        <TextBlock x:Uid="ProductManagement_VariantsTitle" FontSize="22" FontWeight="SemiBold" />
                     </StackPanel>
 
                     <Grid Visibility="{x:Bind HasProducts, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -404,19 +404,19 @@
                                 </Grid.ColumnDefinitions>
                                 <Border Grid.Column="0" Style="{StaticResource CardBorderStyle}">
                                     <StackPanel>
-                                        <TextBlock Text="SKU" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                        <TextBlock x:Uid="ProductManagement_SkuLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
                                         <TextBlock Text="{x:Bind SelectedProductSku, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" MaxWidth="180" />
                                     </StackPanel>
                                 </Border>
                                 <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
                                     <StackPanel>
-                                        <TextBlock Text="Brand" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                        <TextBlock x:Uid="ProductManagement_BrandLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
                                         <TextBlock Text="{x:Bind SelectedProductBrand, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" MaxWidth="180" />
                                     </StackPanel>
                                 </Border>
                                 <Border Grid.Column="2" Style="{StaticResource CardBorderStyle}">
                                     <StackPanel>
-                                        <TextBlock Text="Serial count" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                        <TextBlock x:Uid="ProductManagement_SerialCountLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
                                         <TextBlock Text="{x:Bind SerialCountStat, Mode=OneWay}" FontSize="24" FontWeight="Bold" />
                                     </StackPanel>
                                 </Border>
@@ -434,7 +434,7 @@
                                             Style="{StaticResource TabButtonStyle}"
                                             Click="BatchTabButton_Click"
                                             CornerRadius="12,0,0,12">
-                                            <TextBlock Text="Batch history" FontSize="15" />
+                                            <TextBlock x:Uid="ProductManagement_BatchHistoryTab" FontSize="15" />
                                         </Button>
                                         <Button
                                             x:Name="SerialTabButton"
@@ -443,7 +443,7 @@
                                             Click="SerialTabButton_Click"
                                             Background="Transparent"
                                             CornerRadius="0,12,12,0">
-                                            <TextBlock Text="Serials" FontSize="15" />
+                                            <TextBlock x:Uid="ProductManagement_SerialsTab" FontSize="15" />
                                         </Button>
                                     </Grid>
                                 </Border>
@@ -474,13 +474,13 @@
                                                                             <ColumnDefinition Width="Auto" />
                                                                         </Grid.ColumnDefinitions>
                                                                         <StackPanel Spacing="6">
-                                                                            <TextBlock Text="Batch ID" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                                            <TextBlock x:Uid="ProductManagement_BatchIdLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
                                                                             <TextBlock Text="{x:Bind BatchReferenceCode}" FontSize="18" FontWeight="SemiBold" />
                                                                             <TextBlock Text="{x:Bind ImportDateDisplay}" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" />
                                                                         </StackPanel>
                                                                         <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="6">
                                                                             <TextBlock Text="{x:Bind ItemCountDisplay}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" HorizontalAlignment="Right" />
-                                                                            <TextBlock Text="Nhấp để xem chi tiết" FontSize="12" Foreground="{StaticResource BrushPrimary}" HorizontalAlignment="Right" />
+                                                                            <TextBlock x:Uid="ProductManagement_ClickToViewDetails" FontSize="12" Foreground="{StaticResource BrushPrimary}" HorizontalAlignment="Right" />
                                                                         </StackPanel>
                                                                     </Grid>
                                                                     <Grid Margin="0,12,0,0" ColumnSpacing="14">
@@ -489,11 +489,11 @@
                                                                             <ColumnDefinition Width="*" />
                                                                         </Grid.ColumnDefinitions>
                                                                         <StackPanel>
-                                                                            <TextBlock Text="Giá nhập" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                                            <TextBlock x:Uid="ProductManagement_CostPriceLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
                                                                             <TextBlock Text="{x:Bind CostPrice, Converter={StaticResource CurrencyConverter}}" FontSize="16" FontWeight="SemiBold" Foreground="#15803D" />
                                                                         </StackPanel>
                                                                         <StackPanel Grid.Column="1">
-                                                                            <TextBlock Text="Giá bán gợi ý" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                                            <TextBlock x:Uid="ProductManagement_SellingPriceLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
                                                                             <TextBlock Text="{x:Bind SellingPrice, Converter={StaticResource CurrencyConverter}}" FontSize="16" FontWeight="SemiBold" Foreground="#2563EB" />
                                                                         </StackPanel>
                                                                     </Grid>
@@ -507,7 +507,7 @@
                                                                 Padding="24,4,24,24"
                                                                 HorizontalAlignment="Stretch">
                                                                 <StackPanel Spacing="12" HorizontalAlignment="Stretch">
-                                                                    <TextBlock Text="Serials trong lô:" FontSize="14" FontWeight="SemiBold" />
+                                                                    <TextBlock x:Uid="ProductManagement_SerialsInBatchLabel" FontSize="14" FontWeight="SemiBold" />
                                                                     <Border
                                                                         Background="#FFF5F7FF"
                                                                         CornerRadius="16"
@@ -522,10 +522,10 @@
                                                                                     <ColumnDefinition Width="1*" />
                                                                                     <ColumnDefinition Width="0.8*" />
                                                                                 </Grid.ColumnDefinitions>
-                                                                                <TextBlock Text="Serial" Grid.Column="0" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" />
-                                                                                <TextBlock Text="IMEI1" Grid.Column="1" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" />
-                                                                                <TextBlock Text="IMEI2" Grid.Column="2" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" />
-                                                                                <TextBlock Text="Trạng thái" Grid.Column="3" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" TextAlignment="Right" />
+                                                                                <TextBlock x:Uid="ProductManagement_SerialColumn" Grid.Column="0" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" />
+                                                                                <TextBlock x:Uid="ProductManagement_Imei1Column" Grid.Column="1" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" />
+                                                                                <TextBlock x:Uid="ProductManagement_Imei2Column" Grid.Column="2" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" />
+                                                                                <TextBlock x:Uid="ProductManagement_StatusColumn" Grid.Column="3" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" TextAlignment="Right" />
                                                                             </Grid>
                                                                             <ItemsControl
                                                                                 ItemsSource="{x:Bind SerialItems}"
@@ -600,8 +600,8 @@
                                         Background="#FFF5F6FF"
                                         Visibility="{x:Bind NoBatchHistory, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="Chưa có dữ liệu lô" FontSize="16" FontWeight="SemiBold" />
-                                            <TextBlock Text="Batch history sẽ hiển thị tại đây" FontSize="13" Foreground="{StaticResource BrushTextSecondary}" />
+                                            <TextBlock x:Uid="ProductManagement_NoBatchDataTitle" FontSize="16" FontWeight="SemiBold" />
+                                            <TextBlock x:Uid="ProductManagement_NoBatchDataMessage" FontSize="13" Foreground="{StaticResource BrushTextSecondary}" />
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>
@@ -623,8 +623,8 @@
                                     Background="#FFF5F6FF"
                                     Visibility="{x:Bind NoSerials, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="Chưa có serial" FontSize="16" FontWeight="SemiBold" />
-                                            <TextBlock Text="Serials sẽ hiển thị tại đây khi có dữ liệu" FontSize="13" Foreground="{StaticResource BrushTextSecondary}" />
+                                            <TextBlock x:Uid="ProductManagement_NoSerialDataTitle" FontSize="16" FontWeight="SemiBold" />
+                                            <TextBlock x:Uid="ProductManagement_NoSerialDataMessage" FontSize="13" Foreground="{StaticResource BrushTextSecondary}" />
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>
@@ -638,7 +638,7 @@
                             Spacing="8"
                             x:Load="{x:Bind NoProductSelected, Mode=OneWay}">
                             <FontIcon Glyph="&#xE8E5;" FontSize="48" Foreground="{StaticResource BrushPrimary}" />
-                            <TextBlock Text="Chọn một biến thể để xem chi tiết" FontSize="16" FontWeight="SemiBold" TextAlignment="Center" />
+                            <TextBlock x:Uid="ProductManagement_SelectVariantMessage" FontSize="16" FontWeight="SemiBold" TextAlignment="Center" />
                         </StackPanel>
                     </Grid>
                 </ScrollViewer>

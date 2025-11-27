@@ -2,6 +2,7 @@ using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreRepository.Models;
 using PhoneStoreAdmin.View;
 using PhoneStore.Services;
@@ -105,11 +106,12 @@ namespace PhoneStoreAdmin
         private async void NewButton_Click(object sender, RoutedEventArgs e)
         {
             // Simple demo action: show a ContentDialog
+            var resourceLoader = new ResourceLoader();
             var dlg = new ContentDialog()
             {
-                Title = "New item",
-                Content = "This would open the new item flow.",
-                CloseButtonText = "Close",
+                Title = resourceLoader.GetString("MainWindow_NewItemTitle"),
+                Content = resourceLoader.GetString("MainWindow_NewItemContent"),
+                CloseButtonText = resourceLoader.GetString("DialogClose"),
                 XamlRoot = this.Content.XamlRoot
             };
 
