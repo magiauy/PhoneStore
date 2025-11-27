@@ -136,6 +136,32 @@ namespace PhoneStoreRepository.Repositories.Implementations
             command.ExecuteNonQuery();
         }
 
+        public void DecreaseQuantity(int batchId, int productId, int amount = 1)
+        {
+            if (amount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be greater than zero.");
+            }
+
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand(@"
+                UPDATE batch_products
+                SET quantity = quantity - @amount
+                WHERE batch_id = @batchId AND product_id = @productId AND quantity >= @amount
+                ORDER BY id ASC
+                LIMIT 1", connection);
+
+            command.Parameters.AddWithValue("@batchId", batchId);
+            command.Parameters.AddWithValue("@productId", productId);
+            command.Parameters.AddWithValue("@amount", amount);
+
+            var affected = command.ExecuteNonQuery();
+            if (affected == 0)
+            {
+                throw new InvalidOperationException($"Batch product not found or does not have enough stock for batch {batchId} and product {productId}.");
+            }
+        }
+
         #region Filtered Search
 
         private (string whereClause, List<MySqlParameter> parameters) BuildConditions(
