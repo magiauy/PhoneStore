@@ -3187,7 +3187,7 @@ Tổng tiền: {1}</value>
     <value>Sản phẩm</value>
   </data>
   <data name="MenuItemOrders.Content" xml:space="preserve">
-    <value>Đơn hàng</value>
+    <value>Bán hàng</value>
   </data>
   <data name="MainWindow_NewItemTitle" xml:space="preserve">
     <value>Mục mới</value>
