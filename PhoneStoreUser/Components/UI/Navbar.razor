@@ -16,7 +16,7 @@
     <div class="max-w-6xl mx-auto px-4">
         <div class="flex flex-wrap items-center gap-3 py-3">
             <div class="flex items-center gap-3">
-                <button class="md:hidden rounded-full border border-gray-200 p-2 text-gray-600 hover:border-[#2563EB] hover:text-[#2563EB] transition">
+                <button type="button" class="md:hidden rounded-full border border-gray-200 p-2 text-gray-600 hover:border-[#2563EB] hover:text-[#2563EB] transition" @onclick="OpenMobileMenu" aria-expanded="@IsMobileMenuOpen" aria-controls="mobile-menu-panel">
                     <span class="sr-only">Mở menu</span>
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
@@ -72,9 +72,9 @@
                                                 Đổi mật khẩu
                                             </button>
                                             <a href="/history" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
-                                            <svg fill="#000000" class="h-4 w-4 text-gray-500" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M12,2A10,10,0,0,0,5.12,4.77V3a1,1,0,0,0-2,0V7.5a1,1,0,0,0,1,1H8.62a1,1,0,0,0,0-2H6.22A8,8,0,1,1,4,12a1,1,0,0,0-2,0A10,10,0,1,0,12,2Zm0,6a1,1,0,0,0-1,1v3a1,1,0,0,0,1,1h2a1,1,0,0,0,0-2H13V9A1,1,0,0,0,12,8Z"/>
-                                            </svg>
+                                                <svg fill="#000000" class="h-4 w-4 text-gray-500" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M12,2A10,10,0,0,0,5.12,4.77V3a1,1,0,0,0-2,0V7.5a1,1,0,0,0,1,1H8.62a1,1,0,0,0,0-2H6.22A8,8,0,1,1,4,12a1,1,0,0,0-2,0A10,10,0,1,0,12,2Zm0,6a1,1,0,0,0-1,1v3a1,1,0,0,0,1,1h2a1,1,0,0,0,0-2H13V9A1,1,0,0,0,12,8Z"/>
+                                                </svg>
                                                 Lịch sử mua hàng
                                             </a>
                                             <div class="my-1 h-px bg-gray-100"></div>
@@ -122,7 +122,6 @@
         </div>
 
         <nav class="hidden md:flex items-center gap-3 border-t border-gray-100 py-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
-            <!-- Categories -->
             @foreach (var item in TopCategories)
             {
                 <a class="rounded-full border border-transparent px-3 py-1 text-gray-600 hover:border-[#2563EB]/30 hover:bg-[#2563EB]/5 hover:text-[#2563EB] transition" href="@item.Href">@item.Label</a>
@@ -130,6 +129,117 @@
         </nav>
     </div>
 </header>
+
+@if (IsMobileMenuOpen)
+{
+    <div class="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true">
+        <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" @onclick="CloseMobileMenu"></div>
+        
+        <div class="absolute inset-y-0 left-0 flex max-w-full">
+            <div id="mobile-menu-panel" class="flex h-full w-[85vw] max-w-sm flex-col bg-white shadow-2xl transition-transform" @onclick:stopPropagation="true">
+                
+                <div class="flex items-center justify-between border-b border-gray-100 px-6 py-5">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl font-bold tracking-tight text-gray-900">
+                            Gu<span class="text-[#2563EB]">Zone</span>
+                        </span>
+                    </div>
+                    <button type="button" class="rounded-full bg-gray-50 p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition" @onclick="CloseMobileMenu">
+                        <span class="sr-only">Đóng menu</span>
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto px-4 py-6">
+                    <div class="mb-8">
+                        <h3 class="mb-3 px-2 text-xs font-bold uppercase tracking-wider text-gray-400">Điều hướng</h3>
+                        <div class="space-y-1">
+                            <a href="/" class="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-[#2563EB] transition" @onclick="HandleMobileNavLinkClicked">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                </svg>
+                                Trang chủ
+                            </a>
+                            <a href="/cart" class="flex items-center justify-between rounded-xl px-3 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-[#2563EB] transition" @onclick="HandleMobileNavLinkClicked">
+                                <div class="flex items-center gap-3">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                    </svg>
+                                    Giỏ hàng
+                                </div>
+                                @if (CartItemCount > 0)
+                                {
+                                    <span class="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-red-500 px-2 text-xs font-bold text-white">@CartItemCount</span>
+                                }
+                            </a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="mb-3 px-2 text-xs font-bold uppercase tracking-wider text-gray-400">Danh mục sản phẩm</h3>
+                        @if (TopCategories.Count == 0)
+                        {
+                            <div class="flex items-center justify-center rounded-xl border border-dashed border-gray-200 py-6 text-sm text-gray-500">
+                                <span class="animate-pulse">Đang tải danh mục...</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="space-y-1">
+                                @foreach (var item in TopCategories)
+                                {
+                                    <a href="@item.Href" class="flex items-center justify-between rounded-xl px-3 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-[#2563EB] transition" @onclick="HandleMobileNavLinkClicked">
+                                        <span>@item.Label</span>
+                                        <svg class="h-4 w-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </a>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-100 bg-gray-50 p-4">
+                    <AuthorizeView>
+                        <Authorized>
+                            @if (ActiveSession is not null)
+                            {
+                                <div class="flex items-center gap-3 mb-4 px-2">
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#2563EB] text-white font-bold text-lg">
+                                        @(ActiveSession.DisplayName?.Length > 0 ? ActiveSession.DisplayName[0].ToString()?.ToUpperInvariant() : "G")
+                                    </div>
+                                    <div class="overflow-hidden">
+                                        <p class="text-xs text-gray-500 font-medium">Xin chào,</p>
+                                        <p class="truncate text-sm font-bold text-gray-900">@ActiveSession.DisplayName</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button type="button" class="flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white py-2.5 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition" @onclick="HandleMobileProfileClick">
+                                        Hồ sơ
+                                    </button>
+                                    <button type="button" class="flex items-center justify-center gap-2 rounded-lg border border-transparent bg-red-50 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-100 transition" @onclick="HandleMobileLogout">
+                                        Đăng xuất
+                                    </button>
+                                </div>
+                            }
+                        </Authorized>
+                        <NotAuthorized>
+                            <div class="space-y-3">
+                                <p class="px-2 text-sm text-gray-500">Đăng nhập để nhận nhiều ưu đãi và theo dõi đơn hàng.</p>
+                                <a href="/login" class="flex w-full items-center justify-center rounded-xl bg-[#2563EB] py-3 text-sm font-bold text-white shadow-md hover:bg-[#1d4ed8] transition" @onclick="HandleMobileNavLinkClicked">
+                                    Đăng nhập / Đăng ký
+                                </a>
+                            </div>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @if (IsProfileDialogOpen && ActiveSession is not null)
 {
@@ -154,6 +264,7 @@
     private int CartItemCount = 0;
     private UserSession? ActiveSession;
     private bool IsUserMenuOpen = false;
+    private bool IsMobileMenuOpen = false;
     private bool IsProfileDialogOpen = false;
     private ProfileModel? UserProfile;
     private bool IsSaving = false;
@@ -293,12 +404,57 @@
         {
             AuthStateProvider.AuthenticationStateChanged -= HandleAuthenticationChangedAsync;
         }
+        if (IsMobileMenuOpen)
+        {
+            _ = JS.InvokeVoidAsync("toggleBodyScroll", false);
+        }
     }
 
     private void ToggleUserMenu()
     {
         IsUserMenuOpen = !IsUserMenuOpen;
     }
+
+
+    private async Task OpenMobileMenu()
+    {
+        if (IsMobileMenuOpen)
+        {
+            return;
+        }
+
+        IsMobileMenuOpen = true;
+        await JS.InvokeVoidAsync("toggleBodyScroll", true);
+    }
+
+    private async Task CloseMobileMenu()
+    {
+        if (!IsMobileMenuOpen)
+        {
+            return;
+        }
+
+        IsMobileMenuOpen = false;
+        await JS.InvokeVoidAsync("toggleBodyScroll", false);
+    }
+
+    private Task HandleMobileNavLinkClicked()
+    {
+        return CloseMobileMenu();
+    }
+
+    private async Task HandleMobileProfileClick()
+    {
+        await CloseMobileMenu();
+        await OpenProfileDialog();
+    }
+
+    private async Task HandleMobileLogout()
+    {
+        await CloseMobileMenu();
+        await Logout();
+    }
+
 
     private async Task OpenProfileDialog()
     {

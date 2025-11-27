@@ -1,41 +1,38 @@
-<div class="relative overflow-hidden rounded-4xl bg-linear-to-r from-[#0F0F0F] via-[#111827] to-[#2563EB] text-white">
-    <div class="relative grid gap-6 p-6 md:grid-cols-[1.2fr_0.8fr] md:items-center min-h-[360px]">
+<div class="relative overflow-hidden rounded-3xl md:rounded-4xl bg-linear-to-r from-[#0F0F0F] via-[#111827] to-[#2563EB] text-white">
+    <div class="relative flex flex-col md:grid md:grid-cols-[1.2fr_0.8fr] md:items-center p-6 md:p-8 md:min-h-[360px] gap-6 md:gap-6">
         
-        <!-- TEXT BLOCK -->
-        <div class="space-y-3">
-            <p class="text-xs uppercase tracking-[0.3em] text-white/60">@Subheading</p>
-            <h1 class="text-3xl font-bold leading-tight md:text-4xl">@Heading</h1>
-            <p class="text-sm text-white/80">@Description</p>
+        <div class="space-y-4 md:space-y-3 z-10 relative order-1">
+            <p class="text-[10px] md:text-xs uppercase tracking-[0.3em] text-white/60 font-medium">@Subheading</p>
+            
+            <h1 class="text-3xl md:text-4xl font-bold leading-tight">@Heading</h1>
+            
+            <p class="text-sm text-white/80 leading-relaxed">@Description</p>
 
             <div class="flex flex-wrap gap-3 pt-2 text-sm font-semibold">
-                <a href="@PrimaryHref" class="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-[#0F0F0F] transition hover:bg-gray-100">
+                <a href="@PrimaryHref" class="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 md:py-2 text-[#0F0F0F] transition hover:bg-gray-100 w-auto">
                     @PrimaryCta
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m9 5l7 7l-7 7" />
                     </svg>
                 </a>
-                <a href="@SecondaryHref" class="inline-flex items-center gap-2 rounded-full border border-white/40 px-5 py-2 text-white transition hover:bg-white/10">
+                <a href="@SecondaryHref" class="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 px-5 py-2.5 md:py-2 text-white transition hover:bg-white/10 w-auto">
                     @SecondaryCta
                 </a>
             </div>
         </div>
 
-        <!-- HERO IMAGE BLOCK - Absolute Positioning -->
-        <div class="absolute right-0 top-0 bottom-0 w-1/3 overflow-hidden md:w-2/5">
-            <!-- Glow lớn hơn -->
-            <div class="absolute -right-16 top-1/2 h-80 w-80 -translate-y-1/2 rounded-full bg-white/15 blur-3xl md:h-96 md:w-96"></div>
+        <div class="relative w-full h-64 mt-4 md:mt-0 order-2 md:absolute md:right-0 md:top-0 md:bottom-0 md:w-2/5 md:h-auto overflow-visible md:overflow-hidden pointer-events-none">
+            
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-64 w-64 rounded-full bg-white/20 blur-3xl 
+                        md:left-auto md:translate-x-0 md:-right-16 md:h-96 md:w-96 md:bg-white/15"></div>
 
-            <!-- Ảnh flagship - 90% chiều cao banner, sát phải, dịch trái 10-20px -->
             <img src="@HeroImage"
                  alt="Hero device"
-                 class="absolute right-0 top-1/2 -translate-y-1/2 -translate-x-3 md:-translate-x-5
-                        h-[120%]
-                        object-contain
-                        select-none pointer-events-none" />
+                 class="relative h-full w-full object-contain mx-auto z-10 drop-shadow-2xl
+                        md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 md:-translate-x-5 md:h-[120%] md:w-auto md:mx-0" />
         </div>
     </div>
 </div>
-
 
 @code {
     [Parameter, EditorRequired] public string Heading { get; set; } = string.Empty;
