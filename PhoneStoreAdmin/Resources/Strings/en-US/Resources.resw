@@ -2209,6 +2209,127 @@ How many devices do you want to add?</value>
   <data name="Reports_ChartTooltip_Orders" xml:space="preserve">
     <value>orders</value>
   </data>
+  <!-- Sales Statistics -->
+  <data name="Reports_TotalInvoicesLabel.Text" xml:space="preserve">
+    <value>Total Invoices</value>
+  </data>
+  <data name="Reports_TotalRevenueLabel.Text" xml:space="preserve">
+    <value>Revenue</value>
+  </data>
+  <data name="Reports_PaidInvoicesLabel.Text" xml:space="preserve">
+    <value>Paid</value>
+  </data>
+  <data name="Reports_PendingInvoicesLabel.Text" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="Reports_SalesMonthlyTrendTitle.Text" xml:space="preserve">
+    <value>Monthly Revenue Trend</value>
+  </data>
+  <data name="Reports_TopCustomersTitle.Text" xml:space="preserve">
+    <value>Top Customers</value>
+  </data>
+  <data name="Reports_TopProductsTitle.Text" xml:space="preserve">
+    <value>Best Selling Products</value>
+  </data>
+  <data name="Reports_InvoicesCount.Text" xml:space="preserve">
+    <value>invoices</value>
+  </data>
+  <data name="Reports_UnitsSold.Text" xml:space="preserve">
+    <value>units sold</value>
+  </data>
+  <data name="Reports_PendingStatus.Content" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="Reports_UnpaidStatus.Content" xml:space="preserve">
+    <value>Unpaid</value>
+  </data>
+  <data name="Reports_PaidStatus.Content" xml:space="preserve">
+    <value>Paid</value>
+  </data>
+  <data name="Reports_CompletedStatus.Content" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="Reports_ExportExcelButton.Text" xml:space="preserve">
+    <value>Export Excel</value>
+  </data>
+  <data name="Reports_ExportSuccess" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="Reports_ExportSuccessMessage" xml:space="preserve">
+    <value>Report exported to Excel successfully!</value>
+  </data>
+  <data name="Reports_ExportError" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Reports_ExportErrorMessage" xml:space="preserve">
+    <value>Could not export report</value>
+  </data>
+  <data name="Reports_NoDataToExport" xml:space="preserve">
+    <value>No data to export</value>
+  </data>
+  <data name="Reports_PurchaseOrdersReportTitle" xml:space="preserve">
+    <value>PURCHASE ORDERS REPORT</value>
+  </data>
+  <data name="Reports_SalesReportTitle" xml:space="preserve">
+    <value>SALES REPORT</value>
+  </data>
+  <data name="Reports_OrderIdHeader" xml:space="preserve">
+    <value>Order ID</value>
+  </data>
+  <data name="Reports_SupplierHeader" xml:space="preserve">
+    <value>Supplier</value>
+  </data>
+  <data name="Reports_OrderDateHeader" xml:space="preserve">
+    <value>Order Date</value>
+  </data>
+  <data name="Reports_ReceivedDateHeader" xml:space="preserve">
+    <value>Received Date</value>
+  </data>
+  <data name="Reports_StatusHeader" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Reports_TotalAmountHeader" xml:space="preserve">
+    <value>Total Amount</value>
+  </data>
+  <data name="Reports_CreatedByHeader" xml:space="preserve">
+    <value>Created By</value>
+  </data>
+  <data name="Reports_TotalLabel" xml:space="preserve">
+    <value>TOTAL:</value>
+  </data>
+  <data name="Reports_InvoiceIdHeader" xml:space="preserve">
+    <value>Invoice ID</value>
+  </data>
+  <data name="Reports_CustomerHeader" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="Reports_InvoiceDateHeader" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Reports_PaymentMethodHeader" xml:space="preserve">
+    <value>Payment</value>
+  </data>
+  <data name="Reports_CashPayment" xml:space="preserve">
+    <value>Cash</value>
+  </data>
+  <data name="Reports_CreditCardPayment" xml:space="preserve">
+    <value>Credit Card</value>
+  </data>
+  <data name="Reports_BankTransferPayment" xml:space="preserve">
+    <value>Bank Transfer</value>
+  </data>
+  <data name="Reports_EWalletPayment" xml:space="preserve">
+    <value>E-Wallet</value>
+  </data>
+  <data name="Reports_DeliveringStatus" xml:space="preserve">
+    <value>Delivering</value>
+  </data>
+  <data name="Reports_RefundedStatus" xml:space="preserve">
+    <value>Refunded</value>
+  </data>
+  <data name="Reports_NoteHeader" xml:space="preserve">
+    <value>Note</value>
+  </data>
   <data name="HeaderTitleProduct.Text" xml:space="preserve">
     <value>Product Management</value>
   </data>
