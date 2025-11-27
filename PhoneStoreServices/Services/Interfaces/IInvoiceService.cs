@@ -39,5 +39,14 @@ namespace PhoneStore.Services.Interfaces
             string customerName,
             string customerPhone,
             List<InvoiceLineSerialRequest>? serialRequests = null);
+
+        /// <summary>
+        /// Get top selling products statistics within a date range and status filter.
+        /// </summary>
+        List<TopProductStatViewModel> GetTopSellingProducts(
+            DateTime? fromDate,
+            DateTime? toDate,
+            InvoiceStatus? status,
+            int topCount = 5);
     }
 }

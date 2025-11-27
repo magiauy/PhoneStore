@@ -21,6 +21,7 @@ namespace PhoneStore.Services.Implementations
         private readonly IProductSerialRepository _productSerialRepository;
         private readonly IBatchProductRepository _batchProductRepository;
         private readonly IInvoiceLineSerialRepository _invoiceLineSerialRepository;
+        private readonly IProductRepository _productRepository;
 
         public InvoiceService(
             IInvoiceRepository invoiceRepository,
@@ -30,7 +31,8 @@ namespace PhoneStore.Services.Implementations
             IInvoiceLineRepository invoiceLineRepository,
             IProductSerialRepository productSerialRepository,
             IBatchProductRepository batchProductRepository,
-            IInvoiceLineSerialRepository invoiceLineSerialRepository)
+            IInvoiceLineSerialRepository invoiceLineSerialRepository,
+            IProductRepository productRepository)
         {
             _invoiceRepository = invoiceRepository ?? throw new ArgumentNullException(nameof(invoiceRepository));
             _personRepository = personRepository ?? throw new ArgumentNullException(nameof(personRepository));
@@ -41,6 +43,7 @@ namespace PhoneStore.Services.Implementations
             _productSerialRepository = productSerialRepository ?? throw new ArgumentNullException(nameof(productSerialRepository));
             _batchProductRepository = batchProductRepository ?? throw new ArgumentNullException(nameof(batchProductRepository));
             _invoiceLineSerialRepository = invoiceLineSerialRepository ?? throw new ArgumentNullException(nameof(invoiceLineSerialRepository));
+            _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         }
 
         public Invoice? GetById(int id)
@@ -254,6 +257,69 @@ namespace PhoneStore.Services.Implementations
             {
                 invoice.Status = InvoiceStatus.CANCELLED;
                 _invoiceRepository.Update(invoice);
+            }
+        }
+
+        public List<TopProductStatViewModel> GetTopSellingProducts(
+            DateTime? fromDate,
+            DateTime? toDate,
+            InvoiceStatus? status,
+            int topCount = 5)
+        {
+            try
+            {
+                // Get all invoice IDs matching the filter criteria
+                var invoices = _invoiceRepository.GetInvoicesFiltered(
+                    null, null, null, status, fromDate, toDate, null, null, 1, 100000);
+
+                var invoiceIds = invoices.Select(i => i.Id).ToList();
+
+                if (!invoiceIds.Any())
+                    return new List<TopProductStatViewModel>();
+
+                // Aggregate product stats from invoice lines
+                var productStats = new Dictionary<int, (int Quantity, decimal Revenue)>();
+
+                foreach (var invoiceId in invoiceIds)
+                {
+                    var lines = _invoiceLineRepository.GetByInvoiceId(invoiceId);
+                    foreach (var line in lines)
+                    {
+                        if (productStats.ContainsKey(line.ProductId))
+                        {
+                            var current = productStats[line.ProductId];
+                            productStats[line.ProductId] = (current.Quantity + line.Quantity, current.Revenue + line.TotalPrice);
+                        }
+                        else
+                        {
+                            productStats[line.ProductId] = (line.Quantity, line.TotalPrice);
+                        }
+                    }
+                }
+
+                // Get top products by revenue and include product names
+                var topProducts = productStats
+                    .OrderByDescending(p => p.Value.Revenue)
+                    .Take(topCount)
+                    .Select(p =>
+                    {
+                        var product = _productRepository.GetById(p.Key);
+                        return new TopProductStatViewModel
+                        {
+                            ProductId = p.Key,
+                            ProductName = product?.Name ?? "Unknown",
+                            QuantitySold = p.Value.Quantity,
+                            TotalRevenue = p.Value.Revenue
+                        };
+                    })
+                    .ToList();
+
+                return topProducts;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to get top selling products", ex);
+                return new List<TopProductStatViewModel>();
             }
         }
         #endregion

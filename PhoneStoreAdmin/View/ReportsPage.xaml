@@ -175,7 +175,8 @@
             <Pivot
                 x:Name="ReportsPivot"
                 Margin="0"
-                Background="Transparent">
+                Background="Transparent"
+                SelectionChanged="ReportsPivot_SelectionChanged">
 
                 <!--  Purchase Orders Statistics Tab  -->
                 <PivotItem>
@@ -197,6 +198,7 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
@@ -208,7 +210,7 @@
                                     <TextBlock
                                         x:Uid="Reports_FilterTitle"
                                         Grid.Row="0"
-                                        Grid.ColumnSpan="4"
+                                        Grid.ColumnSpan="5"
                                         Margin="0,0,0,0"
                                         FontSize="16"
                                         FontWeight="SemiBold" />
@@ -259,6 +261,7 @@
                                         x:Name="ApplyFilterButton"
                                         Grid.Row="2"
                                         Grid.Column="3"
+                                        Margin="0,0,8,0"
                                         Padding="20,10"
                                         VerticalAlignment="Bottom"
                                         Click="ApplyFilter_Click"
@@ -266,6 +269,21 @@
                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                             <FontIcon FontSize="14" Glyph="&#xE71C;" />
                                             <TextBlock x:Uid="Reports_ApplyButton" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!--  Export Excel Button  -->
+                                    <Button
+                                        x:Name="ExportPurchaseOrderButton"
+                                        Grid.Row="2"
+                                        Grid.Column="4"
+                                        Padding="20,10"
+                                        VerticalAlignment="Bottom"
+                                        Click="ExportPurchaseOrderExcel_Click"
+                                        Style="{StaticResource SecondaryButtonStyle}">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <FontIcon FontSize="14" Glyph="&#xE9F9;" />
+                                            <TextBlock x:Uid="Reports_ExportExcelButton" />
                                         </StackPanel>
                                     </Button>
                                 </Grid>
@@ -523,14 +541,424 @@
                             <TextBlock x:Uid="Reports_SalesTab" FontSize="16" />
                         </StackPanel>
                     </PivotItem.Header>
-                    <Grid Padding="32">
-                        <TextBlock
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            FontSize="24"
-                            Foreground="{StaticResource BrushTextSecondary}"
-                            Text="Coming soon..." />
-                    </Grid>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Padding="0,24" Spacing="24">
+
+                            <!--  Sales Filter Section  -->
+                            <Border Padding="20" Style="{StaticResource CardStyle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="16" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <!--  Title  -->
+                                    <TextBlock
+                                        x:Uid="Reports_FilterTitle"
+                                        Grid.Row="0"
+                                        Grid.ColumnSpan="5"
+                                        Margin="0,0,0,0"
+                                        FontSize="16"
+                                        FontWeight="SemiBold" />
+
+                                    <!--  From Date  -->
+                                    <StackPanel
+                                        Grid.Row="2"
+                                        Grid.Column="0"
+                                        Margin="0,0,12,0">
+                                        <TextBlock x:Uid="Reports_FromDateLabel" Margin="0,0,0,8" />
+                                        <CalendarDatePicker
+                                            x:Name="SalesFromDatePicker"
+                                            HorizontalAlignment="Stretch"
+                                            DateChanged="SalesDateFilter_Changed" />
+                                    </StackPanel>
+
+                                    <!--  To Date  -->
+                                    <StackPanel
+                                        Grid.Row="2"
+                                        Grid.Column="1"
+                                        Margin="0,0,12,0">
+                                        <TextBlock x:Uid="Reports_ToDateLabel" Margin="0,0,0,8" />
+                                        <CalendarDatePicker
+                                            x:Name="SalesToDatePicker"
+                                            HorizontalAlignment="Stretch"
+                                            DateChanged="SalesDateFilter_Changed" />
+                                    </StackPanel>
+
+                                    <!--  Status Filter  -->
+                                    <StackPanel
+                                        Grid.Row="2"
+                                        Grid.Column="2"
+                                        Margin="0,0,12,0">
+                                        <TextBlock x:Uid="Reports_StatusLabel" Margin="0,0,0,8" />
+                                        <ComboBox
+                                            x:Name="SalesStatusFilterComboBox"
+                                            HorizontalAlignment="Stretch"
+                                            SelectionChanged="SalesStatusFilter_Changed">
+                                            <ComboBoxItem x:Uid="Reports_AllStatus" Tag="" />
+                                            <ComboBoxItem x:Uid="Reports_PendingStatus" Tag="PENDING" />
+                                            <ComboBoxItem x:Uid="Reports_UnpaidStatus" Tag="UNPAID" />
+                                            <ComboBoxItem x:Uid="Reports_PaidStatus" Tag="PAID" />
+                                            <ComboBoxItem x:Uid="Reports_CompletedStatus" Tag="COMPLETED" />
+                                            <ComboBoxItem x:Uid="Reports_CancelledStatus" Tag="CANCELLED" />
+                                        </ComboBox>
+                                    </StackPanel>
+
+                                    <!--  Apply Button  -->
+                                    <Button
+                                        x:Name="ApplySalesFilterButton"
+                                        Grid.Row="2"
+                                        Grid.Column="3"
+                                        Margin="0,0,8,0"
+                                        Padding="20,10"
+                                        VerticalAlignment="Bottom"
+                                        Click="ApplySalesFilter_Click"
+                                        Style="{StaticResource PrimaryButtonStyle}">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <FontIcon FontSize="14" Glyph="&#xE71C;" />
+                                            <TextBlock x:Uid="Reports_ApplyButton" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!--  Export Excel Button  -->
+                                    <Button
+                                        x:Name="ExportSalesButton"
+                                        Grid.Row="2"
+                                        Grid.Column="4"
+                                        Padding="20,10"
+                                        VerticalAlignment="Bottom"
+                                        Click="ExportSalesExcel_Click"
+                                        Style="{StaticResource SecondaryButtonStyle}">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <FontIcon FontSize="14" Glyph="&#xE9F9;" />
+                                            <TextBlock x:Uid="Reports_ExportExcelButton" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+                            </Border>
+
+                            <!--  Sales Summary Cards  -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="16" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="16" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="16" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!--  Total Invoices Card  -->
+                                <Border Grid.Column="0" Style="{StaticResource StatCardStyle}">
+                                    <StackPanel Spacing="12">
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <Border
+                                                Width="48"
+                                                Height="48"
+                                                Background="{StaticResource BrushPrimaryLight}"
+                                                CornerRadius="10">
+                                                <FontIcon
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="24"
+                                                    Foreground="{StaticResource BrushPrimary}"
+                                                    Glyph="&#xE8EC;" />
+                                            </Border>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock
+                                                    x:Uid="Reports_TotalInvoicesLabel"
+                                                    FontSize="13"
+                                                    Foreground="{StaticResource BrushTextSecondary}" />
+                                                <TextBlock
+                                                    x:Name="TotalInvoicesText"
+                                                    FontSize="28"
+                                                    FontWeight="Bold"
+                                                    Foreground="{StaticResource BrushPrimary}"
+                                                    Text="0" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!--  Total Revenue Card  -->
+                                <Border Grid.Column="2" Style="{StaticResource StatCardStyle}">
+                                    <StackPanel Spacing="12">
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <Border
+                                                Width="48"
+                                                Height="48"
+                                                Background="#E8F5E9"
+                                                CornerRadius="10">
+                                                <FontIcon
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="24"
+                                                    Foreground="#4CAF50"
+                                                    Glyph="&#xE7EF;" />
+                                            </Border>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock
+                                                    x:Uid="Reports_TotalRevenueLabel"
+                                                    FontSize="13"
+                                                    Foreground="{StaticResource BrushTextSecondary}" />
+                                                <TextBlock
+                                                    x:Name="TotalRevenueText"
+                                                    FontSize="28"
+                                                    FontWeight="Bold"
+                                                    Foreground="#4CAF50"
+                                                    Text="0 ₫" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!--  Paid Invoices Card  -->
+                                <Border Grid.Column="4" Style="{StaticResource StatCardStyle}">
+                                    <StackPanel Spacing="12">
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <Border
+                                                Width="48"
+                                                Height="48"
+                                                Background="#E3F2FD"
+                                                CornerRadius="10">
+                                                <FontIcon
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="24"
+                                                    Foreground="#2196F3"
+                                                    Glyph="&#xE73E;" />
+                                            </Border>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock
+                                                    x:Uid="Reports_PaidInvoicesLabel"
+                                                    FontSize="13"
+                                                    Foreground="{StaticResource BrushTextSecondary}" />
+                                                <TextBlock
+                                                    x:Name="PaidInvoicesText"
+                                                    FontSize="28"
+                                                    FontWeight="Bold"
+                                                    Foreground="#2196F3"
+                                                    Text="0" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!--  Pending Invoices Card  -->
+                                <Border Grid.Column="6" Style="{StaticResource StatCardStyle}">
+                                    <StackPanel Spacing="12">
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <Border
+                                                Width="48"
+                                                Height="48"
+                                                Background="#FFF3E0"
+                                                CornerRadius="10">
+                                                <FontIcon
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="24"
+                                                    Foreground="#FF9800"
+                                                    Glyph="&#xE823;" />
+                                            </Border>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock
+                                                    x:Uid="Reports_PendingInvoicesLabel"
+                                                    FontSize="13"
+                                                    Foreground="{StaticResource BrushTextSecondary}" />
+                                                <TextBlock
+                                                    x:Name="PendingInvoicesText"
+                                                    FontSize="28"
+                                                    FontWeight="Bold"
+                                                    Foreground="#FF9800"
+                                                    Text="0" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <!--  Sales Charts Section  -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="16" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!--  Sales Monthly Trend Chart  -->
+                                <Border
+                                    Grid.Column="0"
+                                    Padding="24"
+                                    Style="{StaticResource CardStyle}">
+                                    <StackPanel Spacing="16">
+                                        <TextBlock
+                                            x:Uid="Reports_SalesMonthlyTrendTitle"
+                                            FontSize="18"
+                                            FontWeight="SemiBold" />
+
+                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                            <Grid
+                                                x:Name="SalesMonthlyChartGrid"
+                                                Height="300"
+                                                MinWidth="600">
+                                                <!--  Chart will be drawn here in code-behind  -->
+                                            </Grid>
+                                        </ScrollViewer>
+                                    </StackPanel>
+                                </Border>
+
+                                <!--  Top Customers  -->
+                                <Border
+                                    Grid.Column="2"
+                                    Padding="24"
+                                    Style="{StaticResource CardStyle}">
+                                    <StackPanel Spacing="16">
+                                        <TextBlock
+                                            x:Uid="Reports_TopCustomersTitle"
+                                            FontSize="18"
+                                            FontWeight="SemiBold" />
+
+                                        <ListView
+                                            x:Name="TopCustomersListView"
+                                            MaxHeight="300"
+                                            SelectionMode="None">
+                                            <ListView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid Margin="0,8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="12" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <Border
+                                                            Grid.Column="0"
+                                                            Width="32"
+                                                            Height="32"
+                                                            Background="#E3F2FD"
+                                                            CornerRadius="8">
+                                                            <TextBlock
+                                                                HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="14"
+                                                                FontWeight="Bold"
+                                                                Foreground="#2196F3"
+                                                                Text="{Binding Rank}" />
+                                                        </Border>
+
+                                                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                            <TextBlock
+                                                                Padding="0,0,20,0"
+                                                                FontSize="14"
+                                                                FontWeight="SemiBold"
+                                                                Text="{Binding CustomerName}"
+                                                                TextTrimming="CharacterEllipsis"
+                                                                TextWrapping="NoWrap" />
+                                                            <TextBlock FontSize="12" Foreground="{StaticResource BrushTextSecondary}">
+                                                                <Run Text="{Binding InvoiceCount}" />
+                                                                <Run x:Uid="Reports_InvoicesCount" />
+                                                            </TextBlock>
+                                                        </StackPanel>
+
+                                                        <TextBlock
+                                                            Grid.Column="3"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="14"
+                                                            FontWeight="Bold"
+                                                            Foreground="#4CAF50"
+                                                            Text="{Binding TotalSpent}" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ListView.ItemTemplate>
+                                        </ListView>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <!--  Top Products Section  -->
+                            <Border Padding="24" Style="{StaticResource CardStyle}">
+                                <StackPanel Spacing="16">
+                                    <TextBlock
+                                        x:Uid="Reports_TopProductsTitle"
+                                        FontSize="18"
+                                        FontWeight="SemiBold" />
+
+                                    <ListView
+                                        x:Name="TopProductsListView"
+                                        MaxHeight="300"
+                                        SelectionMode="None">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="12" />
+                                                        <ColumnDefinition Width="2*" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Border
+                                                        Grid.Column="0"
+                                                        Width="32"
+                                                        Height="32"
+                                                        Background="#E8F5E9"
+                                                        CornerRadius="8">
+                                                        <TextBlock
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="14"
+                                                            FontWeight="Bold"
+                                                            Foreground="#4CAF50"
+                                                            Text="{Binding Rank}" />
+                                                    </Border>
+
+                                                    <TextBlock
+                                                        Grid.Column="2"
+                                                        Padding="0,0,20,0"
+                                                        VerticalAlignment="Center"
+                                                        FontSize="14"
+                                                        FontWeight="SemiBold"
+                                                        Text="{Binding ProductName}"
+                                                        TextTrimming="CharacterEllipsis"
+                                                        TextWrapping="NoWrap" />
+
+                                                    <TextBlock
+                                                        Grid.Column="3"
+                                                        VerticalAlignment="Center"
+                                                        FontSize="12"
+                                                        Foreground="{StaticResource BrushTextSecondary}">
+                                                        <Run Text="{Binding QuantitySold}" />
+                                                        <Run x:Uid="Reports_UnitsSold" />
+                                                    </TextBlock>
+
+                                                    <TextBlock
+                                                        Grid.Column="4"
+                                                        VerticalAlignment="Center"
+                                                        FontSize="14"
+                                                        FontWeight="Bold"
+                                                        Foreground="#4CAF50"
+                                                        Text="{Binding TotalRevenue}" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
+                    </ScrollViewer>
                 </PivotItem>
 
             </Pivot>
