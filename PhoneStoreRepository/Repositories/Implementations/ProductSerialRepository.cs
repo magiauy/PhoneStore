@@ -1,11 +1,11 @@
-using PhoneStoreRepository.Models;
-using PhoneStoreRepository.Data;
-using PhoneStoreRepository.Repositories.Interfaces;
-using PhoneStoreRepository.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using MySqlConnector;
+using PhoneStoreRepository.Data;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
+using PhoneStoreRepository.Repositories.Interfaces;
 
 namespace PhoneStoreRepository.Repositories.Implementations
 {
@@ -72,7 +72,7 @@ namespace PhoneStoreRepository.Repositories.Implementations
             command.Transaction = transaction;
             command.CommandText = @"INSERT INTO product_serials (product_id, serial_number, imei1, imei2, batch_id, status, purchase_order_line_id, note) 
       VALUES (@productId, @serialNumber, @imei1, @imei2, @batchId, @status, @purchaseOrderLineId, @note)";
-            
+
             command.Parameters.AddWithValue("@productId", entity.ProductId);
             command.Parameters.AddWithValue("@serialNumber", entity.SerialNumber ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@imei1", entity.Imei1 ?? (object)DBNull.Value);
@@ -82,12 +82,12 @@ namespace PhoneStoreRepository.Repositories.Implementations
             command.Parameters.AddWithValue("@purchaseOrderLineId", entity.PurchaseOrderLineId ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@note", entity.Note ?? (object)DBNull.Value);
             command.ExecuteNonQuery();
-  
+
             // Get last inserted ID using the same connection and transaction
             command.CommandText = "SELECT LAST_INSERT_ID()";
             command.Parameters.Clear();
             entity.Id = Convert.ToInt32(command.ExecuteScalar());
-            
+
             command.Dispose();
         }
 
@@ -334,44 +334,44 @@ namespace PhoneStoreRepository.Repositories.Implementations
 
             var ids = productIds.Distinct().ToList();
             if (ids.Count == 0)
- {
-       return counts;
-  }
+            {
+                return counts;
+            }
 
-     using var connection = _dataSource.GetConnection();
+            using var connection = _dataSource.GetConnection();
             var parameterNames = ids.Select((_, index) => $"@id{index}").ToList();
             var query = $"SELECT product_id, COUNT(*) AS serial_count FROM product_serials WHERE product_id IN ({string.Join(",", parameterNames)}) GROUP BY product_id";
 
-     using var command = new MySqlCommand(query, connection);
-  for (var i = 0; i < ids.Count; i++)
- {
-      command.Parameters.AddWithValue(parameterNames[i], ids[i]);
+            using var command = new MySqlCommand(query, connection);
+            for (var i = 0; i < ids.Count; i++)
+            {
+                command.Parameters.AddWithValue(parameterNames[i], ids[i]);
             }
 
             using var reader = command.ExecuteReader();
-        while (reader.Read())
-        {
-            var productId = reader.GetInt32("product_id");
-        var count = reader.GetInt32("serial_count");
-     counts[productId] = count;
+            while (reader.Read())
+            {
+                var productId = reader.GetInt32("product_id");
+                var count = reader.GetInt32("serial_count");
+                counts[productId] = count;
             }
 
-   return counts;
+            return counts;
         }
 
         /// <summary>
         /// Delete all product serials associated with a purchase order
         /// </summary>
         public void DeleteByPurchaseOrderId(int purchaseOrderId, MySqlConnection connection, MySqlTransaction transaction)
-   {
+        {
             var command = connection.CreateCommand();
-      command.Transaction = transaction;
-        command.CommandText = @"DELETE ps FROM product_serials ps
+            command.Transaction = transaction;
+            command.CommandText = @"DELETE ps FROM product_serials ps
       INNER JOIN purchase_order_lines pol ON ps.purchase_order_line_id = pol.id
    WHERE pol.purchase_order_id = @poId";
-     
+
             command.Parameters.AddWithValue("@poId", purchaseOrderId);
-         command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
             command.Dispose();
         }
 
@@ -380,26 +380,26 @@ namespace PhoneStoreRepository.Repositories.Implementations
         /// </summary>
         public void UpdateStatusAndBatchByLine(int lineId, SerialStatus oldStatus, SerialStatus newStatus, int batchId, string note, MySqlConnection connection, MySqlTransaction transaction)
         {
-        var command = connection.CreateCommand();
-      command.Transaction = transaction;
-  command.CommandText = @"UPDATE product_serials 
+            var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = @"UPDATE product_serials 
        SET status = @newStatus, batch_id = @batchId, note = @note
           WHERE purchase_order_line_id = @lineId AND status = @oldStatus";
-        
-      command.Parameters.AddWithValue("@newStatus", newStatus.ToString().ToLower());
-          command.Parameters.AddWithValue("@batchId", batchId);
-    command.Parameters.AddWithValue("@note", note);
-       command.Parameters.AddWithValue("@lineId", lineId);
-            command.Parameters.AddWithValue("@oldStatus", oldStatus.ToString().ToLower());
-        
-      command.ExecuteNonQuery();
-       command.Dispose();
-    }
 
-      private int GetLastInsertedId(MySqlConnection connection)
+            command.Parameters.AddWithValue("@newStatus", newStatus.ToString().ToLower());
+            command.Parameters.AddWithValue("@batchId", batchId);
+            command.Parameters.AddWithValue("@note", note);
+            command.Parameters.AddWithValue("@lineId", lineId);
+            command.Parameters.AddWithValue("@oldStatus", oldStatus.ToString().ToLower());
+
+            command.ExecuteNonQuery();
+            command.Dispose();
+        }
+
+        private int GetLastInsertedId(MySqlConnection connection)
         {
-         using var command = new MySqlCommand("SELECT LAST_INSERT_ID()", connection);
-         return Convert.ToInt32(command.ExecuteScalar());
+            using var command = new MySqlCommand("SELECT LAST_INSERT_ID()", connection);
+            return Convert.ToInt32(command.ExecuteScalar());
         }
 
         private static ProductSerial MapFromReader(MySqlDataReader reader)
@@ -416,6 +416,47 @@ namespace PhoneStoreRepository.Repositories.Implementations
                 PurchaseOrderLineId = reader.IsDBNull(reader.GetOrdinal("purchase_order_line_id")) ? null : reader.GetInt32("purchase_order_line_id"),
                 Note = reader.IsDBNull(reader.GetOrdinal("note")) ? null : reader.GetString("note")
             };
+        }
+
+        public IDictionary<int, int> GetInStockCountsByProductIds(IEnumerable<int> productIds)
+        {
+            var counts = new Dictionary<int, int>();
+            if (productIds == null)
+            {
+                return counts;
+            }
+
+            var ids = new List<int>(productIds);
+            if (ids.Count == 0)
+            {
+                return counts;
+            }
+
+            using var connection = _dataSource.GetConnection();
+            var parameterNames = new List<string>();
+            for (int i = 0; i < ids.Count; i++)
+            {
+                parameterNames.Add($"@id{i}");
+            }
+
+            // Only count serials with status 'in_stock'
+            var query = $"SELECT product_id, COUNT(*) as serial_count FROM product_serials WHERE status = 'in_stock' AND product_id IN ({string.Join(",", parameterNames)}) GROUP BY product_id";
+
+            using var command = new MySqlCommand(query, connection);
+            for (int i = 0; i < ids.Count; i++)
+            {
+                command.Parameters.AddWithValue(parameterNames[i], ids[i]);
+            }
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var productId = reader.GetInt32("product_id");
+                var count = reader.GetInt32("serial_count");
+                counts[productId] = count;
+            }
+
+            return counts;
         }
     }
 }

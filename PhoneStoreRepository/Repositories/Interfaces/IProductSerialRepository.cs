@@ -1,7 +1,7 @@
+using System.Collections.Generic;
+using MySqlConnector;
 using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Models.Enums;
-using MySqlConnector;
-using System.Collections.Generic;
 
 namespace PhoneStoreRepository.Repositories.Interfaces
 {
@@ -14,7 +14,7 @@ namespace PhoneStoreRepository.Repositories.Interfaces
         IEnumerable<ProductSerial> GetPagedByProductId(int productId, int page, int pageSize, out int totalCount, int? batchId = null);
         IEnumerable<ProductSerial> GetByStatus(SerialStatus status);
         IDictionary<int, int> GetCountsByProductIds(IEnumerable<int> productIds);
-        
+
         /// <summary>
         /// Insert a product serial using an existing transaction
         /// </summary>
@@ -44,5 +44,7 @@ namespace PhoneStoreRepository.Repositories.Interfaces
         /// Update product serials status and batch for a purchase order line
         /// </summary>
         void UpdateStatusAndBatchByLine(int lineId, SerialStatus oldStatus, SerialStatus newStatus, int batchId, string note, MySqlConnection connection, MySqlTransaction transaction);
+
+        IDictionary<int, int> GetInStockCountsByProductIds(IEnumerable<int> productIds);
     }
 }

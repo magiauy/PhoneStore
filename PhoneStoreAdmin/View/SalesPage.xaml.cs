@@ -1,12 +1,3 @@
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
-using MySql.Data.MySqlClient;
-using PhoneStore.Services.Interfaces;
-using PhoneStore.Services.ViewModels;
-using PhoneStoreRepository.Models;
-using PhoneStoreRepository.Models.Enums;
-using PhoneStoreRepository.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,6 +7,16 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+using MySql.Data.MySqlClient;
+using PhoneStore.Services.Interfaces;
+using PhoneStore.Services.ViewModels;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
+using PhoneStoreRepository.Repositories.Interfaces;
 
 namespace PhoneStoreAdmin.View
 {
@@ -35,6 +36,13 @@ namespace PhoneStoreAdmin.View
         private readonly IInvoiceService _invoiceService;
         private readonly IBrandRepository _brandRepository;
         private readonly IProductCategoryRepository _categoryRepository;
+        private readonly IProductSerialRepository _productSerialRepository;
+        private readonly IBatchProductRepository _batchProductRepository;
+        private readonly ICustomerService _customerService;
+        private Guid _customerLookupRequestId = Guid.Empty;
+        private int? _selectedCustomerId;
+        private bool _isExistingCustomer;
+        private string _existingCustomerName = string.Empty;
 
         // Collections
         public ObservableCollection<SalesItem> AllProducts { get; set; }
@@ -49,6 +57,65 @@ namespace PhoneStoreAdmin.View
         {
             get => _customerName;
             set => SetProperty(ref _customerName, value);
+        }
+
+        public string ExistingCustomerName
+        {
+            get => _existingCustomerName;
+            private set => SetProperty(ref _existingCustomerName, value);
+        }
+
+        public bool IsExistingCustomer
+        {
+            get => _isExistingCustomer;
+            private set
+            {
+                if (SetProperty(ref _isExistingCustomer, value))
+                {
+                    OnPropertyChanged(nameof(ExistingCustomerNameVisibility));
+                    OnPropertyChanged(nameof(ManualCustomerNameVisibility));
+                }
+            }
+        }
+
+        public Visibility ExistingCustomerNameVisibility => IsExistingCustomer ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility ManualCustomerNameVisibility => IsExistingCustomer ? Visibility.Collapsed : Visibility.Visible;
+
+        private SalesItem? FindSalesItemById(int productId)
+        {
+            return AllProducts.FirstOrDefault(p => p.Id == productId);
+        }
+
+        private bool EnsureStockAvailability(int productId, int desiredQuantity, bool showAlert, out string errorMessage)
+        {
+            var product = FindSalesItemById(productId);
+            var stockQty = product?.StockQuantity ?? 0;
+
+            if (stockQty <= 0)
+            {
+                errorMessage = "Sản phẩm đã hết hàng trong kho.";
+                product?.SetStockError(errorMessage);
+                if (showAlert)
+                {
+                    ShowMessage(errorMessage, "Kho không đủ");
+                }
+                return false;
+            }
+
+            if (desiredQuantity > stockQty)
+            {
+                errorMessage = $"Không đủ hàng. Chỉ còn {stockQty} sản phẩm trong kho.";
+                product?.SetStockError(errorMessage);
+                if (showAlert)
+                {
+                    ShowMessage(errorMessage, "Kho không đủ");
+                }
+                return false;
+            }
+
+            product?.ClearStockError();
+            errorMessage = string.Empty;
+            return true;
         }
 
         public string CustomerPhone
@@ -99,6 +166,9 @@ namespace PhoneStoreAdmin.View
             _invoiceService = App.GetService<IInvoiceService>();
             _brandRepository = App.GetService<IBrandRepository>();
             _categoryRepository = App.GetService<IProductCategoryRepository>();
+            _productSerialRepository = App.GetService<IProductSerialRepository>();
+            _batchProductRepository = App.GetService<IBatchProductRepository>();
+            _customerService = App.GetService<ICustomerService>();
 
             // Initialize collections
             AllProducts = new ObservableCollection<SalesItem>();
@@ -106,14 +176,15 @@ namespace PhoneStoreAdmin.View
             InvoiceItems = new ObservableCollection<InvoiceLineItem>();
             Categories = new ObservableCollection<string>();
             Brands = new ObservableCollection<string>();
-            
+
             // Generate invoice number
             GenerateInvoiceNumber();
 
             _isLoaded = false;
 
             // Subscribe to collection changes
-            InvoiceItems.CollectionChanged += (s, e) => {
+            InvoiceItems.CollectionChanged += (s, e) =>
+            {
                 CalculateInvoiceTotal();
                 OnPropertyChanged(nameof(HasInvoiceItems));
             };
@@ -128,7 +199,7 @@ namespace PhoneStoreAdmin.View
             {
                 Debug.WriteLine("Calling LoadInitialData()");
                 _isLoaded = true;
-                LoadInitialData();               
+                LoadInitialData();
             }
             else
             {
@@ -167,65 +238,58 @@ namespace PhoneStoreAdmin.View
         {
             if (!HasInvoiceItems)
             {
-                ShowMessage("Vui lòng thêm sản phẩm vào hóa đơn", "Thông báo");
+                ShowMessage("Vui long them san pham vao hoa don", "Thong bao");
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(CustomerName))
+            if (!EnsureCustomerInfo(out var invoiceCustomerName))
             {
-                ShowMessage("Vui lòng nhập tên khách hàng", "Thông báo");
                 return;
             }
 
-            // Process sale logic here
-            // Chuẩn bị dữ liệu hóa đơn (Header)
             var newInvoice = new Invoice
             {
                 InvoiceDate = DateTime.Now,
                 CreatedBy = 1,
                 Status = InvoiceStatus.PAID,
                 PaymentMethod = PaymentMethod.CASH,
-                Note = $"Bán hàng tại quầy - {DateTime.Now:HH:mm}",
+                Note = $"Ban hang tai quay - {DateTime.Now:HH:mm}",
                 DiscountAmount = 0
             };
 
-            // Chuyển đổi (Map) từ UI Item sang Entity Line
             var invoiceLines = InvoiceItems.Select(item => new InvoiceLine
             {
                 ProductId = item.ProductId,
                 Quantity = item.Quantity,
                 UnitPrice = item.UnitPrice,
                 DiscountPct = 0,
-                // Tính toán TotalPrice cho Entity
                 TotalPrice = item.UnitPrice * item.Quantity
             }).ToList();
 
             try
             {
-                // Gọi Service với danh sách InvoiceLine đã chuyển đổi
-                _invoiceService.CreateFullInvoice(newInvoice, invoiceLines, CustomerName, CustomerPhone);
+                _invoiceService.CreateFullInvoice(newInvoice, invoiceLines, invoiceCustomerName, CustomerPhone?.Trim());
 
-                ShowMessage($"Đã thanh toán thành công!\nMã HĐ: {newInvoice.Id}\nTổng tiền: {FormatPrice(newInvoice.FinalAmount)}", "Thành công");
+                ShowMessage($"Da thanh toan thanh cong!\nMa HD: {newInvoice.Id}\nTong tien: {FormatPrice(newInvoice.FinalAmount)}", "Thanh cong");
 
                 OnClearInvoice(sender, e);
             }
             catch (Exception ex)
             {
-                ShowMessage($"Lỗi khi thanh toán: {ex.Message}", "Lỗi hệ thống");
+                ShowMessage($"Loi khi thanh toan: {ex.Message}", "Loi he thong");
                 Debug.WriteLine(ex.ToString());
             }
 
-            // Clear invoice after successful sale
             OnClearInvoice(sender, e);
         }
 
         public void OnClearInvoice(object sender, RoutedEventArgs e)
         {
             InvoiceItems.Clear();
-            CustomerName = string.Empty;
-            CustomerPhone = string.Empty;
+            ResetCustomerInfo();
             GenerateInvoiceNumber();
             CalculateInvoiceTotal();
+            ClearAllStockErrors();
         }
 
         public void OnRefreshFilters(object sender, RoutedEventArgs e)
@@ -236,7 +300,68 @@ namespace PhoneStoreAdmin.View
 
             FilterProducts();
         }
-        
+
+        public async void OnCheckPhoneNumberChanged(object sender, TextChangedEventArgs e)
+        {
+            await LookupCustomerByPhoneAsync(CustomerPhoneTextBox?.Text);
+        }
+
+        public async void OnCheckPhoneNumberClick(object sender, RoutedEventArgs e)
+        {
+            await LookupCustomerByPhoneAsync(CustomerPhoneTextBox?.Text);
+        }
+
+
+        private async Task LookupCustomerByPhoneAsync(string? rawPhone)
+        {
+            if (_customerService == null)
+            {
+                return;
+            }
+
+            var phone = rawPhone?.Trim() ?? string.Empty;
+            if (!string.Equals(CustomerPhone, phone, StringComparison.Ordinal))
+            {
+                CustomerPhone = phone;
+            }
+
+            if (string.IsNullOrWhiteSpace(phone))
+            {
+                ClearCustomerSelection(true);
+                return;
+            }
+
+            if (phone.Length < 6)
+            {
+                ClearCustomerSelection(false);
+                return;
+            }
+
+            var lookupId = Guid.NewGuid();
+            _customerLookupRequestId = lookupId;
+
+            try
+            {
+                var customer = await _customerService.GetCustomerByPhoneAsync(phone);
+                if (_customerLookupRequestId != lookupId)
+                {
+                    return;
+                }
+
+                if (customer != null)
+                {
+                    ApplyExistingCustomer(customer);
+                }
+                else
+                {
+                    ClearCustomerSelection(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("OnCheckPhoneNumber lookup failed: " + ex);
+            }
+        }
 
         private void LoadInitialData(int? selectedModelId = null)
         {
@@ -309,13 +434,13 @@ namespace PhoneStoreAdmin.View
 
                 if (detail != null && _productRepository != null)
                 {
-                    
+
                     Debug.WriteLine("FALLBACK: Calling GetAll() on IProductRepository.");
                     var allProductEntities = _productRepository.GetAll();
 
-                    
+
                     var variantEntities = allProductEntities
-                        .Where(p => (p.ModelId == modelId)) 
+                        .Where(p => (p.ModelId == modelId))
                         .ToList();
 
                     var variantViewModels = variantEntities.Select(MapToProductListItemViewModel).ToList();
@@ -414,6 +539,16 @@ namespace PhoneStoreAdmin.View
                 Debug.WriteLine($"PopulateProductsFromRepository: fetched products.Count = {products.Count}");
                 var brands = _brandRepository?.GetAll()?.ToDictionary(b => b.Id, b => b.Name) ?? new Dictionary<int, string>();
                 var categories = _categoryRepository?.GetAll()?.ToDictionary(c => c.Id, c => c.Name) ?? new Dictionary<int, string>();
+                var serialTrackedIds = products.Where(p => p.IsSerialTracked).Select(p => p.Id).ToList();
+                var batchTrackedIds = products.Where(p => !p.IsSerialTracked).Select(p => p.Id).ToList();
+
+                // Mirror PhoneStoreUser inventory logic: serial tracked items count ProductSerials, others sum BatchProducts quantities.
+                var serialStockLookup = serialTrackedIds.Count > 0
+                    ? _productSerialRepository?.GetInStockCountsByProductIds(serialTrackedIds) ?? new Dictionary<int, int>()
+                    : new Dictionary<int, int>();
+                var batchStockLookup = batchTrackedIds.Count > 0
+                    ? _batchProductRepository?.GetQuantitiesByProductIds(batchTrackedIds) ?? new Dictionary<int, int>()
+                    : new Dictionary<int, int>();
 
                 var brandSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 var categorySet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -431,6 +566,9 @@ namespace PhoneStoreAdmin.View
                     {
                         categoryName = cName;
                     }
+                    var stockQty = p.IsSerialTracked
+                        ? (serialStockLookup.TryGetValue(p.Id, out var serialQty) ? serialQty : 0)
+                        : (batchStockLookup.TryGetValue(p.Id, out var batchQty) ? batchQty : 0);
                     // Map repository Product -> SalesItem
                     var item = new SalesItem
                     {
@@ -440,7 +578,8 @@ namespace PhoneStoreAdmin.View
                         BrandName = brandName,
                         CategoryName = categoryName,
                         Price = p.Price,
-                        StockQuantity = 0, // nếu repo có stock field, sử dụng nó; nếu không, để 0 hoặc query thêm
+                        StockQuantity = stockQty,
+                        IsSerialTracked = p.IsSerialTracked,
                         ParentPage = this
                     };
 
@@ -469,7 +608,7 @@ namespace PhoneStoreAdmin.View
                 Debug.WriteLine("PopulateProductsFromRepository EXCEPTION: " + ex);
             }
         }
-         
+
         private readonly List<string> _selectedBrandNames = new();
         private readonly List<string> _selectedCategoryNames = new();
         private void UpdateVariantMetadataSummaries()
@@ -548,7 +687,7 @@ namespace PhoneStoreAdmin.View
             // Filter by search text
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
-                filteredItems = filteredItems.Where(p => 
+                filteredItems = filteredItems.Where(p =>
                     p.ProductName.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
                     p.BrandName.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
             }
@@ -585,13 +724,126 @@ namespace PhoneStoreAdmin.View
             Total = Subtotal + VatAmount;
         }
 
+        private bool EnsureCustomerInfo(out string invoiceCustomerName)
+        {
+            invoiceCustomerName = string.Empty;
+
+            var phone = CustomerPhone?.Trim();
+            if (string.IsNullOrWhiteSpace(phone))
+            {
+                ShowMessage("Vui long nhap so dien thoai khach hang", "Thong bao");
+                return false;
+            }
+
+            if (IsExistingCustomer)
+            {
+                invoiceCustomerName = string.IsNullOrWhiteSpace(ExistingCustomerName)
+                    ? CustomerName
+                    : ExistingCustomerName;
+
+                if (string.IsNullOrWhiteSpace(invoiceCustomerName))
+                {
+                    ShowMessage("Khong tim thay ten khach hang hop le", "Thong bao");
+                    return false;
+                }
+
+                return true;
+            }
+
+            var trimmedName = CustomerName?.Trim();
+            if (string.IsNullOrWhiteSpace(trimmedName))
+            {
+                ShowMessage("Vui long nhap ten khach hang", "Thong bao");
+                return false;
+            }
+
+            CustomerName = trimmedName;
+            if (_customerService == null)
+            {
+                ShowMessage("Khong the truy cap dich vu khach hang", "Loi he thong");
+                return false;
+            }
+
+            var newCustomer = new Customer(trimmedName)
+            {
+                Phone = phone,
+                PersonType = PersonType.CUSTOMER,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
+            };
+
+            if (!_customerService.Insert(newCustomer))
+            {
+                ShowMessage("Khong the tao khach hang moi. Vui long thu lai.", "Loi he thong");
+                return false;
+            }
+
+            ApplyExistingCustomer(newCustomer);
+            invoiceCustomerName = newCustomer.FullName;
+            return true;
+        }
+
+        private void ApplyExistingCustomer(Customer customer)
+        {
+            if (customer == null)
+            {
+                return;
+            }
+
+            _selectedCustomerId = customer.Id;
+            var name = customer.FullName ?? string.Empty;
+            ExistingCustomerName = name;
+            CustomerName = name;
+            if (!string.IsNullOrWhiteSpace(customer.Phone))
+            {
+                CustomerPhone = customer.Phone?.Trim() ?? CustomerPhone;
+            }
+
+            IsExistingCustomer = true;
+        }
+
+        private void ClearCustomerSelection(bool clearManualName)
+        {
+            var shouldClearName = clearManualName || IsExistingCustomer;
+            _selectedCustomerId = null;
+            ExistingCustomerName = string.Empty;
+            IsExistingCustomer = false;
+
+            if (shouldClearName)
+            {
+                CustomerName = string.Empty;
+            }
+        }
+
+        private void ResetCustomerInfo()
+        {
+            _customerLookupRequestId = Guid.Empty;
+            ClearCustomerSelection(true);
+            CustomerPhone = string.Empty;
+        }
+
+        private void ClearAllStockErrors()
+        {
+            foreach (var product in AllProducts)
+            {
+                product.ClearStockError();
+            }
+        }
+
         public void AddProductToInvoice(SalesItem product)
         {
             var existingItem = InvoiceItems.FirstOrDefault(item => item.ProductId == product.Id);
-            
+            var desiredQuantity = (existingItem?.Quantity ?? 0) + 1;
+
+            if (!EnsureStockAvailability(product.Id, desiredQuantity, showAlert: true, out _))
+            {
+                return;
+            }
+
             if (existingItem != null)
             {
-                existingItem.Quantity++;
+                existingItem.Quantity = desiredQuantity;
+                CalculateInvoiceTotal();
             }
             else
             {
@@ -605,6 +857,32 @@ namespace PhoneStoreAdmin.View
                 };
                 InvoiceItems.Add(newItem);
             }
+        }
+
+        public void ChangeInvoiceItemQuantity(InvoiceLineItem item, int desiredQuantity)
+        {
+            if (item == null)
+            {
+                return;
+            }
+
+            if (desiredQuantity < 1)
+            {
+                desiredQuantity = 1;
+            }
+
+            if (desiredQuantity == item.Quantity)
+            {
+                return;
+            }
+
+            if (!EnsureStockAvailability(item.ProductId, desiredQuantity, showAlert: true, out _))
+            {
+                return;
+            }
+
+            item.Quantity = desiredQuantity;
+            CalculateInvoiceTotal();
         }
 
         public void RemoveProductFromInvoice(InvoiceLineItem item)
@@ -646,6 +924,8 @@ namespace PhoneStoreAdmin.View
     public class SalesItem : INotifyPropertyChanged
     {
         private int _quantity = 1;
+        private bool _hasStockError;
+        private string _stockErrorMessage = string.Empty;
 
         public int Id { get; set; }
         public string ProductName { get; set; } = string.Empty;
@@ -654,6 +934,7 @@ namespace PhoneStoreAdmin.View
         public string CategoryName { get; set; } = string.Empty;
         public decimal Price { get; set; }
         public int StockQuantity { get; set; }
+        public bool IsSerialTracked { get; set; }
         public SalesPage? ParentPage { get; set; }
 
         public int Quantity
@@ -662,14 +943,61 @@ namespace PhoneStoreAdmin.View
             set => SetProperty(ref _quantity, value);
         }
 
+        public bool HasStockError
+        {
+            get => _hasStockError;
+            private set
+            {
+                if (SetProperty(ref _hasStockError, value))
+                {
+                    OnPropertyChanged(nameof(StockBorderBrush));
+                }
+            }
+        }
+
+        public string StockErrorMessage
+        {
+            get => _stockErrorMessage;
+            private set
+            {
+                if (SetProperty(ref _stockErrorMessage, value))
+                {
+                    OnPropertyChanged(nameof(StockErrorVisibility));
+                }
+            }
+        }
+
+        public Visibility StockErrorVisibility => string.IsNullOrWhiteSpace(StockErrorMessage) ? Visibility.Collapsed : Visibility.Visible;
+
+        public Brush StockBorderBrush => HasStockError
+            ? (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"]
+            : (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"];
+
         public string FormatPrice(decimal price)
         {
             return price.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
         }
 
+        public string FormatStock(int quantity)
+        {
+            return $"Kho: {quantity}";
+        }
+
         public void AddToInvoice(object sender, RoutedEventArgs e)
         {
             ParentPage?.AddProductToInvoice(this);
+        }
+
+        public void SetStockError(string message)
+        {
+            StockErrorMessage = message ?? string.Empty;
+            HasStockError = !string.IsNullOrEmpty(message);
+        }
+
+        public void ClearStockError()
+        {
+            StockErrorMessage = string.Empty;
+            HasStockError = false;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -704,10 +1032,13 @@ namespace PhoneStoreAdmin.View
             {
                 SetProperty(ref _quantity, value);
                 OnPropertyChanged(nameof(TotalPrice));
+                OnPropertyChanged(nameof(CanDecrease));
             }
         }
 
         public decimal TotalPrice => UnitPrice * Quantity;
+
+        public bool CanDecrease => Quantity > 1;
 
         public string FormatPrice(decimal price)
         {
@@ -717,6 +1048,16 @@ namespace PhoneStoreAdmin.View
         public void RemoveFromInvoice(object sender, RoutedEventArgs e)
         {
             ParentPage?.RemoveProductFromInvoice(this);
+        }
+
+        public void IncreaseQuantity(object sender, RoutedEventArgs e)
+        {
+            ParentPage?.ChangeInvoiceItemQuantity(this, Quantity + 1);
+        }
+
+        public void DecreaseQuantity(object sender, RoutedEventArgs e)
+        {
+            ParentPage?.ChangeInvoiceItemQuantity(this, Quantity - 1);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

@@ -6,360 +6,417 @@
     xmlns:globalization="using:System.Globalization"
     xmlns:local="using:PhoneStoreAdmin.View"
     xmlns:sys="using:System"
-    x:DataType="local:SalesPage"
-    Background="{ThemeResource SolidBackgroundFillColorBaseBrush}">
+    Background="{ThemeResource LayerFillColorDefaultBrush}">
 
     <Page.Resources>
-        <!--  Alias tokens theo Fluent Design  -->
-        <SolidColorBrush x:Key="App/Fill/Surface" Color="{ThemeResource SolidBackgroundFillColorBase}" />
-        <SolidColorBrush x:Key="App/Fill/Card" Color="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
-        <SolidColorBrush x:Key="App/Text/Primary" Color="{ThemeResource TextFillColorPrimary}" />
-        <SolidColorBrush x:Key="App/Text/Secondary" Color="{ThemeResource TextFillColorSecondary}" />
-        <SolidColorBrush x:Key="App/Stroke/Card" Color="{ThemeResource CardStrokeColorDefault}" />
-        <SolidColorBrush x:Key="App/Accent/Fill" Color="{ThemeResource AccentFillColorDefault}" />
+        <ThemeShadow x:Key="SharedShadow" />
 
-        <!--  Style cho product card  -->
-        <Style x:Key="ProductCardStyle" TargetType="Border">
-            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="Padding" Value="12" />
+        <Style x:Key="ProductItemContainerStyle" TargetType="ListViewItem">
+            <Setter Property="Padding" Value="0" />
             <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="CornerRadius" Value="8" />
         </Style>
-
-        <!--  Style cho invoice panel  -->
-        <Style x:Key="InvoicePanelStyle" TargetType="Border">
-            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="12" />
-            <Setter Property="Padding" Value="20" />
-        </Style>
-
-        <!--  Shadow cho elevation  -->
-        <ThemeShadow x:Key="DefaultShadow" />
     </Page.Resources>
 
-    <Grid Padding="24" RowDefinitions="Auto,*">
-        <!--  Header  -->
-        <StackPanel
-            Grid.Row="0"
-            Margin="0,0,0,24"
-            Spacing="8">
-            <TextBlock
-                Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                Style="{ThemeResource TitleTextBlockStyle}"
-                Text="Bán Hàng" />
-            <TextBlock
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Style="{ThemeResource CaptionTextBlockStyle}"
-                Text="Chọn sản phẩm và tạo hóa đơn bán hàng" />
-        </StackPanel>
+    <Grid Padding="32,24,32,24" RowDefinitions="Auto,*">
 
-        <!--  Main Content  -->
-        <Grid Grid.Row="1" ColumnDefinitions="2*,20,1.2*">
+        <Grid Grid.Row="0" Margin="0,0,0,24" ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="4">
+                <TextBlock Style="{ThemeResource TitleLargeTextBlockStyle}" Text="Bán Hàng" />
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{ThemeResource BodyTextBlockStyle}"
+                    Text="Tạo đơn hàng và thanh toán" />
+            </StackPanel>
+        </Grid>
 
-            <!--  Left Panel - Danh sách sản phẩm  -->
-            <Border Grid.Column="0" Style="{StaticResource InvoicePanelStyle}">
-                <Border.Shadow>
-                    <ThemeShadow />
-                </Border.Shadow>
+        <Grid Grid.Row="1" ColumnDefinitions="2*, 24, 1.2*">
 
-                <Grid RowDefinitions="Auto,Auto,*">
-                    <!--  Search Header  -->
-                    <StackPanel
-                        Grid.Row="0"
-                        Margin="0,0,0,16"
-                        Spacing="12">
-                        <TextBlock
-                            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                            Style="{ThemeResource SubtitleTextBlockStyle}"
-                            Text="Danh Sách Sản Phẩm" />
+            <Grid Grid.Column="0" RowDefinitions="Auto, *">
 
-                        <!--  Search Box  -->
-                        <TextBox
-                            x:Name="SearchTextBox"
-                            PlaceholderText="Tìm kiếm sản phẩm..."
-                            TextChanged="{x:Bind OnSearchTextChanged}">
-                            <TextBox.Resources>
-                                <ResourceDictionary>
-                                    <SolidColorBrush x:Key="TextControlBackground" Color="{ThemeResource SubtleFillColorSecondary}" />
-                                </ResourceDictionary>
-                            </TextBox.Resources>
-                        </TextBox>
+                <Grid Grid.Row="0" Margin="0,0,0,16" ColumnDefinitions="*, Auto, Auto, Auto" ColumnSpacing="12">
+                    
+                    <StackPanel Grid.Column="0" Spacing="4">
+                        <TextBlock Text="Tìm kiếm" Style="{ThemeResource CaptionTextBlockStyle}"/>
+                        <Grid>
+                            <TextBox
+                                x:Name="SearchTextBox"
+                                PlaceholderText="Tìm tên sản phẩm..."
+                                Padding="36,10,10,10"
+                                TextChanged="{x:Bind OnSearchTextChanged}" />
+                            <FontIcon 
+                                Glyph="&#xE721;" 
+                                FontSize="12" 
+                                HorizontalAlignment="Left" 
+                                Margin="12,0,0,0"
+                                IsHitTestVisible="False"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        </Grid>
                     </StackPanel>
 
-                    <!--  Filter  -->
-                    <StackPanel
-                        Grid.Row="1"
-                        Margin="0,0,0,16"
-                        Orientation="Horizontal"
-                        Spacing="12">
-                        <ComboBox
-                            x:Name="CategoryComboBox"
-                            MinWidth="150"
-                            Header="Danh mục"
-                            PlaceholderText="Tất cả danh mục"
-                            ItemsSource="{x:Bind Categories, Mode=OneWay}"
-                            SelectionChanged="{x:Bind OnCategorySelectionChanged}" />
-                        <ComboBox
-                            x:Name="BrandComboBox"
-                            MinWidth="150"
-                            Header="Thương hiệu"
-                            PlaceholderText="Tất cả thương hiệu"
-                            ItemsSource="{x:Bind Brands, Mode=OneWay}"
-                            SelectionChanged="{x:Bind OnBrandSelectionChanged}" />
-                        <Button
-                            x:Name="RefreshFilterButton"
-                            VerticalAlignment="Bottom"
-                            Click="{x:Bind OnRefreshFilters}"
-                            ToolTipService.ToolTip="Xóa bộ lọc và tìm kiếm">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon Glyph="&#xE72C;" FontSize="16" /> <TextBlock Text="Làm mới" />
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
+                    <ComboBox
+                        x:Name="CategoryComboBox"
+                        Grid.Column="1"
+                        MinWidth="140"
+                        Header="Danh mục"
+                        ItemsSource="{x:Bind Categories, Mode=OneWay}"
+                        PlaceholderText="Tất cả"
+                        SelectionChanged="{x:Bind OnCategorySelectionChanged}" />
 
-                    <!--  Products ListView  -->
+                    <ComboBox
+                        x:Name="BrandComboBox"
+                        Grid.Column="2"
+                        MinWidth="140"
+                        Header="Thương hiệu"
+                        ItemsSource="{x:Bind Brands, Mode=OneWay}"
+                        PlaceholderText="Tất cả"
+                        SelectionChanged="{x:Bind OnBrandSelectionChanged}" />
+
+                    <Button
+                        x:Name="RefreshFilterButton"
+                        Grid.Column="3"
+                        VerticalAlignment="Bottom"
+                        Margin="0,0,0,1"
+                        Click="{x:Bind OnRefreshFilters}"
+                        ToolTipService.ToolTip="Làm mới bộ lọc">
+                        <FontIcon Glyph="&#xE72C;" />
+                    </Button>
+                </Grid>
+
+                <Border
+                    Grid.Row="1"
+                    Background="{ThemeResource LayerFillColorAltBrush}"
+                    BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8">
+
                     <ListView
                         x:Name="ProductsListView"
-                        Grid.Row="2"
+                        Padding="16"
+                        ItemContainerStyle="{StaticResource ProductItemContainerStyle}"
                         ItemsSource="{x:Bind FilteredProducts}"
-                        ScrollViewer.VerticalScrollBarVisibility="Auto"
                         SelectionMode="None">
-
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="local:SalesItem">
-                                <Border Style="{StaticResource ProductCardStyle}">
-                                    <Grid ColumnDefinitions="60,*,Auto">
-                                        <!--  Product Image Placeholder  -->
-                                        <Border
-                                            Grid.Column="0"
-                                            Width="50"
-                                            Height="50"
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"
-                                            Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                            CornerRadius="4">
-                                            <FontIcon
-                                                FontSize="20"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Glyph="&#xE8B9;" />
-                                        </Border>
+                                <Grid
+                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                    BorderBrush="{x:Bind StockBorderBrush, Mode=OneWay}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
 
-                                        <!--  Product Info  -->
+                                    <Border
+                                        Grid.Column="0"
+                                        Width="48"
+                                        Height="48"
+                                        Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+                                        CornerRadius="4">
+                                        <FontIcon
+                                            FontSize="20"
+                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                            Glyph="&#xE8B9;" />
+                                    </Border>
+
                                         <StackPanel
                                             Grid.Column="1"
-                                            Margin="12,0,0,0"
-                                            VerticalAlignment="Center">
-                                            <TextBlock
-                                                Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                                Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                                Text="{x:Bind ProductName}"
-                                                TextTrimming="CharacterEllipsis" />
-                                            <TextBlock
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="{x:Bind BrandName}" />
-                                            <TextBlock
-                                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                                Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                                Text="{x:Bind FormatPrice(Price)}" />
-                                        </StackPanel>
-
-                                        <!--  Add Button  -->
-                                        <Button
-                                            Grid.Column="2"
-                                            MinWidth="80"
+                                            Margin="16,0,0,0"
                                             VerticalAlignment="Center"
+                                            Spacing="2">
+                                        <TextBlock
+                                            Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                            Text="{x:Bind ProductName}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Border
+                                                Padding="6,2"
+                                                Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+                                                CornerRadius="4">
+                                                <TextBlock
+                                                    FontSize="11"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Text="{x:Bind BrandName}" />
+                                            </Border>
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                FontSize="12"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Text="{x:Bind FormatStock(StockQuantity)}" />
+                                        </StackPanel>
+                                        <TextBlock
+                                            Margin="0,4,0,0"
+                                            FontSize="12"
+                                            Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                            Text="{x:Bind StockErrorMessage}"
+                                            Visibility="{x:Bind StockErrorVisibility}" />
+                                    </StackPanel>
+
+                                    <StackPanel
+                                        Grid.Column="2"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal"
+                                        Spacing="16">
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                            Style="{ThemeResource SubtitleTextBlockStyle}"
+                                            Text="{x:Bind FormatPrice(Price)}" />
+                                        <Button
                                             Click="{x:Bind AddToInvoice}"
-                                            Style="{ThemeResource AccentButtonStyle}">
-                                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                                <FontIcon FontSize="14" Glyph="&#xE710;" />
-                                                <TextBlock Text="Thêm" />
-                                            </StackPanel>
+                                            Style="{ThemeResource AccentButtonStyle}"
+                                            ToolTipService.ToolTip="Thêm vào hóa đơn">
+                                            <FontIcon FontSize="14" Glyph="&#xE710;" />
                                         </Button>
-                                    </Grid>
-                                </Border>
+                                    </StackPanel>
+                                </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
+                </Border>
+            </Grid>
+
+            <Grid Grid.Column="2" RowDefinitions="Auto, *">
+                <Grid Grid.RowSpan="2" CornerRadius="12" Translation="0,0,16">
+                    <Grid.Shadow>
+                        <ThemeShadow />
+                    </Grid.Shadow>
                 </Grid>
-            </Border>
 
-            <!--  Right Panel - Thông tin hóa đơn  -->
-            <Border Grid.Column="2" Style="{StaticResource InvoicePanelStyle}">
-                <Border.Shadow>
-                    <ThemeShadow />
-                </Border.Shadow>
+                <Grid
+                    Grid.RowSpan="2"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
 
-                <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
-                    <!--  Invoice Header  -->
-                    <StackPanel
-                        Grid.Row="0"
-                        Margin="0,0,0,20"
-                        Spacing="8">
-                        <TextBlock
-                            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                            Style="{ThemeResource SubtitleTextBlockStyle}"
-                            Text="Hóa Đơn Bán Hàng" />
-                        <TextBlock
-                            x:Name="InvoiceNumberText"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="{x:Bind sys:String.Format(x:Null, 'Số HĐ: {0}', InvoiceNumber)}" />
-                    </StackPanel>
+                    <Grid Padding="20" RowDefinitions="Auto, *, Auto">
 
-                    <!--  Customer Info  -->
-                    <StackPanel
-                        Grid.Row="1"
-                        Margin="0,0,0,16"
-                        Spacing="12">
-                        <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}" Text="Thông tin khách hàng" />
-                        <TextBox
-                            x:Name="CustomerNameTextBox"
-                            Header="Tên khách hàng"
-                            PlaceholderText="Nhập tên khách hàng"
-                            Text="{x:Bind CustomerName, Mode=TwoWay}" />
-                        <TextBox
-                            x:Name="CustomerPhoneTextBox"
-                            Header="Số điện thoại"
-                            PlaceholderText="Nhập số điện thoại"
-                            Text="{x:Bind CustomerPhone, Mode=TwoWay}" />
-                    </StackPanel>
+                       <StackPanel Grid.Row="0" Spacing="16">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Hóa đơn" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                                    <TextBlock
+                                        Text="{x:Bind sys:String.Format(x:Null, '#{0}', InvoiceNumber)}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                </StackPanel>
+                                
+                                <Button
+                                    Grid.Column="1"
+                                    x:Name="ClearInvoiceButton"
+                                    VerticalAlignment="Top"
+                                    Click="{x:Bind OnClearInvoice}"
+                                    Style="{ThemeResource SubtleButtonStyle}"
+                                    ToolTipService.ToolTip="Xóa làm mới">
+                                    <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+                                </Button>
+                            </Grid>
 
-                    <!--  Invoice Items  -->
-                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-                        <StackPanel x:Name="InvoiceItemsPanel" Spacing="8">
-                            <TextBlock
-                                Margin="0,0,0,8"
-                                Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                Text="Sản phẩm đã chọn" />
+                            <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" />
 
-                            <ListView
-                                x:Name="InvoiceItemsListView"
-                                ItemsSource="{x:Bind InvoiceItems}"
-                                SelectionMode="None">
+                           <StackPanel Spacing="12">
+    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="8">
+        <TextBox
+            x:Name="CustomerPhoneTextBox"
+            Grid.Column="0"
+            Header="Số điện thoại"
+            InputScope="Number"
+            PlaceholderText="Nhập SĐT khách hàng..."
+            Text="{x:Bind CustomerPhone, Mode=TwoWay}"
+            TextChanged="{x:Bind OnCheckPhoneNumberChanged}" />
 
-                                <ListView.ItemTemplate>
-                                    <DataTemplate x:DataType="local:InvoiceLineItem">
-                                        <Border
-                                            Margin="0,0,0,4"
-                                            Padding="8"
-                                            Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                            CornerRadius="6">
-                                            <Grid ColumnDefinitions="*,Auto">
-                                                <StackPanel Grid.Column="0">
-                                                    <TextBlock
-                                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                                        Text="{x:Bind ProductName}"
-                                                        TextTrimming="CharacterEllipsis" />
-                                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                                        <TextBlock
-                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                            Style="{ThemeResource CaptionTextBlockStyle}"
-                                                            Text="{x:Bind sys:String.Format(x:Null, 'SL: {0}', Quantity)}" />
-                                                        <TextBlock
-                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                            Style="{ThemeResource CaptionTextBlockStyle}"
-                                                            Text="{x:Bind FormatPrice(UnitPrice)}" />
-                                                    </StackPanel>
-                                                </StackPanel>
-                                                <Button
-                                                    Grid.Column="1"
-                                                    Width="24"
-                                                    Height="24"
-                                                    Padding="0"
-                                                    Click="{x:Bind RemoveFromInvoice}"
-                                                    Style="{ThemeResource SubtleButtonStyle}"
-                                                    ToolTipService.ToolTip="Xóa sản phẩm">
-                                                    <FontIcon FontSize="12" Glyph="&#xE738;" />
-                                                </Button>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
+        <Button
+            Grid.Column="1"
+            VerticalAlignment="Bottom"
+            Click="{x:Bind OnCheckPhoneNumberClick}"
+            Style="{ThemeResource AccentButtonStyle}"
+            ToolTipService.ToolTip="Kiểm tra khách hàng">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <FontIcon FontSize="14" Glyph="&#xE721;" /> <TextBlock Text="Kiểm tra" />
+            </StackPanel>
+        </Button>
+    </Grid>
+
+    <StackPanel Spacing="4">
+        
+        <Border
+            Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+            BorderBrush="{ThemeResource SystemFillColorSuccessBrush}"
+            BorderThickness="1"
+            CornerRadius="4"
+            Padding="12"
+            Visibility="{x:Bind ExistingCustomerNameVisibility, Mode=OneWay}">
+            <Grid ColumnDefinitions="Auto, *">
+                <FontIcon
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    FontSize="16"
+                    Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                    Glyph="&#xE930;" /> <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                    <TextBlock
+                        Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        Text="Đã tìm thấy khách hàng thành viên" />
+                    <TextBlock
+                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                        Text="{x:Bind ExistingCustomerName, Mode=OneWay}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <TextBox
+            x:Name="CustomerNameTextBox"
+            Header="Tên khách hàng"
+            PlaceholderText="Nhập tên khách hàng mới"
+            Text="{x:Bind CustomerName, Mode=TwoWay}"
+            Visibility="{x:Bind ManualCustomerNameVisibility, Mode=OneWay}" />
+    </StackPanel>
+</StackPanel>
+                            
+                            <TextBlock Text="Sản phẩm" Style="{ThemeResource BodyStrongTextBlockStyle}" Margin="0,8,0,0"/>
                         </StackPanel>
-                    </ScrollViewer>
 
-                    <!--  Invoice Summary  -->
+                        <ListView
+    x:Name="InvoiceItemsListView"
+    Grid.Row="1"
+    Margin="0,12,0,12"
+    ItemsSource="{x:Bind InvoiceItems}"
+    SelectionMode="None">
+    <ListView.ItemTemplate>
+        <DataTemplate x:DataType="local:InvoiceLineItem">
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="110" />
+                    <ColumnDefinition Width="110" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0">
+                    <TextBlock
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Text="{x:Bind ProductName}"
+                        TextTrimming="CharacterEllipsis" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        Text="{x:Bind FormatPrice(UnitPrice)}" />
+                </StackPanel>
+
+                <StackPanel
+                    Grid.Column="1"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="4">
+                    
+                    <Button
+                        Width="32"
+                        Height="32"
+                        Padding="0"
+                        Click="{x:Bind DecreaseQuantity}"
+                        CornerRadius="16"
+                        IsEnabled="{x:Bind CanDecrease, Mode=OneWay}"
+                        Style="{ThemeResource SubtleButtonStyle}">
+                        <FontIcon FontSize="12" Glyph="&#xE738;" />
+                    </Button>
+
                     <Border
-                        Grid.Row="3"
-                        Margin="0,16,0,16"
-                        Padding="12"
-                        Background="{ThemeResource AccentFillColorSecondaryBrush}"
-                        CornerRadius="8">
-                        <StackPanel Spacing="8">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="Tạm tính:" />
-                                <TextBlock
-                                    x:Name="SubtotalText"
-                                    Grid.Column="1"
-                                    Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind FormatPrice(Subtotal),Mode=OneWay}" />
-                            </Grid>
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="VAT (10%):" />
-                                <TextBlock
-                                    x:Name="VatText"
-                                    Grid.Column="1"
-                                    Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind FormatPrice(VatAmount),Mode=OneWay}" />
-                            </Grid>
-                            <Rectangle
-                                Height="1"
-                                Margin="0,4"
-                                Fill="{ThemeResource DividerStrokeColorDefaultBrush}" />
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                    Text="Tổng cộng:" />
-                                <TextBlock
-                                    x:Name="TotalText"
-                                    Grid.Column="1"
-                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                    Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                    Text="{x:Bind FormatPrice(Total),Mode=OneWay}" />
-                            </Grid>
-                        </StackPanel>
+                        MinWidth="24"
+                        Padding="4,0"
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        CornerRadius="4">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Text="{x:Bind Quantity, Mode=OneWay}" />
                     </Border>
 
-                    <!--  Action Buttons  -->
-                    <StackPanel Grid.Row="4" Spacing="8">
-                        <Button
-                            x:Name="ProcessSaleButton"
-                            HorizontalAlignment="Stretch"
-                            Click="{x:Bind OnProcessSale}"
-                            IsEnabled="{x:Bind HasInvoiceItems, Mode=OneWay}"
-                            Style="{ThemeResource AccentButtonStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon FontSize="16" Glyph="&#xE8A7;" />
-                                <TextBlock Text="Thanh Toán" />
-                            </StackPanel>
-                        </Button>
+                    <Button
+                        Width="32"
+                        Height="32"
+                        Padding="0"
+                        Click="{x:Bind IncreaseQuantity}"
+                        CornerRadius="16"
+                        Style="{ThemeResource SubtleButtonStyle}">
+                        <FontIcon FontSize="12" Glyph="&#xE710;" />
+                    </Button>
+                </StackPanel>
 
-                        <Button
-                            x:Name="ClearInvoiceButton"
-                            HorizontalAlignment="Stretch"
-                            Click="{x:Bind OnClearInvoice}"
-                            Style="{ThemeResource DefaultButtonStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon FontSize="16" Glyph="&#xE711;" />
-                                <TextBlock Text="Tạo Hóa Đơn Mới" />
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
+                <TextBlock
+                    Grid.Column="2"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Style="{ThemeResource BodyStrongTextBlockStyle}"
+                    Text="{x:Bind FormatPrice(TotalPrice), Mode=OneWay}" />
+
+                <Button
+                    Grid.Column="3"
+                    Margin="8,0,0,0"
+                    Padding="6"
+                    Click="{x:Bind RemoveFromInvoice}"
+                    Style="{ThemeResource SubtleButtonStyle}"
+                    ToolTipService.ToolTip="Xóa khỏi hóa đơn">
+                    <FontIcon
+                        FontSize="12"
+                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                        Glyph="&#xE74D;" />
+                </Button>
+            </Grid>
+        </DataTemplate>
+    </ListView.ItemTemplate>
+</ListView>
+
+                        <StackPanel Grid.Row="2" Spacing="16">
+                            <Border
+                                Background="{ThemeResource LayerFillColorAltBrush}"
+                                CornerRadius="8"
+                                Padding="16">
+                                <StackPanel Spacing="8">
+                                    <Grid>
+                                        <TextBlock Text="Tạm tính" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBlock Text="{x:Bind FormatPrice(Subtotal), Mode=OneWay}" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Grid>
+                                        <TextBlock Text="VAT (10%)" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBlock Text="{x:Bind FormatPrice(VatAmount), Mode=OneWay}" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Rectangle Height="1" Fill="{ThemeResource SurfaceStrokeColorDefaultBrush}" Margin="0,4"/>
+                                    <Grid>
+                                        <TextBlock Text="TỔNG CỘNG" Style="{ThemeResource BodyStrongTextBlockStyle}" VerticalAlignment="Center"/>
+                                        <TextBlock
+                                            Text="{x:Bind FormatPrice(Total), Mode=OneWay}"
+                                            Style="{ThemeResource TitleTextBlockStyle}"
+                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                            HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Button
+                                x:Name="ProcessSaleButton"
+                                HorizontalAlignment="Stretch"
+                                Click="{x:Bind OnProcessSale}"
+                                IsEnabled="{x:Bind HasInvoiceItems, Mode=OneWay}"
+                                Style="{ThemeResource AccentButtonStyle}"
+                                Height="44">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE8A7;" />
+                                    <TextBlock Text="THANH TOÁN NGAY" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
                 </Grid>
-            </Border>
+            </Grid>
         </Grid>
     </Grid>
 </Page>

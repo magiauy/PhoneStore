@@ -1,10 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
 using MySqlConnector;
 using PhoneStoreRepository.Data;
 using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Repositories.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Data;
 
 namespace PhoneStoreRepository.Repositories.Implementations
 {
@@ -275,12 +275,6 @@ namespace PhoneStoreRepository.Repositories.Implementations
             return Convert.ToInt32(command.ExecuteScalar());
         }
 
-        private int GetLastInsertedId(MySqlConnection connection, MySqlTransaction transaction)
-        {
-            using var command = new MySqlCommand("SELECT LAST_INSERT_ID()", connection, transaction);
-            return Convert.ToInt32(command.ExecuteScalar());
-        }
-
         private static BatchProduct MapFromReader(MySqlDataReader reader)
         {
             return new BatchProduct
@@ -292,6 +286,46 @@ namespace PhoneStoreRepository.Repositories.Implementations
                 CostPrice = reader.GetDecimal("cost_price"),
                 SellingPrice = reader.GetDecimal("selling_price")
             };
+        }
+
+        public IDictionary<int, int> GetQuantitiesByProductIds(IEnumerable<int> productIds)
+        {
+            var counts = new Dictionary<int, int>();
+            if (productIds == null)
+            {
+                return counts;
+            }
+
+            var ids = new List<int>(productIds);
+            if (ids.Count == 0)
+            {
+                return counts;
+            }
+
+            using var connection = _dataSource.GetConnection();
+            var parameterNames = new List<string>();
+            for (int i = 0; i < ids.Count; i++)
+            {
+                parameterNames.Add($"@id{i}");
+            }
+
+            var query = $"SELECT product_id, SUM(quantity) as total_qty FROM batch_products WHERE product_id IN ({string.Join(",", parameterNames)}) GROUP BY product_id";
+
+            using var command = new MySqlCommand(query, connection);
+            for (int i = 0; i < ids.Count; i++)
+            {
+                command.Parameters.AddWithValue(parameterNames[i], ids[i]);
+            }
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var productId = reader.GetInt32("product_id");
+                var totalQty = reader.IsDBNull(reader.GetOrdinal("total_qty")) ? 0 : reader.GetInt32("total_qty");
+                counts[productId] = totalQty;
+            }
+
+            return counts;
         }
     }
 }
