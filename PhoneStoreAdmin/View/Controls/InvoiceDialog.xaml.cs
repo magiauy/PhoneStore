@@ -107,7 +107,7 @@ namespace PhoneStoreAdmin.View.Controls
             try
             {
                 var persons = await _personService.GetAllAsync();
-                var promos = await _promotionService.GetAllPromotionCodesAsync();
+                var promos = _promotionService.GetAll();
                 void SetItems()
                 {
                     PersonComboBox.ItemsSource = persons;

@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using PhoneStoreRepository.Models.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace PhoneStoreRepository.Models
 {
@@ -13,7 +11,7 @@ namespace PhoneStoreRepository.Models
         private int? _promotionCodeId;
         private int _createdBy;
         private DateTime _invoiceDate;
-        private InvoiceStatus _status;
+        private PhoneStoreRepository.Models.Enums.InvoiceStatus _status;
         private decimal _totalAmount = 0;
         private decimal _discountAmount = 0;
         private decimal _finalAmount = 0;
@@ -29,6 +27,8 @@ namespace PhoneStoreRepository.Models
         public string CustomerName => Customer?.FullName ?? "Unknown";
         public string CreatedByName => Creator?.FullName ?? "System";
         public string DiscountCode => PromotionCode?.Code ?? "_";
+        public enum InvoiceStatus { UNPAID,PAID,CANCELLED}
+        
         // Public properties with backing fields
         public int Id
         {
@@ -63,7 +63,7 @@ namespace PhoneStoreRepository.Models
         }
 
         [Required]
-        public InvoiceStatus Status
+        public PhoneStoreRepository.Models.Enums.InvoiceStatus Status
         {
             get => _status;
             set => _status = value;
@@ -121,7 +121,7 @@ namespace PhoneStoreRepository.Models
             _promotionCodeId = null;
             _createdBy = 0;
             _invoiceDate = DateTime.UtcNow;
-            _status = InvoiceStatus.UNPAID;
+            _status = PhoneStoreRepository.Models.Enums.InvoiceStatus.UNPAID;
             _totalAmount = 0;
             _discountAmount = 0;
             _finalAmount = 0;
@@ -137,7 +137,7 @@ namespace PhoneStoreRepository.Models
             _promotionCodeId = null;
             _createdBy = createdBy;
             _invoiceDate = invoiceDate;
-            _status = InvoiceStatus.UNPAID;
+            _status = (Enums.InvoiceStatus)InvoiceStatus.UNPAID;
             _totalAmount = 0;
             _discountAmount = 0;
             _finalAmount = 0;

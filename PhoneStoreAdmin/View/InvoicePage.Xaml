@@ -231,19 +231,7 @@
                         FontSize="16"
                         Foreground="{StaticResource BrushTextSecondary}" />
                 </StackPanel>
-                <Button
-                    x:Name="AddInvoiceButton"
-                    Grid.Column="1"
-                    Padding="20,14"
-                    VerticalAlignment="Center"
-                    Click="BtnCreate_Click"
-                    Shadow="{StaticResource SharedShadow}"
-                    Style="{StaticResource PrimaryButtonStyle}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <FontIcon FontSize="18" Glyph="&#xE710;" />
-                        <TextBlock x:Uid="BtnNewInvoice" FontSize="15" />
-                    </StackPanel>
-                </Button>
+                
             </Grid>
         </Border>
         <!--  Main Content Area  -->

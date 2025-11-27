@@ -1,10 +1,11 @@
-using System;
 using PhoneStore.Services.Interfaces;
 using PhoneStore.Services.ViewModels;
 using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Models.Enums;
+using PhoneStoreRepository.Repositories.Implementations;
 using PhoneStoreRepository.Repositories.Interfaces;
 using PhoneStoreRepository.Utils;
+using System;
 
 namespace PhoneStore.Services.Implementations
 {
@@ -14,17 +15,21 @@ namespace PhoneStore.Services.Implementations
         private readonly IPersonRepository _personRepository;
         private readonly IEmployeeRepository _employeeRepository;
         private readonly ISupplierRepository _supplierRepository;
+        private readonly IInvoiceLineRepository _invoiceLineRepository;
 
         public InvoiceService(
             IInvoiceRepository invoiceRepository,
             IPersonRepository personRepository,
             IEmployeeRepository employeeRepository,
-            ISupplierRepository supplierRepository)
+            ISupplierRepository supplierRepository,
+            IInvoiceLineRepository invoiceLineRepository)
         {
             _invoiceRepository = invoiceRepository ?? throw new ArgumentNullException(nameof(invoiceRepository));
             _personRepository = personRepository ?? throw new ArgumentNullException(nameof(personRepository));
             _employeeRepository = employeeRepository ?? throw new ArgumentNullException(nameof(employeeRepository));
             _supplierRepository = supplierRepository ?? throw new ArgumentNullException(nameof(supplierRepository));
+
+            _invoiceLineRepository = invoiceLineRepository ?? throw new ArgumentNullException(nameof(InvoiceLineRepository));
         }
 
         public Invoice? GetById(int id)
@@ -93,6 +98,55 @@ namespace PhoneStore.Services.Implementations
             {
                 Logger.Error("Failed to count all Invoices", ex);
                 return 0;
+            }
+        }
+
+        public void CreateFullInvoice(Invoice invoice, List<InvoiceLine> uiItems, string customerName, string customerPhone)
+        {
+            var existingPerson = _personRepository.GetByPhone(customerPhone);
+
+            int customerId;
+
+            if (existingPerson != null)
+            {
+                customerId = existingPerson.Id;
+            }
+            else
+            {
+                var newPerson = new Person
+                {
+                    FullName = customerName,
+                    Phone = customerPhone,
+                    Email = "",
+                    PersonType = PersonType.CUSTOMER,
+                    CreatedAt = DateTime.Now,
+                    IsActive = true
+                };
+
+                _personRepository.Insert(newPerson); 
+                customerId = newPerson.Id;
+            }
+
+
+            invoice.PersonId = customerId;
+            invoice.TotalAmount = uiItems.Sum(x => x.TotalPrice);
+            invoice.FinalAmount = invoice.TotalAmount - invoice.DiscountAmount; 
+
+            _invoiceRepository.Insert(invoice); 
+
+            foreach (var item in uiItems)
+            {
+                var line = new InvoiceLine
+                {
+                    InvoiceId = invoice.Id, 
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice,
+                    DiscountPct = 0, 
+                    TotalPrice = item.UnitPrice * item.Quantity
+                };
+
+                _invoiceLineRepository.Insert(line);
             }
         }
 
