@@ -1,23 +1,23 @@
-﻿using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using Microsoft.UI.Xaml.Shapes;
-using Microsoft.Windows.ApplicationModel.Resources;
-using PhoneStore.Services.Helpers;
-using PhoneStoreRepository.Models;
-using PhoneStoreRepository.Models.Enums;
-using PhoneStore.Services;
-using PhoneStore.Services.Interfaces;
-using PhoneStoreRepository.Utils;
-using PhoneStoreAdmin.View.Controls;
-using PhoneStore.Services.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+using Microsoft.UI.Xaml.Shapes;
+using Microsoft.Windows.ApplicationModel.Resources;
+using PhoneStore.Services;
+using PhoneStore.Services.Helpers;
+using PhoneStore.Services.Interfaces;
+using PhoneStore.Services.ViewModels;
+using PhoneStoreAdmin.View.Controls;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
+using PhoneStoreRepository.Utils;
 
 namespace PhoneStoreAdmin.View
 {
@@ -178,12 +178,11 @@ namespace PhoneStoreAdmin.View
         {
             try
             {
-                if (MonthlyChartGrid == null)
-                    return;
+                if (MonthlyChartGrid == null) return;
 
                 MonthlyChartGrid.Children.Clear();
 
-                // Group by month
+                // 1. Prepare Data
                 var monthlyData = orders
                     .GroupBy(o => new { Year = o.OrderDate.Year, Month = o.OrderDate.Month })
                     .Select(g => new
@@ -195,13 +194,14 @@ namespace PhoneStoreAdmin.View
                     .OrderBy(m => m.Date)
                     .ToList();
 
+                // 2. Handle No Data
                 if (!monthlyData.Any())
                 {
                     var noDataText = new TextBlock
                     {
-                        Text = _resourceLoader.GetString("Reports_NoDataAvailable"),
-                        FontSize = 16,
-                        Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray),
+                        Text = _resourceLoader.GetString("Reports_NoDataAvailable") ?? "Chưa có dữ liệu", // Fallback text
+                        Style = Application.Current.Resources["BodyStrongTextBlockStyle"] as Style,
+                        Foreground = Application.Current.Resources["TextFillColorTertiaryBrush"] as Brush,
                         HorizontalAlignment = HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center
                     };
@@ -209,71 +209,101 @@ namespace PhoneStoreAdmin.View
                     return;
                 }
 
-                // Calculate max values for scaling
+                // 3. Calculation Constants
                 decimal maxAmount = monthlyData.Max(m => m.Amount);
-                int maxCount = monthlyData.Max(m => m.Count);
+                if (maxAmount == 0) maxAmount = 1; // Avoid divide by zero
 
-                // Chart dimensions
-                double chartHeight = 250;
-                double barWidth = 40;
-                double spacing = 20;
-                double totalWidth = monthlyData.Count * (barWidth + spacing);
+                double chartHeight = 260; // Chiều cao tổng của khu vực vẽ
+                double barWidth = 32;
 
-                MonthlyChartGrid.Width = Math.Max(600, totalWidth);
-
-                // Draw bars
-                for (int i = 0; i < monthlyData.Count; i++)
+                // 4. Create Main Container (Holds all bars horizontally)
+                var chartContainer = new StackPanel
                 {
-                    var data = monthlyData[i];
-                    double barHeight = maxAmount > 0 ? (double)(data.Amount / maxAmount) * chartHeight : 0;
-                    double x = i * (barWidth + spacing);
+                    Orientation = Orientation.Horizontal,
+                    Spacing = 24, // Khoảng cách giữa các cột
+                    HorizontalAlignment = HorizontalAlignment.Center, // Căn giữa biểu đồ
+                    VerticalAlignment = VerticalAlignment.Bottom,
+                    Padding = new Thickness(0, 0, 0, 10)
+                };
 
-                    // Bar container
-                    var barContainer = new StackPanel
+                // 5. Draw Bars
+                foreach (var data in monthlyData)
+                {
+                    // Calculate height percentage (min 4px visibility)
+                    double heightPercentage = (double)(data.Amount / maxAmount);
+                    double barHeight = Math.Max(4, heightPercentage * (chartHeight - 50)); // Trừ 50px cho Text
+
+                    // Column Container (Holds: Amount -> Bar -> Month)
+                    var columnStack = new StackPanel
                     {
-                        VerticalAlignment = VerticalAlignment.Bottom,
                         Spacing = 8,
-                        Margin = new Thickness(x, 0, 0, 0)
+                        VerticalAlignment = VerticalAlignment.Bottom
                     };
 
-                    // Amount label
+                    // A. Amount Label (Top)
                     var amountText = new TextBlock
                     {
-                        Text = (data.Amount / 1000000).ToString("N1") + "M",
-                        FontSize = 11,
-                        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                        Foreground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 79, 70, 229)),
-                        HorizontalAlignment = HorizontalAlignment.Center
+                        Text = (data.Amount / 1_000_000).ToString("N1") + "M",
+                        Style = Application.Current.Resources["CaptionTextBlockStyle"] as Style,
+                        Foreground = Application.Current.Resources["BrushPrimary"] as Brush,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        HorizontalTextAlignment = TextAlignment.Center,
+                        Opacity = heightPercentage > 0.1 ? 1 : 0 // Ẩn số nếu cột quá thấp cho đỡ rối
                     };
-                    barContainer.Children.Add(amountText);
 
-                    // Bar
-                    var bar = new Border
+                    // B. The Bar (Middle)
+                    var barBorder = new Border
                     {
                         Width = barWidth,
                         Height = barHeight,
-                        Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 79, 70, 229)),
-                        CornerRadius = new CornerRadius(4, 4, 0, 0)
+                        Background = Application.Current.Resources["BrushPrimary"] as Brush, // Màu chủ đạo của WinUI
+                        CornerRadius = new CornerRadius(4), // Bo góc mềm mại
+                        Opacity = 0.9
                     };
-                    ToolTipService.SetToolTip(bar, $"{data.Count} {_resourceLoader.GetString("Reports_ChartTooltip_Orders")}\n{data.Amount:N0} ₫");
-                    barContainer.Children.Add(bar);
 
-                    // Month label
+                    // Tooltip modern styling
+                    var toolTipContent = new StackPanel { Spacing = 4 };
+                    toolTipContent.Children.Add(new TextBlock
+                    {
+                        Text = $"Tháng {data.Date:MM/yyyy}",
+                        FontWeight = Microsoft.UI.Text.FontWeights.Bold
+                    });
+                    toolTipContent.Children.Add(new TextBlock
+                    {
+                        Text = $"{data.Count} đơn hàng",
+                        Foreground = Application.Current.Resources["TextFillColorSecondaryBrush"] as Brush
+                    });
+                    toolTipContent.Children.Add(new TextBlock
+                    {
+                        Text = $"{data.Amount:N0} ₫",
+                        Foreground = Application.Current.Resources["SystemFillColorSuccessBrush"] as Brush
+                    });
+                    ToolTipService.SetToolTip(barBorder, toolTipContent);
+
+
+                    // C. Month Label (Bottom)
                     var monthText = new TextBlock
                     {
-                        Text = data.Date.ToString("MM/yy"),
-                        FontSize = 11,
-                        Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray),
+                        Text = data.Date.ToString("MM"),
+                        Style = Application.Current.Resources["CaptionTextBlockStyle"] as Style,
+                        Foreground = Application.Current.Resources["TextFillColorSecondaryBrush"] as Brush,
                         HorizontalAlignment = HorizontalAlignment.Center
                     };
-                    barContainer.Children.Add(monthText);
 
-                    MonthlyChartGrid.Children.Add(barContainer);
+                    // Add elements to column
+                    columnStack.Children.Add(amountText);
+                    columnStack.Children.Add(barBorder);
+                    columnStack.Children.Add(monthText);
+
+                    // Add column to chart
+                    chartContainer.Children.Add(columnStack);
                 }
+
+                MonthlyChartGrid.Children.Add(chartContainer);
             }
             catch (Exception ex)
             {
-                Logger.Error("Failed to draw monthly chart", ex);
+                // Debug.WriteLine(ex.Message); // Log nếu cần
             }
         }
 
