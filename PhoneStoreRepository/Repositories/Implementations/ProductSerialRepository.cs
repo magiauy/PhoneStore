@@ -114,6 +114,28 @@ namespace PhoneStoreRepository.Repositories.Implementations
                 throw new InvalidOperationException($"ProductSerial with ID {entity.Id} not found for update.");
         }
 
+        public void Update(ProductSerial entity, MySqlConnection connection, MySqlTransaction transaction)
+        {
+            using var command = new MySqlCommand(
+                @"UPDATE product_serials 
+                  SET product_id = @productId, serial_number = @serialNumber, imei1 = @imei1, imei2 = @imei2, 
+                      batch_id = @batchId, status = @status, purchase_order_line_id = @purchaseOrderLineId, note = @note
+                  WHERE id = @id",
+                connection, transaction);
+            command.Parameters.AddWithValue("@id", entity.Id);
+            command.Parameters.AddWithValue("@productId", entity.ProductId);
+            command.Parameters.AddWithValue("@serialNumber", entity.SerialNumber ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@imei1", entity.Imei1 ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@imei2", entity.Imei2 ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@batchId", entity.BatchId ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@status", entity.Status.ToString().ToLower());
+            command.Parameters.AddWithValue("@purchaseOrderLineId", entity.PurchaseOrderLineId ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@note", entity.Note ?? (object)DBNull.Value);
+            var rows = command.ExecuteNonQuery();
+            if (rows == 0)
+                throw new InvalidOperationException($"ProductSerial with ID {entity.Id} not found for update.");
+        }
+
         public void Delete(int id)
         {
             using var connection = _dataSource.GetConnection();
@@ -146,6 +168,28 @@ namespace PhoneStoreRepository.Repositories.Implementations
             {
                 using var connection = _dataSource.GetConnection();
                 using var command = new MySqlCommand("SELECT * FROM product_serials WHERE serial_number = @serialNumber", connection);
+                command.Parameters.AddWithValue("@serialNumber", serialNumber);
+                using var reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    return MapFromReader(reader);
+                }
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Try to get a product serial by serial number using an existing connection. Returns null if not found.
+        /// </summary>
+        public ProductSerial? TryGetBySerialNumber(string serialNumber, MySqlConnection connection, MySqlTransaction transaction)
+        {
+            try
+            {
+                using var command = new MySqlCommand("SELECT * FROM product_serials WHERE serial_number = @serialNumber", connection, transaction);
                 command.Parameters.AddWithValue("@serialNumber", serialNumber);
                 using var reader = command.ExecuteReader();
                 if (reader.Read())

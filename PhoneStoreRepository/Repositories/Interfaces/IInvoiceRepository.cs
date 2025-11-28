@@ -1,4 +1,5 @@
-﻿using PhoneStoreRepository.Models;
+﻿using MySqlConnector;
+using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Models.Enums;
 using System;
 using System.Collections.Generic;
@@ -45,6 +46,11 @@ namespace PhoneStoreRepository.Repositories.Interfaces
             decimal? maxAmount,
             int pageSize
         );
+
+        /// <summary>
+        /// Insert invoice using an existing transaction
+        /// </summary>
+        void Insert(Invoice entity, MySqlConnection connection, MySqlTransaction transaction);
     }
 
     public interface IInvoiceLineRepository
@@ -54,6 +60,11 @@ namespace PhoneStoreRepository.Repositories.Interfaces
         /// </summary>
         /// <param name="entity">Đối tượng InvoiceLine</param>
         void Insert(InvoiceLine entity);
+
+        /// <summary>
+        /// Insert invoice line using an existing transaction
+        /// </summary>
+        void Insert(InvoiceLine entity, MySqlConnection connection, MySqlTransaction transaction);
 
         /// <summary>
         /// Lấy danh sách các dòng chi tiết theo ID hóa đơn
