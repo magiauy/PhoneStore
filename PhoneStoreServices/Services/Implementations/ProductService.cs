@@ -832,6 +832,19 @@ namespace PhoneStore.Services.Implementations
             }
         }
 
+        public Product? GetProductById(int productId)
+        {
+            try
+            {
+                return _productRepository.GetById(productId);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to get product by ID {productId}", ex);
+                return null;
+            }
+        }
+
         #region Helpers
 
         private Dictionary<int, string> BuildCategoryLookup()

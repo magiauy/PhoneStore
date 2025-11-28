@@ -12,6 +12,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using Microsoft.Windows.ApplicationModel.Resources;
 using MySql.Data.MySqlClient;
 using PhoneStore.Services.Interfaces;
 using PhoneStore.Services.ViewModels;
@@ -40,6 +41,7 @@ namespace PhoneStoreAdmin.View
         private readonly IProductSerialRepository _productSerialRepository;
         private readonly IBatchProductRepository _batchProductRepository;
         private readonly ICustomerService _customerService;
+        private readonly ResourceLoader _resourceLoader;
         private readonly HashSet<string> _usedSerialNumbers = new(StringComparer.OrdinalIgnoreCase);
         private Guid _customerLookupRequestId = Guid.Empty;
         private int? _selectedCustomerId;
@@ -95,22 +97,22 @@ namespace PhoneStoreAdmin.View
 
             if (stockQty <= 0)
             {
-                errorMessage = "Sản phẩm đã hết hàng trong kho.";
+                errorMessage = _resourceLoader.GetString("Sales_OutOfStockError");
                 product?.SetStockError(errorMessage);
                 if (showAlert)
                 {
-                    ShowMessage(errorMessage, "Kho không đủ");
+                    ShowMessage(errorMessage, _resourceLoader.GetString("Sales_InsufficientStockTitle"));
                 }
                 return false;
             }
 
             if (desiredQuantity > stockQty)
             {
-                errorMessage = $"Không đủ hàng. Chỉ còn {stockQty} sản phẩm trong kho.";
+                errorMessage = string.Format(_resourceLoader.GetString("Sales_InsufficientStockFormat"), stockQty);
                 product?.SetStockError(errorMessage);
                 if (showAlert)
                 {
-                    ShowMessage(errorMessage, "Kho không đủ");
+                    ShowMessage(errorMessage, _resourceLoader.GetString("Sales_InsufficientStockTitle"));
                 }
                 return false;
             }
@@ -171,6 +173,7 @@ namespace PhoneStoreAdmin.View
             _productSerialRepository = App.GetService<IProductSerialRepository>();
             _batchProductRepository = App.GetService<IBatchProductRepository>();
             _customerService = App.GetService<ICustomerService>();
+            _resourceLoader = new ResourceLoader();
 
             // Initialize collections
             AllProducts = new ObservableCollection<SalesItem>();
@@ -240,7 +243,7 @@ namespace PhoneStoreAdmin.View
         {
             if (!HasInvoiceItems)
             {
-                ShowMessage("Vui long them san pham vao hoa don", "Thong bao");
+                ShowMessage(_resourceLoader.GetString("Sales_AddProductsMessage"), _resourceLoader.GetString("Sales_NotificationTitle"));
                 return;
             }
 
@@ -251,7 +254,7 @@ namespace PhoneStoreAdmin.View
                     int validCount = item.SerialEntries.Count(s => s.IsValid);
                     if (validCount < item.Quantity)
                     {
-                        ShowMessage($"Sản phẩm '{item.ProductName}' yêu cầu {item.Quantity} serial, nhưng mới nhập đúng {validCount}.", "Thiếu thông tin");
+                        ShowMessage(string.Format(_resourceLoader.GetString("Sales_MissingSerialFormat"), item.ProductName, item.Quantity, validCount), _resourceLoader.GetString("Sales_MissingInfoTitle"));
                         return;
                     }
                 }
@@ -268,30 +271,59 @@ namespace PhoneStoreAdmin.View
                 CreatedBy = 1,
                 Status = InvoiceStatus.PAID,
                 PaymentMethod = PaymentMethod.CASH,
-                Note = $"Ban hang tai quay - {DateTime.Now:HH:mm}",
+                Note = string.Format(_resourceLoader.GetString("Sales_InvoiceNoteFormat"), DateTime.Now.ToString("HH:mm")),
                 DiscountAmount = 0
             };
 
-            var invoiceLines = InvoiceItems.Select(item => new InvoiceLine
+            var invoiceLines = new List<InvoiceLine>();
+            var serialLineRequests = new List<InvoiceLineSerialRequest>();
+
+            foreach (var item in InvoiceItems)
             {
-                ProductId = item.ProductId,
-                Quantity = item.Quantity,
-                UnitPrice = item.UnitPrice,
-                DiscountPct = 0,
-                TotalPrice = item.UnitPrice * item.Quantity
-            }).ToList();
+                var line = new InvoiceLine
+                {
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice,
+                    DiscountPct = 0,
+                    TotalPrice = item.UnitPrice * item.Quantity
+                };
+
+                invoiceLines.Add(line);
+
+                if (!item.IsSerialTracked)
+                {
+                    continue;
+                }
+
+                var serialNumbers = item.SerialEntries
+                    .Where(entry => entry.IsValid && !string.IsNullOrWhiteSpace(entry.LastValidSerial))
+                    .Select(entry => entry.LastValidSerial!.Trim())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Take(item.Quantity)
+                    .ToList();
+
+                if (serialNumbers.Count > 0)
+                {
+                    serialLineRequests.Add(new InvoiceLineSerialRequest
+                    {
+                        Line = line,
+                        SerialNumbers = serialNumbers
+                    });
+                }
+            }
 
             try
             {
-                _invoiceService.CreateFullInvoice(newInvoice, invoiceLines, invoiceCustomerName, CustomerPhone?.Trim());
+                _invoiceService.CreateFullInvoice(newInvoice, invoiceLines, invoiceCustomerName, CustomerPhone?.Trim(), serialLineRequests);
 
-                ShowMessage($"Da thanh toan thanh cong!\nMa HD: {newInvoice.Id}\nTong tien: {FormatPrice(newInvoice.FinalAmount)}", "Thanh cong");
+                ShowMessage(string.Format(_resourceLoader.GetString("Sales_PaymentSuccessFormat"), newInvoice.Id, FormatPrice(newInvoice.FinalAmount)), _resourceLoader.GetString("Sales_SuccessTitle"));
 
                 OnClearInvoice(sender, e);
             }
             catch (Exception ex)
             {
-                ShowMessage($"Loi khi thanh toan: {ex.Message}", "Loi he thong");
+                ShowMessage(string.Format(_resourceLoader.GetString("Sales_PaymentErrorFormat"), ex.Message), _resourceLoader.GetString("Sales_SystemErrorTitle"));
                 Debug.WriteLine(ex.ToString());
             }
 
@@ -746,7 +778,7 @@ namespace PhoneStoreAdmin.View
             var phone = CustomerPhone?.Trim();
             if (string.IsNullOrWhiteSpace(phone))
             {
-                ShowMessage("Vui long nhap so dien thoai khach hang", "Thong bao");
+                ShowMessage(_resourceLoader.GetString("Sales_EnterPhoneMessage"), _resourceLoader.GetString("Sales_NotificationTitle"));
                 return false;
             }
 
@@ -758,7 +790,7 @@ namespace PhoneStoreAdmin.View
 
                 if (string.IsNullOrWhiteSpace(invoiceCustomerName))
                 {
-                    ShowMessage("Khong tim thay ten khach hang hop le", "Thong bao");
+                    ShowMessage(_resourceLoader.GetString("Sales_CustomerNameNotFoundMessage"), _resourceLoader.GetString("Sales_NotificationTitle"));
                     return false;
                 }
 
@@ -768,14 +800,14 @@ namespace PhoneStoreAdmin.View
             var trimmedName = CustomerName?.Trim();
             if (string.IsNullOrWhiteSpace(trimmedName))
             {
-                ShowMessage("Vui long nhap ten khach hang", "Thong bao");
+                ShowMessage(_resourceLoader.GetString("Sales_EnterCustomerNameMessage"), _resourceLoader.GetString("Sales_NotificationTitle"));
                 return false;
             }
 
             CustomerName = trimmedName;
             if (_customerService == null)
             {
-                ShowMessage("Khong the truy cap dich vu khach hang", "Loi he thong");
+                ShowMessage(_resourceLoader.GetString("Sales_CustomerServiceErrorMessage"), _resourceLoader.GetString("Sales_SystemErrorTitle"));
                 return false;
             }
 
@@ -789,7 +821,7 @@ namespace PhoneStoreAdmin.View
 
             if (!_customerService.Insert(newCustomer))
             {
-                ShowMessage("Khong the tao khach hang moi. Vui long thu lai.", "Loi he thong");
+                ShowMessage(_resourceLoader.GetString("Sales_CreateCustomerErrorMessage"), _resourceLoader.GetString("Sales_SystemErrorTitle"));
                 return false;
             }
 
@@ -1115,7 +1147,8 @@ namespace PhoneStoreAdmin.View
 
         public string FormatStock(int quantity)
         {
-            return $"Kho: {quantity}";
+            var resourceLoader = new ResourceLoader();
+            return string.Format(resourceLoader.GetString("Sales_StockFormat"), quantity);
         }
 
         public void AddToInvoice(object sender, RoutedEventArgs e)

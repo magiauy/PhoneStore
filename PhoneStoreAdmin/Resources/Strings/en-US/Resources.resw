@@ -2209,6 +2209,127 @@ How many devices do you want to add?</value>
   <data name="Reports_ChartTooltip_Orders" xml:space="preserve">
     <value>orders</value>
   </data>
+  <!-- Sales Statistics -->
+  <data name="Reports_TotalInvoicesLabel.Text" xml:space="preserve">
+    <value>Total Invoices</value>
+  </data>
+  <data name="Reports_TotalRevenueLabel.Text" xml:space="preserve">
+    <value>Revenue</value>
+  </data>
+  <data name="Reports_PaidInvoicesLabel.Text" xml:space="preserve">
+    <value>Paid</value>
+  </data>
+  <data name="Reports_PendingInvoicesLabel.Text" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="Reports_SalesMonthlyTrendTitle.Text" xml:space="preserve">
+    <value>Monthly Revenue Trend</value>
+  </data>
+  <data name="Reports_TopCustomersTitle.Text" xml:space="preserve">
+    <value>Top Customers</value>
+  </data>
+  <data name="Reports_TopProductsTitle.Text" xml:space="preserve">
+    <value>Best Selling Products</value>
+  </data>
+  <data name="Reports_InvoicesCount.Text" xml:space="preserve">
+    <value>invoices</value>
+  </data>
+  <data name="Reports_UnitsSold.Text" xml:space="preserve">
+    <value>units sold</value>
+  </data>
+  <data name="Reports_PendingStatus.Content" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="Reports_UnpaidStatus.Content" xml:space="preserve">
+    <value>Unpaid</value>
+  </data>
+  <data name="Reports_PaidStatus.Content" xml:space="preserve">
+    <value>Paid</value>
+  </data>
+  <data name="Reports_CompletedStatus.Content" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="Reports_ExportExcelButton.Text" xml:space="preserve">
+    <value>Export Excel</value>
+  </data>
+  <data name="Reports_ExportSuccess" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="Reports_ExportSuccessMessage" xml:space="preserve">
+    <value>Report exported to Excel successfully!</value>
+  </data>
+  <data name="Reports_ExportError" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Reports_ExportErrorMessage" xml:space="preserve">
+    <value>Could not export report</value>
+  </data>
+  <data name="Reports_NoDataToExport" xml:space="preserve">
+    <value>No data to export</value>
+  </data>
+  <data name="Reports_PurchaseOrdersReportTitle" xml:space="preserve">
+    <value>PURCHASE ORDERS REPORT</value>
+  </data>
+  <data name="Reports_SalesReportTitle" xml:space="preserve">
+    <value>SALES REPORT</value>
+  </data>
+  <data name="Reports_OrderIdHeader" xml:space="preserve">
+    <value>Order ID</value>
+  </data>
+  <data name="Reports_SupplierHeader" xml:space="preserve">
+    <value>Supplier</value>
+  </data>
+  <data name="Reports_OrderDateHeader" xml:space="preserve">
+    <value>Order Date</value>
+  </data>
+  <data name="Reports_ReceivedDateHeader" xml:space="preserve">
+    <value>Received Date</value>
+  </data>
+  <data name="Reports_StatusHeader" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Reports_TotalAmountHeader" xml:space="preserve">
+    <value>Total Amount</value>
+  </data>
+  <data name="Reports_CreatedByHeader" xml:space="preserve">
+    <value>Created By</value>
+  </data>
+  <data name="Reports_TotalLabel" xml:space="preserve">
+    <value>TOTAL:</value>
+  </data>
+  <data name="Reports_InvoiceIdHeader" xml:space="preserve">
+    <value>Invoice ID</value>
+  </data>
+  <data name="Reports_CustomerHeader" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="Reports_InvoiceDateHeader" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Reports_PaymentMethodHeader" xml:space="preserve">
+    <value>Payment</value>
+  </data>
+  <data name="Reports_CashPayment" xml:space="preserve">
+    <value>Cash</value>
+  </data>
+  <data name="Reports_CreditCardPayment" xml:space="preserve">
+    <value>Credit Card</value>
+  </data>
+  <data name="Reports_BankTransferPayment" xml:space="preserve">
+    <value>Bank Transfer</value>
+  </data>
+  <data name="Reports_EWalletPayment" xml:space="preserve">
+    <value>E-Wallet</value>
+  </data>
+  <data name="Reports_DeliveringStatus" xml:space="preserve">
+    <value>Delivering</value>
+  </data>
+  <data name="Reports_RefundedStatus" xml:space="preserve">
+    <value>Refunded</value>
+  </data>
+  <data name="Reports_NoteHeader" xml:space="preserve">
+    <value>Note</value>
+  </data>
   <data name="HeaderTitleProduct.Text" xml:space="preserve">
     <value>Product Management</value>
   </data>
@@ -2839,6 +2960,15 @@ How many devices do you want to add?</value>
   <data name="InvoiceStatus_CANCELLED" xml:space="preserve">
     <value>Cancelled</value>
   </data>
+      <data name="InvoiceStatus_COMPLETED" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="InvoiceStatus_DELIVERING" xml:space="preserve">
+    <value>Delivering</value>
+  </data>
+    <data name="InvoiceStatus_PENDING" xml:space="preserve">
+    <value>Pending</value>
+  </data>
   <data name="BtnFilterInvoice.Text" xml:space="preserve">
     <value>Filter</value>
   </data>
@@ -2895,5 +3025,311 @@ How many devices do you want to add?</value>
   </data>
   <data name="DialogAddInvoice" xml:space="preserve">
     <value>Add</value>
+  </data>
+  <data name="Sales_HeaderTitle.Text" xml:space="preserve">
+    <value>Sales</value>
+  </data>
+  <data name="Sales_HeaderSubtitle.Text" xml:space="preserve">
+    <value>Create orders and process payments</value>
+  </data>
+  <data name="Products_HeaderTitle.Text" xml:space="preserve">
+    <value>Product Models</value>
+  </data>
+  <data name="Products_HeaderSubtitle.Text" xml:space="preserve">
+    <value>Manage models and product variants</value>
+  </data>
+  <data name="Products_RefreshButton.Content" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Products_CreateModelButton.Content" xml:space="preserve">
+    <value>Create Product Model</value>
+  </data>
+  <data name="Products_ModelCatalog.Text" xml:space="preserve">
+    <value>Model catalog</value>
+  </data>
+  <data name="Products_SearchPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Search by name...</value>
+  </data>
+  <data name="Products_NoModelsTitle.Text" xml:space="preserve">
+    <value>No models yet</value>
+  </data>
+  <data name="Products_NoModelsDescription.Text" xml:space="preserve">
+    <value>Create your first product model to start grouping product variants</value>
+  </data>
+  <data name="Products_EditModelButton.Content" xml:space="preserve">
+    <value>Edit Model</value>
+  </data>
+  <data name="Products_DuplicateModelButton.Content" xml:space="preserve">
+    <value>Duplicate Model</value>
+  </data>
+  <data name="Products_ModelAttributes.Text" xml:space="preserve">
+    <value>Model attributes</value>
+  </data>
+  <data name="Products_NoAttributesText.Text" xml:space="preserve">
+    <value>No attributes configured for this model.</value>
+  </data>
+  <data name="Products_Brands.Text" xml:space="preserve">
+    <value>Brands</value>
+  </data>
+  <data name="Products_NoBrandsText.Text" xml:space="preserve">
+    <value>No brand information available.</value>
+  </data>
+  <data name="Products_Catalogs.Text" xml:space="preserve">
+    <value>Catalogs</value>
+  </data>
+  <data name="Products_NoCatalogsText.Text" xml:space="preserve">
+    <value>No catalog information available.</value>
+  </data>
+  <data name="Products_Variants.Text" xml:space="preserve">
+    <value>Variants</value>
+  </data>
+  <data name="Products_NoVariantsTitle.Text" xml:space="preserve">
+    <value>No variants yet</value>
+  </data>
+  <data name="Products_NoVariantsDescription.Text" xml:space="preserve">
+    <value>Use the button above to create a product variant for this model</value>
+  </data>
+  <data name="Products_UpdatedLabel.Text" xml:space="preserve">
+    <value>Updated</value>
+  </data>
+  <data name="Products_VariantsSummaryFormat" xml:space="preserve">
+    <value>{0} variants \u2022 Updated {1:g}</value>
+  </data>
+  <data name="ProductManagement_SubtitlePlaceholder" xml:space="preserve">
+    <value>Subtitle</value>
+  </data>
+  <data name="ProductManagement_VariationPlaceholder" xml:space="preserve">
+    <value>128GB - Black</value>
+  </data>
+  <data name="ProductManagement_StatusPlaceholder" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="ProductManagement_Imei1Label.Text" xml:space="preserve">
+    <value>IMEI1</value>
+  </data>
+  <data name="ProductManagement_Imei2Label.Text" xml:space="preserve">
+    <value>IMEI2</value>
+  </data>
+  <data name="ProductManagement_HeaderSubtitle.Text" xml:space="preserve">
+    <value>Product Management</value>
+  </data>
+  <data name="ProductManagement_VariantsTitle.Text" xml:space="preserve">
+    <value>Variants</value>
+  </data>
+  <data name="ProductManagement_SkuLabel.Text" xml:space="preserve">
+    <value>SKU</value>
+  </data>
+  <data name="ProductManagement_BrandLabel.Text" xml:space="preserve">
+    <value>Brand</value>
+  </data>
+  <data name="ProductManagement_SerialCountLabel.Text" xml:space="preserve">
+    <value>Serial count</value>
+  </data>
+  <data name="ProductManagement_BatchHistoryTab.Text" xml:space="preserve">
+    <value>Batch history</value>
+  </data>
+  <data name="ProductManagement_SerialsTab.Text" xml:space="preserve">
+    <value>Serials</value>
+  </data>
+  <data name="ProductManagement_BatchIdLabel.Text" xml:space="preserve">
+    <value>Batch ID</value>
+  </data>
+  <data name="ProductManagement_ClickToViewDetails.Text" xml:space="preserve">
+    <value>Click to view details</value>
+  </data>
+  <data name="ProductManagement_CostPriceLabel.Text" xml:space="preserve">
+    <value>Cost price</value>
+  </data>
+  <data name="ProductManagement_SellingPriceLabel.Text" xml:space="preserve">
+    <value>Suggested selling price</value>
+  </data>
+  <data name="ProductManagement_SerialsInBatchLabel.Text" xml:space="preserve">
+    <value>Serials in batch:</value>
+  </data>
+  <data name="ProductManagement_SerialColumn.Text" xml:space="preserve">
+    <value>Serial</value>
+  </data>
+  <data name="ProductManagement_Imei1Column.Text" xml:space="preserve">
+    <value>IMEI1</value>
+  </data>
+  <data name="ProductManagement_Imei2Column.Text" xml:space="preserve">
+    <value>IMEI2</value>
+  </data>
+  <data name="ProductManagement_StatusColumn.Text" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ProductManagement_NoBatchDataTitle.Text" xml:space="preserve">
+    <value>No batch data</value>
+  </data>
+  <data name="ProductManagement_NoBatchDataMessage.Text" xml:space="preserve">
+    <value>Batch history will be displayed here</value>
+  </data>
+  <data name="ProductManagement_NoSerialDataTitle.Text" xml:space="preserve">
+    <value>No serials</value>
+  </data>
+  <data name="ProductManagement_NoSerialDataMessage.Text" xml:space="preserve">
+    <value>Serials will be displayed here when available</value>
+  </data>
+  <data name="ProductManagement_SelectVariantMessage.Text" xml:space="preserve">
+    <value>Select a variant to view details</value>
+  </data>
+  <!-- SalesPage Localization -->
+  <data name="Sales_SearchLabel.Text" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Sales_SearchTextBox.PlaceholderText" xml:space="preserve">
+    <value>Search product name...</value>
+  </data>
+  <data name="Sales_CategoryComboBox.Header" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Sales_CategoryComboBox.PlaceholderText" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Sales_BrandComboBox.Header" xml:space="preserve">
+    <value>Brand</value>
+  </data>
+  <data name="Sales_BrandComboBox.PlaceholderText" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Sales_RefreshFilterButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Refresh filters</value>
+  </data>
+  <data name="Sales_AddToInvoiceButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Add to invoice</value>
+  </data>
+  <data name="Sales_InvoiceTitle.Text" xml:space="preserve">
+    <value>Invoice</value>
+  </data>
+  <data name="Sales_ClearInvoiceButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Clear and refresh</value>
+  </data>
+  <data name="Sales_CustomerPhoneTextBox.Header" xml:space="preserve">
+    <value>Phone number</value>
+  </data>
+  <data name="Sales_CustomerPhoneTextBox.PlaceholderText" xml:space="preserve">
+    <value>Enter customer phone number...</value>
+  </data>
+  <data name="Sales_CheckCustomerButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Check customer</value>
+  </data>
+  <data name="Sales_CheckButtonText.Text" xml:space="preserve">
+    <value>Check</value>
+  </data>
+  <data name="Sales_CustomerFoundMessage.Text" xml:space="preserve">
+    <value>Member customer found</value>
+  </data>
+  <data name="Sales_CustomerNameTextBox.Header" xml:space="preserve">
+    <value>Customer name</value>
+  </data>
+  <data name="Sales_CustomerNameTextBox.PlaceholderText" xml:space="preserve">
+    <value>Enter new customer name</value>
+  </data>
+  <data name="Sales_ProductsLabel.Text" xml:space="preserve">
+    <value>Products</value>
+  </data>
+  <data name="Sales_SerialImeiLabel.Text" xml:space="preserve">
+    <value>SERIAL / IMEI</value>
+  </data>
+  <data name="Sales_SubtotalLabel.Text" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Sales_VatLabel.Text" xml:space="preserve">
+    <value>VAT (10%)</value>
+  </data>
+  <data name="Sales_TotalLabel.Text" xml:space="preserve">
+    <value>TOTAL</value>
+  </data>
+  <data name="Sales_PayNowButtonText.Text" xml:space="preserve">
+    <value>PAY NOW</value>
+  </data>
+  <!-- SalesPage Code-behind messages -->
+  <data name="Sales_OutOfStockError" xml:space="preserve">
+    <value>Product is out of stock.</value>
+  </data>
+  <data name="Sales_InsufficientStockTitle" xml:space="preserve">
+    <value>Insufficient stock</value>
+  </data>
+  <data name="Sales_InsufficientStockFormat" xml:space="preserve">
+    <value>Insufficient stock. Only {0} items remaining.</value>
+  </data>
+  <data name="Sales_AddProductsMessage" xml:space="preserve">
+    <value>Please add products to the invoice</value>
+  </data>
+  <data name="Sales_NotificationTitle" xml:space="preserve">
+    <value>Notification</value>
+  </data>
+  <data name="Sales_MissingSerialFormat" xml:space="preserve">
+    <value>Product '{0}' requires {1} serial(s), but only {2} entered.</value>
+  </data>
+  <data name="Sales_MissingInfoTitle" xml:space="preserve">
+    <value>Missing information</value>
+  </data>
+  <data name="Sales_InvoiceNoteFormat" xml:space="preserve">
+    <value>Counter sale - {0}</value>
+  </data>
+  <data name="Sales_PaymentSuccessFormat" xml:space="preserve">
+    <value>Payment successful!
+Invoice ID: {0}
+Total: {1}</value>
+  </data>
+  <data name="Sales_SuccessTitle" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="Sales_PaymentErrorFormat" xml:space="preserve">
+    <value>Payment error: {0}</value>
+  </data>
+  <data name="Sales_SystemErrorTitle" xml:space="preserve">
+    <value>System error</value>
+  </data>
+  <data name="Sales_EnterPhoneMessage" xml:space="preserve">
+    <value>Please enter customer phone number</value>
+  </data>
+  <data name="Sales_CustomerNameNotFoundMessage" xml:space="preserve">
+    <value>Valid customer name not found</value>
+  </data>
+  <data name="Sales_EnterCustomerNameMessage" xml:space="preserve">
+    <value>Please enter customer name</value>
+  </data>
+  <data name="Sales_CustomerServiceErrorMessage" xml:space="preserve">
+    <value>Cannot access customer service</value>
+  </data>
+  <data name="Sales_CreateCustomerErrorMessage" xml:space="preserve">
+    <value>Cannot create new customer. Please try again.</value>
+  </data>
+  <data name="Sales_StockFormat" xml:space="preserve">
+    <value>Stock: {0}</value>
+  </data>
+  <!-- MainWindow Menu Items -->
+  <data name="MenuItemDashboard.Content" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="MenuItemProducts.Content" xml:space="preserve">
+    <value>Products</value>
+  </data>
+  <data name="MenuItemOrders.Content" xml:space="preserve">
+    <value>Orders</value>
+  </data>
+  <data name="MainWindow_NewItemTitle" xml:space="preserve">
+    <value>New item</value>
+  </data>
+  <data name="MainWindow_NewItemContent" xml:space="preserve">
+    <value>This would open the new item flow.</value>
+  </data>
+  <data name="DialogClose" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <!-- AccessDenied Page -->
+  <data name="AccessDenied_Title.Text" xml:space="preserve">
+    <value>Access Denied</value>
+  </data>
+  <data name="AccessDenied_Message.Text" xml:space="preserve">
+    <value>You don't have permission to access this page. Please contact your administrator if you need access.</value>
+  </data>
+  <data name="AccessDenied_RequiredPermission.Text" xml:space="preserve">
+    <value>Required Permission:</value>
+  </data>
+  <data name="AccessDenied_BackToDashboard.Content" xml:space="preserve">
+    <value>Back to Dashboard</value>
   </data>
 </root>

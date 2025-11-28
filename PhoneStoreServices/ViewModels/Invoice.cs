@@ -1,9 +1,9 @@
-﻿using PhoneStore.Services.Helpers;
-using PhoneStoreRepository.Models;
-using PhoneStoreRepository.Models.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using PhoneStore.Services.Helpers;
+using PhoneStoreRepository.Models;
+using PhoneStoreRepository.Models.Enums;
 
 namespace PhoneStore.Services.ViewModels
 {
@@ -36,9 +36,12 @@ namespace PhoneStore.Services.ViewModels
 
         public string StatusColor => Status switch
         {
-            InvoiceStatus.UNPAID => "#ffc107",  // vàng
-            InvoiceStatus.PAID => "#28a745",    // xanh lá
-            InvoiceStatus.CANCELLED => "#dc3545", // đỏ
+            InvoiceStatus.PENDING => "#6c757d", // Xám: Trạng thái chờ, chưa có hành động (Neutral)
+            InvoiceStatus.UNPAID => "#ffc107", // Vàng: Cảnh báo, cần thanh toán (Warning)
+            InvoiceStatus.PAID => "#17a2b8", // Xanh dương nhạt (Teal): Đã tiền, đang chờ xử lý tiếp (Info)
+            InvoiceStatus.DELIVERING => "#007bff", // Xanh dương đậm: Đang di chuyển, đang xử lý (Primary)
+            InvoiceStatus.COMPLETED => "#28a745", // Xanh lá: Thành công trọn vẹn (Success)
+            InvoiceStatus.CANCELLED => "#dc3545", // Đỏ: Thất bại, hủy bỏ (Danger)
             _ => "#6c757d"
         };
 
@@ -116,6 +119,17 @@ namespace PhoneStore.Services.ViewModels
             Invoices = invoices.Select(i => new InvoiceViewModel(i)).ToList();
             Info = info;
         }
+    }
+
+    /// <summary>
+    /// ViewModel for top selling product statistics
+    /// </summary>
+    public class TopProductStatViewModel
+    {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; } = string.Empty;
+        public int QuantitySold { get; set; }
+        public decimal TotalRevenue { get; set; }
     }
 }
 

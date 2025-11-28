@@ -27,12 +27,12 @@
             <NavigationView.MenuItems>
                 <NavigationViewItem
                     x:Name="DashboardNavItem"
-                    Content="Dashboard"
+                    x:Uid="MenuItemDashboard"
                     Icon="Home"
                     Tag="Dashboard" />
                 <NavigationViewItem
                     x:Name="ProductsNavItem"
-                    Content="Products"
+                    x:Uid="MenuItemProducts"
                     Icon="Shop"
                     Tag="Products" />
                 <NavigationViewItem
@@ -42,7 +42,7 @@
                     Tag="ProductAttributes" />
                 <NavigationViewItem
                     x:Name="OrdersNavItem"
-                    Content="Orders"
+                    x:Uid="MenuItemOrders"
                     Icon="Mail"
                     Tag="Orders" />
                 <NavigationViewItem
@@ -88,7 +88,6 @@
                 <NavigationViewItem
                     x:Name="EmployeesNavItem"
                     x:Uid="MenuItemEmployees"
-                    Content="Nhân viên"
                     Icon="Contact"
                     Tag="Employees" />
                 <NavigationViewItem

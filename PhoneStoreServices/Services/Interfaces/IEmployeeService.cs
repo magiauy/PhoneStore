@@ -58,6 +58,11 @@ namespace PhoneStore.Services.Interfaces
         EmployeeResult GetEmployeesFiltered(string? searchTerm, int page = 1, int pageSize = 10, EmployeeFilterCriteria? filterCriteria = null);
 
         /// <summary>
+        /// Get employees filtered with pagination (async)
+        /// </summary>
+        Task<EmployeeResult> GetEmployeesFilteredAsync(string? searchTerm, int page = 1, int pageSize = 10, EmployeeFilterCriteria? filterCriteria = null);
+
+        /// <summary>
         /// Get employees who don't have any account
         /// </summary>
         /// <returns>List of employees without accounts</returns>
