@@ -27,6 +27,10 @@ namespace PhoneStoreAdmin.View
         private IInvoiceService InvoiceService => App.GetService<IInvoiceService>();
         public ObservableCollection<InvoiceViewModel> Invoices { get; set; } = new();
 
+        // Permission properties
+        public bool CanAddInvoice { get; }
+        public bool CanEditInvoice { get; }
+
         public int CurrentPage { get; set; } = 1;
         public int PageSize { get; set; } = 10;
         public int TotalPages { get; set; } = 1;
@@ -40,6 +44,12 @@ namespace PhoneStoreAdmin.View
         {
             this._resourceLoader = new ResourceLoader();
             this.InitializeComponent();
+            
+            // Initialize permissions
+            var session = UserSession.Instance;
+            CanAddInvoice = session.HasPermission("INVOICE_ADD");
+            CanEditInvoice = session.HasPermission("INVOICE_EDIT");
+            
             this.Loaded += InvoicePage_Loaded;
         }
 
@@ -234,6 +244,8 @@ namespace PhoneStoreAdmin.View
         private InvoiceDialog? _invoiceDialog;
         private async void BtnCreate_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanAddInvoice) return;
+            
             try
             {
                 Debug.WriteLine("BtnCreate_Click: start. ThreadId=" + Thread.CurrentThread.ManagedThreadId);
@@ -256,6 +268,8 @@ namespace PhoneStoreAdmin.View
 
         private async void BtnEdit_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanEditInvoice) return;
+            
             try
             {
                 if (sender is not MenuFlyoutItem mi || mi.Tag is not InvoiceViewModel vm)

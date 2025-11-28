@@ -27,6 +27,12 @@ namespace PhoneStoreAdmin.View
         public ObservableCollection<RoleViewModel> Roles { get; set; }
         public ObservableCollection<PermissionViewModel> Permissions { get; set; }
 
+        // Permission properties
+        public bool CanAddRole { get; }
+        public bool CanEditRole { get; }
+        public bool CanDeleteRole { get; }
+        public bool CanManageRolePermissions { get; }
+
         // Services
         private readonly IRoleService? _roleService;
         private readonly IPermissionService? _permissionService;
@@ -53,6 +59,13 @@ namespace PhoneStoreAdmin.View
             // Get services from ServiceContainer
             _roleService = ServiceContainer.GetService<IRoleService>();
             _permissionService = ServiceContainer.GetService<IPermissionService>();
+
+            // Initialize permissions
+            var session = UserSession.Instance;
+            CanAddRole = session.HasPermission("ROLE_ADD");
+            CanEditRole = session.HasPermission("ROLE_EDIT");
+            CanDeleteRole = session.HasPermission("ROLE_DELETE");
+            CanManageRolePermissions = session.HasPermission("ROLE_MANAGE");
 
             // Initialize localized strings
             InitializeLocalizedStrings();
@@ -454,6 +467,8 @@ namespace PhoneStoreAdmin.View
 
         private async void CreateRoleButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanAddRole) return;
+            
             var currentUserRole = UserSession.Instance.Role;
             int minWeight = currentUserRole?.Weight ?? 0;
 
@@ -512,6 +527,8 @@ namespace PhoneStoreAdmin.View
 
         private async void EditRoleButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanEditRole) return;
+            
             if (_selectedRole == null) return;
 
             var currentUserRole = UserSession.Instance.Role;
@@ -571,6 +588,8 @@ namespace PhoneStoreAdmin.View
 
         private async void DeleteRoleButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanDeleteRole) return;
+            
             if (_selectedRole == null) return;
 
             // Store local reference to prevent race condition
@@ -631,6 +650,8 @@ namespace PhoneStoreAdmin.View
 
         private async void SavePermissionsButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanManageRolePermissions) return;
+            
             if (_selectedRole == null) return;
 
             // Store local reference to prevent race condition

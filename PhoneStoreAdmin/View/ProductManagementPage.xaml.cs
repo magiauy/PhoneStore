@@ -3,9 +3,11 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Windows.ApplicationModel.Resources;
+using PhoneStore.Services;
 using PhoneStore.Services.Interfaces;
 using PhoneStore.Services.ViewModels;
 using PhoneStoreAdmin.View.Controls;
+using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Utils;
 using System;
 using System.Collections.Generic;
@@ -27,6 +29,11 @@ namespace PhoneStoreAdmin.View
         private ProductDialog? _currentDialog;
         private bool _isLoaded;
         private DetailSectionTab _activeDetailTab = DetailSectionTab.BatchHistory;
+
+        // Permission properties
+        public bool CanAddProduct { get; }
+        public bool CanEditProduct { get; }
+        public bool CanDeleteProduct { get; }
 
         public ObservableCollection<ProductListItemViewModel> Products { get; } = new();
 
@@ -323,6 +330,13 @@ namespace PhoneStoreAdmin.View
             _resourceLoader = new ResourceLoader();
             _collectionChangedHandler = (_, _) => Bindings.Update();
             _detailCollectionChangedHandler = (_, _) => Bindings.Update();
+            
+            // Initialize permissions
+            var session = UserSession.Instance;
+            CanAddProduct = session.HasPermission("PRODUCT_ADD");
+            CanEditProduct = session.HasPermission("PRODUCT_EDIT");
+            CanDeleteProduct = session.HasPermission("PRODUCT_DELETE");
+            
             Products.CollectionChanged += _collectionChangedHandler;
             Loaded += ProductManagementPage_Loaded;
             Unloaded += ProductManagementPage_Unloaded;
@@ -425,11 +439,13 @@ namespace PhoneStoreAdmin.View
 
         private async void CreateProductButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanAddProduct) return;
             await ShowProductDialogAsync(ProductDialog.DialogMode.Add);
         }
 
         private async void EditProductButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanEditProduct) return;
             if (!HasSelectedProduct)
             {
                 return;

@@ -16,6 +16,11 @@ namespace PhoneStoreAdmin.View
     {
         private IPromotionService PromotionService => App.GetService<IPromotionService>();
 
+        // Permission properties
+        public bool CanAddPromotion { get; }
+        public bool CanEditPromotion { get; }
+        public bool CanManagePromotion { get; }
+
         public ObservableCollection<PromotionViewModel> Promotions { get; } = new ObservableCollection<PromotionViewModel>();
         public int CurrentPage { get; set; } = 1;
         public int PageSize { get; set; } = 10;
@@ -31,6 +36,13 @@ namespace PhoneStoreAdmin.View
         {
             this._resourceLoader = new ResourceLoader();
             this.InitializeComponent();
+            
+            // Initialize permissions
+            var session = PhoneStoreRepository.Models.UserSession.Instance;
+            CanAddPromotion = session.HasPermission("PROMOTIONS_ADD");
+            CanEditPromotion = session.HasPermission("PROMOTIONS_EDIT");
+            CanManagePromotion = session.HasPermission("PROMOTIONS_MANAGE");
+            
             this.Loaded += PromotionsPage_Loaded;
             this.Unloaded += PromotionsPage_Unloaded;
         }
@@ -195,6 +207,8 @@ namespace PhoneStoreAdmin.View
 
         private async void BtnCreate_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanAddPromotion) return;
+            
             var promotionDialog = new PromotionDialog();
             promotionDialog.SetMode(PromotionDialog.DialogMode.Add);
 
@@ -235,6 +249,8 @@ namespace PhoneStoreAdmin.View
 
         private void NavigateToEditPromotion_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanEditPromotion) return;
+            
             var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
             if (!int.TryParse(idStr, out int promotionId)) return;
 
@@ -243,6 +259,8 @@ namespace PhoneStoreAdmin.View
 
         private async void BtnActivate_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanManagePromotion) return;
+            
             var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
             if (!int.TryParse(idStr, out int promotionId)) return;
 
@@ -273,6 +291,8 @@ namespace PhoneStoreAdmin.View
 
         private async void BtnDeactivate_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanManagePromotion) return;
+            
             var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
             if (!int.TryParse(idStr, out int promotionId)) return;
 

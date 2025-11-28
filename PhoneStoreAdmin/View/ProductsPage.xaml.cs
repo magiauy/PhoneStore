@@ -28,6 +28,11 @@ namespace PhoneStoreAdmin.View
         private readonly List<string> _selectedCategoryNames = new();
         private readonly NotifyCollectionChangedEventHandler _collectionChangedHandler;
 
+        // Permission properties
+        public bool CanAddProduct { get; }
+        public bool CanEditProduct { get; }
+        public bool CanDeleteProduct { get; }
+
         public ObservableCollection<ProductModelListItemViewModel> ProductModels { get; } = new();
 
         public bool HasNoModels => ProductModels.Count == 0;
@@ -95,6 +100,13 @@ namespace PhoneStoreAdmin.View
             _productService = App.GetService<IProductService>();
             _resourceLoader = new ResourceLoader();
             _collectionChangedHandler = (_, _) => Bindings.Update();
+            
+            // Initialize permissions
+            var session = UserSession.Instance;
+            CanAddProduct = session.HasPermission("PRODUCT_ADD");
+            CanEditProduct = session.HasPermission("PRODUCT_EDIT");
+            CanDeleteProduct = session.HasPermission("PRODUCT_DELETE");
+            
             Loaded += ProductsPage_Loaded;
             Unloaded += ProductsPage_Unloaded;
             ProductModels.CollectionChanged += _collectionChangedHandler;
@@ -202,11 +214,13 @@ namespace PhoneStoreAdmin.View
 
         private async void CreateModelButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanAddProduct) return;
             await ShowProductModelDialogAsync(ProductModelDialog.DialogMode.Create, null);
         }
 
         private async void EditModelButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanEditProduct) return;
             if (SelectedModelDetail?.Model == null)
             {
                 return;
@@ -217,6 +231,7 @@ namespace PhoneStoreAdmin.View
 
         private async void DuplicateModelButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanAddProduct) return; // Duplicate creates new product, needs ADD permission
             if (SelectedModelDetail?.Model == null)
             {
                 return;
