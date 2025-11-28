@@ -1673,13 +1673,16 @@ namespace PhoneStoreAdmin.View
 
         private void SetQuantityValue(int value)
         {
-            if (SetProperty(ref _quantity, value))
+            if (_quantity != value)
             {
+                _quantity = value;
+                
                 if (IsSerialTracked)
                 {
                     UpdateSerialEntriesCount(value);
                 }
 
+                OnPropertyChanged(nameof(Quantity));
                 OnPropertyChanged(nameof(TotalPrice));
                 OnPropertyChanged(nameof(CanDecrease));
                 OnPropertyChanged(nameof(CanIncrease));
