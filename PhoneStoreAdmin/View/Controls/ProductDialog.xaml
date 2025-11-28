@@ -166,6 +166,73 @@
                 VerticalScrollBarVisibility="Auto"
                 Padding="0,0,20,0">
                 <StackPanel Spacing="12">
+                    <!-- Product Image Section -->
+                    <StackPanel>
+                        <TextBlock Text="Product Image" Style="{StaticResource InputLabelStyle}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="ImageUrlTextBox" 
+                                     Grid.Column="0" 
+                                     Style="{StaticResource TextInputStyle}" 
+                                     PlaceholderText="Image URL (auto-generated on upload)" 
+                                     IsReadOnly="True" />
+                            <Button x:Name="UploadImageButton" 
+                                    Grid.Column="1" 
+                                    Content="Upload" 
+                                    Click="UploadImageButton_Click" 
+                                    Margin="8,4,0,8" 
+                                    Height="40" 
+                                    VerticalAlignment="Top" />
+                        </Grid>
+                        <TextBlock x:Name="ImageError" Style="{StaticResource ValidationErrorStyle}" />
+                        
+                        <!-- Image Preview -->
+                        <Border x:Name="ImagePreviewBorder" 
+                                BorderBrush="{StaticResource BrushBorder}" 
+                                BorderThickness="1" 
+                                CornerRadius="6" 
+                                Height="150" 
+                                Margin="0,0,0,8"
+                                Background="{StaticResource BrushSurface}">
+                            <Grid>
+                                <TextBlock x:Name="NoImageText" 
+                                           Text="No image" 
+                                           HorizontalAlignment="Center" 
+                                           VerticalAlignment="Center" 
+                                           Foreground="{StaticResource BrushSecondaryText}" 
+                                           FontSize="12" />
+                                <Image x:Name="ImagePreview" 
+                                       Stretch="Uniform" 
+                                       HorizontalAlignment="Center" 
+                                       VerticalAlignment="Center"
+                                       MaxHeight="140" />
+                                <ProgressRing x:Name="ImageLoadingRing" 
+                                              IsActive="False" 
+                                              Width="24" 
+                                              Height="24" 
+                                              HorizontalAlignment="Center" 
+                                              VerticalAlignment="Center" />
+                                <!-- Change Image Button (overlay) -->
+                                <Button x:Name="ChangeImageButton"
+                                        Content="&#xE70F;"
+                                        FontFamily="Segoe MDL2 Assets"
+                                        ToolTipService.ToolTip="Thay đổi hình ảnh"
+                                        Click="ChangeImageButton_Click"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Top"
+                                        Margin="0,4,4,0"
+                                        Padding="8"
+                                        Background="{StaticResource BrushPrimary}"
+                                        Foreground="White"
+                                        CornerRadius="4"
+                                        Visibility="Collapsed" />
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
                     <TextBlock x:Uid="ProductAttributesHeader" Style="{StaticResource InputLabelStyle}" />
                     <StackPanel x:Name="AttributesPanel" Spacing="12" />
                     <TextBlock
