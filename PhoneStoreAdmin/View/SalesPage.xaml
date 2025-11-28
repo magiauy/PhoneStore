@@ -552,6 +552,20 @@
                             </Border>
 
                             <Button
+                                x:Name="PrintProformaButton"
+                                HorizontalAlignment="Stretch"
+                                Click="{x:Bind OnPrintProformaInvoice}"
+                                IsEnabled="{x:Bind HasInvoiceItems, Mode=OneWay}"
+                                Style="{ThemeResource DefaultButtonStyle}"
+                                Height="44"
+                                Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE749;" />
+                                    <TextBlock x:Uid="Sales_PrintProformaButtonText" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button
                                 x:Name="ProcessSaleButton"
                                 HorizontalAlignment="Stretch"
                                 Click="{x:Bind OnProcessSale}"

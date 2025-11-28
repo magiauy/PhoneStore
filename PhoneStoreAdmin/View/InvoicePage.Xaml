@@ -719,6 +719,14 @@
                                                         </MenuFlyoutItem.Icon>
                                                     </MenuFlyoutItem>
                                                     <MenuFlyoutItem
+                                                        x:Uid="BtnPrintInvoice"
+                                                        Click="BtnPrint_Click"
+                                                        Tag="{Binding}">
+                                                        <MenuFlyoutItem.Icon>
+                                                            <FontIcon Glyph="&#xE749;" />
+                                                        </MenuFlyoutItem.Icon>
+                                                    </MenuFlyoutItem>
+                                                    <MenuFlyoutItem
                                                         x:Uid="BtnEditPurchaseOrder"
                                                         Click="BtnEdit_Click"
                                                         IsEnabled="{Binding CanEditInvoice, ElementName=PageRoot}"

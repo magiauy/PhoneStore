@@ -346,6 +346,53 @@ namespace PhoneStoreAdmin.View
             }
         }
 
+        private async void BtnPrint_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is not MenuFlyoutItem mi || mi.Tag is not InvoiceViewModel vm)
+                    return;
+
+                var invoice = InvoiceService.GetById(vm.Id);
+                if (invoice == null)
+                {
+                    ShowErrorDialog(_resourceLoader.GetString("Sales_ErrorTitle"), _resourceLoader.GetString("Invoice_NotFound"));
+                    return;
+                }
+
+                // Show file picker
+                var savePicker = new Windows.Storage.Pickers.FileSavePicker();
+                
+                // Get the window handle for the picker
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(((App)Application.Current).CurrentWindow);
+                WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
+
+                savePicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+                savePicker.FileTypeChoices.Add("PDF Document", new List<string>() { ".pdf" });
+                savePicker.SuggestedFileName = $"HoaDon_{invoice.Id:D6}_{DateTime.Now:yyyyMMdd}";
+
+                var file = await savePicker.PickSaveFileAsync();
+                if (file != null)
+                {
+                    // Generate PDF
+                    Utils.InvoicePdfGenerator.GenerateInvoicePdf(invoice, file.Path);
+                    
+                    // Open the generated PDF
+                    var options = new Windows.System.LauncherOptions
+                    {
+                        DisplayApplicationPicker = false
+                    };
+                    await Windows.System.Launcher.LaunchFileAsync(file, options);
+                    
+                    ShowErrorDialog(_resourceLoader.GetString("Sales_NotificationTitle"), _resourceLoader.GetString("Sales_PrintSuccess"));
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorDialog(_resourceLoader.GetString("Sales_ErrorTitle"), $"{_resourceLoader.GetString("Sales_PrintError")}: {ex.Message}");
+            }
+        }
+
         private void BtnActions_Click(object sender, RoutedEventArgs e)
         {
             if (sender is FrameworkElement element)

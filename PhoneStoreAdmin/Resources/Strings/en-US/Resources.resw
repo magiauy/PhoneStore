@@ -723,6 +723,12 @@
   <data name="BtnDetailPurchaseOrder.Text" xml:space="preserve">
     <value>Detail</value>
   </data>
+  <data name="BtnPrintInvoice.Text" xml:space="preserve">
+    <value>Print Invoice</value>
+  </data>
+  <data name="Invoice_NotFound" xml:space="preserve">
+    <value>Invoice not found</value>
+  </data>
   <data name="ShowIngPurchaseOrder.Text" xml:space="preserve">
     <value>Showing</value>
   </data>
@@ -3240,8 +3246,71 @@ How many devices do you want to add?</value>
   <data name="Sales_TotalLabel.Text" xml:space="preserve">
     <value>TOTAL</value>
   </data>
+  <!-- Code-behind labels -->
+  <data name="Sales_Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Sales_Vat" xml:space="preserve">
+    <value>VAT (10%)</value>
+  </data>
+  <data name="Sales_Total" xml:space="preserve">
+    <value>TOTAL</value>
+  </data>
   <data name="Sales_PayNowButtonText.Text" xml:space="preserve">
     <value>PAY NOW</value>
+  </data>
+  <!-- Sales Proforma Invoice -->
+  <data name="Sales_PrintProformaButtonText.Text" xml:space="preserve">
+    <value>PRINT PROFORMA</value>
+  </data>
+  <data name="Sales_ProformaInvoiceTitle" xml:space="preserve">
+    <value>Proforma Invoice</value>
+  </data>
+  <data name="Sales_ProformaHeader" xml:space="preserve">
+    <value>PROFORMA INVOICE</value>
+  </data>
+  <data name="Sales_ProformaNote" xml:space="preserve">
+    <value>* This is a proforma invoice, not an official invoice</value>
+  </data>
+  <data name="Sales_PrintButton" xml:space="preserve">
+    <value>Print</value>
+  </data>
+  <data name="Sales_PrintNotImplemented" xml:space="preserve">
+    <value>Print functionality is under development</value>
+  </data>
+  <data name="Sales_CustomerLabel" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="Sales_PhoneLabel" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Sales_ProductHeader" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="Sales_QtyHeader" xml:space="preserve">
+    <value>Qty</value>
+  </data>
+  <data name="Sales_PriceHeader" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <!-- Sales Order Confirmation -->
+  <data name="Sales_ConfirmOrderTitle" xml:space="preserve">
+    <value>Confirm Order</value>
+  </data>
+  <data name="Sales_ConfirmCustomerLabel" xml:space="preserve">
+    <value>Customer:</value>
+  </data>
+  <data name="Sales_ConfirmItemsLabel" xml:space="preserve">
+    <value>Items:</value>
+  </data>
+  <data name="Sales_ConfirmTotalLabel" xml:space="preserve">
+    <value>TOTAL PAYMENT:</value>
+  </data>
+  <data name="Sales_ConfirmPayButton" xml:space="preserve">
+    <value>Confirm Payment</value>
+  </data>
+  <data name="Sales_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
   </data>
   <!-- SalesPage Code-behind messages -->
   <data name="Sales_OutOfStockError" xml:space="preserve">
@@ -3318,6 +3387,16 @@ Total: {1}</value>
   </data>
   <data name="DialogClose" xml:space="preserve">
     <value>Close</value>
+  </data>
+  <!-- Print Invoice -->
+  <data name="Sales_PrintSuccess" xml:space="preserve">
+    <value>PDF invoice created successfully</value>
+  </data>
+  <data name="Sales_PrintError" xml:space="preserve">
+    <value>Error creating PDF invoice</value>
+  </data>
+  <data name="Sales_ErrorTitle" xml:space="preserve">
+    <value>Error</value>
   </data>
   <!-- AccessDenied Page -->
   <data name="AccessDenied_Title.Text" xml:space="preserve">
