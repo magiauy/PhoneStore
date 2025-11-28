@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using PhoneStore.Services.Interfaces;
+using PhoneStoreRepository.Models;
 using System;
 using System.Collections.ObjectModel;
 using PhoneStore.Services.ViewModels;
@@ -14,6 +15,10 @@ namespace PhoneStoreAdmin.View
     public sealed partial class BrandPage : Page
     {
         private IBrandService BrandService => App.GetService<IBrandService>();
+
+        // Permission properties
+        public bool CanAddBrand { get; }
+        public bool CanEditBrand { get; }
 
         public ObservableCollection<BrandViewModel> Brands { get; } = new ObservableCollection<BrandViewModel>();
         public int CurrentPage { get; set; } = 1;
@@ -30,6 +35,12 @@ namespace PhoneStoreAdmin.View
         {
             this._resourceLoader = new ResourceLoader();
             this.InitializeComponent();
+            
+            // Initialize permissions
+            var session = UserSession.Instance;
+            CanAddBrand = session.HasPermission("BRAND_ADD");
+            CanEditBrand = session.HasPermission("BRAND_EDIT");
+            
             this.Loaded += BrandPage_Loaded;
             this.Unloaded += BrandPage_Unloaded;
         }
@@ -142,6 +153,8 @@ namespace PhoneStoreAdmin.View
 
         private async void BtnCreate_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanAddBrand) return;
+            
             var brandDialog = new BrandDialog();
             brandDialog.SetMode(BrandDialog.DialogMode.Add);
 
@@ -183,6 +196,8 @@ namespace PhoneStoreAdmin.View
 
         private async void BtnEdit_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanEditBrand) return;
+            
             var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
             if (!int.TryParse(idStr, out int brandId)) return;
 

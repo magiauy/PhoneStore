@@ -142,6 +142,8 @@
                         x:Name="CreateModelButton"
                         x:Uid="Products_CreateModelButton"
                         Click="CreateModelButton_Click"
+                        IsEnabled="{x:Bind CanAddProduct, Mode=OneWay}"
+                        Visibility="{x:Bind CanAddProduct, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                         Style="{StaticResource PrimaryButtonStyle}" />
                 </StackPanel>
             </Grid>
@@ -285,8 +287,18 @@
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Button x:Uid="Products_EditModelButton" Click="EditModelButton_Click" Style="{StaticResource SecondaryButtonStyle}" />
-                            <Button x:Uid="Products_DuplicateModelButton" Click="DuplicateModelButton_Click" Style="{StaticResource SecondaryButtonStyle}" />
+                            <Button 
+                                x:Uid="Products_EditModelButton" 
+                                Click="EditModelButton_Click" 
+                                IsEnabled="{x:Bind CanEditProduct, Mode=OneWay}"
+                                Visibility="{x:Bind CanEditProduct, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+                            <Button 
+                                x:Uid="Products_DuplicateModelButton" 
+                                Click="DuplicateModelButton_Click" 
+                                IsEnabled="{x:Bind CanAddProduct, Mode=OneWay}"
+                                Visibility="{x:Bind CanAddProduct, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
+                                Style="{StaticResource SecondaryButtonStyle}" />
                             <Button
                                 x:Name="ManageProductsButton"
                                 x:Uid="ProductsPageManageButton"

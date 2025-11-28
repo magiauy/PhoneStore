@@ -1,5 +1,6 @@
 ﻿<Page
     x:Class="PhoneStoreAdmin.View.InvoicePage"
+    x:Name="PageRoot"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="using:PhoneStoreAdmin.View"
@@ -720,6 +721,7 @@
                                                     <MenuFlyoutItem
                                                         x:Uid="BtnEditPurchaseOrder"
                                                         Click="BtnEdit_Click"
+                                                        IsEnabled="{Binding CanEditInvoice, ElementName=PageRoot}"
                                                         Tag="{Binding}">
                                                         <MenuFlyoutItem.Icon>
                                                             <FontIcon Glyph="&#xE104;" />

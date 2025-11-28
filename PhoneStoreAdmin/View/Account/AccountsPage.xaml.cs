@@ -23,6 +23,10 @@ namespace PhoneStoreAdmin.View
         // ResourceLoader for localization
         private readonly ResourceLoader _resourceLoader = new();
         
+        // Permission properties
+        public bool CanAddAccount { get; }
+        public bool CanEditAccount { get; }
+        
         // ObservableCollection để bind với ListView
         public ObservableCollection<AccountViewModel> Accounts { get; set; }
         public ObservableCollection<AccountEmployeeViewModel> EmployeesWithoutAccount { get; set; }
@@ -83,6 +87,11 @@ namespace PhoneStoreAdmin.View
                 ?? throw new InvalidOperationException("AccountService not registered");
             _employeeService = ServiceContainer.GetService<IEmployeeService>()
                 ?? throw new InvalidOperationException("EmployeeService not registered");
+            
+            // Initialize permissions
+            var session = UserSession.Instance;
+            CanAddAccount = session.HasPermission("ACCOUNT_ADD");
+            CanEditAccount = session.HasPermission("ACCOUNT_EDIT");
             
             // Initialize localized strings
             InitializeLocalizedStrings();
@@ -454,6 +463,8 @@ namespace PhoneStoreAdmin.View
 
         private void EditAccountMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanEditAccount) return;
+            
             if (sender is MenuFlyoutItem menuItem && menuItem.Tag is AccountViewModel account)
             {
                 Frame.Navigate(typeof(AccountEditPage), account);
@@ -909,6 +920,8 @@ namespace PhoneStoreAdmin.View
 
         private async void CreateAccountButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanAddAccount) return;
+            
             if (_selectedEmployee == null)
             {
                 ShowFormError(LocalizationHelper.GetString("Accounts_Validation_SelectEmployee"));
