@@ -3319,4 +3319,17 @@ Tổng tiền: {1}</value>
   <data name="DialogClose" xml:space="preserve">
     <value>Đóng</value>
   </data>
+  <!-- AccessDenied Page -->
+  <data name="AccessDenied_Title.Text" xml:space="preserve">
+    <value>Truy cập bị từ chối</value>
+  </data>
+  <data name="AccessDenied_Message.Text" xml:space="preserve">
+    <value>Bạn không có quyền truy cập trang này. Vui lòng liên hệ quản trị viên nếu bạn cần quyền truy cập.</value>
+  </data>
+  <data name="AccessDenied_RequiredPermission.Text" xml:space="preserve">
+    <value>Quyền cần thiết:</value>
+  </data>
+  <data name="AccessDenied_BackToDashboard.Content" xml:space="preserve">
+    <value>Quay về Trang chủ</value>
+  </data>
 </root>

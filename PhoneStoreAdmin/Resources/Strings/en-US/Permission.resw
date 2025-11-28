@@ -146,4 +146,80 @@
   <data name="SETTING_EDIT" xml:space="preserve">
     <value>Edit Settings</value>
   </data>
-<data name="PRODUCT_ATTRIBUTE_VIEW" xml:space="preserve"><value>View product attributes</value></data><data name="PRODUCT_ATTRIBUTE_MANAGE" xml:space="preserve"><value>Manage product attributes</value></data></root>
+<data name="PRODUCT_ATTRIBUTE_VIEW" xml:space="preserve"><value>View product attributes</value></data>
+  <data name="PRODUCT_ATTRIBUTE_MANAGE" xml:space="preserve"><value>Manage product attributes</value></data>
+  
+  <!-- Brand Permissions -->
+  <data name="BRAND_VIEW" xml:space="preserve">
+    <value>View Brands</value>
+  </data>
+  
+  <!-- Batch Permissions -->
+  <data name="BATCH_VIEW" xml:space="preserve">
+    <value>View Batches</value>
+  </data>
+  
+  <!-- Role Permissions -->
+  <data name="ROLE_VIEW" xml:space="preserve">
+    <value>View Roles</value>
+  </data>
+  <data name="ROLE_MANAGE" xml:space="preserve">
+    <value>Manage Roles</value>
+  </data>
+  
+  <!-- Employee Permissions -->
+  <data name="EMPLOYEE_VIEW" xml:space="preserve">
+    <value>View Employees</value>
+  </data>
+  <data name="EMPLOYEE_ADD" xml:space="preserve">
+    <value>Add Employee</value>
+  </data>
+  <data name="EMPLOYEE_EDIT" xml:space="preserve">
+    <value>Edit Employee</value>
+  </data>
+  <data name="EMPLOYEE_DELETE" xml:space="preserve">
+    <value>Delete Employee</value>
+  </data>
+  
+  <!-- Supplier Permissions -->
+  <data name="SUPPLIERS_VIEW" xml:space="preserve">
+    <value>View Suppliers</value>
+  </data>
+  <data name="SUPPLIERS_ADD" xml:space="preserve">
+    <value>Add Supplier</value>
+  </data>
+  <data name="SUPPLIERS_EDIT" xml:space="preserve">
+    <value>Edit Supplier</value>
+  </data>
+  <data name="SUPPLIERS_DELETE" xml:space="preserve">
+    <value>Delete Supplier</value>
+  </data>
+  
+  <!-- Purchase Order Permissions -->
+  <data name="PURCHASE_ORDERS_VIEW" xml:space="preserve">
+    <value>View Purchase Orders</value>
+  </data>
+  <data name="PURCHASE_ORDERS_ADD" xml:space="preserve">
+    <value>Add Purchase Order</value>
+  </data>
+  <data name="PURCHASE_ORDERS_EDIT" xml:space="preserve">
+    <value>Edit Purchase Order</value>
+  </data>
+  <data name="PURCHASE_ORDERS_DELETE" xml:space="preserve">
+    <value>Delete Purchase Order</value>
+  </data>
+  
+  <!-- Promotion Permissions -->
+  <data name="PROMOTIONS_VIEW" xml:space="preserve">
+    <value>View Promotions</value>
+  </data>
+  <data name="PROMOTIONS_ADD" xml:space="preserve">
+    <value>Add Promotion</value>
+  </data>
+  <data name="PROMOTIONS_EDIT" xml:space="preserve">
+    <value>Edit Promotion</value>
+  </data>
+  <data name="PROMOTIONS_DELETE" xml:space="preserve">
+    <value>Delete Promotion</value>
+  </data>
+</root>
