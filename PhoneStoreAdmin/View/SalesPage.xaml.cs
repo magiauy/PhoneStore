@@ -7,6 +7,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -43,6 +44,7 @@ namespace PhoneStoreAdmin.View
         private readonly ICustomerService _customerService;
         private readonly ResourceLoader _resourceLoader;
         private readonly HashSet<string> _usedSerialNumbers = new(StringComparer.OrdinalIgnoreCase);
+        private readonly SemaphoreSlim _dialogSemaphore = new(1, 1);
         private Guid _customerLookupRequestId = Guid.Empty;
         private int? _selectedCustomerId;
         private bool _isExistingCustomer;
@@ -239,7 +241,7 @@ namespace PhoneStoreAdmin.View
             FilterProducts();
         }
 
-        public void OnProcessSale(object sender, RoutedEventArgs e)
+        public async void OnProcessSale(object sender, RoutedEventArgs e)
         {
             if (!HasInvoiceItems)
             {
@@ -261,6 +263,13 @@ namespace PhoneStoreAdmin.View
             }
 
             if (!EnsureCustomerInfo(out var invoiceCustomerName))
+            {
+                return;
+            }
+
+            // Show confirmation dialog
+            var confirmed = await ShowOrderConfirmationDialogAsync(invoiceCustomerName);
+            if (!confirmed)
             {
                 return;
             }
@@ -1059,15 +1068,396 @@ namespace PhoneStoreAdmin.View
 
         public async void ShowMessage(string content, string title)
         {
-            ContentDialog dialog = new ContentDialog()
+            await _dialogSemaphore.WaitAsync();
+            try
             {
-                Title = title,
-                Content = content,
-                CloseButtonText = "Đóng",
-                XamlRoot = this.XamlRoot
-            };
+                ContentDialog dialog = new ContentDialog()
+                {
+                    Title = title,
+                    Content = content,
+                    CloseButtonText = _resourceLoader.GetString("DialogClose"),
+                    XamlRoot = this.XamlRoot
+                };
 
-            await dialog.ShowAsync();
+                await dialog.ShowAsync();
+            }
+            finally
+            {
+                _dialogSemaphore.Release();
+            }
+        }
+
+        private async Task ShowMessageAsync(string content, string title)
+        {
+            await _dialogSemaphore.WaitAsync();
+            try
+            {
+                ContentDialog dialog = new ContentDialog()
+                {
+                    Title = title,
+                    Content = content,
+                    CloseButtonText = _resourceLoader.GetString("DialogClose"),
+                    XamlRoot = this.XamlRoot
+                };
+
+                await dialog.ShowAsync();
+            }
+            finally
+            {
+                _dialogSemaphore.Release();
+            }
+        }
+
+        /// <summary>
+        /// Show order confirmation dialog before processing sale
+        /// </summary>
+        private async Task<bool> ShowOrderConfirmationDialogAsync(string customerName)
+        {
+            await _dialogSemaphore.WaitAsync();
+            try
+            {
+                var confirmContent = new StackPanel { Spacing = 12 };
+
+                // Customer info section
+                var customerSection = new StackPanel { Spacing = 4 };
+                customerSection.Children.Add(new TextBlock
+                {
+                    Text = _resourceLoader.GetString("Sales_ConfirmCustomerLabel"),
+                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+                });
+                customerSection.Children.Add(new TextBlock
+                {
+                    Text = $"{customerName} - {CustomerPhone}",
+                    Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray)
+                });
+                confirmContent.Children.Add(customerSection);
+
+                // Order items section
+                var itemsSection = new StackPanel { Spacing = 4 };
+                itemsSection.Children.Add(new TextBlock
+                {
+                    Text = _resourceLoader.GetString("Sales_ConfirmItemsLabel"),
+                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+                });
+
+                foreach (var item in InvoiceItems)
+                {
+                    var itemText = new TextBlock
+                    {
+                        Text = $"• {item.ProductName} x {item.Quantity} = {FormatPrice(item.TotalPrice)}",
+                        TextWrapping = TextWrapping.Wrap
+                    };
+                    itemsSection.Children.Add(itemText);
+                }
+                confirmContent.Children.Add(itemsSection);
+
+                // Divider
+                confirmContent.Children.Add(new Border
+                {
+                    Height = 1,
+                    Background = new SolidColorBrush(Microsoft.UI.Colors.LightGray),
+                    Margin = new Thickness(0, 8, 0, 8)
+                });
+
+                // Total section
+                var totalSection = new Grid();
+                totalSection.Children.Add(new TextBlock
+                {
+                    Text = _resourceLoader.GetString("Sales_ConfirmTotalLabel"),
+                    FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+                    FontSize = 16,
+                    HorizontalAlignment = HorizontalAlignment.Left
+                });
+                totalSection.Children.Add(new TextBlock
+                {
+                    Text = FormatPrice(Total),
+                    FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+                    FontSize = 16,
+                    Foreground = (SolidColorBrush)Application.Current.Resources["BrushPrimary"],
+                    HorizontalAlignment = HorizontalAlignment.Right
+                });
+                confirmContent.Children.Add(totalSection);
+
+                var confirmDialog = new ContentDialog
+                {
+                    Title = _resourceLoader.GetString("Sales_ConfirmOrderTitle"),
+                    Content = confirmContent,
+                    PrimaryButtonText = _resourceLoader.GetString("Sales_ConfirmPayButton"),
+                    CloseButtonText = _resourceLoader.GetString("Sales_CancelButton"),
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = this.XamlRoot
+                };
+
+                var result = await confirmDialog.ShowAsync();
+                return result == ContentDialogResult.Primary;
+            }
+            finally
+            {
+                _dialogSemaphore.Release();
+            }
+        }
+
+        /// <summary>
+        /// Print proforma/temporary invoice
+        /// </summary>
+        public async void OnPrintProformaInvoice(object sender, RoutedEventArgs e)
+        {
+            if (!HasInvoiceItems)
+            {
+                await ShowMessageAsync(_resourceLoader.GetString("Sales_AddProductsMessage"), _resourceLoader.GetString("Sales_NotificationTitle"));
+                return;
+            }
+
+            await _dialogSemaphore.WaitAsync();
+            try
+            {
+                // Build proforma invoice content
+                var proformaContent = BuildProformaInvoiceContent();
+
+                var proformaDialog = new ContentDialog
+                {
+                    Title = _resourceLoader.GetString("Sales_ProformaInvoiceTitle"),
+                    Content = new ScrollViewer
+                    {
+                        Content = proformaContent,
+                        MaxHeight = 500,
+                        VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+                    },
+                    PrimaryButtonText = _resourceLoader.GetString("Sales_PrintButton"),
+                    CloseButtonText = _resourceLoader.GetString("DialogClose"),
+                    XamlRoot = this.XamlRoot
+                };
+
+                var result = await proformaDialog.ShowAsync();
+                // Release semaphore first before any further operations
+                _dialogSemaphore.Release();
+                
+                if (result == ContentDialogResult.Primary)
+                {
+                    await PrintProformaAsync();
+                }
+            }
+            catch
+            {
+                // Only release if exception occurs before dialog closes
+                if (_dialogSemaphore.CurrentCount == 0)
+                {
+                    _dialogSemaphore.Release();
+                }
+                throw;
+            }
+        }
+
+        private StackPanel BuildProformaInvoiceContent()
+        {
+            var content = new StackPanel { Spacing = 12, Padding = new Thickness(0, 0, 20, 0) };
+
+            // Header
+            content.Children.Add(new TextBlock
+            {
+                Text = _resourceLoader.GetString("Sales_ProformaHeader"),
+                FontSize = 20,
+                FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+                HorizontalAlignment = HorizontalAlignment.Center
+            });
+
+            content.Children.Add(new TextBlock
+            {
+                Text = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray)
+            });
+
+            // Divider
+            content.Children.Add(new Border
+            {
+                Height = 1,
+                Background = new SolidColorBrush(Microsoft.UI.Colors.LightGray),
+                Margin = new Thickness(0, 8, 0, 8)
+            });
+
+            // Customer info
+            if (!string.IsNullOrWhiteSpace(CustomerPhone))
+            {
+                var customerName = IsExistingCustomer ? ExistingCustomerName : CustomerName;
+                content.Children.Add(new TextBlock
+                {
+                    Text = $"{_resourceLoader.GetString("Sales_CustomerLabel")}: {customerName}",
+                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+                });
+                content.Children.Add(new TextBlock
+                {
+                    Text = $"{_resourceLoader.GetString("Sales_PhoneLabel")}: {CustomerPhone}"
+                });
+            }
+
+            // Divider
+            content.Children.Add(new Border
+            {
+                Height = 1,
+                Background = new SolidColorBrush(Microsoft.UI.Colors.LightGray),
+                Margin = new Thickness(0, 8, 0, 8)
+            });
+
+            // Items header
+            var headerGrid = new Grid();
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            var headerProduct = new TextBlock { Text = _resourceLoader.GetString("Sales_ProductHeader"), FontWeight = Microsoft.UI.Text.FontWeights.SemiBold };
+            var headerQty = new TextBlock { Text = _resourceLoader.GetString("Sales_QtyHeader"), FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, HorizontalAlignment = HorizontalAlignment.Center };
+            var headerPrice = new TextBlock { Text = _resourceLoader.GetString("Sales_PriceHeader"), FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, HorizontalAlignment = HorizontalAlignment.Right };
+
+            Grid.SetColumn(headerProduct, 0);
+            Grid.SetColumn(headerQty, 1);
+            Grid.SetColumn(headerPrice, 2);
+
+            headerGrid.Children.Add(headerProduct);
+            headerGrid.Children.Add(headerQty);
+            headerGrid.Children.Add(headerPrice);
+            content.Children.Add(headerGrid);
+
+            // Items
+            foreach (var item in InvoiceItems)
+            {
+                var itemGrid = new Grid { Margin = new Thickness(0, 4, 0, 0) };
+                itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
+                itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+                var productName = new TextBlock { Text = item.ProductName, TextWrapping = TextWrapping.Wrap };
+                var qty = new TextBlock { Text = item.Quantity.ToString(), HorizontalAlignment = HorizontalAlignment.Center };
+                var price = new TextBlock { Text = FormatPrice(item.TotalPrice), HorizontalAlignment = HorizontalAlignment.Right };
+
+                Grid.SetColumn(productName, 0);
+                Grid.SetColumn(qty, 1);
+                Grid.SetColumn(price, 2);
+
+                itemGrid.Children.Add(productName);
+                itemGrid.Children.Add(qty);
+                itemGrid.Children.Add(price);
+                content.Children.Add(itemGrid);
+            }
+
+            // Divider
+            content.Children.Add(new Border
+            {
+                Height = 1,
+                Background = new SolidColorBrush(Microsoft.UI.Colors.LightGray),
+                Margin = new Thickness(0, 8, 0, 8)
+            });
+
+            // Totals
+            AddTotalRow(content, _resourceLoader.GetString("Sales_Subtotal") ?? "Tạm tính", FormatPrice(Subtotal));
+            AddTotalRow(content, _resourceLoader.GetString("Sales_Vat") ?? "VAT (10%)", FormatPrice(VatAmount));
+
+            // Grand total
+            var totalGrid = new Grid { Margin = new Thickness(0, 8, 0, 0) };
+            totalGrid.Children.Add(new TextBlock
+            {
+                Text = _resourceLoader.GetString("Sales_Total") ?? "TỔNG CỘNG",
+                FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+                FontSize = 16
+            });
+            totalGrid.Children.Add(new TextBlock
+            {
+                Text = FormatPrice(Total),
+                FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+                FontSize = 16,
+                Foreground = (SolidColorBrush)Application.Current.Resources["BrushPrimary"],
+                HorizontalAlignment = HorizontalAlignment.Right
+            });
+            content.Children.Add(totalGrid);
+
+            // Footer note
+            content.Children.Add(new Border
+            {
+                Height = 1,
+                Background = new SolidColorBrush(Microsoft.UI.Colors.LightGray),
+                Margin = new Thickness(0, 12, 0, 8)
+            });
+
+            content.Children.Add(new TextBlock
+            {
+                Text = _resourceLoader.GetString("Sales_ProformaNote"),
+                FontStyle = Windows.UI.Text.FontStyle.Italic,
+                Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray),
+                TextWrapping = TextWrapping.Wrap,
+                HorizontalAlignment = HorizontalAlignment.Center
+            });
+
+            return content;
+        }
+
+        private void AddTotalRow(StackPanel container, string label, string value)
+        {
+            var grid = new Grid();
+            grid.Children.Add(new TextBlock { Text = label });
+            grid.Children.Add(new TextBlock { Text = value, HorizontalAlignment = HorizontalAlignment.Right });
+            container.Children.Add(grid);
+        }
+
+        private async Task PrintProformaAsync()
+        {
+            try
+            {
+                // Create proforma invoice data
+                var proformaData = new Utils.ProformaInvoiceData
+                {
+                    CustomerName = string.IsNullOrWhiteSpace(CustomerName) ? "Khách lẻ" : CustomerName,
+                    CustomerPhone = CustomerPhone,
+                    Date = DateTime.Now,
+                    Subtotal = Subtotal,
+                    VatAmount = VatAmount,
+                    VatPercent = 10,
+                    Total = Total,
+                    IsProforma = true,
+                    Items = InvoiceItems.Select(item => new Utils.ProformaInvoiceItem
+                    {
+                        ProductName = item.ProductName,
+                        Quantity = item.Quantity,
+                        UnitPrice = item.UnitPrice,
+                        DiscountPercent = item.DiscountPercent,
+                        TotalPrice = item.TotalPrice,
+                        SerialNumbers = item.SerialEntries?
+                            .Select(s => s.LastValidSerial ?? string.Empty)
+                            .Where(s => !string.IsNullOrEmpty(s))
+                            .ToList() ?? new List<string>()
+                    }).ToList()
+                };
+
+                // Show file picker
+                var savePicker = new Windows.Storage.Pickers.FileSavePicker();
+                
+                // Get the window handle for the picker
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(((App)Application.Current).CurrentWindow);
+                WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
+
+                savePicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+                savePicker.FileTypeChoices.Add("PDF Document", new List<string>() { ".pdf" });
+                savePicker.SuggestedFileName = $"HoaDonTamTinh_{DateTime.Now:yyyyMMdd_HHmmss}";
+
+                var file = await savePicker.PickSaveFileAsync();
+                if (file != null)
+                {
+                    // Generate PDF
+                    Utils.InvoicePdfGenerator.GenerateProformaPdf(proformaData, file.Path);
+                    
+                    // Open the generated PDF
+                    var options = new Windows.System.LauncherOptions
+                    {
+                        DisplayApplicationPicker = false
+                    };
+                    await Windows.System.Launcher.LaunchFileAsync(file, options);
+                    
+                    ShowMessage(_resourceLoader.GetString("Sales_PrintSuccess"), _resourceLoader.GetString("Sales_NotificationTitle"));
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"{_resourceLoader.GetString("Sales_PrintError")}: {ex.Message}", _resourceLoader.GetString("Sales_ErrorTitle"));
+            }
         }
 
         // INotifyPropertyChanged implementation
@@ -1187,6 +1577,7 @@ namespace PhoneStoreAdmin.View
     public class InvoiceLineItem : INotifyPropertyChanged
     {
         private int _quantity = 1;
+        private decimal _discountPercent = 0;
         private readonly ObservableCollection<SerialEntryViewModel> _serialEntries = new();
 
         public InvoiceLineItem()
@@ -1199,6 +1590,20 @@ namespace PhoneStoreAdmin.View
         public decimal UnitPrice { get; set; }
         public SalesPage? ParentPage { get; set; }
         public bool IsSerialTracked { get; set; }
+        
+        public decimal DiscountPercent
+        {
+            get => _discountPercent;
+            set
+            {
+                if (_discountPercent != value)
+                {
+                    _discountPercent = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(TotalPrice));
+                }
+            }
+        }
 
         public ObservableCollection<SerialEntryViewModel> SerialEntries => _serialEntries;
 
@@ -1216,7 +1621,7 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        public decimal TotalPrice => UnitPrice * Quantity;
+        public decimal TotalPrice => UnitPrice * Quantity * (1 - DiscountPercent / 100);
 
         public bool CanDecrease => Quantity > 1;
         public bool CanIncrease => true;
