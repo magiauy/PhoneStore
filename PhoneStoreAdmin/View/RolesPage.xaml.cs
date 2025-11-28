@@ -423,9 +423,14 @@ namespace PhoneStoreAdmin.View
                 "ORDER" => "Đơn hàng",
                 "INVOICE" => "Hóa đơn",
                 "CUSTOMER" => "Khách hàng",
-                "SUPPLIER" => "Nhà cung cấp",
+                "SUPPLIERS" => "Nhà cung cấp",
                 "REPORT" => "Báo cáo",
                 "SETTING" => "Cài đặt",
+                "EMPLOYEE" => "Nhân viên",
+                "PURCHASE_ORDERS" => "Đơn đặt hàng",
+                "BATCH" => "Lô hàng",
+                "PROMOTIONS" => "Khuyến mãi",
+                "ROLE" => "Vai trò",
                 _ => module
             };
         }
