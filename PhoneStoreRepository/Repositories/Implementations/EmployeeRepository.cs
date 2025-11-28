@@ -382,7 +382,7 @@ namespace PhoneStoreRepository.Repositories.Implementations
                 Phone = reader.IsDBNull(reader.GetOrdinal("phone")) ? null : reader.GetString("phone"),
                 Email = reader.IsDBNull(reader.GetOrdinal("email")) ? null : reader.GetString("email"),
                 PersonType = PersonType.EMPLOYEE,
-                CreatedAt = reader.GetDateTime("created_at"),
+                CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? DateTime.Now : reader.GetDateTime("created_at"),
                 IsActive = reader.GetBoolean("is_active"),
                 HireDate = reader.IsDBNull(reader.GetOrdinal("hire_date")) ? null : reader.GetDateTime("hire_date")
             };

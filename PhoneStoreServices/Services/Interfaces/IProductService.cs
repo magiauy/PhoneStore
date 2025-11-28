@@ -136,5 +136,12 @@ namespace PhoneStore.Services.Interfaces
         /// <param name="attributeValues">Attribute values to persist.</param>
         /// <returns>True when persistence succeeds.</returns>
         bool SaveAttributeValues(int productId, IEnumerable<ProductAttributeValueInput> attributeValues);
+
+        /// <summary>
+        /// Retrieve a product by its identifier.
+        /// </summary>
+        /// <param name="productId">Product identifier.</param>
+        /// <returns>The product entity or null when not found.</returns>
+        Product? GetProductById(int productId);
     }
 }

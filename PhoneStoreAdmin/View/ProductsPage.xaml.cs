@@ -68,7 +68,12 @@ namespace PhoneStoreAdmin.View
                 }
 
                 var model = SelectedModelDetail.Model;
-                return string.Format("{0} variants • Updated {1:g}", model.VariantCount, model.UpdatedAt.ToLocalTime());
+                var format = _resourceLoader.GetString("Products_VariantsSummaryFormat");
+                if (string.IsNullOrWhiteSpace(format))
+                {
+                    format = "{0} variants \u2022 Updated {1:g}";
+                }
+                return string.Format(format, model.VariantCount, model.UpdatedAt.ToLocalTime());
             }
         }
 

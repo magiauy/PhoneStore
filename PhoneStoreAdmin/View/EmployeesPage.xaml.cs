@@ -98,8 +98,7 @@ namespace PhoneStoreAdmin.View
                     return;
                 }
 
-                var result = await Task.Run(() =>
-                    _employeeService.GetEmployeesFiltered(searchTextSnapshot, _currentPage, _pageSize, filterSnapshot));
+                var result = await _employeeService.GetEmployeesFilteredAsync(searchTextSnapshot, _currentPage, _pageSize, filterSnapshot);
 
                 if (!_isPageActive)
                 {
@@ -641,9 +640,7 @@ namespace PhoneStoreAdmin.View
                     return;
                 }
 
-                var result = await Task.Run(() =>
-                    _employeeService.GetEmployeesFiltered(searchText, pageIndex, _pageSize, filterCriteria),
-                    cancellationToken);
+                var result = await _employeeService.GetEmployeesFilteredAsync(searchText, pageIndex, _pageSize, filterCriteria);
 
                 if (cancellationToken.IsCancellationRequested || !_isPageActive)
                     return;
