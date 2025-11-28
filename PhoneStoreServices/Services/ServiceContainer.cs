@@ -112,7 +112,8 @@ namespace PhoneStore.Services
                 GetService<IProductSerialRepository>(),
                 GetService<IBatchProductRepository>(),
                 GetService<IInvoiceLineSerialRepository>(),
-                GetService<IProductRepository>()
+                GetService<IProductRepository>(),
+                GetService<DataSource>()
             ));
 
             // Register UserSession singleton

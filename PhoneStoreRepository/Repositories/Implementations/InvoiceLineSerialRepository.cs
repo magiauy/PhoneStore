@@ -43,5 +43,22 @@ namespace PhoneStoreRepository.Repositories.Implementations
                 command.ExecuteNonQuery();
             }
         }
+
+        public void InsertRange(IEnumerable<InvoiceLineSerial> entities, MySqlConnection connection, MySqlTransaction transaction)
+        {
+            using var command = new MySqlCommand(@"
+                INSERT INTO invoice_line_serials (invoice_line_id, product_serial_id)
+                VALUES (@invoiceLineId, @productSerialId)", connection, transaction);
+
+            var invoiceLineParam = command.Parameters.Add("@invoiceLineId", MySqlDbType.Int32);
+            var productSerialParam = command.Parameters.Add("@productSerialId", MySqlDbType.Int32);
+
+            foreach (var entity in entities)
+            {
+                invoiceLineParam.Value = entity.InvoiceLineId;
+                productSerialParam.Value = entity.ProductSerialId;
+                command.ExecuteNonQuery();
+            }
+        }
     }
 }

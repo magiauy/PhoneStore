@@ -101,6 +101,30 @@ namespace PhoneStoreRepository.Repositories.Implementations
             }
         }
 
+    public virtual void Insert(Person entity, MySqlConnection connection, MySqlTransaction transaction)
+        {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+
+            using var cmd = connection.CreateCommand();
+            cmd.Transaction = transaction;
+            cmd.CommandText = @"INSERT INTO persons (Code, full_name, phone, email, person_type, created_at, is_active)
+                                VALUES (@code, @fullName, @phone, @email, @personType, @createdAt, @isActive);
+                                SELECT LAST_INSERT_ID();";
+            cmd.Parameters.AddWithValue("@code", (object?)entity.Code ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@fullName", entity.FullName);
+            cmd.Parameters.AddWithValue("@phone", (object?)entity.Phone ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@email", (object?)entity.Email ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@personType", (int)entity.PersonType);
+            cmd.Parameters.AddWithValue("@createdAt", entity.CreatedAt);
+            cmd.Parameters.AddWithValue("@isActive", entity.IsActive);
+
+            var newId = cmd.ExecuteScalar();
+            if (newId != null)
+            {
+                entity.Id = Convert.ToInt32(newId);
+            }
+        }
+
     public virtual void Update(Person entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
