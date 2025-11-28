@@ -207,10 +207,19 @@
                                         Height="48"
                                         Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
                                         CornerRadius="4">
-                                        <FontIcon
-                                            FontSize="20"
-                                            Foreground="{ThemeResource BrushPrimary}"
-                                            Glyph="&#xE8B9;" />
+                                        <Grid>
+                                            <!-- Product Image -->
+                                            <Image
+                                                x:Name="ProductImage"
+                                                Stretch="UniformToFill"
+                                                Source="{x:Bind ImageUrl}" />
+                                            <!-- Fallback Icon when no image -->
+                                            <FontIcon
+                                                FontSize="20"
+                                                Foreground="{ThemeResource BrushPrimary}"
+                                                Glyph="&#xE8B9;"
+                                                Visibility="{x:Bind HasNoImage}" />
+                                        </Grid>
                                     </Border>
 
                                         <StackPanel

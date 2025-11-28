@@ -59,12 +59,6 @@
                     <TextBlock x:Name="DescriptionErrorText" Style="{StaticResource ValidationErrorStyle}" />
                 </StackPanel>
 
-                <StackPanel>
-                    <TextBlock Text="Default image URL" Style="{StaticResource InputLabelStyle}" />
-                    <TextBox x:Name="ImageUrlTextBox" Style="{StaticResource TextInputStyle}" TextChanged="ImageUrlTextBox_TextChanged" PlaceholderText="https://example.com/image.jpg" />
-                    <TextBlock x:Name="ImageUrlErrorText" Style="{StaticResource ValidationErrorStyle}" />
-                </StackPanel>
-
                 <InfoBar
                     x:Name="ErrorInfoBar"
                     IsOpen="False"
