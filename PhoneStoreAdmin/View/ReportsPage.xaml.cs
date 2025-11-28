@@ -216,7 +216,8 @@ namespace PhoneStoreAdmin.View
                 // Chart dimensions
                 double chartHeight = 250;
                 double barWidth = 40;
-                double spacing = 20;
+                // Increase spacing so columns are farther apart
+                double spacing = 80;
                 double totalWidth = monthlyData.Count * (barWidth + spacing);
 
                 MonthlyChartGrid.Width = Math.Max(600, totalWidth);
