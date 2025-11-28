@@ -190,17 +190,29 @@ namespace PhoneStoreRepository.Repositories.Implementations
         
             try
             {
-                // Nếu DB trả về int
-                //person.PersonType = (PhoneStoreRepository.Models.Enums.PersonType)reader.GetInt32("person_type");
-            }
-            catch
-            {
-                // Nếu DB trả về string
-                var typeStr = reader.GetString("person_type");
-                if (Enum.TryParse(typeStr, out PhoneStoreRepository.Models.Enums.PersonType type))
-                    person.PersonType = type;
+                // Try to read person_type as int first (if DB stores as int/enum)
+                var personTypeValue = reader.GetValue(reader.GetOrdinal("person_type"));
+                if (personTypeValue is int intValue)
+                {
+                    person.PersonType = (PhoneStoreRepository.Models.Enums.PersonType)intValue;
+                }
+                else if (personTypeValue is string typeStr)
+                {
+                    // If DB returns string
+                    if (Enum.TryParse(typeStr, true, out PhoneStoreRepository.Models.Enums.PersonType type))
+                        person.PersonType = type;
+                    else
+                        person.PersonType = PhoneStoreRepository.Models.Enums.PersonType.CUSTOMER; // fallback
+                }
                 else
+                {
                     person.PersonType = PhoneStoreRepository.Models.Enums.PersonType.CUSTOMER; // fallback
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning($"Failed to parse PersonType, defaulting to CUSTOMER: {ex.Message}");
+                person.PersonType = PhoneStoreRepository.Models.Enums.PersonType.CUSTOMER; // fallback
             }
         
             return person;
