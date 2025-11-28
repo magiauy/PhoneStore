@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Models.Enums;
@@ -310,7 +311,7 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        private void BtnDetail_Click(object sender, RoutedEventArgs e)
+        private async void BtnDetail_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuFlyoutItem item && item.Tag is InvoiceViewModel poVM)
             {
@@ -323,47 +324,328 @@ namespace PhoneStoreAdmin.View
                         CreatedByName = po.CreatedByName,
                         DiscountCode = po.DiscountCode
                     };
-                    var details = $"ID: {po.Id}\n" +
-                                  $"Customer Name: {poView.CustomerName}\n" +
-                                  $"Created By: {poView.CreatedByName}\n" +
-                                  $"Promotion code: {poView.DiscountCode}\n" +
-                                  $"Invoice Date: {po.InvoiceDate}\n" +
-                                  $"Status: {po.Status}\n" +
-                                  $"Total amount: {po.TotalAmount}\n" +
-                                  $"Discount amount: {po.DiscountAmount}\n" +
-                                  $"Final amount: {po.FinalAmount}\n" +
-                                  $"Payment method: {po.PaymentMethod}\n" +
-                                  $"Note: {po.Note ?? "N/A"}\n\n" +
-                                  "Invoice Lines:\n";
 
-                    foreach (var line in poView.InvoiceLines)
+                    // Build styled content
+                    var detailContent = BuildInvoiceDetailContent(po, poView);
+
+                    var detailDialog = new ContentDialog
                     {
-                        details += $" - Product ID: {line.Id}, Quantity: {line.Quantity}, Unit Cost: {line.UnitPrice}, Total Cost: {line.TotalPrice}\n";
-                    }
+                        Title = $"🧾 {_resourceLoader.GetString("Invoice_DetailTitle")} #{po.Id}",
+                        Content = new ScrollViewer
+                        {
+                            Content = detailContent,
+                            MaxHeight = 500,
+                            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
+                        },
+                        CloseButtonText = _resourceLoader.GetString("DialogClose") ?? "Đóng",
+                        PrimaryButtonText = _resourceLoader.GetString("Invoice_PrintButton") ?? "In hóa đơn",
+                        XamlRoot = this.XamlRoot,
+                        MinWidth = 500
+                    };
 
-                ShowErrorDialog("Invoice Details", details);
+                    var result = await detailDialog.ShowAsync();
+                    if (result == ContentDialogResult.Primary)
+                    {
+                        // Trigger print
+                        await PrintInvoiceAsync(po);
+                    }
                 }
             }
         }
 
-        private async void BtnPrint_Click(object sender, RoutedEventArgs e)
+        private StackPanel BuildInvoiceDetailContent(Invoice invoice, InvoiceViewModel viewModel)
+        {
+            var content = new StackPanel { Spacing = 16, Padding = new Thickness(0, 0, 16, 0) };
+            var productRepo = App.GetService<IProductRepository>();
+
+            // Status badge
+            var statusBadge = new Border
+            {
+                Background = GetStatusBrush(invoice.Status),
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(12, 6, 12, 6),
+                HorizontalAlignment = HorizontalAlignment.Left
+            };
+            statusBadge.Child = new TextBlock
+            {
+                Text = GetStatusText(invoice.Status),
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(Microsoft.UI.Colors.White),
+                FontSize = 12
+            };
+            content.Children.Add(statusBadge);
+
+            // Invoice Info Card
+            var infoCard = CreateInfoCard(_resourceLoader.GetString("Invoice_InfoTitle") ?? "Thông tin hóa đơn");
+            var infoGrid = new Grid();
+            infoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            infoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            infoGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            infoGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            infoGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            AddInfoItem(infoGrid, 0, 0, "📅 " + (_resourceLoader.GetString("Invoice_Date") ?? "Ngày tạo"), invoice.InvoiceDate.ToString("dd/MM/yyyy HH:mm"));
+            AddInfoItem(infoGrid, 0, 1, "💳 " + (_resourceLoader.GetString("Invoice_PaymentMethod") ?? "Thanh toán"), GetPaymentMethodText(invoice.PaymentMethod));
+            AddInfoItem(infoGrid, 1, 0, "👤 " + (_resourceLoader.GetString("Invoice_Customer") ?? "Khách hàng"), viewModel.CustomerName);
+            AddInfoItem(infoGrid, 1, 1, "🏷️ " + (_resourceLoader.GetString("Invoice_PromotionCode") ?? "Mã KM"), viewModel.DiscountCode ?? "-");
+            AddInfoItem(infoGrid, 2, 0, "👨‍💼 " + (_resourceLoader.GetString("Invoice_CreatedBy") ?? "Nhân viên"), viewModel.CreatedByName);
+
+            ((StackPanel)infoCard.Child).Children.Add(infoGrid);
+            content.Children.Add(infoCard);
+
+            // Products Card
+            var productsCard = CreateInfoCard(_resourceLoader.GetString("Invoice_ProductsTitle") ?? "Sản phẩm");
+            var productsStack = (StackPanel)productsCard.Child;
+
+            // Products header
+            var headerGrid = new Grid { Margin = new Thickness(0, 8, 0, 8) };
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) }); // Product name
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0.5, GridUnitType.Star) }); // Qty
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // Unit price
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // Total
+
+            AddHeaderCell(headerGrid, 0, _resourceLoader.GetString("Invoice_ProductName") ?? "Sản phẩm");
+            AddHeaderCell(headerGrid, 1, _resourceLoader.GetString("Invoice_Qty") ?? "SL");
+            AddHeaderCell(headerGrid, 2, _resourceLoader.GetString("Invoice_UnitPrice") ?? "Đơn giá");
+            AddHeaderCell(headerGrid, 3, _resourceLoader.GetString("Invoice_LineTotal") ?? "Thành tiền");
+
+            productsStack.Children.Add(headerGrid);
+
+            // Divider
+            productsStack.Children.Add(new Border
+            {
+                Height = 1,
+                Background = new SolidColorBrush(Microsoft.UI.Colors.LightGray),
+                Margin = new Thickness(0, 0, 0, 8)
+            });
+
+            // Products list
+            foreach (var line in viewModel.InvoiceLines)
+            {
+                var productName = "Sản phẩm #" + line.ProductId;
+                if (productRepo != null)
+                {
+                    try
+                    {
+                        var product = productRepo.GetById(line.ProductId);
+                        productName = product?.Name ?? productName;
+                    }
+                    catch { }
+                }
+
+                var rowGrid = new Grid { Margin = new Thickness(0, 4, 0, 4) };
+                rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
+                rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0.5, GridUnitType.Star) });
+                rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+                AddProductCell(rowGrid, 0, productName, HorizontalAlignment.Left);
+                AddProductCell(rowGrid, 1, line.Quantity.ToString(), HorizontalAlignment.Center);
+                AddProductCell(rowGrid, 2, FormatCurrency(line.UnitPrice), HorizontalAlignment.Right);
+                AddProductCell(rowGrid, 3, FormatCurrency(line.TotalPrice), HorizontalAlignment.Right);
+
+                productsStack.Children.Add(rowGrid);
+            }
+
+            content.Children.Add(productsCard);
+
+            // Totals Card
+            var totalsCard = CreateInfoCard(_resourceLoader.GetString("Invoice_TotalsTitle") ?? "Tổng cộng");
+            var totalsStack = (StackPanel)totalsCard.Child;
+
+            AddTotalRow(totalsStack, _resourceLoader.GetString("Invoice_Subtotal") ?? "Tạm tính", FormatCurrency(invoice.TotalAmount), false);
+            
+            if (invoice.DiscountAmount > 0)
+            {
+                AddTotalRow(totalsStack, _resourceLoader.GetString("Invoice_Discount") ?? "Giảm giá", $"-{FormatCurrency(invoice.DiscountAmount)}", false, Windows.UI.Color.FromArgb(255, 220, 53, 69));
+            }
+
+            // Final total with highlight
+            var finalTotalBorder = new Border
+            {
+                Background = (Brush)Application.Current.Resources["BrushPrimary"],
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(12, 8, 12, 8),
+                Margin = new Thickness(0, 8, 0, 0)
+            };
+            var finalTotalGrid = new Grid();
+            finalTotalGrid.Children.Add(new TextBlock
+            {
+                Text = _resourceLoader.GetString("Invoice_FinalTotal") ?? "TỔNG THANH TOÁN",
+                FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+                FontSize = 14,
+                Foreground = new SolidColorBrush(Microsoft.UI.Colors.White),
+                VerticalAlignment = VerticalAlignment.Center
+            });
+            finalTotalGrid.Children.Add(new TextBlock
+            {
+                Text = FormatCurrency(invoice.FinalAmount),
+                FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+                FontSize = 16,
+                Foreground = new SolidColorBrush(Microsoft.UI.Colors.White),
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Center
+            });
+            finalTotalBorder.Child = finalTotalGrid;
+            totalsStack.Children.Add(finalTotalBorder);
+
+            content.Children.Add(totalsCard);
+
+            // Note section if exists
+            if (!string.IsNullOrWhiteSpace(invoice.Note))
+            {
+                var noteCard = CreateInfoCard(_resourceLoader.GetString("Invoice_Note") ?? "Ghi chú");
+                var noteStack = (StackPanel)noteCard.Child;
+                noteStack.Children.Add(new TextBlock
+                {
+                    Text = invoice.Note,
+                    TextWrapping = TextWrapping.Wrap,
+                    Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray),
+                    FontStyle = Windows.UI.Text.FontStyle.Italic
+                });
+                content.Children.Add(noteCard);
+            }
+
+            return content;
+        }
+
+        private Border CreateInfoCard(string title)
+        {
+            var card = new Border
+            {
+                Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 248, 249, 250)),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(16),
+                Margin = new Thickness(0, 0, 0, 0)
+            };
+
+            var stack = new StackPanel { Spacing = 8 };
+            stack.Children.Add(new TextBlock
+            {
+                Text = title,
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                FontSize = 14,
+                Foreground = (Brush)Application.Current.Resources["BrushPrimary"]
+            });
+
+            card.Child = stack;
+            return card;
+        }
+
+        private void AddInfoItem(Grid grid, int row, int col, string label, string value)
+        {
+            var stack = new StackPanel { Margin = new Thickness(0, 4, 0, 4) };
+            stack.Children.Add(new TextBlock
+            {
+                Text = label,
+                FontSize = 11,
+                Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray)
+            });
+            stack.Children.Add(new TextBlock
+            {
+                Text = value,
+                FontSize = 13,
+                FontWeight = Microsoft.UI.Text.FontWeights.Medium,
+                TextWrapping = TextWrapping.Wrap
+            });
+
+            Grid.SetRow(stack, row);
+            Grid.SetColumn(stack, col);
+            grid.Children.Add(stack);
+        }
+
+        private void AddHeaderCell(Grid grid, int col, string text)
+        {
+            var tb = new TextBlock
+            {
+                Text = text,
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                FontSize = 12,
+                Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray)
+            };
+            if (col > 0) tb.HorizontalAlignment = col == 1 ? HorizontalAlignment.Center : HorizontalAlignment.Right;
+            Grid.SetColumn(tb, col);
+            grid.Children.Add(tb);
+        }
+
+        private void AddProductCell(Grid grid, int col, string text, HorizontalAlignment align)
+        {
+            var tb = new TextBlock
+            {
+                Text = text,
+                FontSize = 12,
+                HorizontalAlignment = align,
+                TextWrapping = col == 0 ? TextWrapping.Wrap : TextWrapping.NoWrap
+            };
+            Grid.SetColumn(tb, col);
+            grid.Children.Add(tb);
+        }
+
+        private void AddTotalRow(StackPanel container, string label, string value, bool isBold, Windows.UI.Color? valueColor = null)
+        {
+            var grid = new Grid { Margin = new Thickness(0, 4, 0, 4) };
+            grid.Children.Add(new TextBlock
+            {
+                Text = label,
+                FontSize = 13,
+                FontWeight = isBold ? Microsoft.UI.Text.FontWeights.Bold : Microsoft.UI.Text.FontWeights.Normal
+            });
+            grid.Children.Add(new TextBlock
+            {
+                Text = value,
+                FontSize = 13,
+                FontWeight = isBold ? Microsoft.UI.Text.FontWeights.Bold : Microsoft.UI.Text.FontWeights.Normal,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Foreground = valueColor.HasValue ? new SolidColorBrush(valueColor.Value) : null
+            });
+            container.Children.Add(grid);
+        }
+
+        private SolidColorBrush GetStatusBrush(PhoneStoreRepository.Models.Enums.InvoiceStatus status)
+        {
+            return status switch
+            {
+                PhoneStoreRepository.Models.Enums.InvoiceStatus.PAID => new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 40, 167, 69)),
+                PhoneStoreRepository.Models.Enums.InvoiceStatus.UNPAID => new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 255, 193, 7)),
+                PhoneStoreRepository.Models.Enums.InvoiceStatus.CANCELLED => new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 220, 53, 69)),
+                _ => new SolidColorBrush(Microsoft.UI.Colors.Gray)
+            };
+        }
+
+        private string GetStatusText(PhoneStoreRepository.Models.Enums.InvoiceStatus status)
+        {
+            return status switch
+            {
+                PhoneStoreRepository.Models.Enums.InvoiceStatus.PAID => _resourceLoader.GetString("InvoiceStatus_Paid") ?? "Đã thanh toán",
+                PhoneStoreRepository.Models.Enums.InvoiceStatus.UNPAID => _resourceLoader.GetString("InvoiceStatus_Unpaid") ?? "Chưa thanh toán",
+                PhoneStoreRepository.Models.Enums.InvoiceStatus.CANCELLED => _resourceLoader.GetString("InvoiceStatus_Cancelled") ?? "Đã hủy",
+                _ => "Unknown"
+            };
+        }
+
+        private string GetPaymentMethodText(PhoneStoreRepository.Models.Enums.PaymentMethod method)
+        {
+            return method switch
+            {
+                PhoneStoreRepository.Models.Enums.PaymentMethod.CASH => _resourceLoader.GetString("PaymentMethod_Cash") ?? "Tiền mặt",
+                PhoneStoreRepository.Models.Enums.PaymentMethod.CARD => _resourceLoader.GetString("PaymentMethod_Card") ?? "Thẻ",
+                PhoneStoreRepository.Models.Enums.PaymentMethod.BANK => _resourceLoader.GetString("PaymentMethod_Bank") ?? "Chuyển khoản",
+                PhoneStoreRepository.Models.Enums.PaymentMethod.EWALLET => _resourceLoader.GetString("PaymentMethod_EWallet") ?? "Ví điện tử",
+                _ => "Khác"
+            };
+        }
+
+        private string FormatCurrency(decimal amount)
+        {
+            return string.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:N0} ₫", amount);
+        }
+
+        private async Task PrintInvoiceAsync(Invoice invoice)
         {
             try
             {
-                if (sender is not MenuFlyoutItem mi || mi.Tag is not InvoiceViewModel vm)
-                    return;
-
-                var invoice = InvoiceService.GetById(vm.Id);
-                if (invoice == null)
-                {
-                    ShowErrorDialog(_resourceLoader.GetString("Sales_ErrorTitle"), _resourceLoader.GetString("Invoice_NotFound"));
-                    return;
-                }
-
-                // Show file picker
                 var savePicker = new Windows.Storage.Pickers.FileSavePicker();
-                
-                // Get the window handle for the picker
                 var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(((App)Application.Current).CurrentWindow);
                 WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
 
@@ -374,23 +656,30 @@ namespace PhoneStoreAdmin.View
                 var file = await savePicker.PickSaveFileAsync();
                 if (file != null)
                 {
-                    // Generate PDF
                     Utils.InvoicePdfGenerator.GenerateInvoicePdf(invoice, file.Path);
-                    
-                    // Open the generated PDF
-                    var options = new Windows.System.LauncherOptions
-                    {
-                        DisplayApplicationPicker = false
-                    };
+                    var options = new Windows.System.LauncherOptions { DisplayApplicationPicker = false };
                     await Windows.System.Launcher.LaunchFileAsync(file, options);
-                    
-                    ShowErrorDialog(_resourceLoader.GetString("Sales_NotificationTitle"), _resourceLoader.GetString("Sales_PrintSuccess"));
                 }
             }
             catch (Exception ex)
             {
                 ShowErrorDialog(_resourceLoader.GetString("Sales_ErrorTitle"), $"{_resourceLoader.GetString("Sales_PrintError")}: {ex.Message}");
             }
+        }
+
+        private async void BtnPrint_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not MenuFlyoutItem mi || mi.Tag is not InvoiceViewModel vm)
+                return;
+
+            var invoice = InvoiceService.GetById(vm.Id);
+            if (invoice == null)
+            {
+                ShowErrorDialog(_resourceLoader.GetString("Sales_ErrorTitle"), _resourceLoader.GetString("Invoice_NotFound"));
+                return;
+            }
+
+            await PrintInvoiceAsync(invoice);
         }
 
         private void BtnActions_Click(object sender, RoutedEventArgs e)
