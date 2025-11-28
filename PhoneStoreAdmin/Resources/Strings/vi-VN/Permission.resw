@@ -63,8 +63,8 @@
   <data name="PRODUCT_VIEW" xml:space="preserve">
     <value>Xem sản phẩm</value>
   </data>
-  <data name="PRODUCT_CREATE" xml:space="preserve">
-    <value>Tạo sản phẩm mới</value>
+  <data name="PRODUCT_ADD" xml:space="preserve">
+    <value>Thêm sản phẩm</value>
   </data>
   <data name="PRODUCT_EDIT" xml:space="preserve">
     <value>Chỉnh sửa sản phẩm</value>
@@ -77,8 +77,8 @@
   <data name="ACCOUNT_VIEW" xml:space="preserve">
     <value>Xem tài khoản</value>
   </data>
-  <data name="ACCOUNT_CREATE" xml:space="preserve">
-    <value>Tạo tài khoản mới</value>
+  <data name="ACCOUNT_ADD" xml:space="preserve">
+    <value>Thêm tài khoản</value>
   </data>
   <data name="ACCOUNT_EDIT" xml:space="preserve">
     <value>Chỉnh sửa tài khoản</value>
@@ -91,8 +91,8 @@
   <data name="ORDER_VIEW" xml:space="preserve">
     <value>Xem đơn hàng</value>
   </data>
-  <data name="ORDER_CREATE" xml:space="preserve">
-    <value>Tạo đơn hàng mới</value>
+  <data name="ORDER_ADD" xml:space="preserve">
+    <value>Thêm đơn hàng</value>
   </data>
   <data name="ORDER_EDIT" xml:space="preserve">
     <value>Chỉnh sửa đơn hàng</value>
@@ -105,8 +105,8 @@
   <data name="INVOICE_VIEW" xml:space="preserve">
     <value>Xem hóa đơn</value>
   </data>
-  <data name="INVOICE_CREATE" xml:space="preserve">
-    <value>Tạo hóa đơn</value>
+  <data name="INVOICE_ADD" xml:space="preserve">
+    <value>Thêm hóa đơn</value>
   </data>
   <data name="INVOICE_EDIT" xml:space="preserve">
     <value>Chỉnh sửa hóa đơn</value>
@@ -119,18 +119,15 @@
   <data name="CUSTOMER_VIEW" xml:space="preserve">
     <value>Xem khách hàng</value>
   </data>
-  <data name="CUSTOMER_MANAGE" xml:space="preserve">
-    <value>Quản lý khách hàng</value>
+  <data name="CUSTOMER_ADD" xml:space="preserve">
+    <value>Thêm khách hàng</value>
   </data>
-  
-  
-  <data name="SUPPLIER_VIEW" xml:space="preserve">
-    <value>Xem nhà cung cấp</value>
+  <data name="CUSTOMER_EDIT" xml:space="preserve">
+    <value>Chỉnh sửa khách hàng</value>
   </data>
-  <data name="SUPPLIER_MANAGE" xml:space="preserve">
-    <value>Quản lý nhà cung cấp</value>
+  <data name="CUSTOMER_DELETE" xml:space="preserve">
+    <value>Xóa khách hàng</value> 
   </data>
-  
   
   <data name="REPORT_VIEW" xml:space="preserve">
     <value>Xem báo cáo</value>
@@ -146,4 +143,94 @@
   <data name="SETTING_EDIT" xml:space="preserve">
     <value>Chỉnh sửa cài đặt</value>
   </data>
-<data name="PRODUCT_ATTRIBUTE_VIEW" xml:space="preserve"><value>Xem thuộc tính sản phẩm</value></data><data name="PRODUCT_ATTRIBUTE_MANAGE" xml:space="preserve"><value>Quản lý thuộc tính sản phẩm</value></data></root>
+<data name="PRODUCT_ATTRIBUTE_VIEW" xml:space="preserve"><value>Xem thuộc tính sản phẩm</value></data>
+  <data name="PRODUCT_ATTRIBUTE_MANAGE" xml:space="preserve"><value>Quản lý thuộc tính sản phẩm</value></data>
+  
+  <!-- Brand Permissions -->
+  <data name="BRAND_VIEW" xml:space="preserve">
+    <value>Xem thương hiệu</value>
+  </data>
+  <data name="BRAND_ADD" xml:space="preserve">
+    <value>Thêm thương hiệu</value>
+  </data>
+  <data name="BRAND_EDIT" xml:space="preserve">
+    <value>Chỉnh sửa thương hiệu</value>
+  </data>
+  <data name="BRAND_DELETE" xml:space="preserve">
+    <value>Xóa thương hiệu</value>
+  </data>
+  <!-- Batch Permissions -->
+  <data name="BATCH_VIEW" xml:space="preserve">
+    <value>Xem lô hàng</value>
+  </data>
+  
+  <!-- Role Permissions -->
+  <data name="ROLE_VIEW" xml:space="preserve">
+    <value>Xem vai trò</value>
+  </data>
+  <data name="ROLE_ADD" xml:space="preserve">
+    <value>Thêm vai trò</value>
+  </data>
+  <data name="ROLE_EDIT" xml:space="preserve">
+    <value>Chỉnh sửa vai trò</value>
+  </data>
+  <data name="ROLE_DELETE" xml:space="preserve">
+    <value>Xóa vai trò</value>
+  </data>
+  
+  <!-- Employee Permissions -->
+  <data name="EMPLOYEE_VIEW" xml:space="preserve">
+    <value>Xem nhân viên</value>
+  </data>
+  <data name="EMPLOYEE_ADD" xml:space="preserve">
+    <value>Thêm nhân viên</value>
+  </data>
+  <data name="EMPLOYEE_EDIT" xml:space="preserve">
+    <value>Chỉnh sửa nhân viên</value>
+  </data>
+  <data name="EMPLOYEE_DELETE" xml:space="preserve">
+    <value>Xóa nhân viên</value>
+  </data>
+  
+  <!-- Supplier Permissions -->
+  <data name="SUPPLIERS_VIEW" xml:space="preserve">
+    <value>Xem nhà cung cấp</value>
+  </data>
+  <data name="SUPPLIERS_ADD" xml:space="preserve">
+    <value>Thêm nhà cung cấp</value>
+  </data>
+  <data name="SUPPLIERS_EDIT" xml:space="preserve">
+    <value>Chỉnh sửa nhà cung cấp</value>
+  </data>
+  <data name="SUPPLIERS_DELETE" xml:space="preserve">
+    <value>Xóa nhà cung cấp</value>
+  </data>
+  
+  <!-- Purchase Order Permissions -->
+  <data name="PURCHASE_ORDERS_VIEW" xml:space="preserve">
+    <value>Xem phiếu nhập</value>
+  </data>
+  <data name="PURCHASE_ORDERS_ADD" xml:space="preserve">
+    <value>Thêm phiếu nhập</value>
+  </data>
+  <data name="PURCHASE_ORDERS_EDIT" xml:space="preserve">
+    <value>Chỉnh sửa phiếu nhập</value>
+  </data>
+  <data name="PURCHASE_ORDERS_DELETE" xml:space="preserve">
+    <value>Xóa phiếu nhập</value>
+  </data>
+  
+  <!-- Promotion Permissions -->
+  <data name="PROMOTIONS_VIEW" xml:space="preserve">
+    <value>Xem khuyến mãi</value>
+  </data>
+  <data name="PROMOTIONS_ADD" xml:space="preserve">
+    <value>Thêm khuyến mãi</value>
+  </data>
+  <data name="PROMOTIONS_EDIT" xml:space="preserve">
+    <value>Chỉnh sửa khuyến mãi</value>
+  </data>
+  <data name="PROMOTIONS_DELETE" xml:space="preserve">
+    <value>Xóa khuyến mãi</value>
+  </data>
+</root>
