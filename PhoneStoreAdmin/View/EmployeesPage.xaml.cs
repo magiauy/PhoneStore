@@ -27,6 +27,11 @@ namespace PhoneStoreAdmin.View
         // Services
         private readonly IEmployeeService _employeeService;
 
+        // Permission properties
+        public bool CanAddEmployee { get; }
+        public bool CanEditEmployee { get; }
+        public bool CanDeleteEmployee { get; }
+
         // Pagination
         private int _currentPage = 1;
         private int _pageSize = 20;
@@ -52,6 +57,12 @@ namespace PhoneStoreAdmin.View
 
             _employeeService = ServiceContainer.GetService<IEmployeeService>()
                 ?? throw new InvalidOperationException("EmployeeService not registered");
+
+            // Initialize permissions
+            var session = UserSession.Instance;
+            CanAddEmployee = session.HasPermission("EMPLOYEE_ADD");
+            CanEditEmployee = session.HasPermission("EMPLOYEE_EDIT");
+            CanDeleteEmployee = session.HasPermission("EMPLOYEE_DELETE");
 
             _ = LoadDataAsync();
         }
@@ -218,6 +229,8 @@ namespace PhoneStoreAdmin.View
 
         private async void AddButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanAddEmployee) return;
+            
             await ShowEmployeeDialogAsync(EmployeeDialog.DialogMode.Add, null);
         }
 
@@ -340,6 +353,8 @@ namespace PhoneStoreAdmin.View
 
         private async void EditMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanEditEmployee) return;
+            
             if (sender is MenuFlyoutItem menuItem &&
                 menuItem.Tag is EmployeeViewModel employee)
             {
@@ -349,6 +364,8 @@ namespace PhoneStoreAdmin.View
 
         private async void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanDeleteEmployee) return;
+            
             if (sender is MenuFlyoutItem menuItem &&
                 menuItem.Tag is EmployeeViewModel employee)
             {

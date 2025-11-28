@@ -19,6 +19,11 @@ namespace PhoneStoreAdmin.View
     {
         private ISupplierService SupplierService => App.GetService<ISupplierService>();
 
+        // Permission properties
+        public bool CanAddSupplier { get; }
+        public bool CanEditSupplier { get; }
+        public bool CanDeleteSupplier { get; }
+
         public ObservableCollection<SupplierViewModel> Suppliers { get; } = new ObservableCollection<SupplierViewModel>();
         public int CurrentPage { get; set; } = 1;
         public int PageSize { get; set; } = 10;
@@ -34,6 +39,13 @@ namespace PhoneStoreAdmin.View
         {
             this._resourceLoader = new ResourceLoader();
             this.InitializeComponent();
+            
+            // Initialize permissions
+            var session = UserSession.Instance;
+            CanAddSupplier = session.HasPermission("SUPPLIERS_ADD");
+            CanEditSupplier = session.HasPermission("SUPPLIERS_EDIT");
+            CanDeleteSupplier = session.HasPermission("SUPPLIERS_DELETE");
+            
             this.Loaded += SuppliersPage_Loaded;
         }
 
@@ -177,6 +189,8 @@ namespace PhoneStoreAdmin.View
 
         private async void BtnCreate_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanAddSupplier) return;
+            
             var supplierDialog = new SupplierDialog();
             supplierDialog.SetMode(SupplierDialog.DialogMode.Add);
 
@@ -207,6 +221,8 @@ namespace PhoneStoreAdmin.View
 
         private async void BtnEdit_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanEditSupplier) return;
+            
             var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
             if (!int.TryParse(idStr, out int supplierId)) return;
 
@@ -280,6 +296,8 @@ namespace PhoneStoreAdmin.View
 
         private async void BtnActivate_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanEditSupplier) return; // Activate uses Edit permission
+            
             var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
             if (!int.TryParse(idStr, out int supplierId)) return;
 
@@ -310,6 +328,8 @@ namespace PhoneStoreAdmin.View
 
         private async void BtnDeActivate_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanEditSupplier) return; // Deactivate uses Edit permission
+            
             var idStr = (sender as MenuFlyoutItem)?.Tag?.ToString();
             if (!int.TryParse(idStr, out int supplierId)) return;
 
