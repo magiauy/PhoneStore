@@ -116,7 +116,7 @@
 
                 <StackPanel Orientation="Vertical" Spacing="8">
                     <TextBlock
-                        Text="Product Models"
+                        x:Uid="Products_HeaderTitle"
                         FontSize="36"
                         FontWeight="Bold">
                         <TextBlock.Foreground>
@@ -127,7 +127,7 @@
                         </TextBlock.Foreground>
                     </TextBlock>
                     <TextBlock
-                        Text="Manage models and product variants"
+                        x:Uid="Products_HeaderSubtitle"
                         FontSize="16"
                         Foreground="{StaticResource BrushTextSecondary}" />
                 </StackPanel>
@@ -135,12 +135,12 @@
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                     <Button
                         x:Name="RefreshModelsButton"
-                        Content="Refresh"
+                        x:Uid="Products_RefreshButton"
                         Click="RefreshModelsButton_Click"
                         Style="{StaticResource SecondaryButtonStyle}" />
                     <Button
                         x:Name="CreateModelButton"
-                        Content="Create Product Model"
+                        x:Uid="Products_CreateModelButton"
                         Click="CreateModelButton_Click"
                         Style="{StaticResource PrimaryButtonStyle}" />
                 </StackPanel>
@@ -174,15 +174,15 @@
 
                         <TextBlock
                             Grid.Column="0"
-                            Text="Model catalog"
+                            x:Uid="Products_ModelCatalog"
                             FontSize="20"
                             FontWeight="SemiBold"
                             VerticalAlignment="Center" />
 
                         <AutoSuggestBox
                             x:Name="SearchBox"
+                            x:Uid="Products_SearchPlaceholder"
                             Grid.Column="2"
-                            PlaceholderText="Search by name..."
                             QueryIcon="Find"
                             Background="{StaticResource BrushBackground}"
                             BorderBrush="{StaticResource BrushBorder}"
@@ -236,7 +236,7 @@
                                             </StackPanel>
                                             <TextBlock Text="{x:Bind DescriptionPreview}" FontSize="13" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="WrapWholeWords" />
                                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <TextBlock Text="Updated" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
+                                                <TextBlock x:Uid="Products_UpdatedLabel" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
                                                 <TextBlock Text="{x:Bind UpdatedAt, Mode=OneWay}" FontSize="12" Foreground="{StaticResource BrushTextTertiary}" />
                                             </StackPanel>
                                         </StackPanel>
@@ -250,16 +250,16 @@
                                 <FontIcon FontSize="36" Foreground="{StaticResource BrushPrimary}" Glyph="&#xE8A5;" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <StackPanel Spacing="6" HorizontalAlignment="Center">
-                                <TextBlock Text="No models yet" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                <TextBlock x:Uid="Products_NoModelsTitle" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" />
                                 <TextBlock
-                                    Text="Create your first product model to start grouping product variants"
+                                    x:Uid="Products_NoModelsDescription"
                                     FontSize="14"
                                     Foreground="{StaticResource BrushTextSecondary}"
                                     TextAlignment="Center"
                                     TextWrapping="WrapWholeWords"
                                     Width="260" />
                             </StackPanel>
-                            <Button Content="Create Product Model" Click="CreateModelButton_Click" Style="{StaticResource PrimaryButtonStyle}" />
+                            <Button x:Uid="Products_CreateModelButton" Click="CreateModelButton_Click" Style="{StaticResource PrimaryButtonStyle}" />
                         </StackPanel>
                     </Grid>
                 </Grid>
@@ -285,8 +285,8 @@
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Button Content="Edit Model" Click="EditModelButton_Click" Style="{StaticResource SecondaryButtonStyle}" />
-                            <Button Content="Duplicate Model" Click="DuplicateModelButton_Click" Style="{StaticResource SecondaryButtonStyle}" />
+                            <Button x:Uid="Products_EditModelButton" Click="EditModelButton_Click" Style="{StaticResource SecondaryButtonStyle}" />
+                            <Button x:Uid="Products_DuplicateModelButton" Click="DuplicateModelButton_Click" Style="{StaticResource SecondaryButtonStyle}" />
                             <Button
                                 x:Name="ManageProductsButton"
                                 x:Uid="ProductsPageManageButton"
@@ -296,9 +296,9 @@
                         </StackPanel>
 
                         <StackPanel Spacing="12">
-                            <TextBlock Text="Model attributes" FontSize="20" FontWeight="SemiBold" />
+                            <TextBlock x:Uid="Products_ModelAttributes" FontSize="20" FontWeight="SemiBold" />
                             <TextBlock
-                                Text="No attributes configured for this model."
+                                x:Uid="Products_NoAttributesText"
                                 Foreground="{StaticResource BrushTextSecondary}"
                                 Visibility="{x:Bind SelectedModelHasNoAttributes, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
                             <ItemsControl
@@ -342,9 +342,9 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" Spacing="8">
-                                <TextBlock Text="Brands" FontSize="18" FontWeight="SemiBold" />
+                                <TextBlock x:Uid="Products_Brands" FontSize="18" FontWeight="SemiBold" />
                                 <TextBlock
-                                    Text="No brand information available."
+                                    x:Uid="Products_NoBrandsText"
                                     Foreground="{StaticResource BrushTextSecondary}"
                                     Visibility="{x:Bind SelectedModelHasNoBrands, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
                                 <ItemsControl
@@ -372,9 +372,9 @@
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Spacing="8">
-                                <TextBlock Text="Catalogs" FontSize="18" FontWeight="SemiBold" />
+                                <TextBlock x:Uid="Products_Catalogs" FontSize="18" FontWeight="SemiBold" />
                                 <TextBlock
-                                    Text="No catalog information available."
+                                    x:Uid="Products_NoCatalogsText"
                                     Foreground="{StaticResource BrushTextSecondary}"
                                     Visibility="{x:Bind SelectedModelHasNoCategories, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
                                 <ItemsControl
@@ -403,7 +403,7 @@
                         </Grid>
 
                         <StackPanel Spacing="8">
-                            <TextBlock Text="Variants" FontSize="20" FontWeight="SemiBold" />
+                            <TextBlock x:Uid="Products_Variants" FontSize="20" FontWeight="SemiBold" />
                             <ListView
                                 x:Name="VariantsListView"
                                 ItemsSource="{x:Bind SelectedModelVariants, Mode=OneWay}"
@@ -479,8 +479,8 @@
                             </ListView>
 
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" Visibility="{x:Bind SelectedModelHasNoVariants, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                                <TextBlock Text="No variants yet" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" />
-                                <TextBlock Text="Use the button above to create a product variant for this model" FontSize="14" Foreground="{StaticResource BrushTextSecondary}" TextAlignment="Center" TextWrapping="Wrap" Width="220" />
+                                <TextBlock x:Uid="Products_NoVariantsTitle" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                <TextBlock x:Uid="Products_NoVariantsDescription" FontSize="14" Foreground="{StaticResource BrushTextSecondary}" TextAlignment="Center" TextWrapping="Wrap" Width="220" />
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>
