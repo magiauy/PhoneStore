@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Models.Enums;
@@ -12,6 +17,9 @@ using PhoneStoreRepository.Repositories.Interfaces;
 using PhoneStore.Services.Interfaces;
 using PhoneStoreRepository.Utils;
 using PhoneStore.Services.ViewModels;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.Storage.Streams;
 
 namespace PhoneStoreAdmin.View.Controls
 {
@@ -44,6 +52,7 @@ namespace PhoneStoreAdmin.View.Controls
         private readonly IBrandService _brandService;
         private readonly IProductCategoryRepository _categoryRepository;
         private readonly IProductSerialRepository _serialRepository;
+        private readonly ICloudinaryService _cloudinaryService;
         private readonly ResourceLoader _resourceLoader;
 
         private readonly List<SelectionOption<int>> _categoryOptions = new();
@@ -62,6 +71,7 @@ namespace PhoneStoreAdmin.View.Controls
         private bool _isWarrantyValid;
         private bool _isStatusValid;
         private bool _inputsEnabled = true;
+        private bool _isUploading = false;
         private int? _pendingModelSelection;
         private int? _selectedModelId;
 
@@ -91,6 +101,7 @@ namespace PhoneStoreAdmin.View.Controls
             _brandService = App.GetService<IBrandService>();
             _categoryRepository = App.GetService<IProductCategoryRepository>();
             _serialRepository = App.GetService<IProductSerialRepository>();
+            _cloudinaryService = App.GetService<ICloudinaryService>();
             _resourceLoader = new ResourceLoader();
 
             this.Unloaded += ProductDialog_Unloaded;
@@ -617,6 +628,12 @@ namespace PhoneStoreAdmin.View.Controls
 
                 RefreshAttributeInputs(false);
                 SerialSummaryPanel.Visibility = Visibility.Collapsed;
+                
+                // Reset image preview for new product
+                ImageUrlTextBox.Text = string.Empty;
+                ImagePreview.Source = null;
+                NoImageText.Visibility = Visibility.Visible;
+                ImagePreviewBorder.Visibility = Visibility.Visible;
                 return;
             }
 
@@ -665,6 +682,9 @@ namespace PhoneStoreAdmin.View.Controls
             UpdateSerialSummaryVisibility();
 
             ValidateAllFields();
+            
+            // Load product image preview
+            _ = TryLoadProductImageAsync();
         }
 
         private void UpdateSerialSummaryVisibility()
@@ -1645,6 +1665,269 @@ namespace PhoneStoreAdmin.View.Controls
             if (state.InputControl is Control control)
             {
                 control.IsEnabled = _inputsEnabled;
+            }
+        }
+
+        #endregion
+
+        #region Image Upload Methods
+
+        private async void UploadImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            await UploadImageAsync();
+        }
+
+        private async void ChangeImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            await UploadImageAsync();
+        }
+
+        private async Task UploadImageAsync()
+        {
+            if (_isUploading) return;
+
+            // Validate that required fields are filled for building publicId
+            var sku = SkuTextBox.Text?.Trim();
+            if (string.IsNullOrEmpty(sku))
+            {
+                ShowError(ImageError, "Vui lòng nhập SKU trước khi tải ảnh.");
+                return;
+            }
+
+            // Get brand and model info
+            var brandId = GetSelectedBrandId();
+            if (!brandId.HasValue)
+            {
+                ShowError(ImageError, "Vui lòng chọn thương hiệu trước khi tải ảnh.");
+                return;
+            }
+
+            if (!_selectedModelId.HasValue)
+            {
+                ShowError(ImageError, "Vui lòng chọn model trước khi tải ảnh.");
+                return;
+            }
+
+            // Get brand and model from services (not from options which may be filtered)
+            Brand? brand = null;
+            ProductModel? productModel = null;
+            
+            try
+            {
+                brand = _brandService.GetBrandById(brandId.Value);
+                productModel = _productService.GetProductModelById(_selectedModelId.Value);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to get brand/model info: {ex.Message}", ex);
+            }
+            
+            if (brand == null || productModel == null)
+            {
+                ShowError(ImageError, "Không tìm thấy thông tin thương hiệu hoặc model.");
+                return;
+            }
+
+            try
+            {
+                // Step 1: Pick file
+                var picker = new FileOpenPicker();
+                picker.ViewMode = PickerViewMode.Thumbnail;
+                picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+                picker.FileTypeFilter.Add(".jpg");
+                picker.FileTypeFilter.Add(".jpeg");
+                picker.FileTypeFilter.Add(".png");
+                picker.FileTypeFilter.Add(".webp");
+
+                // Initialize with window handle for WinUI3
+                var window = App.GetService<MainWindow>();
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+                var file = await picker.PickSingleFileAsync();
+                if (file == null) return;
+
+                // Build publicId: mobileguzone/brand/modelSlug/sku
+                var brandName = brand.Name?.ToLowerInvariant().Replace(" ", "-") ?? "unknown";
+                var modelSlug = productModel.Slug ?? productModel.Name?.ToLowerInvariant().Replace(" ", "-") ?? "unknown";
+                var publicId = _cloudinaryService.BuildPublicId(brandName, modelSlug, sku);
+
+                // Show upload info message (no dialog to avoid OnlyContentDialog error)
+                ShowError(ImageError, $"Đang tải: {file.Name}...");
+
+                // Start upload
+                _isUploading = true;
+                UploadImageButton.IsEnabled = false;
+                ChangeImageButton.IsEnabled = false;
+                ImageLoadingRing.IsActive = true;
+
+                using var stream = await file.OpenStreamForReadAsync();
+                var imageUrl = await _cloudinaryService.UploadImageAsync(stream, file.Name, publicId ?? sku);
+
+                if (!string.IsNullOrEmpty(imageUrl))
+                {
+                    ImageUrlTextBox.Text = imageUrl;
+                    await LoadImagePreviewAsync(imageUrl);
+                    ShowError(ImageError, null); // Clear error
+                }
+                else
+                {
+                    ShowError(ImageError, "Tải ảnh lên không thành công.");
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowError(ImageError, $"Lỗi khi tải ảnh: {ex.Message}");
+            }
+            finally
+            {
+                _isUploading = false;
+                UploadImageButton.IsEnabled = true;
+                ChangeImageButton.IsEnabled = true;
+                ImageLoadingRing.IsActive = false;
+            }
+        }
+
+        private async Task<bool> LoadImagePreviewAsync(string imageUrl)
+        {
+            Logger.Info($"Loading image preview from URL: {imageUrl}");
+            
+            // Reset UI state
+            NoImageText.Visibility = Visibility.Collapsed;
+            ImagePreview.Source = null;
+            ImageLoadingRing.IsActive = true;
+            ImagePreviewBorder.Visibility = Visibility.Visible;
+            
+            if (string.IsNullOrEmpty(imageUrl))
+            {
+                ImageLoadingRing.IsActive = false;
+                NoImageText.Visibility = Visibility.Visible;
+                ChangeImageButton.Visibility = Visibility.Collapsed;
+                return false;
+            }
+
+            try
+            {
+                using var httpClient = new System.Net.Http.HttpClient();
+                httpClient.Timeout = TimeSpan.FromSeconds(30);
+                
+                var response = await httpClient.GetAsync(imageUrl);
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    Logger.Warning($"Failed to load image from URL: {imageUrl}, Status: {response.StatusCode}");
+                    ImageLoadingRing.IsActive = false;
+                    NoImageText.Visibility = Visibility.Visible;
+                    ImagePreview.Source = null;
+                    ChangeImageButton.Visibility = Visibility.Collapsed;
+                    return false;
+                }
+                
+                var imageBytes = await response.Content.ReadAsByteArrayAsync();
+                
+                var bitmap = new BitmapImage();
+                using var memoryStream = new InMemoryRandomAccessStream();
+                await memoryStream.WriteAsync(imageBytes.AsBuffer());
+                memoryStream.Seek(0);
+                await bitmap.SetSourceAsync(memoryStream);
+                
+                ImagePreview.Source = bitmap;
+                NoImageText.Visibility = Visibility.Collapsed;
+                ImageUrlTextBox.Text = imageUrl;
+                ImageLoadingRing.IsActive = false;
+                ChangeImageButton.Visibility = Visibility.Visible;
+                
+                Logger.Info($"Successfully loaded image from URL: {imageUrl}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error loading image preview: {ex.Message}", ex);
+                ImageLoadingRing.IsActive = false;
+                NoImageText.Visibility = Visibility.Visible;
+                ImagePreview.Source = null;
+                ChangeImageButton.Visibility = Visibility.Collapsed;
+                return false;
+            }
+        }
+
+        private async Task TryLoadProductImageAsync()
+        {
+            // Get brand and model info to build image URL
+            var brandId = GetSelectedBrandId();
+            var modelId = _selectedModelId ?? _contextModel?.Id;
+            var sku = SkuTextBox.Text?.Trim();
+            
+            if (!brandId.HasValue || !modelId.HasValue || string.IsNullOrEmpty(sku))
+            {
+                NoImageText.Visibility = Visibility.Visible;
+                ImagePreview.Source = null;
+                ImagePreviewBorder.Visibility = Visibility.Visible;
+                ChangeImageButton.Visibility = Visibility.Collapsed;
+                return;
+            }
+            
+            // Get brand name and model slug
+            var brand = _brandOptions.FirstOrDefault(b => b.Value == brandId.Value);
+            string? modelSlug = null;
+            
+            try
+            {
+                var model = _productService.GetProductModelById(modelId.Value);
+                modelSlug = model?.Slug;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to get model for image URL: {ex.Message}", ex);
+            }
+            
+            if (brand == null || string.IsNullOrEmpty(modelSlug))
+            {
+                NoImageText.Visibility = Visibility.Visible;
+                ImagePreview.Source = null;
+                ImagePreviewBorder.Visibility = Visibility.Visible;
+                ChangeImageButton.Visibility = Visibility.Collapsed;
+                return;
+            }
+            
+            var brandName = brand.DisplayName?.ToLowerInvariant().Replace(" ", "-") ?? "unknown";
+            // Use jpg format instead of webp because WinUI3 doesn't support webp
+            var imageUrl = _cloudinaryService.GetProductImageUrl(brandName, modelSlug, sku, "jpg");
+            
+            Logger.Info($"TryLoadProductImageAsync: brandName={brandName}, modelSlug={modelSlug}, sku={sku}, imageUrl={imageUrl}");
+            
+            if (string.IsNullOrEmpty(imageUrl))
+            {
+                NoImageText.Visibility = Visibility.Visible;
+                ImagePreview.Source = null;
+                ImagePreviewBorder.Visibility = Visibility.Visible;
+                return;
+            }
+            
+            await LoadImagePreviewAsync(imageUrl);
+        }
+
+        private void UpdateImagePreview(string imageUrl)
+        {
+            if (string.IsNullOrEmpty(imageUrl))
+            {
+                ImagePreviewBorder.Visibility = Visibility.Collapsed;
+                ChangeImageButton.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            try
+            {
+                var bitmap = new BitmapImage();
+                bitmap.UriSource = new Uri(imageUrl);
+                ImagePreview.Source = bitmap;
+                ImagePreviewBorder.Visibility = Visibility.Visible;
+                ChangeImageButton.Visibility = Visibility.Visible;
+            }
+            catch (Exception)
+            {
+                ImagePreviewBorder.Visibility = Visibility.Collapsed;
+                ChangeImageButton.Visibility = Visibility.Collapsed;
             }
         }
 

@@ -42,6 +42,7 @@ namespace PhoneStoreAdmin.View
         private readonly IProductSerialRepository _productSerialRepository;
         private readonly IBatchProductRepository _batchProductRepository;
         private readonly ICustomerService _customerService;
+        private readonly ICloudinaryService _cloudinaryService;
         private readonly ResourceLoader _resourceLoader;
         private readonly HashSet<string> _usedSerialNumbers = new(StringComparer.OrdinalIgnoreCase);
         private readonly SemaphoreSlim _dialogSemaphore = new(1, 1);
@@ -175,6 +176,7 @@ namespace PhoneStoreAdmin.View
             _productSerialRepository = App.GetService<IProductSerialRepository>();
             _batchProductRepository = App.GetService<IBatchProductRepository>();
             _customerService = App.GetService<ICustomerService>();
+            _cloudinaryService = App.GetService<ICloudinaryService>();
             _resourceLoader = new ResourceLoader();
 
             // Initialize collections
@@ -608,6 +610,9 @@ namespace PhoneStoreAdmin.View
 
                 var brandSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 var categorySet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                
+                // Get all product models for building image URLs
+                var productModels = _productService?.GetAllModels()?.ToDictionary(m => m.Id) ?? new Dictionary<int, ProductModel>();
 
                 foreach (var p in products)
                 {
@@ -625,6 +630,16 @@ namespace PhoneStoreAdmin.View
                     var stockQty = p.IsSerialTracked
                         ? (serialStockLookup.TryGetValue(p.Id, out var serialQty) ? serialQty : 0)
                         : (batchStockLookup.TryGetValue(p.Id, out var batchQty) ? batchQty : 0);
+                    
+                    // Build image URL from Cloudinary
+                    string? imageUrl = null;
+                    if (_cloudinaryService != null && p.BrandId.HasValue && productModels.TryGetValue(p.ModelId, out var model))
+                    {
+                        var brandSlug = brandName.ToLowerInvariant().Replace(" ", "-");
+                        var modelSlug = model.Slug ?? model.Name?.ToLowerInvariant().Replace(" ", "-") ?? "unknown";
+                        imageUrl = _cloudinaryService.GetProductImageUrl(brandSlug, modelSlug, p.Sku ?? "", "jpg");
+                    }
+                    
                     // Map repository Product -> SalesItem
                     var item = new SalesItem
                     {
@@ -636,6 +651,7 @@ namespace PhoneStoreAdmin.View
                         Price = p.Price,
                         StockQuantity = stockQty,
                         IsSerialTracked = p.IsSerialTracked,
+                        ImageUrl = imageUrl,
                         ParentPage = this
                     };
 
@@ -1492,6 +1508,8 @@ namespace PhoneStoreAdmin.View
         public decimal Price { get; set; }
         public int StockQuantity { get; set; }
         public bool IsSerialTracked { get; set; }
+        public string? ImageUrl { get; set; }
+        public Visibility HasNoImage => string.IsNullOrEmpty(ImageUrl) ? Visibility.Visible : Visibility.Collapsed;
         public SalesPage? ParentPage { get; set; }
 
         public int Quantity

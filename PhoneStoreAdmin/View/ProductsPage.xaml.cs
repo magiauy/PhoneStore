@@ -127,6 +127,26 @@ namespace PhoneStoreAdmin.View
             ProductModels.CollectionChanged -= _collectionChangedHandler;
         }
 
+        private void ModelImage_ImageFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+            // When image fails to load, hide the image and show fallback icon
+            if (sender is Image image)
+            {
+                image.Visibility = Visibility.Collapsed;
+                // Find the sibling FontIcon and make it visible
+                if (image.Parent is Grid grid)
+                {
+                    foreach (var child in grid.Children)
+                    {
+                        if (child is FontIcon fontIcon)
+                        {
+                            fontIcon.Visibility = Visibility.Visible;
+                        }
+                    }
+                }
+            }
+        }
+
         private void LoadModels(int? selectedModelId = null)
         {
             if (!_isLoaded)
@@ -136,6 +156,7 @@ namespace PhoneStoreAdmin.View
 
             var summaries = _productService.GetProductModelSummaries();
             ProductModels.Clear();
+            System.Diagnostics.Debug.WriteLine($"[ProductsPage] LoadModels: Loaded {summaries.Count} models");
             foreach (var model in summaries)
             {
                 ProductModels.Add(model);
@@ -165,6 +186,8 @@ namespace PhoneStoreAdmin.View
         private void LoadModelDetail(int modelId)
         {
             var detail = _productService.GetProductModelDetail(modelId);
+            System.Diagnostics.Debug.WriteLine($"[ProductsPage] LoadModelDetail: modelId={modelId}, HasVariants={detail?.HasVariants}, VariantCount={detail?.Variants.Count}");
+
             SelectedModelDetail = detail;
         }
 
