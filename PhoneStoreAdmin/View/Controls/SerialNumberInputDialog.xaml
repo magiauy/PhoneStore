@@ -14,10 +14,12 @@
         <StackPanel Margin="0,16,0,0" Spacing="16">
             <!--  Validation Error InfoBar  -->
             <InfoBar
+                x:Name="ValidationInfoBar"
                 x:Uid="ValidationErrorInfoBar"
                 Closed="ValidationErrorInfoBar_Closed"
                 IsClosable="True"
                 IsOpen="{x:Bind ShowValidationError, Mode=OneWay}"
+                Message="{x:Bind ValidationMessage, Mode=OneWay}"
                 Severity="Error" />
 
             <TextBlock
@@ -34,33 +36,97 @@
 
             <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
 
-            <!--  Serial number inputs  -->
-            <ItemsRepeater ItemsSource="{x:Bind SerialEntries}">
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="local:SerialEntry">
-                        <Border
-                            Margin="0,0,0,16"
-                            Padding="16"
-                            Background="{ThemeResource LayerFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8">
-                            <StackPanel Spacing="12">
-                                <TextBlock
-                                    FontSize="15"
-                                    FontWeight="SemiBold"
-                                    Text="{x:Bind GetMachineTitle(), Mode=OneWay}" />
+            <!--  Toggle for input mode  -->
+            <ToggleSwitch
+                x:Name="RangeInputToggle"
+                Header="Serial Input Mode"
+                IsOn="{x:Bind IsRangeInputMode, Mode=TwoWay}"
+                OffContent="Manual entry"
+                OnContent="Range input (from - to)"
+                Toggled="OnInputModeToggled" />
 
-                                <TextBox x:Uid="SerialNumberTextBox" Text="{x:Bind SerialNumber, Mode=TwoWay}" />
+            <!--  Range Input Section  -->
+            <Border
+                Padding="16"
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Visibility="{x:Bind RangeInputVisibility, Mode=OneWay}">
+                <StackPanel Spacing="12">
+                    <TextBlock
+                        FontSize="14"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="Enter starting serial, system will automatically generate sequential serials."
+                        TextWrapping="Wrap" />
+                    
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        
+                        <TextBox
+                            x:Name="StartSerialTextBox"
+                            Grid.Column="0"
+                            Header="Starting Serial"
+                            PlaceholderText="E.g: SN001"
+                            Text="{x:Bind StartSerial, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            TextChanged="OnStartSerialChanged" />
+                        
+                        <Button
+                            Grid.Column="1"
+                            VerticalAlignment="Bottom"
+                            Click="OnGenerateSerials"
+                            Content="Generate Serials"
+                            Style="{StaticResource AccentButtonStyle}" />
+                    </Grid>
+                    
+                    <!--  Preview of generated serials  -->
+                    <TextBlock
+                        FontSize="13"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind GeneratedSerialsPreview, Mode=OneWay}"
+                        TextWrapping="Wrap"
+                        Visibility="{x:Bind HasGeneratedPreview, Mode=OneWay}" />
+                </StackPanel>
+            </Border>
 
-                                <TextBox x:Uid="Imei1TextBox" Text="{x:Bind Imei1, Mode=TwoWay}" />
+            <!--  Manual Input Section - Serial number inputs  -->
+            <StackPanel Spacing="8" Visibility="{x:Bind ManualInputVisibility, Mode=OneWay}">
+                <ItemsRepeater ItemsSource="{x:Bind SerialEntries}">
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="local:SerialEntry">
+                            <Border
+                                Margin="0,0,0,8"
+                                Padding="12"
+                                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6">
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        VerticalAlignment="Center"
+                                        FontSize="14"
+                                        FontWeight="SemiBold"
+                                        Text="{x:Bind GetMachineTitle(), Mode=OneWay}" />
 
-                                <TextBox x:Uid="Imei2TextBox" Text="{x:Bind Imei2, Mode=TwoWay}" />
-                            </StackPanel>
-                        </Border>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
+                                    <TextBox
+                                        Grid.Column="1"
+                                        PlaceholderText="Enter Serial Number"
+                                        Text="{x:Bind SerialNumber, Mode=TwoWay}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </StackPanel>
         </StackPanel>
     </ScrollViewer>
 </ContentDialog>
