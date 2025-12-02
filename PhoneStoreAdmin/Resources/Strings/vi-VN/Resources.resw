@@ -3487,4 +3487,124 @@ Tổng tiền: {1}</value>
   <data name="AccessDenied_BackToDashboard.Content" xml:space="preserve">
     <value>Quay về Trang chủ</value>
   </data>
+  <!-- Settings Page -->
+  <data name="MenuSettings.Content" xml:space="preserve">
+    <value>Cài đặt</value>
+  </data>
+  <!-- System Settings Page -->
+  <data name="MenuSystemSettings.Content" xml:space="preserve">
+    <value>Cấu hình hệ thống</value>
+  </data>
+  <data name="SystemSettings_Title" xml:space="preserve">
+    <value>Cấu hình hệ thống</value>
+  </data>
+  <data name="SystemSettings_Subtitle" xml:space="preserve">
+    <value>Quản lý các thiết lập và cấu hình của hệ thống</value>
+  </data>
+  <data name="SystemSettings_BtnNew" xml:space="preserve">
+    <value>Thêm cấu hình</value>
+  </data>
+  <data name="SystemSettings_BtnInitialize" xml:space="preserve">
+    <value>Khởi tạo cấu hình</value>
+  </data>
+  <data name="SystemSettings_SearchPlaceholder" xml:space="preserve">
+    <value>Tìm kiếm theo mã, giá trị hoặc loại...</value>
+  </data>
+  <data name="SystemSettings_ColId" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="SystemSettings_ColCode" xml:space="preserve">
+    <value>MÃ</value>
+  </data>
+  <data name="SystemSettings_ColValue" xml:space="preserve">
+    <value>GIÁ TRỊ</value>
+  </data>
+  <data name="SystemSettings_ColType" xml:space="preserve">
+    <value>LOẠI</value>
+  </data>
+  <data name="SystemSettings_ColActions" xml:space="preserve">
+    <value>THAO TÁC</value>
+  </data>
+  <data name="SystemSettings_EmptyTitle" xml:space="preserve">
+    <value>Chưa có cấu hình nào</value>
+  </data>
+  <data name="SystemSettings_EmptyDescription" xml:space="preserve">
+    <value>Bắt đầu bằng cách thêm cấu hình đầu tiên cho hệ thống</value>
+  </data>
+  <data name="SystemSettings_Showing" xml:space="preserve">
+    <value>Đang hiển thị</value>
+  </data>
+  <data name="SystemSettings_Settings" xml:space="preserve">
+    <value>cấu hình</value>
+  </data>
+  <data name="SystemSettings_Page" xml:space="preserve">
+    <value>Trang</value>
+  </data>
+  <data name="SystemSettings_DialogTitleNew" xml:space="preserve">
+    <value>Thêm cấu hình mới</value>
+  </data>
+  <data name="SystemSettings_DialogTitleEdit" xml:space="preserve">
+    <value>Chỉnh sửa cấu hình</value>
+  </data>
+  <data name="SystemSettings_CodeLabel" xml:space="preserve">
+    <value>Mã cấu hình</value>
+  </data>
+  <data name="SystemSettings_ValueLabel" xml:space="preserve">
+    <value>Giá trị</value>
+  </data>
+  <data name="SystemSettings_TypeLabel" xml:space="preserve">
+    <value>Loại dữ liệu</value>
+  </data>
+  <data name="SystemSettings_DeleteConfirmTitle" xml:space="preserve">
+    <value>Xác nhận xóa</value>
+  </data>
+  <data name="SystemSettings_DeleteConfirmMessage" xml:space="preserve">
+    <value>Bạn có chắc chắn muốn xóa cấu hình "{0}"?</value>
+  </data>
+  <data name="SystemSettings_Error_LoadFailed" xml:space="preserve">
+    <value>Không thể tải danh sách cấu hình</value>
+  </data>
+  <data name="SystemSettings_Error_SaveFailed" xml:space="preserve">
+    <value>Không thể lưu cấu hình</value>
+  </data>
+  <data name="SystemSettings_Error_DeleteFailed" xml:space="preserve">
+    <value>Không thể xóa cấu hình</value>
+  </data>
+  <data name="SystemSettings_Error_CodeRequired" xml:space="preserve">
+    <value>Vui lòng nhập mã cấu hình</value>
+  </data>
+  <data name="SystemSettings_Error_CodeExists" xml:space="preserve">
+    <value>Mã cấu hình đã tồn tại</value>
+  </data>
+  <data name="SystemSettings_Error_NotFound" xml:space="preserve">
+    <value>Không tìm thấy cấu hình</value>
+  </data>
+  <data name="SystemSettings_Error_NoEditPermission" xml:space="preserve">
+    <value>Bạn không có quyền chỉnh sửa cấu hình</value>
+  </data>
+  <data name="SystemSettings_Error_NoDeletePermission" xml:space="preserve">
+    <value>Bạn không có quyền xóa cấu hình</value>
+  </data>
+  <data name="SystemSettings_Error_InitializeFailed" xml:space="preserve">
+    <value>Không thể khởi tạo các cấu hình mặc định</value>
+  </data>
+  <!-- AddPurchaseOrder Page Localization -->
+  <data name="AddPurchaseOrder_UnitCostHeader" xml:space="preserve">
+    <value>Giá nhập</value>
+  </data>
+  <data name="AddPurchaseOrder_ProfitMarginHeader" xml:space="preserve">
+    <value>Biên lợi nhuận (%)</value>
+  </data>
+  <data name="AddPurchaseOrder_SellingPriceHeader" xml:space="preserve">
+    <value>Giá bán</value>
+  </data>
+  <data name="AddPurchaseOrder_AddAllProductsButton" xml:space="preserve">
+    <value>Thêm tất cả sản phẩm</value>
+  </data>
+  <data name="AddPurchaseOrder_ProfitMarginValidationError" xml:space="preserve">
+    <value>Biên lợi nhuận cho sản phẩm "{0}" phải ít nhất {1}%</value>
+  </data>
+  <data name="AddPurchaseOrder_NoFilteredProducts" xml:space="preserve">
+    <value>Không có sản phẩm nào để thêm. Vui lòng chọn danh mục hoặc thương hiệu để lọc sản phẩm trước.</value>
+  </data>
 </root>

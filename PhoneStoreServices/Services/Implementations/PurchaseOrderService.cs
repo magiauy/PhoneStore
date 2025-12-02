@@ -334,17 +334,21 @@ namespace PhoneStore.Services.Implementations
                 {
                     var product = _productRepository.GetById(line.ProductId);
 
+                    // Tính giá bán dựa trên giá nhập và biên độ lợi nhuận
+                    var sellingPrice = line.UnitCost * (1 + (decimal)line.ProfitMargin);
+
                     var batchProduct = new BatchProduct
                     {
                         BatchId = batch.id,
                         ProductId = line.ProductId,
                         Quantity = line.Quantity,
                         CostPrice = line.UnitCost,
-                        SellingPrice = product.Price
+                        SellingPrice = sellingPrice,
+                        ProfitMargin = line.ProfitMargin
                     };
 
                     _batchProductRepository.Insert(batchProduct, connection, transaction);
-                    Logger.Info($"Created batch product for Product {line.ProductId} in Batch {batch.id}");
+                    Logger.Info($"Created batch product for Product {line.ProductId} in Batch {batch.id} with profit margin {line.ProfitMargin:P0}");
 
                     // Update RESERVED serials to IN_STOCK and link to batch
                     if (product.IsSerialTracked)

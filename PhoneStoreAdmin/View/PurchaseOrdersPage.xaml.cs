@@ -584,10 +584,16 @@ namespace PhoneStoreAdmin.View
             {
                 try
                 {
-                    // Only allow cancelling if not already cancelled
+                    // Only allow cancelling if status is DRAFT
                     if (po.Status == PoStatus.CANCELLED)
                     {
                         ShowErrorDialog("Cannot Cancel", "Purchase order is already cancelled.");
+                        return;
+                    }
+
+                    if (po.Status == PoStatus.RECEIVED)
+                    {
+                        ShowErrorDialog("Cannot Cancel", "Cannot cancel a purchase order that has been received. The inventory has already been updated.");
                         return;
                     }
 
@@ -647,10 +653,10 @@ namespace PhoneStoreAdmin.View
                         break;
 
                     case PoStatus.RECEIVED:
-                        // RECEIVED: Can only cancel
+                        // RECEIVED: Cannot edit, receive again, or cancel (finalized)
                         if (editMenuItem != null) editMenuItem.Visibility = Visibility.Collapsed;
                         if (receiveMenuItem != null) receiveMenuItem.Visibility = Visibility.Collapsed;
-                        if (cancelMenuItem != null) cancelMenuItem.Visibility = Visibility.Visible;
+                        if (cancelMenuItem != null) cancelMenuItem.Visibility = Visibility.Collapsed;
                         break;
 
                     case PoStatus.CANCELLED:

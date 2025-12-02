@@ -27,6 +27,7 @@ namespace PhoneStoreAdmin.View
         private IBrandRepository BrandRepository => App.GetService<IBrandRepository>();
         private IProductSerialRepository ProductSerialRepository => App.GetService<IProductSerialRepository>();
         private IBatchesRepository BatchesRepository => App.GetService<IBatchesRepository>();
+        private ISettingStringService SettingStringService => App.GetService<ISettingStringService>();
 
         // Fields
         private int? _editingPurchaseOrderId = null; // For edit mode
@@ -36,6 +37,7 @@ namespace PhoneStoreAdmin.View
         private string _note = string.Empty;
         private DateTime _orderDate = DateTime.Now;
         private decimal _totalAmount = 0;
+        private float _minimumProfitMargin = 0.2f; // Default 20%
         private readonly ResourceLoader _resourceLoader;
 
         // Collections
@@ -87,6 +89,11 @@ namespace PhoneStoreAdmin.View
             ? _resourceLoader.GetString("UpdatePurchaseOrderButton")
             : _resourceLoader.GetString("CreatePurchaseOrderButton");
 
+        /// <summary>
+        /// Minimum profit margin from system settings (percentage, e.g., 0.20 = 20%)
+        /// </summary>
+        public float MinimumProfitMargin => _minimumProfitMargin;
+
         // Constructor
         public AddPurchaseOrderPage()
         {
@@ -100,6 +107,9 @@ namespace PhoneStoreAdmin.View
             Categories = new ObservableCollection<string>();
             Brands = new ObservableCollection<string>();
 
+            // Load minimum profit margin from settings
+            LoadMinimumProfitMargin();
+
             PurchaseOrderIdLabel.Text = _resourceLoader.GetString("PurchaseOrderIdLabel") + (PurchaseOrderService.CountAll() + 1).ToString();
             // Subscribe to collection changes
             PurchaseOrderItems.CollectionChanged += (s, e) =>
@@ -107,6 +117,25 @@ namespace PhoneStoreAdmin.View
                 CalculatePurchaseOrderTotal();
                 OnPropertyChanged(nameof(HasPurchaseOrderItems));
             };
+        }
+
+        private void LoadMinimumProfitMargin()
+        {
+            try
+            {
+                var profitMarginStr = SettingStringService.GetValue(SystemSettingCode.PROFIT_MARGIN, "0.20");
+                if (float.TryParse(profitMarginStr, System.Globalization.NumberStyles.Float, 
+                    System.Globalization.CultureInfo.InvariantCulture, out var profitMargin))
+                {
+                    _minimumProfitMargin = profitMargin;
+                    Logger.Info($"Loaded minimum profit margin from settings: {_minimumProfitMargin:P0}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning($"Failed to load minimum profit margin from settings, using default 20%: {ex.Message}");
+                _minimumProfitMargin = 0.2f;
+            }
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -180,6 +209,7 @@ namespace PhoneStoreAdmin.View
                             ProductName = product.Name,
                             UnitCost = line.UnitCost,
                             Quantity = line.Quantity,
+                            ProfitMargin = line.ProfitMargin > 0 ? line.ProfitMargin : _minimumProfitMargin,
                             IsSerialTracked = product.IsSerialTracked,
                             ParentPage = this
                         };
@@ -199,9 +229,7 @@ namespace PhoneStoreAdmin.View
                                 var serialEntry = new Controls.SerialEntry
                                 {
                                     Index = index++,
-                                    SerialNumber = serial.SerialNumber ?? string.Empty,
-                                    Imei1 = serial.Imei1 ?? string.Empty,
-                                    Imei2 = serial.Imei2 ?? string.Empty
+                                    SerialNumber = serial.SerialNumber ?? string.Empty
                                 };
                                 item.SerialEntries.Add(serialEntry);
                             }
@@ -292,29 +320,45 @@ namespace PhoneStoreAdmin.View
                 // Check if the number of serial entries matches the quantity
                 if (item.SerialEntries.Count != item.Quantity)
                 {
-                    incompleteSerialItems.Add($"{item.ProductName}: Có {item.Quantity} sản phẩm nhập chưa có {item.SerialEntries.Count} serial");
+                    incompleteSerialItems.Add($"{item.ProductName}: Has {item.Quantity} products but only {item.SerialEntries.Count} serials");
                     continue;
                 }
 
-                // Check if all serial entries have complete information (Serial Number and IMEI1)
+                // Check if all serial entries have Serial Number (no IMEI required anymore)
                 var missingInfo = item.SerialEntries.Where(s =>
-                    string.IsNullOrWhiteSpace(s.SerialNumber) ||
-                    string.IsNullOrWhiteSpace(s.Imei1)).ToList();
+                    string.IsNullOrWhiteSpace(s.SerialNumber)).ToList();
 
                 if (missingInfo.Any())
                 {
-                    incompleteSerialItems.Add($"{item.ProductName}: Thiếu thông tin Serial Number hoặc IMEI cho {missingInfo.Count} sản phẩm");
+                    incompleteSerialItems.Add($"{item.ProductName}: Missing Serial Number for {missingInfo.Count} product(s)");
                 }
             }
 
             // If there are incomplete serial items, show error and don't save
             if (incompleteSerialItems.Any())
             {
-                var errorMessage = "Vui lòng nhập thông tin Serial Number và IMEI cho các sản phẩm sau:\n\n" +
+                var errorMessage = "Please enter Serial Number for the following products:\n\n" +
                     string.Join("\n", incompleteSerialItems);
 
                 await ShowMessageDialog(
-                    "Thông tin chưa đầy đủ",
+                    "Incomplete Information",
+                    errorMessage);
+                return;
+            }
+
+            // VALIDATION: Check profit margin >= minimum from system settings
+            var invalidProfitMarginItems = PurchaseOrderItems
+                .Where(item => item.ProfitMargin < _minimumProfitMargin)
+                .Select(item => $"{item.ProductName}: {item.ProfitMargin:P0} (minimum: {_minimumProfitMargin:P0})")
+                .ToList();
+
+            if (invalidProfitMarginItems.Any())
+            {
+                var errorMessage = $"Profit margin must be >= {_minimumProfitMargin:P0} (system setting):\n\n" +
+                    string.Join("\n", invalidProfitMarginItems);
+
+                await ShowMessageDialog(
+                    "Invalid Profit Margin",
                     errorMessage);
                 return;
             }
@@ -365,7 +409,8 @@ namespace PhoneStoreAdmin.View
                         ProductId = item.ProductId,
                         Quantity = item.Quantity,
                         UnitCost = item.UnitCost,
-                        TotalCost = item.TotalCost
+                        TotalCost = item.TotalCost,
+                        ProfitMargin = item.ProfitMargin
                     };
                     purchaseOrder.PurchaseOrderLines.Add(line);
                 }
@@ -384,8 +429,8 @@ namespace PhoneStoreAdmin.View
                             {
                                 ProductId = item.ProductId,
                                 SerialNumber = entry.SerialNumber,
-                                Imei1 = entry.Imei1,
-                                Imei2 = string.IsNullOrWhiteSpace(entry.Imei2) ? null : entry.Imei2,
+                                Imei1 = null, // No longer required
+                                Imei2 = null, // No longer required
                                 Status = SerialStatus.RESERVED, // Will be set by service
                                 Note = null
                             };
@@ -438,15 +483,8 @@ namespace PhoneStoreAdmin.View
           _resourceLoader.GetString("PurchaseOrderSuccessTitle"),
                     $"{successMessage}. {_resourceLoader.GetString("TotalAmountLabel")}: {FormatPrice(TotalAmount)}");
 
-                // Navigate back or clear form
-                if (_editingPurchaseOrderId.HasValue)
-                {
-                    Frame.GoBack();
-                }
-                else
-                {
-                    OnClearPurchaseOrder(sender, e);
-                }
+                // Navigate back to purchase orders list page
+                Frame.Navigate(typeof(PurchaseOrdersPage));
             }
             catch (Exception ex)
             {
@@ -769,49 +807,63 @@ namespace PhoneStoreAdmin.View
 
                 var existingItem = PurchaseOrderItems.FirstOrDefault(item => item.ProductId == product.ProductId);
 
-                // If product is serial tracked, show dialog to enter serial numbers
+                // STEP 1: Always ask for quantity first
+                int quantityToAdd = 1;
+                
+                var quantityDialog = new ContentDialog
+                {
+                    Title = _resourceLoader.GetString("AddProductDialogTitle"),
+                    PrimaryButtonText = _resourceLoader.GetString("AddProductButton"),
+                    CloseButtonText = _resourceLoader.GetString("BtnCancel"),
+                    XamlRoot = this.XamlRoot
+                };
+
+                var numberBox = new NumberBox
+                {
+                    Minimum = 1,
+                    Maximum = 1000,
+                    Value = 1,
+                    SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline,
+                    Header = _resourceLoader.GetString("AddProductQuantityLabel")
+                };
+
+                var contentPanel = new StackPanel { Spacing = 12 };
+                
+                if (existingItem != null)
+                {
+                    contentPanel.Children.Add(new TextBlock 
+                    { 
+                        Text = string.Format(_resourceLoader.GetString("AddProductExistingMessage"), existingItem.Quantity),
+                        TextWrapping = TextWrapping.Wrap
+                    });
+                }
+                
+                // Show if product requires serial tracking
                 if (fullProduct.IsSerialTracked)
                 {
-                    // Ask for quantity first if it's a new item
-                    int quantityToAdd = 1;
-
-                    if (existingItem != null)
+                    contentPanel.Children.Add(new InfoBar
                     {
-                        // For existing items, ask if they want to add more
-                        var quantityDialog = new ContentDialog
-                        {
-                            Title = _resourceLoader.GetString("AddProductDialogTitle"),
-                            PrimaryButtonText = _resourceLoader.GetString("AddProductButton"),
-                            CloseButtonText = _resourceLoader.GetString("BtnCancel"),
-                            XamlRoot = this.XamlRoot
-                        };
+                        Severity = InfoBarSeverity.Informational,
+                        IsOpen = true,
+                        IsClosable = false,
+                        Message = "This product requires Serial Number"
+                    });
+                }
+                
+                contentPanel.Children.Add(numberBox);
+                quantityDialog.Content = contentPanel;
 
-                        var numberBox = new NumberBox
-                        {
-                            Minimum = 1,
-                            Maximum = 100,
-                            Value = 1,
-                            SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline
-                        };
+                var result = await quantityDialog.ShowAsync();
+                if (result != ContentDialogResult.Primary)
+                    return;
 
-                        quantityDialog.Content = new StackPanel
-                        {
-                            Spacing = 12,
-                            Children =
-                            {
-                                new TextBlock { Text = string.Format(_resourceLoader.GetString("AddProductExistingMessage"), existingItem.Quantity) },
-                                new TextBlock { Text = _resourceLoader.GetString("AddProductQuantityLabel") },
-                                numberBox
-                            }
-                        };
+                quantityToAdd = (int)numberBox.Value;
+                if (quantityToAdd <= 0)
+                    return;
 
-                        var result = await quantityDialog.ShowAsync();
-                        if (result != ContentDialogResult.Primary)
-                            return;
-
-                        quantityToAdd = (int)numberBox.Value;
-                    }
-
+                // STEP 2: If product is serial tracked, show serial input dialog
+                if (fullProduct.IsSerialTracked)
+                {
                     // Show serial number input dialog
                     var serialDialog = new SerialNumberInputDialog(product.ProductName, quantityToAdd)
                     {
@@ -820,100 +872,103 @@ namespace PhoneStoreAdmin.View
 
                     var dialogResult = await serialDialog.ShowAsync();
 
-                    if (dialogResult == ContentDialogResult.Primary)
+                    if (dialogResult != ContentDialogResult.Primary)
+                        return;
+
+                    // VALIDATE: Check for duplicates with existing serials in the purchase order
+                    var allExistingSerials = PurchaseOrderItems
+                        .SelectMany(i => i.SerialEntries)
+                        .Select(e => e.SerialNumber?.Trim()?.ToLower())
+                        .Where(s => !string.IsNullOrWhiteSpace(s))
+                        .ToHashSet();
+
+                    var newSerials = serialDialog.SerialEntries
+                        .Select(e => e.SerialNumber?.Trim()?.ToLower())
+                        .Where(s => !string.IsNullOrWhiteSpace(s))
+                        .ToList();
+
+                    var duplicatesWithExisting = newSerials
+                        .Where(s => allExistingSerials.Contains(s))
+                        .ToList();
+
+                    if (duplicatesWithExisting.Any())
                     {
-                        // VALIDATE: Check for duplicates with existing serials in the purchase order
-                        var allExistingSerials = PurchaseOrderItems
-                            .SelectMany(i => i.SerialEntries)
-                            .Select(e => e.SerialNumber?.Trim()?.ToLower())
-                            .Where(s => !string.IsNullOrWhiteSpace(s))
-                            .ToHashSet();
+                        await ShowMessageDialog(
+                            "Duplicate Serial",
+                            $"The following serials already exist in the purchase order:\n\n{string.Join(", ", duplicatesWithExisting.Select(s => s?.ToUpper()))}\n\nPlease enter different serials.");
+                        return;
+                    }
 
-                        var newSerials = serialDialog.SerialEntries
-                            .Select(e => e.SerialNumber?.Trim()?.ToLower())
-                            .Where(s => !string.IsNullOrWhiteSpace(s))
-                            .ToList();
-
-                        var duplicatesWithExisting = newSerials
-                            .Where(s => allExistingSerials.Contains(s))
-                            .ToList();
-
-                        if (duplicatesWithExisting.Any())
+                    // VALIDATE: Check for duplicates with existing serials in database
+                    try
+                    {
+                        var productSerialRepository = ProductSerialRepository;
+                        foreach (var newSerial in newSerials.Distinct())
                         {
-                            await ShowMessageDialog(
-                                "Serial bị trùng",
-                                $"Các serial sau đã tồn tại trong phiếu nhập:\n\n{string.Join(", ", duplicatesWithExisting.Select(s => s.ToUpper()))}\n\nVui lòng nhập serial khác.");
-                            return;
-                        }
-
-                        // VALIDATE: Check for duplicates with existing serials in database
-                        try
-                        {
-                            var productSerialRepository = ProductSerialRepository;
-                            foreach (var newSerial in newSerials.Distinct())
+                            if (string.IsNullOrWhiteSpace(newSerial)) continue;
+                            
+                            // Use TryGet instead of Get to avoid exception
+                            var existingSerial = productSerialRepository.TryGetBySerialNumber(newSerial);
+                            if (existingSerial != null)
                             {
-                                // Use TryGet instead of Get to avoid exception
-                                var existingSerial = productSerialRepository.TryGetBySerialNumber(newSerial);
-                                if (existingSerial != null)
-                                {
-                                    await ShowMessageDialog(
-                                        "Serial đã tồn tại",
-                                        $"Serial '{newSerial.ToUpper()}' đã tồn tại trong hệ thống.\n\nVui lòng nhập serial khác.");
-                                    return;
-                                }
+                                await ShowMessageDialog(
+                                    "Serial Already Exists",
+                                    $"Serial '{newSerial.ToUpper()}' already exists in the system.\n\nPlease enter a different serial.");
+                                return;
                             }
                         }
-                        catch (Exception ex)
+                    }
+                    catch (Exception ex)
+                    {
+                        await ShowMessageDialog(
+                            "Serial Validation Error",
+                            $"Unable to validate serial in the system: {ex.Message}");
+                        return;
+                    }
+
+                    if (existingItem != null)
+                    {
+                        // Add to existing item
+                        existingItem.Quantity += quantityToAdd;
+
+                        // Store serial entries for later
+                        int startIndex = existingItem.SerialEntries.Count + 1;
+                        for (int i = 0; i < serialDialog.SerialEntries.Count; i++)
                         {
-                            await ShowMessageDialog(
-                                "Lỗi kiểm tra serial",
-                                $"Không thể kiểm tra serial trong hệ thống: {ex.Message}");
-                            return;
+                            var entry = serialDialog.SerialEntries[i];
+                            entry.Index = startIndex + i;
+                            existingItem.SerialEntries.Add(entry);
+                        }
+                    }
+                    else
+                    {
+                        // Create new item
+                        var newItem = new PurchaseOrderLineItem
+                        {
+                            ProductId = product.ProductId,
+                            ProductName = product.ProductName,
+                            UnitCost = product.CurrentCost,
+                            Quantity = quantityToAdd,
+                            ProfitMargin = _minimumProfitMargin,
+                            IsSerialTracked = true,
+                            ParentPage = this
+                        };
+
+                        // Store serial entries
+                        foreach (var entry in serialDialog.SerialEntries)
+                        {
+                            newItem.SerialEntries.Add(entry);
                         }
 
-                        if (existingItem != null)
-                        {
-                            // Add to existing item
-                            existingItem.Quantity += quantityToAdd;
-
-                            // Store serial entries for later
-                            int startIndex = existingItem.SerialEntries.Count + 1;
-                            for (int i = 0; i < serialDialog.SerialEntries.Count; i++)
-                            {
-                                var entry = serialDialog.SerialEntries[i];
-                                entry.Index = startIndex + i;
-                                existingItem.SerialEntries.Add(entry);
-                            }
-                        }
-                        else
-                        {
-                            // Create new item
-                            var newItem = new PurchaseOrderLineItem
-                            {
-                                ProductId = product.ProductId,
-                                ProductName = product.ProductName,
-                                UnitCost = product.CurrentCost,
-                                Quantity = quantityToAdd,
-                                IsSerialTracked = true,
-                                ParentPage = this
-                            };
-
-                            // Store serial entries
-                            foreach (var entry in serialDialog.SerialEntries)
-                            {
-                                newItem.SerialEntries.Add(entry);
-                            }
-
-                            PurchaseOrderItems.Add(newItem);
-                        }
+                        PurchaseOrderItems.Add(newItem);
                     }
                 }
                 else
                 {
-                    // For non-serial tracked products, just add quantity
+                    // STEP 3: For non-serial tracked products, just add quantity
                     if (existingItem != null)
                     {
-                        existingItem.Quantity++;
+                        existingItem.Quantity += quantityToAdd;
                     }
                     else
                     {
@@ -923,6 +978,7 @@ namespace PhoneStoreAdmin.View
                             ProductName = product.ProductName,
                             UnitCost = product.CurrentCost,
                             Quantity = 1,
+                            ProfitMargin = _minimumProfitMargin,
                             IsSerialTracked = false,
                             ParentPage = this
                         };
@@ -983,6 +1039,7 @@ namespace PhoneStoreAdmin.View
                                 ProductName = product.Name,
                                 UnitCost = product.Cost,
                                 Quantity = quantity,
+                                ProfitMargin = _minimumProfitMargin,
                                 IsSerialTracked = product.IsSerialTracked,
                                 ParentPage = this
                             };
@@ -1001,8 +1058,8 @@ namespace PhoneStoreAdmin.View
                     }
 
                     await ShowMessageDialog(
-                        "Import thành công",
-                        $"Đã import {dialog.ValidatedProducts.Count} sản phẩm với tổng {dialog.ValidatedProducts.Sum(p => p.quantity)} items.");
+                        "Import Successful",
+                        $"Imported {dialog.ValidatedProducts.Count} products with total {dialog.ValidatedProducts.Sum(p => p.quantity)} items.");
                 }
             }
             catch (Exception ex)
@@ -1025,6 +1082,265 @@ namespace PhoneStoreAdmin.View
 
             await dialog.ShowAsync();
         }
+
+        #region Bulk Price Edit Methods
+
+        /// <summary>
+        /// Get distinct categories from products in the purchase order
+        /// </summary>
+        public List<string> GetPurchaseOrderCategories()
+        {
+            var categories = PurchaseOrderItems
+                .Select(item => 
+                {
+                    var product = ProductRepository.GetById(item.ProductId);
+                    if (product != null)
+                    {
+                        var category = CategoryRepository.GetById(product.CategoryId);
+                        return category?.Name ?? "Unknown";
+                    }
+                    return "Unknown";
+                })
+                .Distinct()
+                .OrderBy(c => c)
+                .ToList();
+            
+            return categories;
+        }
+
+        /// <summary>
+        /// Get distinct brands from products in the purchase order
+        /// </summary>
+        public List<string> GetPurchaseOrderBrands()
+        {
+            var brands = PurchaseOrderItems
+                .Select(item =>
+                {
+                    var product = ProductRepository.GetById(item.ProductId);
+                    if (product?.BrandId != null)
+                    {
+                        var brand = BrandRepository.GetById(product.BrandId.Value);
+                        return brand?.Name ?? "Unknown";
+                    }
+                    return "No Brand";
+                })
+                .Distinct()
+                .OrderBy(b => b)
+                .ToList();
+
+            return brands;
+        }
+
+        /// <summary>
+        /// Get info string about minimum profit margin
+        /// </summary>
+        public string GetMinProfitMarginInfo()
+        {
+            return $"Minimum profit margin: {_minimumProfitMargin:P0} (system setting)";
+        }
+
+        /// <summary>
+        /// Handle scope radio button changes - show/hide category/brand combo boxes
+        /// </summary>
+        private void OnApplyScopeChanged(object sender, RoutedEventArgs e)
+        {
+            // Check if controls are initialized
+            if (BulkEditCategoryCombo == null || BulkEditBrandCombo == null)
+                return;
+
+            if (ApplyToAllRadio.IsChecked == true)
+            {
+                BulkEditCategoryCombo.Visibility = Visibility.Collapsed;
+                BulkEditBrandCombo.Visibility = Visibility.Collapsed;
+            }
+            else if (ApplyToCategoryRadio.IsChecked == true)
+            {
+                // Load categories from products in purchase order
+                var categories = GetPurchaseOrderCategories();
+                BulkEditCategoryCombo.ItemsSource = categories;
+                BulkEditCategoryCombo.SelectedIndex = categories.Count > 0 ? 0 : -1;
+                
+                BulkEditCategoryCombo.Visibility = Visibility.Visible;
+                BulkEditBrandCombo.Visibility = Visibility.Collapsed;
+            }
+            else if (ApplyToBrandRadio.IsChecked == true)
+            {
+                // Load brands from products in purchase order
+                var brands = GetPurchaseOrderBrands();
+                BulkEditBrandCombo.ItemsSource = brands;
+                BulkEditBrandCombo.SelectedIndex = brands.Count > 0 ? 0 : -1;
+                
+                BulkEditCategoryCombo.Visibility = Visibility.Collapsed;
+                BulkEditBrandCombo.Visibility = Visibility.Visible;
+            }
+        }
+
+        /// <summary>
+        /// Apply bulk price edit to selected products
+        /// </summary>
+        public async void OnApplyBulkPriceEdit(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Get the input value
+                if (double.IsNaN(BulkEditValueBox.Value) || BulkEditValueBox.Value < 0)
+                {
+                    await ShowMessageDialog("Invalid Value", "Please enter a valid positive number.");
+                    return;
+                }
+
+                var inputValue = BulkEditValueBox.Value;
+
+                // Determine which products to apply to
+                var targetItems = GetTargetItemsForBulkEdit();
+
+                if (targetItems == null)
+                {
+                    // null means user needs to select category/brand
+                    return;
+                }
+
+                if (!targetItems.Any())
+                {
+                    await ShowMessageDialog("No Products", "No products match the selected filter.");
+                    return;
+                }
+
+                // Determine edit mode and apply changes
+                if (EditByProfitMarginRadio.IsChecked == true)
+                {
+                    // Input is profit margin percentage (e.g., 25 for 25%)
+                    var profitMargin = (float)(inputValue / 100.0);
+                    
+                    if (profitMargin < _minimumProfitMargin)
+                    {
+                        await ShowMessageDialog(
+                            "Invalid Profit Margin",
+                            $"Profit margin must be at least {_minimumProfitMargin:P0} (system setting).");
+                        return;
+                    }
+
+                    foreach (var item in targetItems)
+                    {
+                        item.ProfitMargin = profitMargin;
+                    }
+                }
+                else if (EditByUnitCostRadio.IsChecked == true)
+                {
+                    // Input is unit cost - need to recalculate profit margin based on current selling price
+                    // Or just set unit cost and keep profit margin
+                    var unitCost = (decimal)inputValue;
+
+                    foreach (var item in targetItems)
+                    {
+                        item.UnitCost = unitCost;
+                        // Profit margin stays the same, selling price will be recalculated
+                    }
+                }
+                else if (EditBySellingPriceRadio.IsChecked == true)
+                {
+                    // Input is selling price - calculate profit margin from unit cost
+                    var sellingPrice = (decimal)inputValue;
+
+                    var invalidItems = new List<string>();
+
+                    foreach (var item in targetItems)
+                    {
+                        if (item.UnitCost <= 0)
+                        {
+                            invalidItems.Add($"{item.ProductName}: Unit cost is 0");
+                            continue;
+                        }
+
+                        // Calculate profit margin: sellingPrice = unitCost * (1 + profitMargin)
+                        // profitMargin = (sellingPrice / unitCost) - 1
+                        var calculatedMargin = (float)((sellingPrice / item.UnitCost) - 1);
+
+                        if (calculatedMargin < _minimumProfitMargin)
+                        {
+                            invalidItems.Add($"{item.ProductName}: Calculated margin {calculatedMargin:P0} < minimum {_minimumProfitMargin:P0}");
+                            continue;
+                        }
+
+                        item.ProfitMargin = calculatedMargin;
+                    }
+
+                    if (invalidItems.Any())
+                    {
+                        await ShowMessageDialog(
+                            "Some Products Skipped",
+                            $"The following products were not updated:\n\n{string.Join("\n", invalidItems)}");
+                    }
+                }
+
+                // Recalculate totals
+                CalculatePurchaseOrderTotal();
+
+                await ShowMessageDialog(
+                    "Success",
+                    $"Updated pricing for {targetItems.Count} product(s).");
+            }
+            catch (Exception ex)
+            {
+                await ShowMessageDialog("Error", $"Failed to apply bulk price edit: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Get the list of items to apply bulk edit based on selected scope
+        /// Returns null if category/brand needs to be selected
+        /// </summary>
+        private List<PurchaseOrderLineItem>? GetTargetItemsForBulkEdit()
+        {
+            if (ApplyToAllRadio.IsChecked == true)
+            {
+                return PurchaseOrderItems.ToList();
+            }
+            else if (ApplyToCategoryRadio.IsChecked == true)
+            {
+                var selectedCategory = BulkEditCategoryCombo.SelectedItem as string;
+                if (string.IsNullOrEmpty(selectedCategory))
+                {
+                    _ = ShowMessageDialog("Select Category", "Please select a category to apply the bulk edit.");
+                    return null;
+                }
+
+                return PurchaseOrderItems.Where(item =>
+                {
+                    var product = ProductRepository.GetById(item.ProductId);
+                    if (product != null)
+                    {
+                        var category = CategoryRepository.GetById(product.CategoryId);
+                        return category?.Name == selectedCategory;
+                    }
+                    return false;
+                }).ToList();
+            }
+            else if (ApplyToBrandRadio.IsChecked == true)
+            {
+                var selectedBrand = BulkEditBrandCombo.SelectedItem as string;
+                if (string.IsNullOrEmpty(selectedBrand))
+                {
+                    _ = ShowMessageDialog("Select Brand", "Please select a brand to apply the bulk edit.");
+                    return null;
+                }
+
+                return PurchaseOrderItems.Where(item =>
+                {
+                    var product = ProductRepository.GetById(item.ProductId);
+                    if (product?.BrandId != null)
+                    {
+                        var brand = BrandRepository.GetById(product.BrandId.Value);
+                        return brand?.Name == selectedBrand;
+                    }
+                    return selectedBrand == "No Brand" && product?.BrandId == null;
+                }).ToList();
+            }
+
+            return new List<PurchaseOrderLineItem>();
+        }
+
+        #endregion
 
         // Helper method to get Window from UIElement
         private Window? GetWindowForElement(UIElement element)
@@ -1095,6 +1411,7 @@ namespace PhoneStoreAdmin.View
         private int _quantity = 1;
         private decimal _unitCost = 0;
         private bool _isSerialTracked = false;
+        private float _profitMargin = 0.2f; // Default 20%, will be overwritten by page's minimum
 
         public int ProductId { get; set; }
         public string ProductName { get; set; } = string.Empty;
@@ -1114,6 +1431,7 @@ namespace PhoneStoreAdmin.View
             {
                 SetProperty(ref _quantity, value);
                 OnPropertyChanged(nameof(TotalCost));
+                OnPropertyChanged(nameof(CalculatedSellingPrice));
                 ParentPage?.CalculatePurchaseOrderTotal();
             }
         }
@@ -1126,6 +1444,7 @@ namespace PhoneStoreAdmin.View
                 SetProperty(ref _unitCost, value);
                 OnPropertyChanged(nameof(TotalCost));
                 OnPropertyChanged(nameof(UnitCostDouble));
+                OnPropertyChanged(nameof(CalculatedSellingPrice));
                 ParentPage?.CalculatePurchaseOrderTotal();
             }
         }
@@ -1138,6 +1457,34 @@ namespace PhoneStoreAdmin.View
                 UnitCost = (decimal)value;
             }
         }
+
+        public float ProfitMargin
+        {
+            get => _profitMargin;
+            set
+            {
+                SetProperty(ref _profitMargin, value);
+                OnPropertyChanged(nameof(ProfitMarginPercent));
+                OnPropertyChanged(nameof(CalculatedSellingPrice));
+            }
+        }
+
+        /// <summary>
+        /// Profit margin as percentage for NumberBox (e.g., 20 for 20%)
+        /// </summary>
+        public double ProfitMarginPercent
+        {
+            get => _profitMargin * 100;
+            set
+            {
+                ProfitMargin = (float)(value / 100.0);
+            }
+        }
+
+        /// <summary>
+        /// Giá bán tính toán = UnitCost * (1 + ProfitMargin)
+        /// </summary>
+        public decimal CalculatedSellingPrice => UnitCost * (1 + (decimal)ProfitMargin);
 
         public bool IsSerialTracked
         {
@@ -1185,63 +1532,6 @@ namespace PhoneStoreAdmin.View
         public async void EditSerialNumbers(object sender, RoutedEventArgs e)
         {
             await ParentPage?.EditSerialNumbersForProduct(this);
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-        {
-            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-            field = value;
-            OnPropertyChanged(propertyName);
-            return true;
-        }
-
-        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
-
-    public class SerialEntry : INotifyPropertyChanged
-    {
-        private int _index;
-        private string _serialNumber = string.Empty;
-        private string _imei1 = string.Empty;
-        private string _imei2 = string.Empty;
-
-        public int Index
-        {
-            get => _index;
-            set => SetProperty(ref _index, value);
-        }
-
-        public string SerialNumber
-        {
-            get => _serialNumber;
-            set => SetProperty(ref _serialNumber, value);
-        }
-
-        public string Imei1
-        {
-            get => _imei1;
-            set => SetProperty(ref _imei1, value);
-        }
-
-        public string Imei2
-        {
-            get => _imei2;
-            set => SetProperty(ref _imei2, value);
-        }
-
-        public string GetMachineTitle()
-        {
-            return $"Máy {Index}";
-        }
-
-        public Visibility HasImei2()
-        {
-            return string.IsNullOrWhiteSpace(Imei2) ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

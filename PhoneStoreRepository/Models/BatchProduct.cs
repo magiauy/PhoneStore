@@ -12,6 +12,7 @@ namespace PhoneStoreRepository.Models
         private int _quantity = 0;
         private decimal _costPrice = 0;
         private decimal _sellingPrice = 0;
+        private float _profitMargin = 0;
 
         // Public properties with backing fields
         [Key]
@@ -59,6 +60,16 @@ namespace PhoneStoreRepository.Models
             set => _sellingPrice = value;
         }
 
+        /// <summary>
+        /// Biên độ lợi nhuận (percentage, ví dụ: 0.20 = 20%)
+        /// </summary>
+        [Range(0, 1)]
+        public float ProfitMargin
+        {
+            get => _profitMargin;
+            set => _profitMargin = value;
+        }
+
         // Constructors
         public BatchProduct()
         {
@@ -68,9 +79,10 @@ namespace PhoneStoreRepository.Models
             _quantity = 0;
             _costPrice = 0;
             _sellingPrice = 0;
+            _profitMargin = 0;
         }
 
-        public BatchProduct(int batchId, int productId, int quantity, decimal costPrice, decimal sellingPrice)
+        public BatchProduct(int batchId, int productId, int quantity, decimal costPrice, decimal sellingPrice, float profitMargin = 0)
         {
             _id = 0;
             _batchId = batchId;
@@ -78,6 +90,7 @@ namespace PhoneStoreRepository.Models
             _quantity = quantity;
             _costPrice = costPrice;
             _sellingPrice = sellingPrice;
+            _profitMargin = profitMargin;
         }
     }
 }

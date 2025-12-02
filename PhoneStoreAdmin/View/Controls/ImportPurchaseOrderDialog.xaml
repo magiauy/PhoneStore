@@ -11,7 +11,7 @@
     PrimaryButtonText="Import"
     mc:Ignorable="d">
 
-    <Grid Width="900" Height="600">
+    <Grid Width="700" Height="600">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -51,7 +51,7 @@
                 Content="Download Excel Template" />
             <TextBlock
                 Foreground="Gray"
-                Text="Template format: Product ID | Serial Number | IMEI1 | IMEI2"
+                Text="Template format: Product ID | Serial Number"
                 TextWrapping="Wrap" />
         </StackPanel>
 
@@ -67,19 +67,15 @@
                         <ListView.Header>
                             <Grid Padding="8" Background="LightGray">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="50" />
-                                    <ColumnDefinition Width="100" />
-                                    <ColumnDefinition Width="150" />
-                                    <ColumnDefinition Width="150" />
-                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="60" />
+                                    <ColumnDefinition Width="120" />
+                                    <ColumnDefinition Width="200" />
                                     <ColumnDefinition Width="*" MinWidth="200" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Row" FontWeight="Bold" />
                                 <TextBlock Grid.Column="1" Text="Product ID *" FontWeight="Bold" />
-                                <TextBlock Grid.Column="2" Text="Serial *" FontWeight="Bold" />
-                                <TextBlock Grid.Column="3" Text="IMEI1 *" FontWeight="Bold" />
-                                <TextBlock Grid.Column="4" Text="IMEI2" FontWeight="Bold" />
-                                <TextBlock Grid.Column="5" Text="Error" FontWeight="Bold" />
+                                <TextBlock Grid.Column="2" Text="Serial Number *" FontWeight="Bold" />
+                                <TextBlock Grid.Column="3" Text="Error" FontWeight="Bold" />
                             </Grid>
                         </ListView.Header>
 
@@ -87,11 +83,9 @@
                             <DataTemplate>
                                 <Grid Padding="8">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="50" />
-                                        <ColumnDefinition Width="100" />
-                                        <ColumnDefinition Width="150" />
-                                        <ColumnDefinition Width="150" />
-                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="60" />
+                                        <ColumnDefinition Width="120" />
+                                        <ColumnDefinition Width="200" />
                                         <ColumnDefinition Width="*" MinWidth="200" />
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{Binding RowNumber}" />
@@ -105,14 +99,6 @@
                                         TextTrimming="CharacterEllipsis" />
                                     <TextBlock
                                         Grid.Column="3"
-                                        Text="{Binding Imei1}"
-                                        TextTrimming="CharacterEllipsis" />
-                                    <TextBlock
-                                        Grid.Column="4"
-                                        Text="{Binding Imei2}"
-                                        TextTrimming="CharacterEllipsis" />
-                                    <TextBlock
-                                        Grid.Column="5"
                                         FontWeight="SemiBold"
                                         Foreground="Red"
                                         Text="{Binding ErrorMessage}"
