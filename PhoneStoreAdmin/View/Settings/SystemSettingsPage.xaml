@@ -1,0 +1,645 @@
+<Page
+    x:Class="PhoneStoreAdmin.View.SystemSettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:PhoneStoreAdmin.View"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:primitives="using:Microsoft.UI.Xaml.Controls.Primitives"
+    Background="{StaticResource BrushBackground}"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <ThemeShadow x:Name="SharedShadow" />
+        <local:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <SolidColorBrush Opacity="0.95" Color="{StaticResource ColorSurface}" />
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+        </Style>
+        
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource BrushPrimary}" />
+            <Setter Property="Foreground" Value="{StaticResource BrushOnPrimary}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="20,14" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border
+                                x:Name="RootBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="{TemplateBinding CornerRadius}">
+                                <ContentPresenter
+                                    Margin="{TemplateBinding Padding}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                    Foreground="{TemplateBinding Foreground}" />
+                            </Border>
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="PointerOver">
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder" Storyboard.TargetProperty="Background">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource BrushPrimaryHover}" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder" Storyboard.TargetProperty="Background">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource BrushPrimaryPressed}" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Disabled">
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="RootBorder"
+                                                Storyboard.TargetProperty="Opacity"
+                                                To="0.6"
+                                                Duration="0:0:0" />
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <SolidColorBrush Color="{StaticResource ColorSurface}" />
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="FontWeight" Value="Medium" />
+        </Style>
+        
+        <Style x:Key="InputStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+    </Page.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        
+        <Grid Grid.RowSpan="2">
+            <Rectangle>
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Offset="0" Color="{StaticResource ColorBackground}" />
+                        <GradientStop Offset="0.5" Color="#FFF0F2FF" />
+                        <GradientStop Offset="1" Color="#FFE8ECFF" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+            <Grid>
+                <Ellipse
+                    Width="400"
+                    Height="400"
+                    Margin="-200,-100,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Opacity="0.1">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Offset="0" Color="{StaticResource ColorPrimary}" />
+                            <GradientStop Offset="1" Color="{StaticResource ColorPrimaryLight}" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+                <Ellipse
+                    Width="300"
+                    Height="300"
+                    Margin="0,0,-150,-150"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Opacity="0.1">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Offset="0" Color="{StaticResource ColorAccent}" />
+                            <GradientStop Offset="1" Color="Transparent" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+            </Grid>
+        </Grid>
+        
+        <!-- Header Card -->
+        <Border
+            Grid.Row="0"
+            Margin="32,32,32,24"
+            Shadow="{StaticResource SharedShadow}"
+            Style="{StaticResource CardStyle}">
+            <Grid Padding="32,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel
+                    Grid.Column="0"
+                    Orientation="Vertical"
+                    Spacing="8">
+                    <TextBlock
+                        x:Name="HeaderTitle"
+                        FontSize="36"
+                        FontWeight="Bold">
+                        <TextBlock.Foreground>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Offset="0" Color="{StaticResource ColorPrimary}" />
+                                <GradientStop Offset="1" Color="{StaticResource ColorAccent}" />
+                            </LinearGradientBrush>
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                    <TextBlock
+                        x:Name="HeaderSubtitle"
+                        FontSize="16"
+                        Foreground="{StaticResource BrushTextSecondary}" />
+                </StackPanel>
+                
+                <!-- Initialize Settings Button - shown when settings are missing -->
+                <Button
+                    x:Name="InitializeSettingsButton"
+                    Grid.Column="1"
+                    Padding="20,14"
+                    VerticalAlignment="Center"
+                    Click="BtnInitializeSettings_Click"
+                    Visibility="Collapsed"
+                    Shadow="{StaticResource SharedShadow}"
+                    Style="{StaticResource PrimaryButtonStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon FontSize="18" Glyph="&#xE713;" />
+                        <TextBlock x:Name="BtnInitializeSettingsText" FontSize="15" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+        
+        <Grid Grid.Row="1" Margin="32,0,32,32">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            
+            <!-- Search/Filter Card -->
+            <Border
+                Grid.Row="0"
+                Margin="0,0,0,24"
+                Padding="24,20"
+                Shadow="{StaticResource SharedShadow}"
+                Style="{StaticResource CardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <AutoSuggestBox
+                        x:Name="SearchBox"
+                        Grid.Column="0"
+                        Margin="0,0,16,0"
+                        Padding="16,10"
+                        VerticalContentAlignment="Center"
+                        Background="Transparent"
+                        BorderBrush="{StaticResource BrushBorder}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        FontSize="15"
+                        QueryIcon="Find"
+                        TextChanged="SearchBox_TextChanged" />
+                    <StackPanel
+                        Grid.Column="1"
+                        Orientation="Horizontal"
+                        Spacing="12">
+                        <Button
+                            x:Name="RefreshButton"
+                            Padding="14"
+                            Click="BtnClearFilter_Click"
+                            Shadow="{StaticResource SharedShadow}"
+                            Style="{StaticResource SecondaryButtonStyle}">
+                            <FontIcon
+                                FontSize="16"
+                                Foreground="{StaticResource BrushPrimary}"
+                                Glyph="&#xE72C;" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Data Table Card -->
+            <Border
+                Grid.Row="1"
+                Padding="0"
+                Shadow="{StaticResource SharedShadow}"
+                Style="{StaticResource CardStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Table Header -->
+                    <Border
+                        Grid.Row="0"
+                        Padding="32,20"
+                        BorderBrush="{StaticResource BrushBorder}"
+                        BorderThickness="0,0,0,1"
+                        CornerRadius="12,12,0,0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Offset="0" Color="#FFFAFBFF" />
+                                <GradientStop Offset="1" Color="#FFF5F7FF" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="80" />
+                                <ColumnDefinition Width="*" MinWidth="200" />
+                                <ColumnDefinition Width="*" MinWidth="200" />
+                                <ColumnDefinition Width="120" />
+                                <ColumnDefinition Width="100" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                x:Name="ColIdHeader"
+                                Grid.Column="0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTextSecondary}" />
+                            <TextBlock
+                                x:Name="ColCodeHeader"
+                                Grid.Column="1"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTextSecondary}" />
+                            <TextBlock
+                                x:Name="ColValueHeader"
+                                Grid.Column="2"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTextSecondary}" />
+                            <TextBlock
+                                x:Name="ColTypeHeader"
+                                Grid.Column="3"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTextSecondary}" />
+                            <TextBlock
+                                x:Name="ColActionsHeader"
+                                Grid.Column="4"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTextSecondary}" />
+                        </Grid>
+                    </Border>
+                    
+                    <!-- Table Body -->
+                    <ScrollViewer
+                        Grid.Row="1"
+                        HorizontalScrollBarVisibility="Hidden"
+                        VerticalScrollBarVisibility="Auto">
+                        <ListView
+                            x:Name="SettingsListView"
+                            Background="Transparent"
+                            ItemsSource="{x:Bind Settings, Mode=OneWay}"
+                            SelectionMode="None">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Margin" Value="0" />
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListViewItem">
+                                                <Border
+                                                    x:Name="ItemBorder"
+                                                    Padding="32,20"
+                                                    Background="{TemplateBinding Background}"
+                                                    BorderBrush="{StaticResource BrushBorder}"
+                                                    BorderThickness="0,0,0,1">
+                                                    <Grid>
+                                                        <Rectangle
+                                                            x:Name="HoverBackground"
+                                                            Fill="Transparent"
+                                                            Opacity="0" />
+                                                        <ContentPresenter />
+                                                    </Grid>
+                                                    <VisualStateManager.VisualStateGroups>
+                                                        <VisualStateGroup x:Name="CommonStates">
+                                                            <VisualState x:Name="Normal">
+                                                                <Storyboard>
+                                                                    <DoubleAnimation
+                                                                        Storyboard.TargetName="HoverBackground"
+                                                                        Storyboard.TargetProperty="Opacity"
+                                                                        To="0"
+                                                                        Duration="0:0:0.2" />
+                                                                </Storyboard>
+                                                            </VisualState>
+                                                            <VisualState x:Name="PointerOver">
+                                                                <Storyboard>
+                                                                    <DoubleAnimation
+                                                                        Storyboard.TargetName="HoverBackground"
+                                                                        Storyboard.TargetProperty="Opacity"
+                                                                        To="0.03"
+                                                                        Duration="0:0:0.2" />
+                                                                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverBackground" Storyboard.TargetProperty="Fill">
+                                                                        <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource BrushPrimary}" />
+                                                                    </ObjectAnimationUsingKeyFrames>
+                                                                </Storyboard>
+                                                            </VisualState>
+                                                        </VisualStateGroup>
+                                                    </VisualStateManager.VisualStateGroups>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid DoubleTapped="Grid_DoubleTapped" Background="Transparent">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="*" MinWidth="200" />
+                                            <ColumnDefinition Width="*" MinWidth="200" />
+                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="100" />
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <!-- ID Badge -->
+                                        <Border
+                                            Grid.Column="0"
+                                            Width="32"
+                                            Height="32"
+                                            HorizontalAlignment="Center"
+                                            Background="{StaticResource BrushPrimaryLight}"
+                                            CornerRadius="8">
+                                            <TextBlock
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                FontSize="14"
+                                                FontWeight="Bold"
+                                                Foreground="{StaticResource BrushPrimary}"
+                                                Text="{Binding Id}" />
+                                        </Border>
+                                        
+                                        <!-- Code -->
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            FontSize="14"
+                                            FontWeight="SemiBold"
+                                            Foreground="{StaticResource BrushText}"
+                                            Text="{Binding Code}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="NoWrap">
+                                            <ToolTipService.ToolTip>
+                                                <ToolTip Content="{Binding Code}" />
+                                            </ToolTipService.ToolTip>
+                                        </TextBlock>
+                                        
+                                        <!-- Value -->
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            FontSize="14"
+                                            Foreground="{StaticResource BrushTextSecondary}"
+                                            Text="{Binding Value}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="NoWrap">
+                                            <ToolTipService.ToolTip>
+                                                <ToolTip Content="{Binding Value}" />
+                                            </ToolTipService.ToolTip>
+                                        </TextBlock>
+                                        
+                                        <!-- Type Badge -->
+                                        <Border
+                                            Grid.Column="3"
+                                            Padding="12,6"
+                                            HorizontalAlignment="Center"
+                                            Background="{StaticResource BrushPrimaryLight}"
+                                            CornerRadius="12">
+                                            <TextBlock
+                                                FontSize="12"
+                                                FontWeight="Medium"
+                                                Foreground="{StaticResource BrushPrimary}"
+                                                Text="{Binding Type}" />
+                                        </Border>
+                                        
+                                        <!-- Actions Button -->
+                                        <Button
+                                            Grid.Column="4"
+                                            Width="36"
+                                            Height="36"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Click="BtnEdit_Click"
+                                            CornerRadius="8"
+                                            Tag="{Binding Id}"
+                                            ToolTipService.ToolTip="Edit">
+                                            <FontIcon
+                                                FontSize="16"
+                                                Foreground="{StaticResource BrushPrimary}"
+                                                Glyph="&#xE104;" />
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </ScrollViewer>
+                    
+                    <!-- Empty State -->
+                    <Grid
+                        x:Name="EmptyStatePanel"
+                        Grid.Row="1"
+                        Padding="60"
+                        Visibility="Collapsed">
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Orientation="Vertical"
+                            Spacing="24">
+                            <Border
+                                Width="80"
+                                Height="80"
+                                Background="{StaticResource BrushPrimaryLight}"
+                                CornerRadius="40">
+                                <FontIcon
+                                    FontSize="32"
+                                    Foreground="{StaticResource BrushPrimary}"
+                                    Glyph="&#xE713;" />
+                            </Border>
+                            <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                <TextBlock
+                                    x:Name="EmptyStateTitle"
+                                    HorizontalAlignment="Center"
+                                    FontSize="24"
+                                    FontWeight="SemiBold"
+                                    Foreground="{StaticResource BrushText}" />
+                                <TextBlock
+                                    x:Name="EmptyStateDescription"
+                                    HorizontalAlignment="Center"
+                                    FontSize="16"
+                                    Foreground="{StaticResource BrushTextSecondary}"
+                                    TextAlignment="Center"
+                                    TextWrapping="WrapWholeWords" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                    
+                    <!-- Footer with Pagination -->
+                    <Border
+                        Grid.Row="2"
+                        Padding="32,20"
+                        BorderBrush="{StaticResource BrushBorder}"
+                        BorderThickness="0,1,0,0"
+                        CornerRadius="0,0,12,12">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Offset="0" Color="#FFF5F7FF" />
+                                <GradientStop Offset="1" Color="#FFFAFBFF" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            
+                            <StackPanel
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal"
+                                Spacing="16">
+                                <Border
+                                    Padding="16,8"
+                                    Background="{StaticResource BrushPrimaryLight}"
+                                    CornerRadius="16">
+                                    <TextBlock
+                                        FontSize="14"
+                                        FontWeight="SemiBold"
+                                        Foreground="{StaticResource BrushPrimary}">
+                                        <Run x:Name="ShowingText" />
+                                        <Run x:Name="RecordCountText" Text="0" />
+                                        <Run x:Name="SettingsText" />
+                                    </TextBlock>
+                                </Border>
+                            </StackPanel>
+                            
+                            <StackPanel
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="12">
+                                <Button
+                                    x:Name="PreviousPageButton"
+                                    Width="40"
+                                    Height="40"
+                                    Padding="0"
+                                    Click="BtnLastPage_Click"
+                                    IsEnabled="False"
+                                    Style="{StaticResource SecondaryButtonStyle}">
+                                    <FontIcon FontSize="16" Glyph="&#xE760;" />
+                                </Button>
+                                <Border
+                                    Padding="20,10"
+                                    VerticalAlignment="Center"
+                                    Background="{StaticResource BrushPrimaryLight}"
+                                    CornerRadius="20">
+                                    <TextBlock
+                                        FontSize="14"
+                                        FontWeight="Bold"
+                                        Foreground="{StaticResource BrushPrimary}">
+                                        <Run x:Name="PageText" />
+                                        <Run x:Name="PageInfoText" Text="1 / 1" />
+                                    </TextBlock>
+                                </Border>
+                                <Button
+                                    x:Name="NextPageButton"
+                                    Width="40"
+                                    Height="40"
+                                    Padding="0"
+                                    Click="BtnNextPage_Click"
+                                    IsEnabled="False"
+                                    Style="{StaticResource SecondaryButtonStyle}">
+                                    <FontIcon FontSize="16" Glyph="&#xE761;" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+        
+        <!-- Edit Dialog Overlay -->
+        <ContentDialog
+            x:Name="EditDialog"
+            PrimaryButtonClick="EditDialog_PrimaryButtonClick"
+            SecondaryButtonClick="EditDialog_SecondaryButtonClick">
+            <StackPanel Spacing="16" MinWidth="400">
+                <TextBox
+                    x:Name="EditCodeTextBox"
+                    Style="{StaticResource InputStyle}"
+                    IsReadOnly="True"
+                    IsEnabled="False" />
+                <TextBox
+                    x:Name="EditValueTextBox"
+                    Style="{StaticResource InputStyle}"
+                    AcceptsReturn="True"
+                    TextWrapping="Wrap"
+                    Height="100" />
+                <ComboBox
+                    x:Name="EditTypeComboBox"
+                    HorizontalAlignment="Stretch"
+                    IsEnabled="False">
+                    <ComboBoxItem Content="string" Tag="string" />
+                    <ComboBoxItem Content="number" Tag="number" />
+                    <ComboBoxItem Content="percentage" Tag="percentage" />
+                    <ComboBoxItem Content="boolean" Tag="boolean" />
+                    <ComboBoxItem Content="json" Tag="json" />
+                </ComboBox>
+            </StackPanel>
+        </ContentDialog>
+    </Grid>
+</Page>

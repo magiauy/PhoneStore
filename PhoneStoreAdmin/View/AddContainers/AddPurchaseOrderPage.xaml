@@ -188,7 +188,7 @@
                             VerticalAlignment="Bottom"
                             Click="{x:Bind OnImportFromExcel}"
                             Style="{StaticResource AccentButtonStyle}"
-                            ToolTipService.ToolTip="Import products with serial/IMEI from Excel file">
+                            ToolTipService.ToolTip="Import products with serial from Excel file">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon FontSize="16" Glyph="&#xE8B5;" />
                                 <TextBlock Text="Import Excel" />
@@ -237,11 +237,6 @@
                                                     FontSize="13"
                                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                     Text="{x:Bind BrandName}" />
-                                                <TextBlock
-                                                    FontSize="16"
-                                                    FontWeight="SemiBold"
-                                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                                    Text="{x:Bind FormatPrice(CurrentCost)}" />
                                             </StackPanel>
 
                                             <!--  Add Button  -->
@@ -268,6 +263,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
@@ -388,16 +384,6 @@
                                                                 FontWeight="SemiBold"
                                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                                 Text="{x:Bind Quantity, Mode=OneWay}" />
-                                                            <TextBlock
-                                                                x:Uid="UnitCostLabel"
-                                                                FontSize="12"
-                                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                                Text="Unit Cost:" />
-                                                            <TextBlock
-                                                                FontSize="12"
-                                                                FontWeight="SemiBold"
-                                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                                Text="{x:Bind FormatPrice(UnitCost), Mode=OneWay}" />
                                                         </StackPanel>
                                                     </StackPanel>
 
@@ -433,6 +419,54 @@
                                                         <FontIcon FontSize="14" Glyph="&#xE738;" />
                                                     </Button>
                                                 </Grid>
+
+                                                <!--  Pricing Section  -->
+                                                <Border Padding="16,8" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                                                    <Grid ColumnSpacing="12" RowSpacing="8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                        </Grid.RowDefinitions>
+
+                                                        <!--  Unit Cost  -->
+                                                        <NumberBox
+                                                            Grid.Row="0"
+                                                            Grid.Column="0"
+                                                            Header="Giá nhập"
+                                                            Minimum="0"
+                                                            SpinButtonPlacementMode="Compact"
+                                                            Value="{x:Bind UnitCostDouble, Mode=TwoWay}"
+                                                            ValueChanged="{x:Bind OnUnitCostChanged}" />
+
+                                                        <!--  Profit Margin  -->
+                                                        <NumberBox
+                                                            Grid.Row="0"
+                                                            Grid.Column="1"
+                                                            Header="Lợi nhuận (%)"
+                                                            Maximum="100"
+                                                            Minimum="0"
+                                                            SpinButtonPlacementMode="Compact"
+                                                            Value="{x:Bind ProfitMarginPercent, Mode=TwoWay}" />
+
+                                                        <!--  Calculated Selling Price (Read-only)  -->
+                                                        <StackPanel Grid.Row="0" Grid.Column="2" Spacing="4">
+                                                            <TextBlock
+                                                                FontSize="12"
+                                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                Text="Giá bán dự kiến" />
+                                                            <TextBlock
+                                                                FontSize="16"
+                                                                FontWeight="SemiBold"
+                                                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                                Text="{x:Bind FormatPrice(CalculatedSellingPrice), Mode=OneWay}" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
 
                                                 <!--  Total Price Bar  -->
                                                 <Border Padding="16,12" CornerRadius="0">
@@ -475,17 +509,6 @@
                                                                             <Run x:Uid="SerialLabel" Text="Serial: " />
                                                                             <Run FontWeight="SemiBold" Text="{x:Bind SerialNumber, Mode=OneWay}" />
                                                                         </TextBlock>
-                                                                        <TextBlock FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}">
-                                                                            <Run x:Uid="Imei1Label" Text="IMEI 1: " />
-                                                                            <Run FontWeight="SemiBold" Text="{x:Bind Imei1, Mode=OneWay}" />
-                                                                        </TextBlock>
-                                                                        <TextBlock
-                                                                            FontSize="12"
-                                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                                            Visibility="{x:Bind HasImei2(), Mode=OneWay}">
-                                                                            <Run x:Uid="Imei2Label" Text="IMEI 2: " />
-                                                                            <Run FontWeight="SemiBold" Text="{x:Bind Imei2, Mode=OneWay}" />
-                                                                        </TextBlock>
                                                                     </StackPanel>
                                                                 </Border>
                                                             </DataTemplate>
@@ -500,9 +523,121 @@
                         </StackPanel>
                     </ScrollViewer>
 
+                    <!--  Bulk Price Edit Section  -->
+                    <Expander
+                        Grid.Row="3"
+                        Margin="0,0,0,8"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        IsExpanded="False">
+                        <Expander.Header>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon FontSize="16" Glyph="&#xE8EF;" />
+                                <TextBlock FontWeight="SemiBold" Text="Bulk Price Edit" />
+                            </StackPanel>
+                        </Expander.Header>
+                        <Border
+                            Padding="16"
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"
+                            CornerRadius="0,0,8,8">
+                            <StackPanel Spacing="16">
+                                <!--  Apply To Selection  -->
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontSize="13" Text="Apply to:" />
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <RadioButton
+                                            x:Name="ApplyToAllRadio"
+                                            Checked="OnApplyScopeChanged"
+                                            Content="All Products"
+                                            GroupName="BulkApplyScope"
+                                            IsChecked="True" />
+                                        <RadioButton
+                                            x:Name="ApplyToCategoryRadio"
+                                            Checked="OnApplyScopeChanged"
+                                            Content="By Category"
+                                            GroupName="BulkApplyScope" />
+                                        <RadioButton
+                                            x:Name="ApplyToBrandRadio"
+                                            Checked="OnApplyScopeChanged"
+                                            Content="By Brand"
+                                            GroupName="BulkApplyScope" />
+                                    </StackPanel>
+                                    
+                                    <!--  Category Selection (shown when By Category is selected)  -->
+                                    <ComboBox
+                                        x:Name="BulkEditCategoryCombo"
+                                        MinWidth="250"
+                                        Header="Select Category"
+                                        PlaceholderText="Choose a category..."
+                                        Visibility="Collapsed" />
+                                    
+                                    <!--  Brand Selection (shown when By Brand is selected)  -->
+                                    <ComboBox
+                                        x:Name="BulkEditBrandCombo"
+                                        MinWidth="250"
+                                        Header="Select Brand"
+                                        PlaceholderText="Choose a brand..."
+                                        Visibility="Collapsed" />
+                                </StackPanel>
+
+                                <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                                <!--  Price Input Mode  -->
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontSize="13" Text="Edit by:" />
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <RadioButton
+                                            x:Name="EditByProfitMarginRadio"
+                                            Content="Profit Margin (%)"
+                                            GroupName="BulkEditMode"
+                                            IsChecked="True" />
+                                        <RadioButton
+                                            x:Name="EditByUnitCostRadio"
+                                            Content="Unit Cost"
+                                            GroupName="BulkEditMode" />
+                                        <RadioButton
+                                            x:Name="EditBySellingPriceRadio"
+                                            Content="Selling Price"
+                                            GroupName="BulkEditMode" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!--  Value Input  -->
+                                <Grid ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <NumberBox
+                                        x:Name="BulkEditValueBox"
+                                        Grid.Column="0"
+                                        Header="Value"
+                                        Minimum="0"
+                                        PlaceholderText="Enter value..."
+                                        SpinButtonPlacementMode="Compact" />
+                                    
+                                    <Button
+                                        Grid.Column="1"
+                                        VerticalAlignment="Bottom"
+                                        Click="{x:Bind OnApplyBulkPriceEdit}"
+                                        Content="Apply"
+                                        Style="{StaticResource AccentButtonStyle}" />
+                                </Grid>
+
+                                <!--  Info about minimum profit margin  -->
+                                <InfoBar
+                                    IsClosable="False"
+                                    IsOpen="True"
+                                    Message="{x:Bind GetMinProfitMarginInfo(), Mode=OneWay}"
+                                    Severity="Informational" />
+                            </StackPanel>
+                        </Border>
+                    </Expander>
+
                     <!--  Summary Section  -->
                     <Border
-                        Grid.Row="3"
+                        Grid.Row="4"
                         Padding="16"
                         Background="{ThemeResource LayerFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -542,7 +677,7 @@
                     </Border>
 
                     <!--  Action Buttons  -->
-                    <StackPanel Grid.Row="4" Spacing="10">
+                    <StackPanel Grid.Row="5" Spacing="10">
                         <Button
                             x:Name="PrintPurchaseOrderButton"
                             x:Uid="BtnPrintPurchaseOrder"
