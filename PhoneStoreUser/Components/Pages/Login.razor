@@ -34,7 +34,7 @@ else
             <p class="text-sm text-gray-500">Đăng nhập tài khoản để quản lý đơn hàng flagship</p>
         </div>
 
-        <form method="post" action="/login" class="space-y-4">
+        <form method="post" action="@GetLoginAction()" class="space-y-4">
             <AntiforgeryToken />
             
             @if (!string.IsNullOrEmpty(ErrorMessage))

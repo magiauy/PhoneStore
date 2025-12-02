@@ -1,19 +1,49 @@
 @page "/admin"
 @using PhoneStoreUser.Components.Models
 @using PhoneStoreUser.Components.Layout
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Http
 @layout LoginLayout
 @rendermode InteractiveServer
 
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
-@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
+@inject IHttpContextAccessor HttpContextAccessor
 
 <PageTitle>GuZone Admin Login</PageTitle>
 
+@if (_isChecking)
+{
+    <div class="min-h-screen flex items-center justify-center bg-slate-50">
+        <div class="text-center">
+            <div class="h-8 w-8 animate-spin rounded-full border-4 border-slate-900 border-t-transparent mx-auto mb-4"></div>
+            <p class="text-slate-600">Đang kiểm tra...</p>
+        </div>
+    </div>
+}
+else
+{
 <div class="min-h-screen flex items-center justify-center bg-slate-50 px-4">
     <div class="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-lg p-6 sm:p-8">
+        @if (_showAccessDenied)
+        {
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center h-16 w-16 rounded-full bg-rose-100 text-rose-600 mb-4">
+                    <i class="fa-solid fa-ban text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight mb-2">Truy cập bị từ chối</h1>
+                <p class="text-sm text-slate-500 mb-6">Tài khoản của bạn không có quyền truy cập trang quản trị.</p>
+                <a href="/" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-medium hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-home"></i>
+                    Về trang chủ
+                </a>
+            </div>
+        }
+        else
+        {
         <div class="space-y-2 text-center mb-8">
             <div class="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-slate-900 text-white mb-4 shadow-lg shadow-slate-900/20">
                 <i class="fa-solid fa-shield-halved text-xl"></i>
@@ -94,8 +124,10 @@
                 &copy; @DateTime.Now.Year GuZone Admin System. All rights reserved.
             </p>
         </div>
+        }
     </div>
 </div>
+}
 
 @code {
     [SupplyParameterFromForm]
@@ -112,14 +144,39 @@
         _ => null
     };
 
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
+    private bool _showAccessDenied = false;
+    private bool _isChecking = true;
 
-        if (user.Identity is { IsAuthenticated: true } && user.IsInRole("EMPLOYEE"))
+    protected override void OnInitialized()
+    {
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext == null)
         {
-            NavigationManager.NavigateTo("/admin/dashboard", true);
+            _isChecking = false;
+            return;
         }
+
+        // Kiểm tra xem có admin cookie không
+        var hasAdminCookie = httpContext.Request.Cookies.ContainsKey("guzone.admin");
+        var hasUserCookie = httpContext.Request.Cookies.ContainsKey("guzone.auth");
+
+        // Nếu có admin cookie, HttpContext.User sẽ được xác thực với admin scheme
+        // vì policy scheme forward /admin/* đến adminScheme
+        var user = httpContext.User;
+        
+        if (hasAdminCookie && user.Identity?.IsAuthenticated == true && user.IsInRole("EMPLOYEE"))
+        {
+            // Admin đã đăng nhập, chuyển đến dashboard
+            NavigationManager.NavigateTo("/admin/dashboard", forceLoad: true);
+            return;
+        }
+
+        // Nếu chỉ có user cookie (không có admin cookie), hiển thị access denied
+        if (hasUserCookie && !hasAdminCookie)
+        {
+            _showAccessDenied = true;
+        }
+
+        _isChecking = false;
     }
 }
