@@ -33,7 +33,6 @@ namespace PhoneStoreAdmin.View.Controls
 
         private bool _isNameValid;
         private bool _isDescriptionValid = true;
-        private bool _isImageValid = true;
 
         private IReadOnlyList<ProductAttributeDefinition> _attributeDefinitions = Array.Empty<ProductAttributeDefinition>();
         private bool _attributesLoaded = false;
@@ -62,7 +61,6 @@ namespace PhoneStoreAdmin.View.Controls
 
             NameTextBox.Text = model?.Name ?? string.Empty;
             DescriptionTextBox.Text = model?.Description ?? string.Empty;
-            ImageUrlTextBox.Text = model?.DefaultImageUrl ?? string.Empty;
 
             if (mode == DialogMode.Duplicate && !string.IsNullOrWhiteSpace(NameTextBox.Text))
             {
@@ -182,7 +180,6 @@ namespace PhoneStoreAdmin.View.Controls
             {
                 var name = (NameTextBox.Text ?? string.Empty).Trim();
                 var description = NormalizeOptional(DescriptionTextBox.Text);
-                var imageUrl = NormalizeOptional(ImageUrlTextBox.Text);
                 var selectedAttributeIds = AttributeSelections
                     .Where(selection => selection.IsSelected)
                     .Select(selection => selection.AttributeId)
@@ -191,7 +188,7 @@ namespace PhoneStoreAdmin.View.Controls
                 ProductModel? model;
                 if (_mode == DialogMode.Duplicate && _sourceModelId > 0)
                 {
-                    model = _productService.DuplicateProductModel(_sourceModelId, name, description, imageUrl, selectedAttributeIds);
+                    model = _productService.DuplicateProductModel(_sourceModelId, name, description, null, selectedAttributeIds);
                 }
                 else
                 {
@@ -200,7 +197,7 @@ namespace PhoneStoreAdmin.View.Controls
                         Id = _mode == DialogMode.Edit ? _currentModelId : 0,
                         Name = name,
                         Description = description,
-                        DefaultImageUrl = imageUrl,
+                        DefaultImageUrl = null,
                         CreatedAt = _mode == DialogMode.Edit ? _createdAt : DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     };
@@ -255,8 +252,7 @@ namespace PhoneStoreAdmin.View.Controls
         {
             ValidateName();
             ValidateDescription();
-            ValidateImageUrl();
-            return _isNameValid && _isDescriptionValid && _isImageValid;
+            return _isNameValid && _isDescriptionValid;
         }
 
         private void NameTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -267,11 +263,6 @@ namespace PhoneStoreAdmin.View.Controls
         private void DescriptionTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             ValidateDescription();
-        }
-
-        private void ImageUrlTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            ValidateImageUrl();
         }
 
         private void ValidateName()
@@ -310,27 +301,6 @@ namespace PhoneStoreAdmin.View.Controls
             }
         }
 
-        private void ValidateImageUrl()
-        {
-            var text = NormalizeOptional(ImageUrlTextBox.Text);
-            if (string.IsNullOrEmpty(text))
-            {
-                _isImageValid = true;
-                HideError(ImageUrlErrorText);
-                return;
-            }
-
-            _isImageValid = Uri.TryCreate(text, UriKind.Absolute, out _);
-            if (_isImageValid)
-            {
-                HideError(ImageUrlErrorText);
-            }
-            else
-            {
-                ShowError(ImageUrlErrorText, _resourceLoader.GetString("ProductModelImageInvalid") ?? "Enter a valid absolute image URL.");
-            }
-        }
-
         private static string? NormalizeOptional(string? text)
         {
             if (string.IsNullOrWhiteSpace(text))
@@ -357,7 +327,6 @@ namespace PhoneStoreAdmin.View.Controls
         {
             HideError(NameErrorText);
             HideError(DescriptionErrorText);
-            HideError(ImageUrlErrorText);
         }
 
         private void HideInfoBars()

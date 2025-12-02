@@ -136,15 +136,6 @@
 
                     <!-- Footer -->
                     <StackPanel Spacing="12" HorizontalAlignment="Center" Margin="0,16,0,0">
-                        <TextBlock FontSize="13" 
-                                   HorizontalAlignment="Center"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}">
-                            <Run x:Uid="NoAccount"/>
-                            <Hyperlink Click="SignUp_Click" 
-                                       Foreground="{StaticResource BrushPrimary}">
-                                <Run x:Uid="SignUpHere" FontWeight="SemiBold"/>
-                            </Hyperlink>
-                        </TextBlock>
                         <TextBlock x:Uid="AppCopyright"
                                    FontSize="11"
                                    HorizontalAlignment="Center"

@@ -28,6 +28,11 @@ namespace PhoneStoreAdmin.View
         private readonly List<string> _selectedCategoryNames = new();
         private readonly NotifyCollectionChangedEventHandler _collectionChangedHandler;
 
+        // Permission properties
+        public bool CanAddProduct { get; }
+        public bool CanEditProduct { get; }
+        public bool CanDeleteProduct { get; }
+
         public ObservableCollection<ProductModelListItemViewModel> ProductModels { get; } = new();
 
         public bool HasNoModels => ProductModels.Count == 0;
@@ -95,6 +100,13 @@ namespace PhoneStoreAdmin.View
             _productService = App.GetService<IProductService>();
             _resourceLoader = new ResourceLoader();
             _collectionChangedHandler = (_, _) => Bindings.Update();
+            
+            // Initialize permissions
+            var session = UserSession.Instance;
+            CanAddProduct = session.HasPermission("PRODUCT_ADD");
+            CanEditProduct = session.HasPermission("PRODUCT_EDIT");
+            CanDeleteProduct = session.HasPermission("PRODUCT_DELETE");
+            
             Loaded += ProductsPage_Loaded;
             Unloaded += ProductsPage_Unloaded;
             ProductModels.CollectionChanged += _collectionChangedHandler;
@@ -115,6 +127,26 @@ namespace PhoneStoreAdmin.View
             ProductModels.CollectionChanged -= _collectionChangedHandler;
         }
 
+        private void ModelImage_ImageFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+            // When image fails to load, hide the image and show fallback icon
+            if (sender is Image image)
+            {
+                image.Visibility = Visibility.Collapsed;
+                // Find the sibling FontIcon and make it visible
+                if (image.Parent is Grid grid)
+                {
+                    foreach (var child in grid.Children)
+                    {
+                        if (child is FontIcon fontIcon)
+                        {
+                            fontIcon.Visibility = Visibility.Visible;
+                        }
+                    }
+                }
+            }
+        }
+
         private void LoadModels(int? selectedModelId = null)
         {
             if (!_isLoaded)
@@ -124,6 +156,7 @@ namespace PhoneStoreAdmin.View
 
             var summaries = _productService.GetProductModelSummaries();
             ProductModels.Clear();
+            System.Diagnostics.Debug.WriteLine($"[ProductsPage] LoadModels: Loaded {summaries.Count} models");
             foreach (var model in summaries)
             {
                 ProductModels.Add(model);
@@ -153,6 +186,8 @@ namespace PhoneStoreAdmin.View
         private void LoadModelDetail(int modelId)
         {
             var detail = _productService.GetProductModelDetail(modelId);
+            System.Diagnostics.Debug.WriteLine($"[ProductsPage] LoadModelDetail: modelId={modelId}, HasVariants={detail?.HasVariants}, VariantCount={detail?.Variants.Count}");
+
             SelectedModelDetail = detail;
         }
 
@@ -202,11 +237,13 @@ namespace PhoneStoreAdmin.View
 
         private async void CreateModelButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanAddProduct) return;
             await ShowProductModelDialogAsync(ProductModelDialog.DialogMode.Create, null);
         }
 
         private async void EditModelButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanEditProduct) return;
             if (SelectedModelDetail?.Model == null)
             {
                 return;
@@ -217,6 +254,7 @@ namespace PhoneStoreAdmin.View
 
         private async void DuplicateModelButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanAddProduct) return; // Duplicate creates new product, needs ADD permission
             if (SelectedModelDetail?.Model == null)
             {
                 return;

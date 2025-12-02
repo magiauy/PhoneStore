@@ -1,5 +1,6 @@
 using PhoneStore.Services.Interfaces;
 using PhoneStore.Services.ViewModels;
+using PhoneStoreRepository.Data;
 using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Models.Enums;
 using PhoneStoreRepository.Repositories.Implementations;
@@ -22,6 +23,7 @@ namespace PhoneStore.Services.Implementations
         private readonly IBatchProductRepository _batchProductRepository;
         private readonly IInvoiceLineSerialRepository _invoiceLineSerialRepository;
         private readonly IProductRepository _productRepository;
+        private readonly DataSource _dataSource;
 
         public InvoiceService(
             IInvoiceRepository invoiceRepository,
@@ -32,7 +34,8 @@ namespace PhoneStore.Services.Implementations
             IProductSerialRepository productSerialRepository,
             IBatchProductRepository batchProductRepository,
             IInvoiceLineSerialRepository invoiceLineSerialRepository,
-            IProductRepository productRepository)
+            IProductRepository productRepository,
+            DataSource dataSource)
         {
             _invoiceRepository = invoiceRepository ?? throw new ArgumentNullException(nameof(invoiceRepository));
             _personRepository = personRepository ?? throw new ArgumentNullException(nameof(personRepository));
@@ -44,6 +47,7 @@ namespace PhoneStore.Services.Implementations
             _batchProductRepository = batchProductRepository ?? throw new ArgumentNullException(nameof(batchProductRepository));
             _invoiceLineSerialRepository = invoiceLineSerialRepository ?? throw new ArgumentNullException(nameof(invoiceLineSerialRepository));
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
+            _dataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
         }
 
         public Invoice? GetById(int id)
@@ -117,89 +121,112 @@ namespace PhoneStore.Services.Implementations
 
         public void CreateFullInvoice(Invoice invoice, List<InvoiceLine> uiItems, string customerName, string customerPhone, List<InvoiceLineSerialRequest>? serialRequests = null)
         {
-            var existingPerson = _personRepository.GetByPhone(customerPhone);
+            // Begin transaction
+            var (connection, transaction) = _dataSource.BeginTransaction();
 
-            int customerId;
+            try
+            {
+                // Check if customer exists
+                var existingPerson = _personRepository.GetByPhone(customerPhone);
 
-            if (existingPerson != null)
-            {
-                customerId = existingPerson.Id;
-            }
-            else
-            {
-                var newPerson = new Person
+                int customerId;
+
+                if (existingPerson != null)
                 {
-                    FullName = customerName,
-                    Phone = customerPhone,
-                    Email = "",
-                    PersonType = PersonType.CUSTOMER,
-                    CreatedAt = DateTime.Now,
-                    IsActive = true
-                };
-
-                _personRepository.Insert(newPerson); 
-                customerId = newPerson.Id;
-            }
-
-
-            invoice.PersonId = customerId;
-            invoice.TotalAmount = uiItems.Sum(x => x.TotalPrice);
-            invoice.FinalAmount = invoice.TotalAmount - invoice.DiscountAmount; 
-
-            _invoiceRepository.Insert(invoice); 
-
-            var serialLookup = (serialRequests ?? Enumerable.Empty<InvoiceLineSerialRequest>())
-                .Where(req => req.Line != null)
-                .ToDictionary(req => req.Line!, req => req.SerialNumbers);
-
-            foreach (var item in uiItems)
-            {
-                item.InvoiceId = invoice.Id;
-                item.TotalPrice = item.UnitPrice * item.Quantity;
-                _invoiceLineRepository.Insert(item);
-
-                if (!serialLookup.TryGetValue(item, out var serialNumbers) || serialNumbers.Count == 0)
+                    customerId = existingPerson.Id;
+                }
+                else
                 {
-                    continue;
+                    var newPerson = new Person
+                    {
+                        FullName = customerName,
+                        Phone = customerPhone,
+                        Email = "",
+                        PersonType = PersonType.CUSTOMER,
+                        CreatedAt = DateTime.Now,
+                        IsActive = true
+                    };
+
+                    _personRepository.Insert(newPerson, connection, transaction);
+                    customerId = newPerson.Id;
                 }
 
-                var sanitizedSerials = serialNumbers
-                    .Where(sn => !string.IsNullOrWhiteSpace(sn))
-                    .Select(sn => sn.Trim())
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .Take(item.Quantity)
-                    .ToList();
+                invoice.PersonId = customerId;
+                invoice.TotalAmount = uiItems.Sum(x => x.TotalPrice);
+                invoice.FinalAmount = invoice.TotalAmount - invoice.DiscountAmount;
 
-                if (sanitizedSerials.Count == 0)
+                _invoiceRepository.Insert(invoice, connection, transaction);
+
+                var serialLookup = (serialRequests ?? Enumerable.Empty<InvoiceLineSerialRequest>())
+                    .Where(req => req.Line != null)
+                    .ToDictionary(req => req.Line!, req => req.SerialNumbers);
+
+                foreach (var item in uiItems)
                 {
-                    continue;
-                }
+                    item.InvoiceId = invoice.Id;
+                    item.TotalPrice = item.UnitPrice * item.Quantity;
+                    _invoiceLineRepository.Insert(item, connection, transaction);
 
-                var invoiceLineSerials = new List<InvoiceLineSerial>();
-
-                foreach (var serialText in sanitizedSerials)
-                {
-                    var serialEntity = _productSerialRepository.TryGetBySerialNumber(serialText);
-                    if (serialEntity == null || serialEntity.Status != SerialStatus.IN_STOCK)
+                    if (!serialLookup.TryGetValue(item, out var serialNumbers) || serialNumbers.Count == 0)
                     {
                         continue;
                     }
 
-                    serialEntity.Status = SerialStatus.SOLD;
-                    _productSerialRepository.Update(serialEntity);
+                    var sanitizedSerials = serialNumbers
+                        .Where(sn => !string.IsNullOrWhiteSpace(sn))
+                        .Select(sn => sn.Trim())
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .Take(item.Quantity)
+                        .ToList();
 
-                    invoiceLineSerials.Add(new InvoiceLineSerial(item.Id, serialEntity.Id));
-
-                    if (serialEntity.BatchId.HasValue)
+                    if (sanitizedSerials.Count == 0)
                     {
-                        _batchProductRepository.DecreaseQuantity(serialEntity.BatchId.Value, serialEntity.ProductId, 1);
+                        continue;
+                    }
+
+                    var invoiceLineSerials = new List<InvoiceLineSerial>();
+
+                    foreach (var serialText in sanitizedSerials)
+                    {
+                        var serialEntity = _productSerialRepository.TryGetBySerialNumber(serialText, connection, transaction);
+                        if (serialEntity == null || serialEntity.Status != SerialStatus.IN_STOCK)
+                        {
+                            continue;
+                        }
+
+                        serialEntity.Status = SerialStatus.SOLD;
+                        _productSerialRepository.Update(serialEntity, connection, transaction);
+
+                        invoiceLineSerials.Add(new InvoiceLineSerial(item.Id, serialEntity.Id));
+
+                        if (serialEntity.BatchId.HasValue)
+                        {
+                            _batchProductRepository.DecreaseQuantity(serialEntity.BatchId.Value, serialEntity.ProductId, 1, connection, transaction);
+                        }
+                    }
+
+                    if (invoiceLineSerials.Count > 0)
+                    {
+                        _invoiceLineSerialRepository.InsertRange(invoiceLineSerials, connection, transaction);
                     }
                 }
 
-                if (invoiceLineSerials.Count > 0)
-                {
-                    _invoiceLineSerialRepository.InsertRange(invoiceLineSerials);
-                }
+                // Commit transaction if all operations succeed
+                transaction.Commit();
+                Logger.Info($"Invoice {invoice.Id} created successfully with transaction.");
+            }
+            catch (Exception ex)
+            {
+                // Rollback transaction if any error occurs
+                transaction.Rollback();
+                Logger.Error("Failed to create invoice - transaction rolled back", ex);
+                throw;
+            }
+            finally
+            {
+                // Dispose resources
+                transaction.Dispose();
+                connection.Dispose();
             }
         }
 
