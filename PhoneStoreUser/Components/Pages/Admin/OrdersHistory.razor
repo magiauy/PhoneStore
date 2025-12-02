@@ -15,6 +15,19 @@
         </div>
         
         <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2">
+                <label class="text-sm text-slate-600">Từ ngày:</label>
+                <input type="date" @bind="StartDate" @bind:after="HandleDateFilterChange"
+                       class="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+            </div>
+            <div class="flex items-center gap-2">
+                <label class="text-sm text-slate-600">Đến ngày:</label>
+                <input type="date" @bind="EndDate" @bind:after="HandleDateFilterChange"
+                       class="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+            </div>
+            <button @onclick="ClearDateFilter" class="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 transition">
+                <i class="fa-solid fa-xmark"></i> Xóa lọc ngày
+            </button>
             <button class="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition shadow-sm">
                 <i class="fa-solid fa-file-csv"></i> Xuất Excel
             </button>
@@ -209,6 +222,8 @@
     private OrderHistoryPageDto? OrderHistory;
     private string SearchTerm = "";
     private string StatusFilter = "all";
+    private DateTime? StartDate;
+    private DateTime? EndDate;
     private int CurrentPage = 1;
     private const int PageSize = 10;
     private bool IsLoading = true;
@@ -226,8 +241,8 @@
         StateHasChanged();
 
         Statistics = await AdminOrderHistoryService.GetOrderStatisticsAsync(
-            DateTime.UtcNow.AddDays(-30), 
-            DateTime.UtcNow
+            StartDate ?? DateTime.UtcNow.AddDays(-30), 
+            EndDate ?? DateTime.UtcNow
         );
 
         IsLoading = false;
@@ -243,7 +258,9 @@
             CurrentPage,
             PageSize,
             string.IsNullOrWhiteSpace(SearchTerm) ? null : SearchTerm,
-            StatusFilter == "all" ? null : StatusFilter
+            StatusFilter == "all" ? null : StatusFilter,
+            StartDate,
+            EndDate
         );
 
         IsLoadingOrders = false;
@@ -259,6 +276,22 @@
     private async Task HandleFilterChange()
     {
         CurrentPage = 1; // Reset to first page when filtering
+        await LoadOrderHistory();
+    }
+
+    private async Task HandleDateFilterChange()
+    {
+        CurrentPage = 1; // Reset to first page when date filter changes
+        await LoadStatistics();
+        await LoadOrderHistory();
+    }
+
+    private async Task ClearDateFilter()
+    {
+        StartDate = null;
+        EndDate = null;
+        CurrentPage = 1;
+        await LoadStatistics();
         await LoadOrderHistory();
     }
 
