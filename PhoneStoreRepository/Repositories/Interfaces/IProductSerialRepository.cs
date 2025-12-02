@@ -21,9 +21,19 @@ namespace PhoneStoreRepository.Repositories.Interfaces
         void Insert(ProductSerial entity, MySqlConnection connection, MySqlTransaction transaction);
 
         /// <summary>
+        /// Update a product serial using an existing transaction
+        /// </summary>
+        void Update(ProductSerial entity, MySqlConnection connection, MySqlTransaction transaction);
+
+        /// <summary>
         /// Try to get a product serial by serial number. Returns null if not found.
         /// </summary>
         ProductSerial? TryGetBySerialNumber(string serialNumber);
+
+        /// <summary>
+        /// Try to get a product serial by serial number using an existing connection. Returns null if not found.
+        /// </summary>
+        ProductSerial? TryGetBySerialNumber(string serialNumber, MySqlConnection connection, MySqlTransaction transaction);
 
         /// <summary>
         /// Try to get a product serial by IMEI1. Returns null if not found.

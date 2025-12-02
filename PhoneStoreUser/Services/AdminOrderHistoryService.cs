@@ -13,11 +13,23 @@ public class AdminOrderHistoryService : IAdminOrderHistoryService
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<OrderHistoryPageDto> GetOrderHistoryAsync(int page, int pageSize, string? search, string? statusFilter)
+    public async Task<OrderHistoryPageDto> GetOrderHistoryAsync(int page, int pageSize, string? search, string? statusFilter, DateTime? startDate = null, DateTime? endDate = null)
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
         var query = dbContext.Invoices.AsQueryable();
+
+        // Apply date filter
+        if (startDate.HasValue)
+        {
+            query = query.Where(i => i.InvoiceDate.HasValue && i.InvoiceDate.Value >= startDate.Value);
+        }
+        if (endDate.HasValue)
+        {
+            // Include the entire end day
+            var endOfDay = endDate.Value.Date.AddDays(1).AddTicks(-1);
+            query = query.Where(i => i.InvoiceDate.HasValue && i.InvoiceDate.Value <= endOfDay);
+        }
 
         // Apply search filter
         if (!string.IsNullOrWhiteSpace(search))

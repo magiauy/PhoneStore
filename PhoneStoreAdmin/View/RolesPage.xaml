@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Page
     x:Class="PhoneStoreAdmin.View.RolesPage"
+    x:Name="PageRoot"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:PhoneStoreAdmin.View"
     xmlns:controls="using:PhoneStoreAdmin.View.Controls"
+    xmlns:converters="using:PhoneStoreAdmin.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Background="{StaticResource BrushBackground}">
 
     <Page.Resources>
+        <!-- Converters -->
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        
         <!-- Shadow Styles -->
         <ThemeShadow x:Name="SharedShadow" />
 
@@ -235,6 +240,8 @@
                                                 x:Uid="Roles_AddRoleButton"
                                                 Style="{StaticResource PrimaryButtonStyle}"
                                                 Padding="14,10"
+                                                IsEnabled="{x:Bind CanAddRole, Mode=OneWay}"
+                                                Visibility="{x:Bind CanAddRole, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                                                 Click="CreateRoleButton_Click">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <FontIcon Glyph="&#xE710;" FontSize="14"/>
@@ -520,6 +527,8 @@
                                                 x:Uid="Roles_EditButton"
                                                 Style="{StaticResource SecondaryButtonStyle}"
                                                 Padding="12,8"
+                                                IsEnabled="{x:Bind CanEditRole, Mode=OneWay}"
+                                                Visibility="{x:Bind CanEditRole, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                                                 Click="EditRoleButton_Click">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <FontIcon Glyph="&#xE70F;" FontSize="14"/>
@@ -531,6 +540,8 @@
                                                 x:Uid="Roles_DeleteButton"
                                                 Style="{StaticResource SecondaryButtonStyle}"
                                                 Padding="12,8"
+                                                IsEnabled="{x:Bind CanDeleteRole, Mode=OneWay}"
+                                                Visibility="{x:Bind CanDeleteRole, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                                                 Click="DeleteRoleButton_Click">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="#D32F2F"/>
@@ -587,6 +598,8 @@
                                             Grid.Column="1"
                                             Style="{StaticResource PrimaryButtonStyle}"
                                             Padding="24,12"
+                                            IsEnabled="{x:Bind CanManageRolePermissions, Mode=OneWay}"
+                                            Visibility="{x:Bind CanManageRolePermissions, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                                             Click="SavePermissionsButton_Click">
                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                             <FontIcon Glyph="&#xE74E;" FontSize="16"/>

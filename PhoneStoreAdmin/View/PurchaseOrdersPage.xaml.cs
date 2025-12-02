@@ -26,6 +26,11 @@ namespace PhoneStoreAdmin.View
         private ISupplierService SupplierService => App.GetService<ISupplierService>();
         private readonly ResourceLoader _resourceLoader;
 
+        // Permission properties
+        public bool CanAddPurchaseOrder { get; }
+        public bool CanEditPurchaseOrder { get; }
+        public bool CanReceivePurchaseOrder { get; }
+
         public ObservableCollection<PurchaseOrderViewModel> PurchaseOrders { get; } = new ObservableCollection<PurchaseOrderViewModel>();
         public ObservableCollection<Supplier> Suppliers { get; } = new();
         private Supplier? _selectedSupplier = null;
@@ -40,6 +45,13 @@ namespace PhoneStoreAdmin.View
         {
             this.InitializeComponent();
             _resourceLoader = new ResourceLoader();
+            
+            // Initialize permissions
+            var session = PhoneStoreRepository.Models.UserSession.Instance;
+            CanAddPurchaseOrder = session.HasPermission("PURCHASE_ORDERS_ADD");
+            CanEditPurchaseOrder = session.HasPermission("PURCHASE_ORDERS_EDIT");
+            CanReceivePurchaseOrder = session.HasPermission("PURCHASE_ORDERS_MANAGE");
+            
             this.Loaded += PurchaseOrdersPage_Loaded;
         }
 
@@ -231,11 +243,15 @@ namespace PhoneStoreAdmin.View
 
         private void BtnCreate_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanAddPurchaseOrder) return;
+            
             Frame.Navigate(typeof(AddPurchaseOrderPage));
         }
 
         private void BtnEdit_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanEditPurchaseOrder) return;
+            
             if (sender is MenuFlyoutItem item && item.Tag is PurchaseOrderViewModel po)
             {
                 // Only allow editing DRAFT purchase orders
@@ -252,6 +268,8 @@ namespace PhoneStoreAdmin.View
 
         private async void BtnReceive_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanReceivePurchaseOrder) return;
+            
             if (sender is MenuFlyoutItem item && item.Tag is PurchaseOrderViewModel po)
             {
                 // Only allow receiving DRAFT purchase orders

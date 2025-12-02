@@ -252,6 +252,8 @@
                     <Button
                         x:Uid="ProductManagementCreateButton"
                         Click="CreateProductButton_Click"
+                        IsEnabled="{x:Bind CanAddProduct, Mode=OneWay}"
+                        Visibility="{x:Bind CanAddProduct, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                         Style="{StaticResource PrimaryButtonStyle}" />
                 </StackPanel>
             </Grid>
@@ -376,6 +378,8 @@
                         <Button
                             x:Uid="ProductManagementCreateButton"
                             Click="CreateProductButton_Click"
+                            IsEnabled="{x:Bind CanAddProduct, Mode=OneWay}"
+                            Visibility="{x:Bind CanAddProduct, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                             Style="{StaticResource PrimaryButtonStyle}" />
                     </StackPanel>
                 </StackPanel>
@@ -388,13 +392,31 @@
                             x:Name="SelectedProductContainer"
                             Spacing="24"
                             Visibility="{x:Bind HasSelectedProduct, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <StackPanel Spacing="8">
-                                <TextBlock Text="{x:Bind SelectedProductName, Mode=OneWay}" FontSize="26" FontWeight="SemiBold" TextWrapping="Wrap" />
-                                <TextBlock Text="{x:Bind SelectedVariationInfo, Mode=OneWay}" FontSize="14" Foreground="{StaticResource BrushTextSecondary}" />
-                                <Border Background="#EAF0FF" Padding="12,6" CornerRadius="18" Width="Auto" HorizontalAlignment="Left">
-                                    <TextBlock Text="{x:Bind SelectedStatusText, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushPrimaryDark}" />
-                                </Border>
-                            </StackPanel>
+                            
+                            <!-- Product Header with Edit Button -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                
+                                <StackPanel Grid.Column="0" Spacing="8">
+                                    <TextBlock Text="{x:Bind SelectedProductName, Mode=OneWay}" FontSize="26" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                    <TextBlock Text="{x:Bind SelectedVariationInfo, Mode=OneWay}" FontSize="14" Foreground="{StaticResource BrushTextSecondary}" />
+                                    <Border Background="#EAF0FF" Padding="12,6" CornerRadius="18" Width="Auto" HorizontalAlignment="Left">
+                                        <TextBlock Text="{x:Bind SelectedStatusText, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushPrimaryDark}" />
+                                    </Border>
+                                </StackPanel>
+                                
+                                <Button
+                                    Grid.Column="1"
+                                    x:Uid="ProductManagementEditButton"
+                                    Click="EditProductButton_Click"
+                                    IsEnabled="{x:Bind CanEditProduct, Mode=OneWay}"
+                                    Visibility="{x:Bind CanEditProduct, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
+                                    VerticalAlignment="Top"
+                                    Style="{StaticResource SecondaryButtonStyle}" />
+                            </Grid>
 
                             <Grid ColumnSpacing="16">
                                 <Grid.ColumnDefinitions>

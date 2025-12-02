@@ -125,6 +125,30 @@ namespace PhoneStoreRepository.Repositories.Implementations
             entity.Id = id; // gán lại ID mới tạo
         }
 
+        public void Insert(Invoice entity, MySqlConnection connection, MySqlTransaction transaction)
+        {
+            using var command = new MySqlCommand(@"
+                INSERT INTO invoices 
+                (person_id, promotion_code_id, created_by, invoice_date, total_amount, discount_amount, final_amount, payment_method, status, note)
+                VALUES
+                (@personId, @promoId, @createdBy, @invoiceDate, @total, @discount, @final, @paymentMethod, @status, @note);
+                SELECT LAST_INSERT_ID();", connection, transaction);
+
+            command.Parameters.AddWithValue("@personId", entity.PersonId);
+            command.Parameters.AddWithValue("@promoId", entity.PromotionCodeId ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@createdBy", entity.CreatedBy);
+            command.Parameters.AddWithValue("@invoiceDate", entity.InvoiceDate);
+            command.Parameters.AddWithValue("@total", entity.TotalAmount);
+            command.Parameters.AddWithValue("@discount", entity.DiscountAmount);
+            command.Parameters.AddWithValue("@final", entity.FinalAmount);
+            command.Parameters.AddWithValue("@paymentMethod", entity.PaymentMethod.ToString());
+            command.Parameters.AddWithValue("@status", entity.Status.ToString());
+            command.Parameters.AddWithValue("@note", entity.Note ?? string.Empty);
+
+            var id = Convert.ToInt32(command.ExecuteScalar());
+            entity.Id = id;
+        }
+
         public void Update(Invoice entity)
         {
             using var connection = _dataSource.GetConnection();
@@ -407,6 +431,26 @@ namespace PhoneStoreRepository.Repositories.Implementations
                 VALUES 
                 (@invoiceId, @productId, @quantity, @unitPrice, @discountPct, @totalPrice);
                 SELECT LAST_INSERT_ID();", connection);
+
+            command.Parameters.AddWithValue("@invoiceId", entity.InvoiceId);
+            command.Parameters.AddWithValue("@productId", entity.ProductId);
+            command.Parameters.AddWithValue("@quantity", entity.Quantity);
+            command.Parameters.AddWithValue("@unitPrice", entity.UnitPrice);
+            command.Parameters.AddWithValue("@discountPct", entity.DiscountPct);
+            command.Parameters.AddWithValue("@totalPrice", entity.TotalPrice);
+
+            var id = Convert.ToInt32(command.ExecuteScalar());
+            entity.Id = id;
+        }
+
+        public void Insert(InvoiceLine entity, MySqlConnection connection, MySqlTransaction transaction)
+        {
+            using var command = new MySqlCommand(@"
+                INSERT INTO invoice_lines 
+                (invoice_id, product_id, quantity, unit_price, discount_pct, total_price)
+                VALUES 
+                (@invoiceId, @productId, @quantity, @unitPrice, @discountPct, @totalPrice);
+                SELECT LAST_INSERT_ID();", connection, transaction);
 
             command.Parameters.AddWithValue("@invoiceId", entity.InvoiceId);
             command.Parameters.AddWithValue("@productId", entity.ProductId);

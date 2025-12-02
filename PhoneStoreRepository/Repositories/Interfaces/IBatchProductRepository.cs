@@ -35,6 +35,11 @@ namespace PhoneStoreRepository.Repositories.Interfaces
         /// </summary>
         void DecreaseQuantity(int batchId, int productId, int amount = 1);
 
+        /// <summary>
+        /// Decrease quantity for a product in a batch using an existing transaction
+        /// </summary>
+        void DecreaseQuantity(int batchId, int productId, int amount, MySqlConnection connection, MySqlTransaction transaction);
+
         IDictionary<int, int> GetQuantitiesByProductIds(IEnumerable<int> productIds);
     }
 }

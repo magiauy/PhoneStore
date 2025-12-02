@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:PhoneStoreAdmin.View"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:DataType="local:SuppliersPage"
     Background="{StaticResource BrushBackground}"
     mc:Ignorable="d">
     <Page.Resources>
@@ -198,6 +199,8 @@
                     Padding="20,14"
                     VerticalAlignment="Center"
                     Click="BtnCreate_Click"
+                    IsEnabled="{x:Bind CanAddSupplier, Mode=OneWay}"
+                    Visibility="{x:Bind CanAddSupplier, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
                     Shadow="{StaticResource SharedShadow}"
                     Style="{StaticResource PrimaryButtonStyle}">
                     <StackPanel Orientation="Horizontal" Spacing="10">
