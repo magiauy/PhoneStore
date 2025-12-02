@@ -88,6 +88,15 @@ public partial class Login : ComponentBase
 
         _isCheckingAuth = false;
     }
+
+    private string GetLoginAction()
+    {
+        if (string.IsNullOrEmpty(ReturnUrl))
+        {
+            return "/login";
+        }
+        return $"/login?ReturnUrl={Uri.EscapeDataString(ReturnUrl)}";
+    }
     private async Task HandleValidSubmit()
     {
         IsLoading = true;

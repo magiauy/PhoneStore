@@ -133,7 +133,11 @@ app.MapPost("/login", async (
 {
     if (string.IsNullOrWhiteSpace(model.EmailOrUsername) || string.IsNullOrWhiteSpace(model.Password))
     {
-        return Results.Redirect("/login?error=missing_credentials");
+        var returnUrl = context.Request.Query["ReturnUrl"].ToString();
+        var redirectUrl = string.IsNullOrEmpty(returnUrl) 
+            ? "/login?error=missing_credentials" 
+            : $"/login?error=missing_credentials&ReturnUrl={Uri.EscapeDataString(returnUrl)}";
+        return Results.Redirect(redirectUrl);
     }
 
     using var dbContext = await dbContextFactory.CreateDbContextAsync();
@@ -144,26 +148,42 @@ app.MapPost("/login", async (
 
     if (account is null)
     {
-        return Results.Redirect("/login?error=invalid_credentials");
+        var returnUrl = context.Request.Query["ReturnUrl"].ToString();
+        var redirectUrl = string.IsNullOrEmpty(returnUrl) 
+            ? "/login?error=invalid_credentials" 
+            : $"/login?error=invalid_credentials&ReturnUrl={Uri.EscapeDataString(returnUrl)}";
+        return Results.Redirect(redirectUrl);
     }
 
     // Verify password
     if (!PhoneStoreUser.Utils.PasswordHasher.VerifyPassword(model.Password, account.Password))
     {
-        return Results.Redirect("/login?error=invalid_credentials");
+        var returnUrl = context.Request.Query["ReturnUrl"].ToString();
+        var redirectUrl = string.IsNullOrEmpty(returnUrl) 
+            ? "/login?error=invalid_credentials" 
+            : $"/login?error=invalid_credentials&ReturnUrl={Uri.EscapeDataString(returnUrl)}";
+        return Results.Redirect(redirectUrl);
     }
 
     var person = await dbContext.Persons.FindAsync(account.PersonId);
     var principal = CreatePrincipal(account, person, defaultScheme);
+    
+    // Get ReturnUrl from query string or use default
+    var finalReturnUrl = context.Request.Query["ReturnUrl"].ToString();
+    if (string.IsNullOrEmpty(finalReturnUrl) || !finalReturnUrl.StartsWith("/"))
+    {
+        finalReturnUrl = "/";
+    }
+    
     var authProperties = new AuthenticationProperties
     {
         IsPersistent = model.RememberMe,
-        RedirectUri = "/"
+        RedirectUri = finalReturnUrl
     };
 
     await context.SignInAsync(defaultScheme, principal, authProperties);
 
-    return Results.Redirect("/");
+    return Results.Redirect(finalReturnUrl);
 }).AllowAnonymous().DisableAntiforgery();
 
 app.MapPost("/logout", async (HttpContext context) =>

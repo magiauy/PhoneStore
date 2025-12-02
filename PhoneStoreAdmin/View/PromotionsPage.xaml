@@ -1,15 +1,20 @@
 <Page
     x:Class="PhoneStoreAdmin.View.PromotionsPage"
+    x:Name="PageRoot"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="using:PhoneStoreAdmin.View"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:PhoneStoreAdmin.View"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:appConverters="using:PhoneStoreAdmin.Converters"
     Background="{StaticResource BrushBackground}"
     mc:Ignorable="d">
 	<Page.Resources>
 		<ThemeShadow x:Name="SharedShadow" />
+
+		<!-- Boolean to Visibility Converter -->
+		<appConverters:BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 
 		<!--  Converters  -->
 		<converters:DateOnlyConverter x:Key="DateConverter" />
@@ -193,6 +198,8 @@
                     Padding="20,14"
                     VerticalAlignment="Center"
                     Click="BtnCreate_Click"
+                    IsEnabled="{x:Bind CanAddPromotion, Mode=OneWay}"
+                    Visibility="{x:Bind CanAddPromotion, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                     Shadow="{StaticResource SharedShadow}"
                     Style="{StaticResource PrimaryButtonStyle}">
 					<StackPanel Orientation="Horizontal" Spacing="10">
@@ -586,6 +593,7 @@
                                                 <MenuFlyoutItem
                                                         x:Uid="BtnEditPromotion"
                                                         Click="NavigateToEditPromotion_Click"
+                                                        IsEnabled="{Binding CanEditPromotion, ElementName=PageRoot}"
                                                         Tag="{Binding Id}">
 														<MenuFlyoutItem.Icon>
 															<FontIcon Glyph="&#xE104;" />
@@ -594,6 +602,7 @@
 													<MenuFlyoutItem
                                                         x:Uid="BtnActivatePromotion"
                                                         Click="BtnActivate_Click"
+                                                        IsEnabled="{Binding CanManagePromotion, ElementName=PageRoot}"
                                                         Tag="{Binding Id}"
                                                         Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}">
 														<MenuFlyoutItem.Icon>
@@ -603,6 +612,7 @@
 													<MenuFlyoutItem
                                                         x:Uid="BtnDeactivatePromotion"
                                                         Click="BtnDeactivate_Click"
+                                                        IsEnabled="{Binding CanManagePromotion, ElementName=PageRoot}"
                                                         Tag="{Binding Id}"
                                                         Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}}">
 														<MenuFlyoutItem.Icon>

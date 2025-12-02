@@ -26,6 +26,11 @@ namespace PhoneStoreAdmin.View
         // Services
         private readonly ICustomerService _customerService;
         
+        // Permission properties
+        public bool CanAddCustomer { get; }
+        public bool CanEditCustomer { get; }
+        public bool CanDeleteCustomer { get; }
+        
         // Pagination
         private int _currentPage = 1;
         private int _pageSize = 20;
@@ -55,6 +60,12 @@ namespace PhoneStoreAdmin.View
             // Get service from container
             _customerService = ServiceContainer.GetService<ICustomerService>()
                 ?? throw new InvalidOperationException("CustomerService not registered");
+
+            // Initialize permissions
+            var session = UserSession.Instance;
+            CanAddCustomer = session.HasPermission("CUSTOMER_ADD");
+            CanEditCustomer = session.HasPermission("CUSTOMER_EDIT");
+            CanDeleteCustomer = session.HasPermission("CUSTOMER_DELETE");
 
             UpdateFilterBadge();
 
@@ -237,6 +248,8 @@ namespace PhoneStoreAdmin.View
         // Header Button
         private async void AddButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanAddCustomer) return;
+            
             var dialogContent = new CustomerDialog();
             dialogContent.SetMode(CustomerDialog.DialogMode.Add);
 
@@ -451,6 +464,8 @@ namespace PhoneStoreAdmin.View
 
         private async void EditMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanEditCustomer) return;
+            
             if (sender is MenuFlyoutItem menuItem &&
                 menuItem.Tag is CustomerViewModel customer)
             {
@@ -531,6 +546,8 @@ namespace PhoneStoreAdmin.View
 
         private async void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanDeleteCustomer) return;
+            
             if (sender is MenuFlyoutItem menuItem &&
                 menuItem.Tag is CustomerViewModel customer)
             {

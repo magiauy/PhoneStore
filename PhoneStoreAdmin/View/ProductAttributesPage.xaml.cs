@@ -459,11 +459,13 @@ namespace PhoneStoreAdmin.View
 
         private async void AddAttributeButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanManageAttributes) return;
             await ShowAttributeDialogAsync(null);
         }
 
         private async void EditAttributeButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanManageAttributes) return;
             if (SelectedAttribute != null)
             {
                 await ShowAttributeDialogAsync(SelectedAttribute);
@@ -472,6 +474,7 @@ namespace PhoneStoreAdmin.View
 
         private async void DeleteAttributeButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanManageAttributes) return;
             if (SelectedAttribute == null)
             {
                 return;
@@ -662,6 +665,7 @@ namespace PhoneStoreAdmin.View
 
         private async void AddOptionButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanManageAttributes) return;
             if (SelectedAttribute == null)
             {
                 return;
@@ -672,6 +676,7 @@ namespace PhoneStoreAdmin.View
 
         private async void OptionEditButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanManageAttributes) return;
             if (sender is FrameworkElement element && element.Tag is int optionId)
             {
                 var optionViewModel = AttributeOptions.FirstOrDefault(o => o.Id == optionId);
@@ -684,6 +689,7 @@ namespace PhoneStoreAdmin.View
 
         private async void OptionDeleteButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanManageAttributes) return;
             if (SelectedAttribute == null)
             {
                 return;

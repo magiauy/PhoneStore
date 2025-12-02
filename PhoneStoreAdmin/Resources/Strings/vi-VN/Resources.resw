@@ -723,6 +723,88 @@
   <data name="BtnDetailPurchaseOrder.Text" xml:space="preserve">
     <value>Chi tiết</value>
   </data>
+  <data name="BtnPrintInvoice.Text" xml:space="preserve">
+    <value>In hóa đơn</value>
+  </data>
+  <data name="Invoice_NotFound" xml:space="preserve">
+    <value>Không tìm thấy hóa đơn</value>
+  </data>
+  <!-- Invoice Detail Dialog -->
+  <data name="Invoice_DetailTitle" xml:space="preserve">
+    <value>Chi tiết hóa đơn</value>
+  </data>
+  <data name="Invoice_InfoTitle" xml:space="preserve">
+    <value>Thông tin hóa đơn</value>
+  </data>
+  <data name="Invoice_Date" xml:space="preserve">
+    <value>Ngày tạo</value>
+  </data>
+  <data name="Invoice_PaymentMethod" xml:space="preserve">
+    <value>Thanh toán</value>
+  </data>
+  <data name="Invoice_Customer" xml:space="preserve">
+    <value>Khách hàng</value>
+  </data>
+  <data name="Invoice_PromotionCode" xml:space="preserve">
+    <value>Mã KM</value>
+  </data>
+  <data name="Invoice_CreatedBy" xml:space="preserve">
+    <value>Nhân viên</value>
+  </data>
+  <data name="Invoice_ProductsTitle" xml:space="preserve">
+    <value>Sản phẩm</value>
+  </data>
+  <data name="Invoice_ProductName" xml:space="preserve">
+    <value>Sản phẩm</value>
+  </data>
+  <data name="Invoice_Qty" xml:space="preserve">
+    <value>SL</value>
+  </data>
+  <data name="Invoice_UnitPrice" xml:space="preserve">
+    <value>Đơn giá</value>
+  </data>
+  <data name="Invoice_LineTotal" xml:space="preserve">
+    <value>Thành tiền</value>
+  </data>
+  <data name="Invoice_TotalsTitle" xml:space="preserve">
+    <value>Tổng cộng</value>
+  </data>
+  <data name="Invoice_Subtotal" xml:space="preserve">
+    <value>Tạm tính</value>
+  </data>
+  <data name="Invoice_Discount" xml:space="preserve">
+    <value>Giảm giá</value>
+  </data>
+  <data name="Invoice_FinalTotal" xml:space="preserve">
+    <value>TỔNG THANH TOÁN</value>
+  </data>
+  <data name="Invoice_Note" xml:space="preserve">
+    <value>Ghi chú</value>
+  </data>
+  <data name="InvoiceStatus_Paid" xml:space="preserve">
+    <value>Đã thanh toán</value>
+  </data>
+  <data name="InvoiceStatus_Unpaid" xml:space="preserve">
+    <value>Chưa thanh toán</value>
+  </data>
+  <data name="InvoiceStatus_Cancelled" xml:space="preserve">
+    <value>Đã hủy</value>
+  </data>
+  <data name="PaymentMethod_Cash" xml:space="preserve">
+    <value>Tiền mặt</value>
+  </data>
+  <data name="PaymentMethod_Card" xml:space="preserve">
+    <value>Thẻ</value>
+  </data>
+  <data name="PaymentMethod_Bank" xml:space="preserve">
+    <value>Chuyển khoản</value>
+  </data>
+  <data name="PaymentMethod_EWallet" xml:space="preserve">
+    <value>Ví điện tử</value>
+  </data>
+  <data name="Invoice_PrintButton" xml:space="preserve">
+    <value>In hóa đơn</value>
+  </data>
   <data name="ShowIngPurchaseOrder.Text" xml:space="preserve">
     <value>Hiển thị</value>
   </data>
@@ -3240,8 +3322,71 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="Sales_TotalLabel.Text" xml:space="preserve">
     <value>TỔNG CỘNG</value>
   </data>
+  <!-- Code-behind labels -->
+  <data name="Sales_Subtotal" xml:space="preserve">
+    <value>Tạm tính</value>
+  </data>
+  <data name="Sales_Vat" xml:space="preserve">
+    <value>VAT (10%)</value>
+  </data>
+  <data name="Sales_Total" xml:space="preserve">
+    <value>TỔNG CỘNG</value>
+  </data>
   <data name="Sales_PayNowButtonText.Text" xml:space="preserve">
     <value>THANH TOÁN NGAY</value>
+  </data>
+  <!-- Sales Proforma Invoice -->
+  <data name="Sales_PrintProformaButtonText.Text" xml:space="preserve">
+    <value>IN HÓA ĐƠN TẠM TÍNH</value>
+  </data>
+  <data name="Sales_ProformaInvoiceTitle" xml:space="preserve">
+    <value>Hóa đơn tạm tính</value>
+  </data>
+  <data name="Sales_ProformaHeader" xml:space="preserve">
+    <value>HÓA ĐƠN TẠM TÍNH</value>
+  </data>
+  <data name="Sales_ProformaNote" xml:space="preserve">
+    <value>* Đây là hóa đơn tạm tính, chưa phải hóa đơn chính thức</value>
+  </data>
+  <data name="Sales_PrintButton" xml:space="preserve">
+    <value>In</value>
+  </data>
+  <data name="Sales_PrintNotImplemented" xml:space="preserve">
+    <value>Chức năng in đang được phát triển</value>
+  </data>
+  <data name="Sales_CustomerLabel" xml:space="preserve">
+    <value>Khách hàng</value>
+  </data>
+  <data name="Sales_PhoneLabel" xml:space="preserve">
+    <value>Số điện thoại</value>
+  </data>
+  <data name="Sales_ProductHeader" xml:space="preserve">
+    <value>Sản phẩm</value>
+  </data>
+  <data name="Sales_QtyHeader" xml:space="preserve">
+    <value>SL</value>
+  </data>
+  <data name="Sales_PriceHeader" xml:space="preserve">
+    <value>Thành tiền</value>
+  </data>
+  <!-- Sales Order Confirmation -->
+  <data name="Sales_ConfirmOrderTitle" xml:space="preserve">
+    <value>Xác nhận đơn hàng</value>
+  </data>
+  <data name="Sales_ConfirmCustomerLabel" xml:space="preserve">
+    <value>Khách hàng:</value>
+  </data>
+  <data name="Sales_ConfirmItemsLabel" xml:space="preserve">
+    <value>Sản phẩm:</value>
+  </data>
+  <data name="Sales_ConfirmTotalLabel" xml:space="preserve">
+    <value>TỔNG THANH TOÁN:</value>
+  </data>
+  <data name="Sales_ConfirmPayButton" xml:space="preserve">
+    <value>Xác nhận thanh toán</value>
+  </data>
+  <data name="Sales_CancelButton" xml:space="preserve">
+    <value>Hủy</value>
   </data>
   <!-- SalesPage Code-behind messages -->
   <data name="Sales_OutOfStockError" xml:space="preserve">
@@ -3318,6 +3463,16 @@ Tổng tiền: {1}</value>
   </data>
   <data name="DialogClose" xml:space="preserve">
     <value>Đóng</value>
+  </data>
+  <!-- Print Invoice -->
+  <data name="Sales_PrintSuccess" xml:space="preserve">
+    <value>Đã tạo hóa đơn PDF thành công</value>
+  </data>
+  <data name="Sales_PrintError" xml:space="preserve">
+    <value>Lỗi khi tạo hóa đơn PDF</value>
+  </data>
+  <data name="Sales_ErrorTitle" xml:space="preserve">
+    <value>Lỗi</value>
   </data>
   <!-- AccessDenied Page -->
   <data name="AccessDenied_Title.Text" xml:space="preserve">

@@ -103,6 +103,7 @@ namespace PhoneStore.Services
             RegisterSingleton<ILocalStorageService>(() => new LocalStorageService());
             RegisterSingleton<IRoleService>(() => new RoleService(GetService<IRoleRepository>()));
             RegisterSingleton<IPermissionService>(() => new PermissionService(GetService<IPermissionRepository>()));
+            RegisterSingleton<ICloudinaryService>(() => new CloudinaryService(GetService<IConfiguration>()));
             RegisterSingleton<IInvoiceService>(() => new InvoiceService(
                 GetService<IInvoiceRepository>(),
                 GetService<IPersonRepository>(),
@@ -112,7 +113,8 @@ namespace PhoneStore.Services
                 GetService<IProductSerialRepository>(),
                 GetService<IBatchProductRepository>(),
                 GetService<IInvoiceLineSerialRepository>(),
-                GetService<IProductRepository>()
+                GetService<IProductRepository>(),
+                GetService<DataSource>()
             ));
 
             // Register UserSession singleton

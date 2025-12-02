@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Page
     x:Class="PhoneStoreAdmin.View.EmployeesPage"
+    x:Name="PageRoot"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="using:PhoneStoreAdmin.Converters"
     mc:Ignorable="d"
     Background="{StaticResource BrushBackground}">
 
     <Page.Resources>
+        <!-- Converters -->
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        
         <!-- Shadow -->
         <ThemeShadow x:Name="SharedShadow" />
 
@@ -172,6 +177,8 @@
                         Padding="20,14"
                         VerticalAlignment="Center"
                         Click="AddButton_Click"
+                        IsEnabled="{x:Bind CanAddEmployee, Mode=OneWay}"
+                        Visibility="{x:Bind CanAddEmployee, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                         Shadow="{StaticResource SharedShadow}"
                         Style="{StaticResource PrimaryButtonStyle}">
                     <StackPanel Orientation="Horizontal" Spacing="10">
@@ -542,7 +549,8 @@
                                                 <MenuFlyoutItem x:Uid="EmployeesPage_EditAction"
                                                               Text="Chỉnh sửa"
                                                               Tag="{Binding}"
-                                                              Click="EditMenuItem_Click">
+                                                              Click="EditMenuItem_Click"
+                                                              IsEnabled="{Binding CanEditEmployee, ElementName=PageRoot}">
                                                     <MenuFlyoutItem.Icon>
                                                         <FontIcon Glyph="&#xE70F;"/>
                                                     </MenuFlyoutItem.Icon>
@@ -553,7 +561,8 @@
                                                 <MenuFlyoutItem x:Uid="EmployeesPage_DeleteAction"
                                                               Text="Xóa"
                                                               Tag="{Binding}"
-                                                              Click="DeleteMenuItem_Click">
+                                                              Click="DeleteMenuItem_Click"
+                                                              IsEnabled="{Binding CanDeleteEmployee, ElementName=PageRoot}">
                                                     <MenuFlyoutItem.Icon>
                                                         <FontIcon Glyph="&#xE74D;"/>
                                                     </MenuFlyoutItem.Icon>

@@ -21,6 +21,11 @@ namespace PhoneStoreAdmin.View
         private ISupplierService SupplierService => App.GetService<ISupplierService>();
         private readonly ResourceLoader _resourceLoader;
 
+        // Permission properties
+        public bool CanAddBatch { get; }
+        public bool CanEditBatch { get; }
+        public bool CanDeleteBatch { get; }
+
         public ObservableCollection<BatchViewModel> Batches { get; } = new ObservableCollection<BatchViewModel>();
         public int CurrentPage { get; set; } = 1;
         public int PageSize { get; set; } = 10;
@@ -34,6 +39,13 @@ namespace PhoneStoreAdmin.View
         {
             this.InitializeComponent();
             _resourceLoader = new ResourceLoader();
+            
+            // Initialize permissions
+            var session = PhoneStoreRepository.Models.UserSession.Instance;
+            CanAddBatch = session.HasPermission("BATCH_ADD");
+            CanEditBatch = session.HasPermission("BATCH_EDIT");
+            CanDeleteBatch = session.HasPermission("BATCH_DELETE");
+            
             this.Loaded += BatchesPage_Loaded;
         }
 
@@ -187,11 +199,15 @@ namespace PhoneStoreAdmin.View
 
         private void BtnCreate_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanAddBatch) return;
+            
             ShowErrorDialog("Info", "Create batch functionality - Coming Soon!");
         }
 
         private void BtnEdit_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanEditBatch) return;
+            
             if (sender is MenuFlyoutItem item && item.Tag is BatchViewModel batch)
             {
                 ShowErrorDialog("Info", $"Edit batch ID: {batch.Id} - Coming Soon!");
@@ -355,6 +371,8 @@ namespace PhoneStoreAdmin.View
 
         private void BtnDelete_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanDeleteBatch) return;
+            
             if (sender is MenuFlyoutItem item && item.Tag is BatchViewModel batch)
             {
                 try

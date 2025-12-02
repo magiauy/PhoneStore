@@ -1,3 +1,4 @@
+using MySqlConnector;
 using PhoneStoreRepository.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,6 +9,11 @@ namespace PhoneStoreRepository.Repositories.Interfaces
     {
         Person GetByEmail(string email);
         Person GetByPhone(string phone);
+
+        /// <summary>
+        /// Insert person using an existing transaction
+        /// </summary>
+        void Insert(Person entity, MySqlConnection connection, MySqlTransaction transaction);
 
         /// <summary>
         /// Get person by account ID async

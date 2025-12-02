@@ -47,6 +47,15 @@ namespace PhoneStore.Services.Implementations
                 if (person == null)
                 {
                     Logger.Warning($"Person not found for account ID: {account.PersonId}");
+                    return false;
+                }
+                Logger.Info($"Person retrieved: {person.FullName} (ID: {person.Id}) for user: {username}");
+                Logger.Info($"Person Type: {person.PersonType} for user: {username}");
+                // Step 2.5: Verify PersonType is EMPLOYEE (only employees can access Admin app)
+                if (person.PersonType != PhoneStoreRepository.Models.Enums.PersonType.EMPLOYEE)
+                {
+                    Logger.Warning($"Access denied for user: {username}. PersonType '{person.PersonType}' is not allowed. Only EMPLOYEE can access Admin app.");
+                    return false;
                 }
 
                 // Step 3: Get Roles
