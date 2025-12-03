@@ -22,6 +22,13 @@ namespace PhoneStoreRepository.Models
         private DateTime _createdAt;
         private ICollection<ProductAttributeValue> _productAttributeValues = new List<ProductAttributeValue>();
 
+        // Dynamic Pricing fields
+        private decimal _costFifo = 0;
+        private decimal _costNifo = 0;
+        private MarketTrend _marketTrend = MarketTrend.STABLE;
+        private PricingMode _pricingMode = PricingMode.AUTO_PROTECT;
+        private DateTime? _priceUpdatedAt;
+
         // Public properties with backing fields
         public int Id
         {
@@ -110,6 +117,55 @@ namespace PhoneStoreRepository.Models
             set => _createdAt = value;
         }
 
+        // Dynamic Pricing properties
+
+        /// <summary>
+        /// Giá vốn FIFO - bình quân của lô hàng cũ nhất đang tồn kho
+        /// </summary>
+        [Range(0, double.MaxValue)]
+        public decimal CostFifo
+        {
+            get => _costFifo;
+            set => _costFifo = value;
+        }
+
+        /// <summary>
+        /// Giá thay thế NIFO - giá nhập dự kiến của lô hàng mới nhất
+        /// </summary>
+        [Range(0, double.MaxValue)]
+        public decimal CostNifo
+        {
+            get => _costNifo;
+            set => _costNifo = value;
+        }
+
+        /// <summary>
+        /// Xu hướng thị trường (UP, DOWN, STABLE)
+        /// </summary>
+        public MarketTrend MarketTrend
+        {
+            get => _marketTrend;
+            set => _marketTrend = value;
+        }
+
+        /// <summary>
+        /// Chế độ định giá (AUTO_PROTECT hoặc CLEARANCE)
+        /// </summary>
+        public PricingMode PricingMode
+        {
+            get => _pricingMode;
+            set => _pricingMode = value;
+        }
+
+        /// <summary>
+        /// Thời điểm cập nhật giá gần nhất
+        /// </summary>
+        public DateTime? PriceUpdatedAt
+        {
+            get => _priceUpdatedAt;
+            set => _priceUpdatedAt = value;
+        }
+
         // Navigation: product has many attribute values
         public ICollection<ProductAttributeValue> ProductAttributeValues
         {
@@ -133,6 +189,12 @@ namespace PhoneStoreRepository.Models
             _status = ProductStatus.ACTIVE;
             _createdAt = DateTime.UtcNow;
             _productAttributeValues = new List<ProductAttributeValue>();
+            // Dynamic Pricing defaults
+            _costFifo = 0;
+            _costNifo = 0;
+            _marketTrend = MarketTrend.STABLE;
+            _pricingMode = PricingMode.AUTO_PROTECT;
+            _priceUpdatedAt = null;
         }
 
         public Product(string sku, string name, int categoryId, decimal price)
@@ -150,6 +212,12 @@ namespace PhoneStoreRepository.Models
             _status = ProductStatus.ACTIVE;
             _createdAt = DateTime.UtcNow;
             _productAttributeValues = new List<ProductAttributeValue>();
+            // Dynamic Pricing defaults
+            _costFifo = 0;
+            _costNifo = 0;
+            _marketTrend = MarketTrend.STABLE;
+            _pricingMode = PricingMode.AUTO_PROTECT;
+            _priceUpdatedAt = null;
         }
     }
 }

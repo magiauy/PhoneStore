@@ -11,6 +11,7 @@
 @inject ILogger<ProductDetail> Logger
 @inject IReviewService ReviewService
 @inject ICloudinaryService CloudinaryService
+@inject IInventoryService InventoryService
 
 @* Xử lý hiển thị tiêu đề trang khi đang tải *@
 <PageTitle>@(ProductModel?.Name ?? "Chi tiết sản phẩm") - GuZone</PageTitle>
@@ -79,6 +80,29 @@
                                 ? $"{SelectedProduct.Price.ToString("N0", new CultureInfo("vi-VN"))} ₫" 
                                 : "Liên hệ")
                         </p>
+                        
+                        @* Pricing Labels based on PricingMode *@
+                        @if (SelectedProduct.PricingMode == PricingMode.CLEARANCE)
+                        {
+                            <span class="inline-block mt-2 px-3 py-1 text-sm font-medium text-orange-700 bg-orange-100 rounded-full">
+                                Giá ưu đãi xả kho (Số lượng có hạn)
+                            </span>
+                        }
+                        else if (SelectedProduct.PricingMode == PricingMode.AUTO_PROTECT && IsPriceRecentlyUpdated(SelectedProduct.PriceUpdatedAt))
+                        {
+                            <span class="inline-block mt-2 px-3 py-1 text-sm font-medium text-blue-700 bg-blue-100 rounded-full">
+                                Giá thị trường (Cập nhật 24h)
+                            </span>
+                        }
+                        
+                        @* Stock warning when stock <= 5 *@
+                        @if (GetProductStock(SelectedProduct.Id) is var stockQuantity && stockQuantity > 0 && stockQuantity <= 5)
+                        {
+                            <p class="mt-2 text-sm font-medium text-red-600">
+                                <i class="fa-solid fa-fire mr-1"></i>
+                                Chỉ còn @stockQuantity sản phẩm với mức giá này
+                            </p>
+                        }
                     }
                 </div>
 
@@ -198,6 +222,7 @@
     private int TotalReviews { get; set; }
     private int? LastSelectedAttributeId { get; set; }
     private bool ShowReviewForm = false; // Mặc định là ẩn
+    private Dictionary<int, ProductAvailabilitySnapshot> ProductAvailability { get; set; } = new();
 
     protected override async Task OnParametersSetAsync()
     {
@@ -297,6 +322,10 @@
         if (ProductModel != null && Products.Count > 0)
         {
             await PopulateProductImagesAsync();
+            
+            // Load stock availability for all products
+            var productIds = Products.Select(p => p.Id).ToList();
+            ProductAvailability = await InventoryService.GetAvailabilityForProductsAsync(productIds);
         }
 
         IsLoading = false;
@@ -595,6 +624,27 @@
         {
             ApplySelectedProductAttributes(SelectedProduct, replaceExisting: true);
         }
+    }
+
+    /// <summary>
+    /// Check if price was updated within the last 24 hours
+    /// </summary>
+    private static bool IsPriceRecentlyUpdated(DateTime? priceUpdatedAt)
+    {
+        if (priceUpdatedAt == null) return false;
+        return (DateTime.UtcNow - priceUpdatedAt.Value).TotalHours <= 24;
+    }
+
+    /// <summary>
+    /// Get the available stock quantity for a product
+    /// </summary>
+    private int GetProductStock(int productId)
+    {
+        if (ProductAvailability.TryGetValue(productId, out var snapshot))
+        {
+            return snapshot.AvailableQuantity;
+        }
+        return 0;
     }
 
     private bool IsChoiceAvailable(AttributeChoice choice)

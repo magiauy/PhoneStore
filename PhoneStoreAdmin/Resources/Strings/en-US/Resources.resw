@@ -3588,6 +3588,19 @@ Total: {1}</value>
   <data name="SystemSettings_Error_InitializeFailed" xml:space="preserve">
     <value>Failed to initialize default settings</value>
   </data>
+  <!-- Dynamic Pricing Menu Items -->
+  <data name="MenuItemPricing.Content" xml:space="preserve">
+    <value>Dynamic Pricing</value>
+  </data>
+  <data name="MenuItemPricingDashboard.Content" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="MenuItemPricingAlerts.Content" xml:space="preserve">
+    <value>Alerts</value>
+  </data>
+  <data name="MenuItemPricingSettings.Content" xml:space="preserve">
+    <value>Settings</value>
+  </data>
   <!-- AddPurchaseOrder Page Localization -->
   <data name="AddPurchaseOrder_UnitCostHeader" xml:space="preserve">
     <value>Unit Cost</value>
