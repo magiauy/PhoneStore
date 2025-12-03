@@ -3487,4 +3487,124 @@ Total: {1}</value>
   <data name="AccessDenied_BackToDashboard.Content" xml:space="preserve">
     <value>Back to Dashboard</value>
   </data>
+  <!-- Settings Page -->
+  <data name="MenuSettings.Content" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <!-- System Settings Page -->
+  <data name="MenuSystemSettings.Content" xml:space="preserve">
+    <value>System Config</value>
+  </data>
+  <data name="SystemSettings_Title" xml:space="preserve">
+    <value>System Configuration</value>
+  </data>
+  <data name="SystemSettings_Subtitle" xml:space="preserve">
+    <value>Manage system settings and configurations</value>
+  </data>
+  <data name="SystemSettings_BtnNew" xml:space="preserve">
+    <value>Add Config</value>
+  </data>
+  <data name="SystemSettings_BtnInitialize" xml:space="preserve">
+    <value>Initialize Settings</value>
+  </data>
+  <data name="SystemSettings_SearchPlaceholder" xml:space="preserve">
+    <value>Search by code, value or type...</value>
+  </data>
+  <data name="SystemSettings_ColId" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="SystemSettings_ColCode" xml:space="preserve">
+    <value>CODE</value>
+  </data>
+  <data name="SystemSettings_ColValue" xml:space="preserve">
+    <value>VALUE</value>
+  </data>
+  <data name="SystemSettings_ColType" xml:space="preserve">
+    <value>TYPE</value>
+  </data>
+  <data name="SystemSettings_ColActions" xml:space="preserve">
+    <value>ACTIONS</value>
+  </data>
+  <data name="SystemSettings_EmptyTitle" xml:space="preserve">
+    <value>No configurations found</value>
+  </data>
+  <data name="SystemSettings_EmptyDescription" xml:space="preserve">
+    <value>Start by adding your first system configuration</value>
+  </data>
+  <data name="SystemSettings_Showing" xml:space="preserve">
+    <value>Showing</value>
+  </data>
+  <data name="SystemSettings_Settings" xml:space="preserve">
+    <value>configs</value>
+  </data>
+  <data name="SystemSettings_Page" xml:space="preserve">
+    <value>Page</value>
+  </data>
+  <data name="SystemSettings_DialogTitleNew" xml:space="preserve">
+    <value>Add New Configuration</value>
+  </data>
+  <data name="SystemSettings_DialogTitleEdit" xml:space="preserve">
+    <value>Edit Configuration</value>
+  </data>
+  <data name="SystemSettings_CodeLabel" xml:space="preserve">
+    <value>Config Code</value>
+  </data>
+  <data name="SystemSettings_ValueLabel" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="SystemSettings_TypeLabel" xml:space="preserve">
+    <value>Data Type</value>
+  </data>
+  <data name="SystemSettings_DeleteConfirmTitle" xml:space="preserve">
+    <value>Confirm Delete</value>
+  </data>
+  <data name="SystemSettings_DeleteConfirmMessage" xml:space="preserve">
+    <value>Are you sure you want to delete configuration "{0}"?</value>
+  </data>
+  <data name="SystemSettings_Error_LoadFailed" xml:space="preserve">
+    <value>Failed to load configurations</value>
+  </data>
+  <data name="SystemSettings_Error_SaveFailed" xml:space="preserve">
+    <value>Failed to save configuration</value>
+  </data>
+  <data name="SystemSettings_Error_DeleteFailed" xml:space="preserve">
+    <value>Failed to delete configuration</value>
+  </data>
+  <data name="SystemSettings_Error_CodeRequired" xml:space="preserve">
+    <value>Please enter a config code</value>
+  </data>
+  <data name="SystemSettings_Error_CodeExists" xml:space="preserve">
+    <value>Config code already exists</value>
+  </data>
+  <data name="SystemSettings_Error_NotFound" xml:space="preserve">
+    <value>Configuration not found</value>
+  </data>
+  <data name="SystemSettings_Error_NoEditPermission" xml:space="preserve">
+    <value>You don't have permission to edit configurations</value>
+  </data>
+  <data name="SystemSettings_Error_NoDeletePermission" xml:space="preserve">
+    <value>You don't have permission to delete configurations</value>
+  </data>
+  <data name="SystemSettings_Error_InitializeFailed" xml:space="preserve">
+    <value>Failed to initialize default settings</value>
+  </data>
+  <!-- AddPurchaseOrder Page Localization -->
+  <data name="AddPurchaseOrder_UnitCostHeader" xml:space="preserve">
+    <value>Unit Cost</value>
+  </data>
+  <data name="AddPurchaseOrder_ProfitMarginHeader" xml:space="preserve">
+    <value>Profit Margin (%)</value>
+  </data>
+  <data name="AddPurchaseOrder_SellingPriceHeader" xml:space="preserve">
+    <value>Selling Price</value>
+  </data>
+  <data name="AddPurchaseOrder_AddAllProductsButton" xml:space="preserve">
+    <value>Add All Products</value>
+  </data>
+  <data name="AddPurchaseOrder_ProfitMarginValidationError" xml:space="preserve">
+    <value>Profit margin for product "{0}" must be at least {1}%</value>
+  </data>
+  <data name="AddPurchaseOrder_NoFilteredProducts" xml:space="preserve">
+    <value>No products to add. Please select a category or brand to filter products first.</value>
+  </data>
 </root>

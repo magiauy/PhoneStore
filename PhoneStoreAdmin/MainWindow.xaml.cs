@@ -55,7 +55,10 @@ namespace PhoneStoreAdmin
             { "Reports", "REPORT_VIEW" },
             
             // Settings - optional, can be accessed by users with specific permissions
-            { "Settings", "SETTING_VIEW" }
+            { "Settings", "SETTING_VIEW" },
+            
+            // System Settings - for managing system configurations (profit margin, etc.)
+            { "SystemSettings", "SYSTEM_SETTING_VIEW" }
         };
 
         public MainWindow()
@@ -107,7 +110,9 @@ namespace PhoneStoreAdmin
                 { "Employees", EmployeesNavItem },
                 { "Accounts", AccountsNavItem },
                 { "Roles", RolesNavItem },
-                { "Reports", ReportNavItem }
+                { "Reports", ReportNavItem },
+                { "Settings", SettingsNavItem },
+                { "SystemSettings", SystemSettingsNavItem }
             };
 
             foreach (var kvp in navItems)
@@ -205,12 +210,14 @@ namespace PhoneStoreAdmin
                 "Roles" => typeof(RolesPage),
                 "Reports" => typeof(ReportsPage),
                 "Settings" => typeof(SettingsPage),
+                "SystemSettings" => typeof(SystemSettingsPage),
                 "Invoice" => typeof(InvoicePage),
                 "AccessDenied" => typeof(AccessDeniedPage),
                 _ => typeof(DashboardPage)
             };
 
-            if (!string.Equals(pageTag, "Settings", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(pageTag, "Settings", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(pageTag, "SystemSettings", StringComparison.OrdinalIgnoreCase))
             {
                 var navItem = FindNavigationViewItem(pageTag);
                 if (navItem != null && !Equals(MainNavView.SelectedItem, navItem))

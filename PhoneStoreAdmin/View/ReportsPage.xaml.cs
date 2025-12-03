@@ -245,8 +245,12 @@ namespace PhoneStoreAdmin.View
                 decimal maxAmount = monthlyData.Max(m => m.Amount);
                 if (maxAmount == 0) maxAmount = 1; // Avoid divide by zero
 
-                double chartHeight = 260; // Chiều cao tổng của khu vực vẽ
-                double barWidth = 32;
+                // Chart dimensions
+                double chartHeight = 250;
+                double barWidth = 40;
+                // Increase spacing so columns are farther apart
+                double spacing = 80;
+                double totalWidth = monthlyData.Count * (barWidth + spacing);
 
                 // 4. Create Main Container (Holds all bars horizontally)
                 var chartContainer = new StackPanel
