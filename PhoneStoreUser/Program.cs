@@ -60,9 +60,20 @@ builder.Services.AddAuthentication(options =>
     {
         options.ForwardDefaultSelector = context =>
         {
-            return context.Request.Path.StartsWithSegments("/admin", StringComparison.OrdinalIgnoreCase)
-                ? adminScheme
-                : defaultScheme;
+            // Check if admin cookie exists - this is more reliable than path-based check
+            // because SignalR connections use /_blazor path, not the actual page path
+            if (context.Request.Cookies.ContainsKey(adminScheme))
+            {
+                return adminScheme;
+            }
+            
+            // Fallback to path-based check for initial requests (before cookie is set)
+            if (context.Request.Path.StartsWithSegments("/admin", StringComparison.OrdinalIgnoreCase))
+            {
+                return adminScheme;
+            }
+            
+            return defaultScheme;
         };
     })
     .AddCookie(defaultScheme, options =>
