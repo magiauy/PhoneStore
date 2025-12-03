@@ -22,6 +22,7 @@ namespace PhoneStore.Services.Implementations
         private readonly IProductRepository _productRepository;
         private readonly IProductSerialRepository _productSerialRepository;
         private readonly DataSource _dataSource;
+        private readonly IDynamicPricingService _dynamicPricingService;
 
         public PurchaseOrderService(
               IPurchaseOrderRepository poRepository,
@@ -30,7 +31,8 @@ namespace PhoneStore.Services.Implementations
             IBatchProductRepository batchProductRepository,
         IProductRepository productRepository,
                 IProductSerialRepository productSerialRepository,
-       DataSource dataSource)
+       DataSource dataSource,
+       IDynamicPricingService dynamicPricingService)
         {
             _poRepository = poRepository ?? throw new ArgumentNullException(nameof(poRepository));
             _lineRepository = lineRepository ?? throw new ArgumentNullException(nameof(lineRepository));
@@ -39,6 +41,7 @@ namespace PhoneStore.Services.Implementations
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
             _productSerialRepository = productSerialRepository ?? throw new ArgumentNullException(nameof(productSerialRepository));
             _dataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
+            _dynamicPricingService = dynamicPricingService ?? throw new ArgumentNullException(nameof(dynamicPricingService));
         }
 
         public PurchaseOrder? GetById(int id)
@@ -296,6 +299,29 @@ namespace PhoneStore.Services.Implementations
         #endregion
 
         #region Business logic
+        /// <summary>
+        /// Trigger dynamic pricing update for a product after receiving inventory
+        /// Updates FIFO cost first, then NIFO cost to trigger pricing workflow
+        /// </summary>
+        private void TriggerPricingUpdate(int productId, decimal unitCost, int quantity)
+        {
+            try
+            {
+                // 1. Update FIFO cost with weighted average
+                var fifoResult = _dynamicPricingService.UpdateFifoCost(productId, unitCost, quantity);
+                Logger.Info($"FIFO update for product {productId}: {(fifoResult ? "success" : "failed")}");
+
+                // 2. Update NIFO cost and trigger pricing workflow
+                var nifoResult = _dynamicPricingService.UpdateNifoCost(productId, unitCost);
+                Logger.Info($"Pricing update for product {productId}: {nifoResult.Action}");
+            }
+            catch (Exception ex)
+            {
+                // Don't fail the entire operation - just log the error
+                Logger.Error($"Failed to trigger pricing update for product {productId}", ex);
+            }
+        }
+
         public void MarkAsReceived(int id)
         {
             var (connection, transaction) = _dataSource.BeginTransaction();
@@ -375,6 +401,13 @@ namespace PhoneStore.Services.Implementations
 
                 transaction.Commit();
                 Logger.Info($"Purchase order {id} marked as RECEIVED successfully with serials updated to IN_STOCK");
+
+                // Trigger dynamic pricing updates after transaction commits
+                // This ensures data consistency before pricing calculations
+                foreach (var line in po.PurchaseOrderLines)
+                {
+                    TriggerPricingUpdate(line.ProductId, line.UnitCost, line.Quantity);
+                }
             }
             catch (Exception ex)
             {

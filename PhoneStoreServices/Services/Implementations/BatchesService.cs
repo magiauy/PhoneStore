@@ -18,19 +18,22 @@ namespace PhoneStore.Services.Implementations
         private readonly IPurchaseOrderRepository _purchaseOrderRepository;
         private readonly ISupplierRepository _supplierRepository;
         private readonly DataSource _dataSource;
+        private readonly IDynamicPricingService _dynamicPricingService;
 
         public BatchesService(
             IBatchesRepository batchesRepository,
             IBatchProductRepository batchProductRepository,
             IPurchaseOrderRepository purchaseOrderRepository,
             ISupplierRepository supplierRepository,
-            DataSource dataSource)
+            DataSource dataSource,
+            IDynamicPricingService dynamicPricingService)
         {
             _batchesRepository = batchesRepository ?? throw new ArgumentNullException(nameof(batchesRepository));
             _batchProductRepository = batchProductRepository ?? throw new ArgumentNullException(nameof(batchProductRepository));
             _purchaseOrderRepository = purchaseOrderRepository ?? throw new ArgumentNullException(nameof(purchaseOrderRepository));
             _supplierRepository = supplierRepository ?? throw new ArgumentNullException(nameof(supplierRepository));
             _dataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
+            _dynamicPricingService = dynamicPricingService ?? throw new ArgumentNullException(nameof(dynamicPricingService));
         }
 
         public Batches? GetById(int id)
@@ -71,6 +74,10 @@ namespace PhoneStore.Services.Implementations
 
                 transaction.Commit();
                 Logger.Info($"Batch {batch.id} created successfully");
+
+                // Trigger dynamic pricing update for each product in the batch
+                // This is done after commit to ensure data consistency
+                TriggerPricingUpdates(batch.BatchProducts);
             }
             catch (Exception ex)
             {
@@ -82,6 +89,54 @@ namespace PhoneStore.Services.Implementations
             {
                 transaction.Dispose();
                 connection.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Trigger dynamic pricing updates for batch products
+        /// Updates FIFO cost first (weighted average), then NIFO cost
+        /// Order of operations is important: FIFO must be updated before NIFO for correct variance calculation
+        /// </summary>
+        private void TriggerPricingUpdates(IEnumerable<BatchProduct> batchProducts)
+        {
+            foreach (var batchProduct in batchProducts)
+            {
+                try
+                {
+                    // Step 1: Update FIFO cost first (weighted average calculation)
+                    // This must be done BEFORE UpdateNifoCost to ensure correct variance calculation
+                    var fifoResult = _dynamicPricingService.UpdateFifoCost(
+                        batchProduct.ProductId, 
+                        batchProduct.CostPrice, 
+                        batchProduct.Quantity);
+                    
+                    if (fifoResult)
+                    {
+                        Logger.Info($"FIFO cost updated for product {batchProduct.ProductId}: cost={batchProduct.CostPrice}, qty={batchProduct.Quantity}");
+                    }
+                    else
+                    {
+                        Logger.Warning($"FIFO cost update failed for product {batchProduct.ProductId}");
+                    }
+
+                    // Step 2: Update NIFO cost and trigger pricing workflow
+                    // This will calculate variance against the updated FIFO and create alerts if needed
+                    var nifoResult = _dynamicPricingService.UpdateNifoCost(batchProduct.ProductId, batchProduct.CostPrice);
+                    
+                    if (nifoResult.Success)
+                    {
+                        Logger.Info($"Pricing update for product {batchProduct.ProductId}: {nifoResult.Action} - {nifoResult.Message}");
+                    }
+                    else
+                    {
+                        Logger.Warning($"Pricing update failed for product {batchProduct.ProductId}: {nifoResult.Message}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log error but don't fail the batch creation
+                    Logger.Error($"Failed to trigger pricing update for product {batchProduct.ProductId}", ex);
+                }
             }
         }
 

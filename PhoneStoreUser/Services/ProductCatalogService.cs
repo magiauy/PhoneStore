@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using PhoneStoreUser.Components.Models;
 using PhoneStoreUser.Components.ViewModels;
 using PhoneStoreUser.Data;
+using PricingMode = PhoneStoreUser.Components.Models.PricingMode;
 
 namespace PhoneStoreUser.Services;
 
@@ -126,7 +127,9 @@ public class ProductCatalogService : IProductCatalogService
                     x.P.WarrantyMonths,
                     (x.P.Status ?? "active").ToLower(),
                     x.P.CreatedAt,
-                    x.P.UpdatedAt
+                    x.P.UpdatedAt,
+                    (PricingMode)x.P.PricingMode,
+                    x.P.PriceUpdatedAt
                 ))
                 .ToList()
                 .AsReadOnly();
@@ -350,7 +353,9 @@ public class ProductCatalogService : IProductCatalogService
                         x.P.CreatedAt,
                         x.P.UpdatedAt,
                         null,
-                        x.Model.Slug
+                        x.Model.Slug,
+                        (PricingMode)x.P.PricingMode,
+                        x.P.PriceUpdatedAt
                     ))
                     .ToList()
                     .AsReadOnly();
@@ -375,7 +380,9 @@ public class ProductCatalogService : IProductCatalogService
                         x.P.CreatedAt,
                         x.P.UpdatedAt,
                         null,
-                        x.Model.Slug
+                        x.Model.Slug,
+                        (PricingMode)x.P.PricingMode,
+                        x.P.PriceUpdatedAt
                     ))
                     .ToList()
                     .AsReadOnly();
@@ -417,7 +424,9 @@ public class ProductCatalogService : IProductCatalogService
                 result.P.WarrantyMonths,
                 result.P.Status,
                 result.P.CreatedAt,
-                result.P.UpdatedAt
+                result.P.UpdatedAt,
+                (PricingMode)result.P.PricingMode,
+                result.P.PriceUpdatedAt
             );
         }, $"load product {sku}", (Product?)null);
     }

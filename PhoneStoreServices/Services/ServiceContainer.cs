@@ -64,6 +64,9 @@ namespace PhoneStore.Services
             RegisterSingleton<IInvoiceLineRepository>(() => new InvoiceLineRepository(ServiceContainer.GetService<DataSource>()));
             RegisterSingleton<IInvoiceLineSerialRepository>(() => new InvoiceLineSerialRepository(ServiceContainer.GetService<DataSource>()));
             RegisterSingleton<ISettingStringRepository>(() => new SettingStringRepository(GetService<DataSource>()));
+            RegisterSingleton<IPricingAlertRepository>(() => new PricingAlertRepository(GetService<DataSource>()));
+            RegisterSingleton<IPricingHistoryRepository>(() => new PricingHistoryRepository(GetService<DataSource>()));
+
             // Register services
             RegisterSingleton<IPromotionCodeService>(() => new PromotionCodeService(GetService<IPromotionCodeRepository>(), GetService<IPromotionRepository>()      ));
             RegisterSingleton<IAuthService>(() => new AuthService(GetService<IAuthRepository>()));
@@ -87,6 +90,19 @@ namespace PhoneStore.Services
                 GetService<IProductAttributeOptionService>()));
             RegisterSingleton<IPromotionService>(() => new PromotionService(GetService<IPromotionRepository>()));
             RegisterSingleton<IPromotionCodeService>(() => new PromotionCodeService(GetService<IPromotionCodeRepository>(), GetService<IPromotionRepository>()));
+            // Register pricing services (must be before PurchaseOrderService and BatchesService which depend on IDynamicPricingService)
+            RegisterSingleton<IDynamicPricingService>(() => new DynamicPricingService(
+                GetService<IProductRepository>(),
+                GetService<IPricingHistoryRepository>(),
+                GetService<IPricingAlertRepository>(),
+                GetService<ISettingStringService>(),
+                GetService<IProductSerialRepository>()));
+            RegisterSingleton<IPricingAlertService>(() => new PricingAlertService(
+                GetService<IPricingAlertRepository>(),
+                GetService<IProductRepository>(),
+                GetService<IPricingHistoryRepository>(),
+                GetService<IDynamicPricingService>()));
+
             RegisterSingleton<IPurchaseOrderService>(() => new PurchaseOrderService(
                 GetService<IPurchaseOrderRepository>(), 
                 GetService<IPurchaseOrderLineRepository>(),
@@ -94,13 +110,16 @@ namespace PhoneStore.Services
                 GetService<IBatchProductRepository>(),
                 GetService<IProductRepository>(),
                 GetService<IProductSerialRepository>(),
-                GetService<DataSource>()));
+                GetService<DataSource>(),
+                GetService<IDynamicPricingService>()));
+
             RegisterSingleton<IBatchesService>(() => new BatchesService(
                 GetService<IBatchesRepository>(), 
                 GetService<IBatchProductRepository>(), 
                 GetService<IPurchaseOrderRepository>(), 
                 GetService<ISupplierRepository>(),
-                GetService<DataSource>()));
+                GetService<DataSource>(),
+                GetService<IDynamicPricingService>()));
             RegisterSingleton<ILocalStorageService>(() => new LocalStorageService());
             RegisterSingleton<IRoleService>(() => new RoleService(GetService<IRoleRepository>()));
             RegisterSingleton<IPermissionService>(() => new PermissionService(GetService<IPermissionRepository>()));

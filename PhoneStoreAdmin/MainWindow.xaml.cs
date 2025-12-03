@@ -58,7 +58,12 @@ namespace PhoneStoreAdmin
             { "Settings", "SETTING_VIEW" },
             
             // System Settings - for managing system configurations (profit margin, etc.)
-            { "SystemSettings", "SYSTEM_SETTING_VIEW" }
+            { "SystemSettings", "SYSTEM_SETTING_VIEW" },
+            
+            // Dynamic Pricing
+            { "PricingDashboard", "PRICING_VIEW" },
+            { "PricingAlertCenter", "PRICING_VIEW" },
+            { "PricingSettings", "PRICING_VIEW" }
         };
 
         public MainWindow()
@@ -112,7 +117,8 @@ namespace PhoneStoreAdmin
                 { "Roles", RolesNavItem },
                 { "Reports", ReportNavItem },
                 { "Settings", SettingsNavItem },
-                { "SystemSettings", SystemSettingsNavItem }
+                { "SystemSettings", SystemSettingsNavItem },
+                { "PricingDashboard", PricingNavItem }
             };
 
             foreach (var kvp in navItems)
@@ -213,6 +219,9 @@ namespace PhoneStoreAdmin
                 "SystemSettings" => typeof(SystemSettingsPage),
                 "Invoice" => typeof(InvoicePage),
                 "AccessDenied" => typeof(AccessDeniedPage),
+                "PricingDashboard" => typeof(PricingDashboardPage),
+                "PricingAlertCenter" => typeof(PricingAlertCenterPage),
+                "PricingSettings" => typeof(PricingSettingsPage),
                 _ => typeof(DashboardPage)
             };
 
