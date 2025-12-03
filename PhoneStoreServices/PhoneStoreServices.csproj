@@ -1,18 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
 
-  <ItemGroup>
-    <PackageReference Include="CloudinaryDotNet" Version="1.27.9" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.8" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
-  </ItemGroup>
+		<EnableMsixTooling>false</EnableMsixTooling>
+		<GenerateAppInstallerFile>false</GenerateAppInstallerFile>
+		<GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
+		<AppxPackage>false</AppxPackage>
+		<EnableCoreMrtTooling>false</EnableCoreMrtTooling>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\PhoneStoreRepository\PhoneStoreRepository.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="CloudinaryDotNet" Version="1.27.9" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.8" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\PhoneStoreRepository\PhoneStoreRepository.csproj" />
+	</ItemGroup>
 </Project>
