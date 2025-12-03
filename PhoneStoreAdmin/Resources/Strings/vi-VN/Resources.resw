@@ -3588,6 +3588,19 @@ Tổng tiền: {1}</value>
   <data name="SystemSettings_Error_InitializeFailed" xml:space="preserve">
     <value>Không thể khởi tạo các cấu hình mặc định</value>
   </data>
+  <!-- Dynamic Pricing Menu Items -->
+  <data name="MenuItemPricing.Content" xml:space="preserve">
+    <value>Định giá động</value>
+  </data>
+  <data name="MenuItemPricingDashboard.Content" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="MenuItemPricingAlerts.Content" xml:space="preserve">
+    <value>Cảnh báo</value>
+  </data>
+  <data name="MenuItemPricingSettings.Content" xml:space="preserve">
+    <value>Cài đặt</value>
+  </data>
   <!-- AddPurchaseOrder Page Localization -->
   <data name="AddPurchaseOrder_UnitCostHeader" xml:space="preserve">
     <value>Giá nhập</value>

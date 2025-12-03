@@ -30,6 +30,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ReviewEntity> Reviews => Set<ReviewEntity>();
     public DbSet<PromotionEntity> Promotions => Set<PromotionEntity>();
     public DbSet<PromotionCodeEntity> PromotionCodes => Set<PromotionCodeEntity>();
+    public DbSet<PricingAlertEntity> PricingAlerts => Set<PricingAlertEntity>();
+    public DbSet<PricingHistoryEntity> PricingHistories => Set<PricingHistoryEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -103,6 +105,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(50);
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+            // Dynamic Pricing fields
+            entity.Property(e => e.CostFifo).HasColumnName("cost_fifo").HasDefaultValue(0);
+            entity.Property(e => e.CostNifo).HasColumnName("cost_nifo").HasDefaultValue(0);
+            entity.Property(e => e.MarketTrend).HasColumnName("market_trend").HasDefaultValue(0);
+            entity.Property(e => e.PricingMode).HasColumnName("pricing_mode").HasDefaultValue(0);
+            entity.Property(e => e.PriceUpdatedAt).HasColumnName("price_updated_at");
         });
 
         modelBuilder.Entity<CategoryEntity>(entity =>
@@ -345,6 +353,44 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasOne(e => e.Batch).WithMany(b => b.BatchProducts).HasForeignKey(e => e.BatchId);
             entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId);
         });
+
+        modelBuilder.Entity<PricingAlertEntity>(entity =>
+        {
+            entity.ToTable("pricing_alert");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id").IsRequired();
+            entity.Property(e => e.VariancePercent).HasColumnName("variance_percent").HasColumnType("decimal(5,2)").IsRequired();
+            entity.Property(e => e.CostFifoSnapshot).HasColumnName("cost_fifo_snapshot").HasColumnType("decimal(12,2)").IsRequired();
+            entity.Property(e => e.CostNifoSnapshot).HasColumnName("cost_nifo_snapshot").HasColumnType("decimal(12,2)").IsRequired();
+            entity.Property(e => e.CurrentStock).HasColumnName("current_stock").IsRequired();
+            entity.Property(e => e.Status).HasColumnName("status").HasDefaultValue(0);
+            entity.Property(e => e.ResolvedBy).HasColumnName("resolved_by");
+            entity.Property(e => e.ResolvedAt).HasColumnName("resolved_at");
+            entity.Property(e => e.ResolvedNote).HasColumnName("resolved_note").HasMaxLength(500);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId);
+            entity.HasOne(e => e.ResolvedByAccount).WithMany().HasForeignKey(e => e.ResolvedBy);
+        });
+
+        modelBuilder.Entity<PricingHistoryEntity>(entity =>
+        {
+            entity.ToTable("pricing_history");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id").IsRequired();
+            entity.Property(e => e.OldPrice).HasColumnName("old_price").HasColumnType("decimal(12,2)").IsRequired();
+            entity.Property(e => e.NewPrice).HasColumnName("new_price").HasColumnType("decimal(12,2)").IsRequired();
+            entity.Property(e => e.CostFifo).HasColumnName("cost_fifo").HasColumnType("decimal(12,2)").IsRequired();
+            entity.Property(e => e.CostNifo).HasColumnName("cost_nifo").HasColumnType("decimal(12,2)").IsRequired();
+            entity.Property(e => e.ChangeReason).HasColumnName("change_reason").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.ChangedBy).HasColumnName("changed_by");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId);
+            entity.HasOne(e => e.ChangedByAccount).WithMany().HasForeignKey(e => e.ChangedBy);
+        });
     }
 }
 
@@ -371,6 +417,13 @@ public class ProductEntity
     public string Status { get; set; } = "active";
     public DateTime? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+
+    // Dynamic Pricing fields
+    public decimal CostFifo { get; set; }
+    public decimal CostNifo { get; set; }
+    public int MarketTrend { get; set; } // 0=STABLE, 1=UP, 2=DOWN
+    public int PricingMode { get; set; } // 0=AUTO_PROTECT, 1=CLEARANCE
+    public DateTime? PriceUpdatedAt { get; set; }
 
     public CategoryEntity? Category { get; set; }
     public BrandEntity? Brand { get; set; }
@@ -619,4 +672,44 @@ public class PromotionCodeEntity
     public bool IsActive { get; set; } = true;
 
     public PromotionEntity? Promotion { get; set; }
+}
+
+/// <summary>
+/// Entity cho cảnh báo rủi ro tồn kho khi thị trường giảm giá
+/// </summary>
+public class PricingAlertEntity
+{
+    public int Id { get; set; }
+    public int ProductId { get; set; }
+    public decimal VariancePercent { get; set; }
+    public decimal CostFifoSnapshot { get; set; }
+    public decimal CostNifoSnapshot { get; set; }
+    public int CurrentStock { get; set; }
+    public int Status { get; set; } // 0=PENDING, 1=RESOLVED_HOLD, 2=RESOLVED_CLEARANCE
+    public int? ResolvedBy { get; set; }
+    public DateTime? ResolvedAt { get; set; }
+    public string? ResolvedNote { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public ProductEntity? Product { get; set; }
+    public AccountEntity? ResolvedByAccount { get; set; }
+}
+
+/// <summary>
+/// Entity cho lịch sử biến động giá sản phẩm
+/// </summary>
+public class PricingHistoryEntity
+{
+    public int Id { get; set; }
+    public int ProductId { get; set; }
+    public decimal OldPrice { get; set; }
+    public decimal NewPrice { get; set; }
+    public decimal CostFifo { get; set; }
+    public decimal CostNifo { get; set; }
+    public string ChangeReason { get; set; } = string.Empty; // AUTO_INCREASE, CLEARANCE, MANUAL
+    public int? ChangedBy { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public ProductEntity? Product { get; set; }
+    public AccountEntity? ChangedByAccount { get; set; }
 }

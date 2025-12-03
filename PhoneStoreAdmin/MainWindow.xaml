@@ -110,6 +110,40 @@
                     x:Uid="MenuSystemSettings"
                     Icon="Admin"
                     Tag="SystemSettings" />
+                <NavigationViewItem
+                    x:Name="PricingNavItem"
+                    x:Uid="MenuItemPricing"
+                    Tag="PricingDashboard">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8D4;" />
+                    </NavigationViewItem.Icon>
+                    <NavigationViewItem.MenuItems>
+                        <NavigationViewItem
+                            x:Name="PricingDashboardNavItem"
+                            x:Uid="MenuItemPricingDashboard"
+                            Tag="PricingDashboard">
+                            <NavigationViewItem.Icon>
+                                <FontIcon Glyph="&#xE9F9;" />
+                            </NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem
+                            x:Name="PricingAlertCenterNavItem"
+                            x:Uid="MenuItemPricingAlerts"
+                            Tag="PricingAlertCenter">
+                            <NavigationViewItem.Icon>
+                                <FontIcon Glyph="&#xE7BA;" />
+                            </NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem
+                            x:Name="PricingSettingsNavItem"
+                            x:Uid="MenuItemPricingSettings"
+                            Tag="PricingSettings">
+                            <NavigationViewItem.Icon>
+                                <FontIcon Glyph="&#xE713;" />
+                            </NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                    </NavigationViewItem.MenuItems>
+                </NavigationViewItem>
             </NavigationView.MenuItems>
 
             <Frame

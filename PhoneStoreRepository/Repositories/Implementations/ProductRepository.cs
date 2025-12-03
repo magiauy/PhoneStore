@@ -41,8 +41,8 @@ namespace PhoneStoreRepository.Repositories.Implementations
         {
             using var connection = _dataSource.GetConnection();
             using var command = new MySqlCommand(
-                @"INSERT INTO products (sku, name, category_id, model_id, brand_id, price, cost, is_serial_tracked, warranty_months, status, created_at)
-                  VALUES (@sku, @name, @categoryId, @modelId, @brandId, @price, @cost, @isSerialTracked, @warrantyMonths, @status, @createdAt)",
+                @"INSERT INTO products (sku, name, category_id, model_id, brand_id, price, cost, is_serial_tracked, warranty_months, status, created_at, cost_fifo, cost_nifo, market_trend, pricing_mode, price_updated_at)
+                  VALUES (@sku, @name, @categoryId, @modelId, @brandId, @price, @cost, @isSerialTracked, @warrantyMonths, @status, @createdAt, @costFifo, @costNifo, @marketTrend, @pricingMode, @priceUpdatedAt)",
                 connection);
 
             command.Parameters.AddWithValue("@sku", entity.Sku);
@@ -56,6 +56,11 @@ namespace PhoneStoreRepository.Repositories.Implementations
             command.Parameters.AddWithValue("@warrantyMonths", entity.WarrantyMonths);
             command.Parameters.AddWithValue("@status", entity.Status.ToString().ToLower());
             command.Parameters.AddWithValue("@createdAt", entity.CreatedAt);
+            command.Parameters.AddWithValue("@costFifo", entity.CostFifo);
+            command.Parameters.AddWithValue("@costNifo", entity.CostNifo);
+            command.Parameters.AddWithValue("@marketTrend", (int)entity.MarketTrend);
+            command.Parameters.AddWithValue("@pricingMode", (int)entity.PricingMode);
+            command.Parameters.AddWithValue("@priceUpdatedAt", entity.PriceUpdatedAt.HasValue ? entity.PriceUpdatedAt.Value : (object)DBNull.Value);
 
             command.ExecuteNonQuery();
             entity.Id = GetLastInsertedId(connection);
@@ -76,7 +81,12 @@ namespace PhoneStoreRepository.Repositories.Implementations
                       is_serial_tracked = @isSerialTracked,
                       warranty_months = @warrantyMonths,
                       status = @status,
-                      created_at = @createdAt
+                      created_at = @createdAt,
+                      cost_fifo = @costFifo,
+                      cost_nifo = @costNifo,
+                      market_trend = @marketTrend,
+                      pricing_mode = @pricingMode,
+                      price_updated_at = @priceUpdatedAt
                   WHERE id = @id",
                 connection);
 
@@ -92,6 +102,11 @@ namespace PhoneStoreRepository.Repositories.Implementations
             command.Parameters.AddWithValue("@warrantyMonths", entity.WarrantyMonths);
             command.Parameters.AddWithValue("@status", entity.Status.ToString().ToLower());
             command.Parameters.AddWithValue("@createdAt", entity.CreatedAt);
+            command.Parameters.AddWithValue("@costFifo", entity.CostFifo);
+            command.Parameters.AddWithValue("@costNifo", entity.CostNifo);
+            command.Parameters.AddWithValue("@marketTrend", (int)entity.MarketTrend);
+            command.Parameters.AddWithValue("@pricingMode", (int)entity.PricingMode);
+            command.Parameters.AddWithValue("@priceUpdatedAt", entity.PriceUpdatedAt.HasValue ? entity.PriceUpdatedAt.Value : (object)DBNull.Value);
 
             var rows = command.ExecuteNonQuery();
             if (rows == 0)
@@ -198,10 +213,32 @@ namespace PhoneStoreRepository.Repositories.Implementations
         {
             var statusValue = reader.IsDBNull(reader.GetOrdinal("status"))
                 ? "ACTIVE"
-                : reader.GetString("status");
+                : reader.GetValue(reader.GetOrdinal("status"))?.ToString() ?? "ACTIVE";
 
             if (!Enum.TryParse<ProductStatus>(statusValue, true, out var statusEnum))
                 statusEnum = ProductStatus.ACTIVE;
+
+            // Parse market trend - read as TINYINT and cast to enum
+            MarketTrend marketTrendEnum = MarketTrend.STABLE;
+            if (!reader.IsDBNull(reader.GetOrdinal("market_trend")))
+            {
+                var marketTrendInt = Convert.ToInt32(reader.GetValue(reader.GetOrdinal("market_trend")));
+                if (Enum.IsDefined(typeof(MarketTrend), marketTrendInt))
+                {
+                    marketTrendEnum = (MarketTrend)marketTrendInt;
+                }
+            }
+
+            // Parse pricing mode - read as TINYINT and cast to enum
+            PricingMode pricingModeEnum = PricingMode.AUTO_PROTECT;
+            if (!reader.IsDBNull(reader.GetOrdinal("pricing_mode")))
+            {
+                var pricingModeInt = Convert.ToInt32(reader.GetValue(reader.GetOrdinal("pricing_mode")));
+                if (Enum.IsDefined(typeof(PricingMode), pricingModeInt))
+                {
+                    pricingModeEnum = (PricingMode)pricingModeInt;
+                }
+            }
 
             return new Product
             {
@@ -217,6 +254,11 @@ namespace PhoneStoreRepository.Repositories.Implementations
                 Cost = reader.GetDecimal("cost"),
                 IsSerialTracked = reader.GetBoolean("is_serial_tracked"),
                 WarrantyMonths = reader.GetInt32("warranty_months"),
+                CostFifo = reader.IsDBNull(reader.GetOrdinal("cost_fifo")) ? 0 : reader.GetDecimal("cost_fifo"),
+                CostNifo = reader.IsDBNull(reader.GetOrdinal("cost_nifo")) ? 0 : reader.GetDecimal("cost_nifo"),
+                MarketTrend = marketTrendEnum,
+                PricingMode = pricingModeEnum,
+                PriceUpdatedAt = reader.IsDBNull(reader.GetOrdinal("price_updated_at")) ? null : reader.GetDateTime("price_updated_at"),
             };
         }
 
