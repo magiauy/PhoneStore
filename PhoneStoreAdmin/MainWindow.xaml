@@ -100,6 +100,16 @@
                     x:Uid="MenuRoles"
                     Icon="Permissions"
                     Tag="Roles" />
+                <NavigationViewItem
+                    x:Name="SettingsNavItem"
+                    x:Uid="MenuSettings"
+                    Icon="Setting"
+                    Tag="Settings" />
+                <NavigationViewItem
+                    x:Name="SystemSettingsNavItem"
+                    x:Uid="MenuSystemSettings"
+                    Icon="Admin"
+                    Tag="SystemSettings" />
             </NavigationView.MenuItems>
 
             <Frame

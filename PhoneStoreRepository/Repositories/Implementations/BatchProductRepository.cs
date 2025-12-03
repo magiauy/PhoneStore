@@ -61,14 +61,15 @@ namespace PhoneStoreRepository.Repositories.Implementations
         {
             using var connection = _dataSource.GetConnection();
             using var command = new MySqlCommand(
-                @"INSERT INTO batch_products (batch_id, product_id, quantity, cost_price, selling_price) 
-                  VALUES (@batchId, @productId, @quantity, @costPrice, @sellingPrice)",
+                @"INSERT INTO batch_products (batch_id, product_id, quantity, cost_price, selling_price, profit_margin) 
+                  VALUES (@batchId, @productId, @quantity, @costPrice, @sellingPrice, @profitMargin)",
                 connection);
             command.Parameters.AddWithValue("@batchId", entity.BatchId);
             command.Parameters.AddWithValue("@productId", entity.ProductId);
             command.Parameters.AddWithValue("@quantity", entity.Quantity);
             command.Parameters.AddWithValue("@costPrice", entity.CostPrice);
             command.Parameters.AddWithValue("@sellingPrice", entity.SellingPrice);
+            command.Parameters.AddWithValue("@profitMargin", entity.ProfitMargin);
             command.ExecuteNonQuery();
             entity.Id = GetLastInsertedId(connection);
         }
@@ -76,14 +77,15 @@ namespace PhoneStoreRepository.Repositories.Implementations
         public void Insert(BatchProduct entity, MySqlConnection connection, MySqlTransaction transaction)
         {
             using var command = new MySqlCommand(
-                @"INSERT INTO batch_products (batch_id, product_id, quantity, cost_price, selling_price) 
-                  VALUES (@batchId, @productId, @quantity, @costPrice, @sellingPrice)",
+                @"INSERT INTO batch_products (batch_id, product_id, quantity, cost_price, selling_price, profit_margin) 
+                  VALUES (@batchId, @productId, @quantity, @costPrice, @sellingPrice, @profitMargin)",
                 connection, transaction);
             command.Parameters.AddWithValue("@batchId", entity.BatchId);
             command.Parameters.AddWithValue("@productId", entity.ProductId);
             command.Parameters.AddWithValue("@quantity", entity.Quantity);
             command.Parameters.AddWithValue("@costPrice", entity.CostPrice);
             command.Parameters.AddWithValue("@sellingPrice", entity.SellingPrice);
+            command.Parameters.AddWithValue("@profitMargin", entity.ProfitMargin);
             command.ExecuteNonQuery();
 
             // Get last inserted ID with transaction
@@ -97,7 +99,7 @@ namespace PhoneStoreRepository.Repositories.Implementations
             using var command = new MySqlCommand(
                 @"UPDATE batch_products 
                   SET batch_id = @batchId, product_id = @productId, quantity = @quantity, 
-                      cost_price = @costPrice, selling_price = @sellingPrice
+                      cost_price = @costPrice, selling_price = @sellingPrice, profit_margin = @profitMargin
                   WHERE id = @id",
                 connection);
             command.Parameters.AddWithValue("@id", entity.Id);
@@ -106,6 +108,7 @@ namespace PhoneStoreRepository.Repositories.Implementations
             command.Parameters.AddWithValue("@quantity", entity.Quantity);
             command.Parameters.AddWithValue("@costPrice", entity.CostPrice);
             command.Parameters.AddWithValue("@sellingPrice", entity.SellingPrice);
+            command.Parameters.AddWithValue("@profitMargin", entity.ProfitMargin);
             var rows = command.ExecuteNonQuery();
             if (rows == 0)
                 throw new InvalidOperationException($"BatchProduct with ID {entity.Id} not found for update.");
@@ -335,7 +338,8 @@ namespace PhoneStoreRepository.Repositories.Implementations
                 ProductId = reader.GetInt32("product_id"),
                 Quantity = reader.GetInt32("quantity"),
                 CostPrice = reader.GetDecimal("cost_price"),
-                SellingPrice = reader.GetDecimal("selling_price")
+                SellingPrice = reader.GetDecimal("selling_price"),
+                ProfitMargin = reader.IsDBNull(reader.GetOrdinal("profit_margin")) ? 0f : reader.GetFloat("profit_margin")
             };
         }
 

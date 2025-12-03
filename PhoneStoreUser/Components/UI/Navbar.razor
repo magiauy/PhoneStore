@@ -576,6 +576,8 @@
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 NavigationManager.NavigateTo($"/products?search={Uri.EscapeDataString(searchTerm)}");
+            } else {
+                NavigationManager.NavigateTo("/products");
             }
         }
     }

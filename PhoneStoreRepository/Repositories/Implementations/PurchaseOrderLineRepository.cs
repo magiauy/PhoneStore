@@ -60,14 +60,15 @@ namespace PhoneStoreRepository.Repositories.Implementations
         {
             using var connection = _dataSource.GetConnection();
             using var command = new MySqlCommand(
-                @"INSERT INTO purchase_order_lines (purchase_order_id, product_id, quantity, unit_cost, total_cost) 
-                  VALUES (@purchaseOrderId, @productId, @quantity, @unitCost, @totalCost)",
+                @"INSERT INTO purchase_order_lines (purchase_order_id, product_id, quantity, unit_cost, total_cost, profit_margin) 
+                  VALUES (@purchaseOrderId, @productId, @quantity, @unitCost, @totalCost, @profitMargin)",
                 connection);
             command.Parameters.AddWithValue("@purchaseOrderId", entity.PurchaseOrderId);
             command.Parameters.AddWithValue("@productId", entity.ProductId);
             command.Parameters.AddWithValue("@quantity", entity.Quantity);
             command.Parameters.AddWithValue("@unitCost", entity.UnitCost);
             command.Parameters.AddWithValue("@totalCost", entity.TotalCost);
+            command.Parameters.AddWithValue("@profitMargin", entity.ProfitMargin);
             command.ExecuteNonQuery();
             entity.Id = GetLastInsertedId(connection);
         }
@@ -75,14 +76,15 @@ namespace PhoneStoreRepository.Repositories.Implementations
         public void Insert(PurchaseOrderLine entity, MySqlConnection connection, MySqlTransaction transaction)
         {
             using var command = new MySqlCommand(
-                @"INSERT INTO purchase_order_lines (purchase_order_id, product_id, quantity, unit_cost, total_cost) 
-                  VALUES (@purchaseOrderId, @productId, @quantity, @unitCost, @totalCost)",
+                @"INSERT INTO purchase_order_lines (purchase_order_id, product_id, quantity, unit_cost, total_cost, profit_margin) 
+                  VALUES (@purchaseOrderId, @productId, @quantity, @unitCost, @totalCost, @profitMargin)",
                 connection, transaction);
             command.Parameters.AddWithValue("@purchaseOrderId", entity.PurchaseOrderId);
             command.Parameters.AddWithValue("@productId", entity.ProductId);
             command.Parameters.AddWithValue("@quantity", entity.Quantity);
             command.Parameters.AddWithValue("@unitCost", entity.UnitCost);
             command.Parameters.AddWithValue("@totalCost", entity.TotalCost);
+            command.Parameters.AddWithValue("@profitMargin", entity.ProfitMargin);
             command.ExecuteNonQuery();
 
             // Get last inserted ID with transaction
@@ -96,7 +98,7 @@ namespace PhoneStoreRepository.Repositories.Implementations
             using var command = new MySqlCommand(
                 @"UPDATE purchase_order_lines 
                   SET purchase_order_id = @purchaseOrderId, product_id = @productId, quantity = @quantity, 
-                      unit_cost = @unitCost, total_cost = @totalCost
+                      unit_cost = @unitCost, total_cost = @totalCost, profit_margin = @profitMargin
                   WHERE id = @id",
                 connection);
             command.Parameters.AddWithValue("@id", entity.Id);
@@ -105,6 +107,7 @@ namespace PhoneStoreRepository.Repositories.Implementations
             command.Parameters.AddWithValue("@quantity", entity.Quantity);
             command.Parameters.AddWithValue("@unitCost", entity.UnitCost);
             command.Parameters.AddWithValue("@totalCost", entity.TotalCost);
+            command.Parameters.AddWithValue("@profitMargin", entity.ProfitMargin);
             var rows = command.ExecuteNonQuery();
             if (rows == 0)
                 throw new InvalidOperationException($"PurchaseOrderLine with ID {entity.Id} not found for update.");
@@ -189,7 +192,8 @@ INNER JOIN purchase_order_lines pol ON ps.purchase_order_line_id = pol.id
                 ProductId = reader.GetInt32("product_id"),
                 Quantity = reader.GetInt32("quantity"),
                 UnitCost = reader.GetDecimal("unit_cost"),
-                TotalCost = reader.GetDecimal("total_cost")
+                TotalCost = reader.GetDecimal("total_cost"),
+                ProfitMargin = reader.IsDBNull(reader.GetOrdinal("profit_margin")) ? 0f : reader.GetFloat("profit_margin")
             };
         }
     }
