@@ -70,15 +70,13 @@ namespace PhoneStoreAdmin.View.Controls
                     return;
                 }
 
-                // Expected columns: Product ID | Serial Number | IMEI1 | IMEI2
+                // Expected columns: Product ID | Serial Number
                 int rowNumber = 2; // Start from row 2 (row 1 is header)
 
                 while (rowNumber <= worksheet.Dimension?.End.Row)
                 {
                     var productIdText = worksheet.Cells[rowNumber, 1].Value?.ToString()?.Trim();
                     var serialNumber = worksheet.Cells[rowNumber, 2].Value?.ToString()?.Trim();
-                    var imei1 = worksheet.Cells[rowNumber, 3].Value?.ToString()?.Trim();
-                    var imei2 = worksheet.Cells[rowNumber, 4].Value?.ToString()?.Trim();
 
                     // Skip empty rows
                     if (string.IsNullOrWhiteSpace(productIdText) && string.IsNullOrWhiteSpace(serialNumber))
@@ -90,11 +88,9 @@ namespace PhoneStoreAdmin.View.Controls
                     var rowData = new ImportRowData
                     {
                         RowNumber = rowNumber,
-                        Sku = productIdText ?? "", // Reuse Sku field for Product ID
-                        Quantity = "1", // Always 1 per row
-                        SerialNumber = serialNumber ?? "",
-                        Imei1 = imei1 ?? "",
-                        Imei2 = imei2
+                        Sku = productIdText ?? "",
+                        Quantity = "1",
+                        SerialNumber = serialNumber ?? ""
                     };
 
                     // Validate row
@@ -152,7 +148,7 @@ namespace PhoneStoreAdmin.View.Controls
             // Quantity is always 1
             row.QuantityValue = 1;
 
-            // Validate Serial/IMEI for serial-tracked products
+            // Validate Serial for serial-tracked products
             if (row.IsSerialTracked)
             {
                 if (string.IsNullOrWhiteSpace(row.SerialNumber))
@@ -168,30 +164,6 @@ namespace PhoneStoreAdmin.View.Controls
                         errors.Add($"Serial '{row.SerialNumber}' already exists in system");
                     }
                 }
-
-                if (string.IsNullOrWhiteSpace(row.Imei1))
-                {
-                    errors.Add("IMEI1 is required for this product");
-                }
-                else
-                {
-                    // Check duplicate IMEI1 in database
-                    var existingImei = ProductSerialRepository.TryGetByImei1(row.Imei1);
-                    if (existingImei != null)
-                    {
-                        errors.Add($"IMEI1 '{row.Imei1}' already exists in system");
-                    }
-                }
-
-                // Check IMEI2 if provided
-                if (!string.IsNullOrWhiteSpace(row.Imei2))
-                {
-                    var existingImei2 = ProductSerialRepository.TryGetByImei2(row.Imei2);
-                    if (existingImei2 != null)
-                    {
-                        errors.Add($"IMEI2 '{row.Imei2}' already exists in system");
-                    }
-                }
             }
 
             row.ErrorMessage = errors.Any() ? string.Join("; ", errors) : "";
@@ -202,9 +174,9 @@ namespace PhoneStoreAdmin.View.Controls
         {
             // Check for duplicate serials within the import
             var serialGroups = ImportedData
-              .Where(r => !string.IsNullOrWhiteSpace(r.SerialNumber))
-                        .GroupBy(r => r.SerialNumber?.ToLower())
-              .Where(g => g.Count() > 1);
+                .Where(r => !string.IsNullOrWhiteSpace(r.SerialNumber))
+                .GroupBy(r => r.SerialNumber?.ToLower())
+                .Where(g => g.Count() > 1);
 
             foreach (var group in serialGroups)
             {
@@ -214,24 +186,6 @@ namespace PhoneStoreAdmin.View.Controls
                         row.ErrorMessage = $"Duplicate serial '{group.Key}' in import file";
                     else
                         row.ErrorMessage += $"; Duplicate serial '{group.Key}' in import file";
-                    row.IsValid = false;
-                }
-            }
-
-            // Check for duplicate IMEI1 within the import
-            var imei1Groups = ImportedData
-         .Where(r => !string.IsNullOrWhiteSpace(r.Imei1))
-            .GroupBy(r => r.Imei1?.ToLower())
-    .Where(g => g.Count() > 1);
-
-            foreach (var group in imei1Groups)
-            {
-                foreach (var row in group)
-                {
-                    if (string.IsNullOrEmpty(row.ErrorMessage))
-                        row.ErrorMessage = $"Duplicate IMEI1 '{group.Key}' in import file";
-                    else
-                        row.ErrorMessage += $"; Duplicate IMEI1 '{group.Key}' in import file";
                     row.IsValid = false;
                 }
             }
@@ -285,11 +239,9 @@ namespace PhoneStoreAdmin.View.Controls
                     // Header
                     worksheet.Cells[1, 1].Value = "Product ID";
                     worksheet.Cells[1, 2].Value = "Serial Number";
-                    worksheet.Cells[1, 3].Value = "IMEI1";
-                    worksheet.Cells[1, 4].Value = "IMEI2";
 
                     // Style header
-                    using (var range = worksheet.Cells[1, 1, 1, 4])
+                    using (var range = worksheet.Cells[1, 1, 1, 2])
                     {
                         range.Style.Font.Bold = true;
                         range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -298,19 +250,19 @@ namespace PhoneStoreAdmin.View.Controls
 
                     // Example rows
                     worksheet.Cells[2, 1].Value = 1; // Product ID
-                    worksheet.Cells[2, 2].Value = "SN123456789";
-                    worksheet.Cells[2, 3].Value = "123456789012345";
-                    worksheet.Cells[2, 4].Value = "123456789012346";
+                    worksheet.Cells[2, 2].Value = "SN001";
 
                     worksheet.Cells[3, 1].Value = 1; // Same product, different serial
-                    worksheet.Cells[3, 2].Value = "SN987654321";
-                    worksheet.Cells[3, 3].Value = "987654321012345";
-                    worksheet.Cells[3, 4].Value = "";
+                    worksheet.Cells[3, 2].Value = "SN002";
 
                     worksheet.Cells[4, 1].Value = 2; // Different product
-                    worksheet.Cells[4, 2].Value = "SN555666777";
-                    worksheet.Cells[4, 3].Value = "555666777888999";
-                    worksheet.Cells[4, 4].Value = "";
+                    worksheet.Cells[4, 2].Value = "SN003";
+
+                    // Add instructions
+                    worksheet.Cells[6, 1].Value = "Instructions:";
+                    worksheet.Cells[7, 1].Value = "- Product ID: Enter the product ID number";
+                    worksheet.Cells[8, 1].Value = "- Serial Number: Enter unique serial for each unit";
+                    worksheet.Cells[9, 1].Value = "- Each row represents one unit of the product";
 
                     worksheet.Cells.AutoFitColumns();
 
@@ -333,30 +285,28 @@ namespace PhoneStoreAdmin.View.Controls
             {
                 // Group by Product ID and aggregate
                 ValidatedProducts = ImportedData
-    .Where(r => r.IsValid)
-        .GroupBy(r => r.ProductId) // Group by Product ID instead of SKU
-      .Select(g =>
-     {
-        var firstRow = g.First();
-      var product = ProductRepository.GetAll().First(p => p.Id == firstRow.ProductId);
-      
-       var serials = g.Select(r => new SerialEntry
-      {
-         SerialNumber = r.SerialNumber,
-    Imei1 = r.Imei1,
-    Imei2 = r.Imei2
-       }).ToList();
+                    .Where(r => r.IsValid)
+                    .GroupBy(r => r.ProductId)
+                    .Select(g =>
+                    {
+                        var firstRow = g.First();
+                        var product = ProductRepository.GetAll().First(p => p.Id == firstRow.ProductId);
 
-           return (product, quantity: g.Count(), serials);
-  })
-        .ToList();
-}
-  catch (Exception ex)
- {
-           args.Cancel = true;
-       ShowError($"Error processing import: {ex.Message}");
-     }
-     }
+                        var serials = g.Select(r => new SerialEntry
+                        {
+                            SerialNumber = r.SerialNumber,
+                        }).ToList();
+
+                        return (product, quantity: g.Count(), serials);
+                    })
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                args.Cancel = true;
+                ShowError($"Error processing import: {ex.Message}");
+            }
+        }
 
         private void ShowError(string message)
         {
@@ -379,8 +329,6 @@ namespace PhoneStoreAdmin.View.Controls
         public string Sku { get; set; } = "";
         public string Quantity { get; set; } = "";
         public string SerialNumber { get; set; } = "";
-        public string Imei1 { get; set; } = "";
-        public string? Imei2 { get; set; }
         public string ErrorMessage { get; set; } = "";
         public bool IsValid { get; set; }
 
