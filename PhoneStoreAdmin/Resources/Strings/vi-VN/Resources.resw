@@ -3626,4 +3626,95 @@ Tổng tiền: {1}</value>
   <data name="AddPurchaseOrder_NoFilteredProducts" xml:space="preserve">
     <value>Không có sản phẩm nào để thêm. Vui lòng chọn danh mục hoặc thương hiệu để lọc sản phẩm trước.</value>
   </data>
+  <!-- Dashboard Statistics Section -->
+  <data name="Dashboard_DailyRevenueChart.Text" xml:space="preserve">
+    <value>Biểu Đồ Doanh Thu Theo Ngày</value>
+  </data>
+  <data name="Dashboard_Top10Products.Text" xml:space="preserve">
+    <value>Top 10 Sản Phẩm Bán Chạy</value>
+  </data>
+  <data name="Dashboard_Top10Customers.Text" xml:space="preserve">
+    <value>Top 10 Khách Hàng</value>
+  </data>
+  <data name="Dashboard_Product.Text" xml:space="preserve">
+    <value>Sản phẩm</value>
+  </data>
+  <data name="Dashboard_Quantity.Text" xml:space="preserve">
+    <value>Số lượng</value>
+  </data>
+  <data name="Dashboard_Revenue.Text" xml:space="preserve">
+    <value>Doanh thu</value>
+  </data>
+  <data name="Dashboard_Customer.Text" xml:space="preserve">
+    <value>Khách hàng</value>
+  </data>
+  <data name="Dashboard_Orders.Text" xml:space="preserve">
+    <value>Đơn hàng</value>
+  </data>
+  <data name="Dashboard_Spending.Text" xml:space="preserve">
+    <value>Chi tiêu</value>
+  </data>
+  <data name="Dashboard_NoRevenueData.Text" xml:space="preserve">
+    <value>Chưa có dữ liệu doanh thu trong tháng này</value>
+  </data>
+  <data name="Dashboard_NoSalesData.Text" xml:space="preserve">
+    <value>Chưa có dữ liệu bán hàng trong tháng này</value>
+  </data>
+  <data name="Dashboard_NoCustomerData.Text" xml:space="preserve">
+    <value>Chưa có dữ liệu khách hàng trong tháng này</value>
+  </data>
+  <data name="Dashboard_RefreshButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Làm mới</value>
+  </data>
+  <data name="Dashboard_LoadingData.Text" xml:space="preserve">
+    <value>Đang tải dữ liệu...</value>
+  </data>
+  <data name="Dashboard_Total" xml:space="preserve">
+    <value>Tổng: {0}</value>
+  </data>
+  <data name="Dashboard_TotalRevenue" xml:space="preserve">
+    <value>Tổng doanh thu: {0} | {1} đơn hàng</value>
+  </data>
+  <data name="Dashboard_ErrorLoadingData" xml:space="preserve">
+    <value>Không thể tải dữ liệu: {0}</value>
+  </data>
+  <data name="Dashboard_ErrorTitle" xml:space="preserve">
+    <value>Lỗi</value>
+  </data>
+  <data name="Dashboard_Month1.Content" xml:space="preserve">
+    <value>Tháng 1</value>
+  </data>
+  <data name="Dashboard_Month2.Content" xml:space="preserve">
+    <value>Tháng 2</value>
+  </data>
+  <data name="Dashboard_Month3.Content" xml:space="preserve">
+    <value>Tháng 3</value>
+  </data>
+  <data name="Dashboard_Month4.Content" xml:space="preserve">
+    <value>Tháng 4</value>
+  </data>
+  <data name="Dashboard_Month5.Content" xml:space="preserve">
+    <value>Tháng 5</value>
+  </data>
+  <data name="Dashboard_Month6.Content" xml:space="preserve">
+    <value>Tháng 6</value>
+  </data>
+  <data name="Dashboard_Month7.Content" xml:space="preserve">
+    <value>Tháng 7</value>
+  </data>
+  <data name="Dashboard_Month8.Content" xml:space="preserve">
+    <value>Tháng 8</value>
+  </data>
+  <data name="Dashboard_Month9.Content" xml:space="preserve">
+    <value>Tháng 9</value>
+  </data>
+  <data name="Dashboard_Month10.Content" xml:space="preserve">
+    <value>Tháng 10</value>
+  </data>
+  <data name="Dashboard_Month11.Content" xml:space="preserve">
+    <value>Tháng 11</value>
+  </data>
+  <data name="Dashboard_Month12.Content" xml:space="preserve">
+    <value>Tháng 12</value>
+  </data>
 </root>
