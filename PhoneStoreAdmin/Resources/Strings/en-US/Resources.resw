@@ -1628,6 +1628,9 @@ How many devices do you want to add?</value>
   <data name="Accounts_Error_AccountCreationFailed" xml:space="preserve">
     <value>Failed to create account: {0}</value>
   </data>
+  <data name="Accounts_Error_AccountCreationFailed_UsernameExists" xml:space="preserve">
+    <value>Failed to create account. Username already exists.</value>
+  </data>
   <data name="Accounts_VM_Status_Active" xml:space="preserve">
     <value>Activate</value>
   </data>
@@ -1783,6 +1786,9 @@ How many devices do you want to add?</value>
   </data>
   <data name="AccountEdit_Error_DataNotLoaded" xml:space="preserve">
     <value>Account data has not finished loading</value>
+  </data>
+  <data name="AccountEdit_Error_PersonNotFound" xml:space="preserve">
+    <value>Could not find person information for this account</value>
   </data>
   <data name="AccountEdit_Error_UsernameEmpty" xml:space="preserve">
     <value>Username cannot be empty</value>

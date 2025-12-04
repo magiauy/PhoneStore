@@ -43,6 +43,12 @@ namespace PhoneStoreRepository.Models
         public bool NeverLoggedIn { get; set; }
 
         /// <summary>
+        /// Maximum role weight to filter - only show accounts with max role weight > this value
+        /// Lower weight = higher privilege (e.g., Admin=0, Manager=50, Staff=100)
+        /// </summary>
+        public int? MaxRoleWeight { get; set; }
+
+        /// <summary>
         /// Check if any filter is active
         /// </summary>
         /// <returns>True if at least one filter is set</returns>
@@ -54,7 +60,8 @@ namespace PhoneStoreRepository.Models
                 || CreatedTo.HasValue
                 || LastLoginFrom.HasValue
                 || LastLoginTo.HasValue
-                || NeverLoggedIn;
+                || NeverLoggedIn
+                || MaxRoleWeight.HasValue;
         }
 
         /// <summary>
@@ -71,7 +78,8 @@ namespace PhoneStoreRepository.Models
                 CreatedTo?.ToString("yyyyMMdd") ?? "",
                 LastLoginFrom?.ToString("yyyyMMdd") ?? "",
                 LastLoginTo?.ToString("yyyyMMdd") ?? "",
-                NeverLoggedIn ? "1" : "0"
+                NeverLoggedIn ? "1" : "0",
+                MaxRoleWeight?.ToString() ?? ""
             };
             return string.Join("_", parts);
         }

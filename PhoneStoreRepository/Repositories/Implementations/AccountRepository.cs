@@ -556,6 +556,20 @@ namespace PhoneStoreRepository.Repositories.Implementations
                     }
                 }
 
+                // MaxRoleWeight filter - only show accounts where the minimum role weight > current user's weight
+                // This prevents users from seeing/managing accounts with same or higher privileges
+                if (filterCriteria.MaxRoleWeight.HasValue)
+                {
+                    // Subquery: Get minimum weight of all roles for each account
+                    // Only show accounts where their highest privilege role is lower than current user
+                    whereClauses.Add(@"
+                        (SELECT COALESCE(MIN(r.weight), 999999) 
+                         FROM Account_Roles ar 
+                         INNER JOIN Roles r ON ar.role_id = r.id 
+                         WHERE ar.account_id = a.id) > @maxRoleWeight");
+                    parameters["@maxRoleWeight"] = filterCriteria.MaxRoleWeight.Value;
+                }
+
                 // Combine WHERE clauses
                 var whereClause = whereClauses.Count > 0 
                     ? "WHERE " + string.Join(" AND ", whereClauses)
@@ -693,6 +707,64 @@ namespace PhoneStoreRepository.Repositories.Implementations
             catch
             {
                 // Includes zero date/time values or malformed data
+                return null;
+            }
+        }
+
+        public async Task<Account?> AddAccountForExistingPersonAsync(string username, string password, int personId, bool isActive = true)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(username))
+                    throw new ArgumentException("Username cannot be empty", nameof(username));
+
+                if (string.IsNullOrWhiteSpace(password))
+                    throw new ArgumentException("Password cannot be empty", nameof(password));
+
+                if (personId <= 0)
+                    throw new ArgumentException("PersonId must be a positive integer", nameof(personId));
+
+                // Check if username already exists
+                var existing = await GetByUsernameAsync(username);
+                if (existing != null)
+                {
+                    Logger.Warning($"Account with username {username} already exists");
+                    return null;
+                }
+
+                // Hash password using PasswordHasher utility
+                var passwordHash = PasswordHasher.HashPassword(password);
+
+                await using var conn = _dataSource.GetConnection();
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = @"
+                    INSERT INTO Accounts (username, password_hash, person_id, is_active, created_at)
+                    VALUES (@username, @passwordHash, @personId, @isActive, @createdAt);
+                    SELECT LAST_INSERT_ID();";
+                
+                cmd.Parameters.AddWithValue("@username", username);
+                cmd.Parameters.AddWithValue("@passwordHash", passwordHash);
+                cmd.Parameters.AddWithValue("@personId", personId);
+                cmd.Parameters.AddWithValue("@isActive", isActive);
+                cmd.Parameters.AddWithValue("@createdAt", DateTime.Now);
+
+                var accountId = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                
+                Logger.Info($"Successfully added account '{username}' with ID: {accountId} for Person ID: {personId}");
+                
+                return new Account
+                {
+                    Id = accountId,
+                    Username = username,
+                    PasswordHash = passwordHash,
+                    PersonId = personId,
+                    IsActive = isActive,
+                    CreatedAt = DateTime.Now
+                };
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to add account for existing person ID: {personId}", ex);
                 return null;
             }
         }

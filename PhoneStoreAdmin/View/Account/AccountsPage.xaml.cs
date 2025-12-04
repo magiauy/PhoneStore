@@ -495,7 +495,30 @@ namespace PhoneStoreAdmin.View
 
         private async Task LoadDataFromDatabaseAsync()
         {
+            // Ensure filter criteria includes max role weight to filter by permission level
+            EnsureRoleWeightFilter();
             await LoadPageDataAsync();
+        }
+
+        /// <summary>
+        /// Ensures the filter criteria includes the current user's max role weight
+        /// to prevent viewing accounts with same or higher privileges
+        /// </summary>
+        private void EnsureRoleWeightFilter()
+        {
+            var session = UserSession.Instance;
+            var currentUserWeight = session.GetMaxWeight();
+            
+            // Only apply filter if user is not super admin (weight > 0)
+            if (currentUserWeight > 0)
+            {
+                if (_currentFilterCriteria == null)
+                {
+                    _currentFilterCriteria = new AccountFilterCriteria();
+                }
+                _currentFilterCriteria.MaxRoleWeight = currentUserWeight;
+                Logger.Info($"Applied role weight filter: MaxRoleWeight > {currentUserWeight}");
+            }
         }
 
         private async Task LoadPageDataAsync()
@@ -963,23 +986,28 @@ namespace PhoneStoreAdmin.View
 
             try
             {
-                // TODO: Create account using AccountService
-                // var newAccount = new Account
-                // {
-                //     Username = username,
-                //     PasswordHash = password, // Should be hashed
-                //     PersonId = _selectedEmployee.PersonId,
-                //     IsActive = ActivateAccountCheckBox.IsChecked ?? true
-                // };
-                // 
-                // var success = await _accountService.CreateAccountAsync(newAccount);
+                // Create account for existing employee
+                var isActive = ActivateAccountCheckBox.IsChecked ?? true;
+                var accountId = await _accountService.AddAccountForExistingPersonAsync(
+                    username, 
+                    password, 
+                    _selectedEmployee.Id, // Employee.Id is the PersonId (Employee inherits from Person)
+                    _selectedRoleIds,
+                    isActive);
+                
+                if (accountId <= 0)
+                {
+                    ShowFormError(LocalizationHelper.GetString("Accounts_Error_AccountCreationFailed_UsernameExists"));
+                    return;
+                }
                 
                 await ShowSuccessMessage(LocalizationHelper.GetString("Accounts_Success_AccountCreated"));
                 
                 // Reload employees list
                 await LoadEmployeesWithoutAccountAsync();
                 
-                // Clear selection
+                // Clear form and selection
+                ClearAccountForm();
                 EmployeesListView.SelectedItem = null;
             }
             catch (Exception ex)

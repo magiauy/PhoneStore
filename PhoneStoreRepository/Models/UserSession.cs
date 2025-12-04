@@ -31,6 +31,7 @@ namespace PhoneStoreRepository.Models
         public Account? Account { get; private set; }
         public Person? Person { get; private set; }
         public Role? Role { get; private set; }
+        public List<Role>? Roles { get; private set; }
         public List<Permission>? Permissions { get; private set; }
 
         public bool IsLoggedIn => Account != null;
@@ -40,7 +41,31 @@ namespace PhoneStoreRepository.Models
             Account = account;
             Person = person;
             Role = role;
+            Roles = role != null ? new List<Role> { role } : new List<Role>();
             Permissions = permissions ?? new List<Permission>();
+        }
+
+        public void Initialize(Account account, Person? person, List<Role>? roles, List<Permission>? permissions)
+        {
+            Account = account;
+            Person = person;
+            Roles = roles ?? new List<Role>();
+            Role = Roles.OrderBy(r => r.Weight).FirstOrDefault(); // Role with lowest weight (highest privilege)
+            Permissions = permissions ?? new List<Permission>();
+        }
+
+        /// <summary>
+        /// Get the minimum (highest privilege) weight among all roles of the current user
+        /// Lower weight = higher privilege (e.g., Admin=0, Manager=50, Staff=100)
+        /// </summary>
+        /// <returns>Minimum weight, or int.MaxValue if no roles</returns>
+        public int GetMaxWeight()
+        {
+            if (Roles == null || Roles.Count == 0)
+            {
+                return Role?.Weight ?? int.MaxValue;
+            }
+            return Roles.Min(r => r.Weight);
         }
 
         public bool HasPermission(string permissionCode)
@@ -48,7 +73,7 @@ namespace PhoneStoreRepository.Models
             if (Permissions == null || string.IsNullOrWhiteSpace(permissionCode))
                 return false;
 
-            return Permissions.Any(p => p.Code?.Equals(permissionCode, System.StringComparison.OrdinalIgnoreCase) == true) || Role?.Weight == 0;
+            return Permissions.Any(p => p.Code?.Equals(permissionCode, System.StringComparison.OrdinalIgnoreCase) == true) || GetMaxWeight() == 0;
         }
 
         public bool HasAnyPermission(params string[] permissionCodes)
@@ -56,7 +81,7 @@ namespace PhoneStoreRepository.Models
             if (Permissions == null || permissionCodes == null || permissionCodes.Length == 0)
                 return false;
 
-            return permissionCodes.Any(HasPermission) || Role?.Weight == 0;
+            return permissionCodes.Any(HasPermission) || GetMaxWeight() == 0;
         }
 
         public bool HasAllPermissions(params string[] permissionCodes)
@@ -64,7 +89,7 @@ namespace PhoneStoreRepository.Models
             if (Permissions == null || permissionCodes == null || permissionCodes.Length == 0)
                 return false;
 
-            return permissionCodes.All(HasPermission) || Role?.Weight == 0;
+            return permissionCodes.All(HasPermission) || GetMaxWeight() == 0;
         }
 
         public void Clear()
@@ -72,6 +97,7 @@ namespace PhoneStoreRepository.Models
             Account = null;
             Person = null;
             Role = null;
+            Roles = null;
             Permissions = null;
         }
 

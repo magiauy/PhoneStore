@@ -241,5 +241,37 @@ namespace PhoneStore.Services.Implementations
                 return false;
             }
         }
+
+        public async Task<int> AddAccountForExistingPersonAsync(string username, string password, int personId, IEnumerable<int> roleIds, bool isActive = true)
+        {
+            try
+            {
+                Logger.Info($"Adding new account '{username}' for existing person ID: {personId}");
+                
+                var account = await _accountRepository.AddAccountForExistingPersonAsync(username, password, personId, isActive);
+                
+                if (account == null || account.Id <= 0)
+                {
+                    Logger.Warning($"Failed to add account '{username}' for person ID: {personId}");
+                    return 0;
+                }
+
+                // Assign roles to the new account
+                var normalizedRoleIds = roleIds?.Distinct().ToList() ?? new List<int>();
+                if (normalizedRoleIds.Count > 0)
+                {
+                    await _accountRepository.UpdateRolesAsync(account.Id, normalizedRoleIds);
+                    Logger.Info($"Assigned {normalizedRoleIds.Count} roles to account ID: {account.Id}");
+                }
+
+                Logger.Info($"Successfully created account '{username}' (ID: {account.Id}) for person ID: {personId}");
+                return account.Id;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to add account for existing person ID: {personId}", ex);
+                return 0;
+            }
+        }
     }
 }

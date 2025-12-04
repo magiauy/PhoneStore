@@ -21,7 +21,7 @@ namespace PhoneStore.Services.Implementations
         private readonly IBatchProductRepository _batchProductRepository;
         private readonly IProductRepository _productRepository;
         private readonly IProductSerialRepository _productSerialRepository;
-        private readonly DataSource _dataSource;
+        private readonly IDataSource _dataSource;
         private readonly IDynamicPricingService _dynamicPricingService;
 
         public PurchaseOrderService(
@@ -31,7 +31,7 @@ namespace PhoneStore.Services.Implementations
             IBatchProductRepository batchProductRepository,
         IProductRepository productRepository,
                 IProductSerialRepository productSerialRepository,
-       DataSource dataSource,
+       IDataSource dataSource,
        IDynamicPricingService dynamicPricingService)
         {
             _poRepository = poRepository ?? throw new ArgumentNullException(nameof(poRepository));

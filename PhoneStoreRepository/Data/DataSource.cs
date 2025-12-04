@@ -4,7 +4,7 @@ using System;
 
 namespace PhoneStoreRepository.Data
 {
-    public class DataSource
+    public class DataSource : IDataSource
     {
         private readonly string _connectionString;
 

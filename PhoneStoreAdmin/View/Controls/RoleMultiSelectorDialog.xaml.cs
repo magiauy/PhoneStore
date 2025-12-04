@@ -55,6 +55,17 @@ namespace PhoneStoreAdmin.View.Controls
                     return;
                 }
 
+                // Filter roles based on current user's max weight
+                // Only show roles with weight > current user's weight (lower privilege only)
+                var session = UserSession.Instance;
+                var currentUserWeight = session.GetMaxWeight();
+                
+                if (currentUserWeight > 0) // Not super admin
+                {
+                    roles = roles.Where(r => r.Weight > currentUserWeight).ToList();
+                    Logger.Info($"Filtered roles in dialog by weight > {currentUserWeight}: {roles.Count} roles");
+                }
+
                 _allRoles = roles;
                 _filteredRoles = new List<Role>(_allRoles);
                 

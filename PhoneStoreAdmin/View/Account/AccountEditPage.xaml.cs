@@ -79,18 +79,34 @@ namespace PhoneStoreAdmin.View
                 SaveButton.IsEnabled = false;
                 ErrorInfoBar.IsOpen = false;
 
+                Logger.Info($"Loading account for edit, AccountId: {_accountId}");
+                
                 _currentAccount = await _accountService.GetAccountWithRolesAsync(_accountId);
                 if (_currentAccount == null)
                 {
+                    Logger.Error($"Account not found for ID: {_accountId}");
                     ShowError(_resourceLoader.GetString("AccountEdit_Error_LoadFailed"));
                     return;
                 }
+                
+                Logger.Info($"Account loaded: Id={_currentAccount.Id}, Username={_currentAccount.Username}, PersonId={_currentAccount.PersonId}");
 
-                _currentPerson = _currentAccount.Person ?? await _personService.GetPersonByIdAsync(_currentAccount.PersonId);
-                if (_currentPerson != null)
+                _currentPerson = _currentAccount.Person;
+                if (_currentPerson == null)
                 {
-                    _currentAccount.Person = _currentPerson;
+                    Logger.Info($"Account.Person is null, fetching from PersonService with PersonId: {_currentAccount.PersonId}");
+                    _currentPerson = await _personService.GetPersonByIdAsync(_currentAccount.PersonId);
                 }
+                
+                if (_currentPerson == null)
+                {
+                    Logger.Warning($"Person not found for account ID: {_accountId}, PersonId: {_currentAccount.PersonId}");
+                    ShowError(_resourceLoader.GetString("AccountEdit_Error_PersonNotFound"));
+                    return;
+                }
+                
+                Logger.Info($"Person loaded: Id={_currentPerson.Id}, FullName={_currentPerson.FullName}");
+                _currentAccount.Person = _currentPerson;
 
                 _allRoles = await _roleService.GetAllRolesAsync() ?? new List<Role>();
                 _selectedRoleIds = _currentAccount.AccountRoles?.Select(ar => ar.RoleId).ToList() ?? new List<int>();
