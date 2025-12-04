@@ -1628,6 +1628,9 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="Accounts_Error_AccountCreationFailed" xml:space="preserve">
     <value>Không thể tạo tài khoản: {0}</value>
   </data>
+  <data name="Accounts_Error_AccountCreationFailed_UsernameExists" xml:space="preserve">
+    <value>Không thể tạo tài khoản. Tên đăng nhập đã tồn tại.</value>
+  </data>
   <data name="Accounts_VM_Status_Active" xml:space="preserve">
     <value>Activate</value>
   </data>
@@ -1783,6 +1786,9 @@ Bạn muốn thêm bao nhiêu máy?</value>
   </data>
   <data name="AccountEdit_Error_DataNotLoaded" xml:space="preserve">
     <value>Dữ liệu tài khoản chưa tải xong</value>
+  </data>
+  <data name="AccountEdit_Error_PersonNotFound" xml:space="preserve">
+    <value>Không tìm thấy thông tin người dùng cho tài khoản này</value>
   </data>
   <data name="AccountEdit_Error_UsernameEmpty" xml:space="preserve">
     <value>Tên đăng nhập không được để trống</value>

@@ -208,7 +208,7 @@ namespace PhoneStoreRepository.Repositories.Implementations
                 FullName = reader.GetString("full_name"),
                 Phone = reader.IsDBNull("phone") ? null : reader.GetString("phone"),
                 Email = reader.IsDBNull("email") ? null : reader.GetString("email"),
-                CreatedAt = reader.GetDateTime("created_at"),
+                CreatedAt = reader.IsDBNull("created_at") ? DateTime.UtcNow : reader.GetDateTime("created_at"),
                 IsActive = reader.GetBoolean("is_active")
             };
         
