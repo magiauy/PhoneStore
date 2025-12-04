@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="PhoneStoreAdmin.View.Controls.BulkPriceEditDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PhoneStoreAdmin.View.Controls"
+    Title="Bulk Price Edit"
+    DefaultButton="Primary"
+    PrimaryButtonText="Apply"
+    SecondaryButtonText="Cancel"
+    PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
+    FullSizeDesired="True">
+
+    <ContentDialog.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Theme/Colors.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <!--  Override ContentDialog max width  -->
+            <x:Double x:Key="ContentDialogMaxWidth">1200</x:Double>
+            <x:Double x:Key="ContentDialogMinWidth">900</x:Double>
+            <x:Double x:Key="ContentDialogMaxHeight">800</x:Double>
+        </ResourceDictionary>
+    </ContentDialog.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="550">
+        <StackPanel Spacing="16" MinWidth="850">
+            <!--  Apply To Selection  -->
+            <StackPanel Spacing="8">
+                <TextBlock FontSize="13" FontWeight="SemiBold" Text="Apply to:" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <RadioButton
+                        x:Name="ApplyToAllRadio"
+                        Checked="OnApplyScopeChanged"
+                        Content="All Products"
+                        GroupName="BulkApplyScope"
+                        IsChecked="True" />
+                    <RadioButton
+                        x:Name="ApplyToSelectedRadio"
+                        Checked="OnApplyScopeChanged"
+                        Content="Selected Products"
+                        GroupName="BulkApplyScope" />
+                    <RadioButton
+                        x:Name="ApplyToCategoryRadio"
+                        Checked="OnApplyScopeChanged"
+                        Content="By Category"
+                        GroupName="BulkApplyScope" />
+                    <RadioButton
+                        x:Name="ApplyToBrandRadio"
+                        Checked="OnApplyScopeChanged"
+                        Content="By Brand"
+                        GroupName="BulkApplyScope" />
+                </StackPanel>
+
+                <!--  Product Selection (shown when Selected Products is selected)  -->
+                <Border
+                    x:Name="ProductSelectionBorder"
+                    MaxHeight="280"
+                    Padding="12"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Visibility="Collapsed">
+                    <StackPanel Spacing="10">
+                        <!--  Filter Controls  -->
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            
+                            <!--  Search Box  -->
+                            <TextBox
+                                x:Name="ProductSearchBox"
+                                Grid.Column="0"
+                                PlaceholderText="Search by product name..."
+                                TextChanged="OnProductSearchTextChanged">
+                                <TextBox.Header>
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <FontIcon FontSize="12" Glyph="&#xE721;" />
+                                        <TextBlock Text="Search" FontSize="12" />
+                                    </StackPanel>
+                                </TextBox.Header>
+                            </TextBox>
+                            
+                            <!--  Category Filter  -->
+                            <ComboBox
+                                x:Name="ProductFilterCategoryCombo"
+                                Grid.Column="1"
+                                MinWidth="140"
+                                Header="Filter by Category"
+                                PlaceholderText="All"
+                                SelectionChanged="OnProductFilterChanged" />
+                            
+                            <!--  Brand Filter  -->
+                            <ComboBox
+                                x:Name="ProductFilterBrandCombo"
+                                Grid.Column="2"
+                                MinWidth="140"
+                                Header="Filter by Brand"
+                                PlaceholderText="All"
+                                SelectionChanged="OnProductFilterChanged" />
+                        </Grid>
+                        
+                        <!--  Action Buttons  -->
+                        <Grid>
+                            <TextBlock
+                                x:Name="ProductCountText"
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="0 products shown" />
+                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8">
+                                <Button
+                                    Padding="8,4"
+                                    Click="OnSelectAllFilteredProducts"
+                                    Content="Select Filtered"
+                                    FontSize="11" />
+                                <Button
+                                    Padding="8,4"
+                                    Click="OnSelectAllProducts"
+                                    Content="Select All"
+                                    FontSize="11" />
+                                <Button
+                                    Padding="8,4"
+                                    Click="OnDeselectAllProducts"
+                                    Content="Deselect All"
+                                    FontSize="11" />
+                            </StackPanel>
+                        </Grid>
+                        
+                        <!--  Product List  -->
+                        <ScrollViewer MaxHeight="150" VerticalScrollBarVisibility="Auto">
+                            <ListView
+                                x:Name="ProductListView"
+                                SelectionMode="Multiple"
+                                SelectionChanged="OnProductSelectionChanged">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="local:ProductSelectionItem">
+                                        <Grid ColumnSpacing="12" Padding="4,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock 
+                                                Grid.Column="0" 
+                                                Text="{x:Bind ProductName}" 
+                                                TextTrimming="CharacterEllipsis" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Text="{x:Bind CategoryName}"
+                                                FontSize="12" />
+                                            <TextBlock
+                                                Grid.Column="2"
+                                                Foreground="{ThemeResource ColorPrimary}"
+                                                Text="{x:Bind FormattedUnitCost}"
+                                                FontWeight="SemiBold" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </ScrollViewer>
+                        
+                        <!--  Selection Summary  -->
+                        <TextBlock
+                            x:Name="SelectionSummaryText"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource ColorPrimary}"
+                            Text="0 products selected" />
+                    </StackPanel>
+                </Border>
+
+                <!--  Category Multi-Selection (shown when By Category is selected)  -->
+                <Border
+                    x:Name="CategorySelectionBorder"
+                    MaxHeight="180"
+                    Padding="8"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Visibility="Collapsed">
+                    <StackPanel Spacing="8">
+                        <Grid>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Select categories:" />
+                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8">
+                                <Button
+                                    Padding="8,4"
+                                    Click="OnSelectAllCategories"
+                                    Content="Select All"
+                                    FontSize="11" />
+                                <Button
+                                    Padding="8,4"
+                                    Click="OnDeselectAllCategories"
+                                    Content="Deselect All"
+                                    FontSize="11" />
+                            </StackPanel>
+                        </Grid>
+                        <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto">
+                            <ListView
+                                x:Name="CategoryListView"
+                                SelectionMode="Multiple" />
+                        </ScrollViewer>
+                    </StackPanel>
+                </Border>
+
+                <!--  Brand Multi-Selection (shown when By Brand is selected)  -->
+                <Border
+                    x:Name="BrandSelectionBorder"
+                    MaxHeight="180"
+                    Padding="8"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Visibility="Collapsed">
+                    <StackPanel Spacing="8">
+                        <Grid>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Select brands:" />
+                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8">
+                                <Button
+                                    Padding="8,4"
+                                    Click="OnSelectAllBrands"
+                                    Content="Select All"
+                                    FontSize="11" />
+                                <Button
+                                    Padding="8,4"
+                                    Click="OnDeselectAllBrands"
+                                    Content="Deselect All"
+                                    FontSize="11" />
+                            </StackPanel>
+                        </Grid>
+                        <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto">
+                            <ListView
+                                x:Name="BrandListView"
+                                SelectionMode="Multiple" />
+                        </ScrollViewer>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+            <!--  Price Input Mode  -->
+            <StackPanel Spacing="8">
+                <TextBlock FontSize="13" FontWeight="SemiBold" Text="Edit by:" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <RadioButton
+                        x:Name="EditByProfitMarginRadio"
+                        Content="Profit Margin (%)"
+                        GroupName="BulkEditMode"
+                        IsChecked="True" />
+                    <RadioButton
+                        x:Name="EditByUnitCostRadio"
+                        Content="Unit Cost"
+                        GroupName="BulkEditMode" />
+                    <RadioButton
+                        x:Name="EditBySellingPriceRadio"
+                        Content="Selling Price"
+                        GroupName="BulkEditMode" />
+                </StackPanel>
+            </StackPanel>
+
+            <!--  Value Input  -->
+            <NumberBox
+                x:Name="BulkEditValueBox"
+                Header="Value"
+                Minimum="0"
+                PlaceholderText="Enter value..."
+                SpinButtonPlacementMode="Compact" />
+
+            <!--  Info about minimum profit margin  -->
+            <InfoBar
+                x:Name="MinProfitMarginInfoBar"
+                IsClosable="False"
+                IsOpen="True"
+                Severity="Informational" />
+
+            <!--  Error message  -->
+            <TextBlock
+                x:Name="ErrorTextBlock"
+                Foreground="#D32F2F"
+                TextWrapping="Wrap"
+                Visibility="Collapsed" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

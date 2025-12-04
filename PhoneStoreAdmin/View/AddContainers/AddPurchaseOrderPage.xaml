@@ -258,11 +258,11 @@
 
             <!--  Right Panel - Purchase Order  -->
             <Border Grid.Column="1" Style="{StaticResource CardStyle}">
-                <Grid RowSpacing="20">
+                <Grid RowSpacing="10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" MinHeight="200" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -291,12 +291,12 @@
                     <!--  Supplier Info  -->
                     <Border
                         Grid.Row="1"
-                        Padding="10"
+                        Padding="8"
                         Background="{ThemeResource LayerFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1"
-                        CornerRadius="8">
-                        <Grid RowSpacing="12">
+                        CornerRadius="6">
+                        <Grid RowSpacing="6">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
@@ -305,7 +305,7 @@
                             <TextBlock
                                 x:Uid="SupplierInfoTitle"
                                 Grid.Row="0"
-                                FontSize="14"
+                                FontSize="13"
                                 FontWeight="SemiBold"
                                 Text="Supplier Information" />
 
@@ -523,127 +523,27 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!--  Bulk Price Edit Section  -->
-                    <Expander
+                    <!--  Bulk Price Edit Button  -->
+                    <Button
                         Grid.Row="3"
-                        Margin="0,0,0,8"
+                        Margin="0,0,0,4"
                         HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Stretch"
-                        IsExpanded="False">
-                        <Expander.Header>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon FontSize="16" Glyph="&#xE8EF;" />
-                                <TextBlock FontWeight="SemiBold" Text="Bulk Price Edit" />
-                            </StackPanel>
-                        </Expander.Header>
-                        <Border
-                            Padding="16"
-                            Background="{ThemeResource LayerFillColorDefaultBrush}"
-                            CornerRadius="0,0,8,8">
-                            <StackPanel Spacing="16">
-                                <!--  Apply To Selection  -->
-                                <StackPanel Spacing="8">
-                                    <TextBlock FontSize="13" Text="Apply to:" />
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <RadioButton
-                                            x:Name="ApplyToAllRadio"
-                                            Checked="OnApplyScopeChanged"
-                                            Content="All Products"
-                                            GroupName="BulkApplyScope"
-                                            IsChecked="True" />
-                                        <RadioButton
-                                            x:Name="ApplyToCategoryRadio"
-                                            Checked="OnApplyScopeChanged"
-                                            Content="By Category"
-                                            GroupName="BulkApplyScope" />
-                                        <RadioButton
-                                            x:Name="ApplyToBrandRadio"
-                                            Checked="OnApplyScopeChanged"
-                                            Content="By Brand"
-                                            GroupName="BulkApplyScope" />
-                                    </StackPanel>
-                                    
-                                    <!--  Category Selection (shown when By Category is selected)  -->
-                                    <ComboBox
-                                        x:Name="BulkEditCategoryCombo"
-                                        MinWidth="250"
-                                        Header="Select Category"
-                                        PlaceholderText="Choose a category..."
-                                        Visibility="Collapsed" />
-                                    
-                                    <!--  Brand Selection (shown when By Brand is selected)  -->
-                                    <ComboBox
-                                        x:Name="BulkEditBrandCombo"
-                                        MinWidth="250"
-                                        Header="Select Brand"
-                                        PlaceholderText="Choose a brand..."
-                                        Visibility="Collapsed" />
-                                </StackPanel>
-
-                                <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
-
-                                <!--  Price Input Mode  -->
-                                <StackPanel Spacing="8">
-                                    <TextBlock FontSize="13" Text="Edit by:" />
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <RadioButton
-                                            x:Name="EditByProfitMarginRadio"
-                                            Content="Profit Margin (%)"
-                                            GroupName="BulkEditMode"
-                                            IsChecked="True" />
-                                        <RadioButton
-                                            x:Name="EditByUnitCostRadio"
-                                            Content="Unit Cost"
-                                            GroupName="BulkEditMode" />
-                                        <RadioButton
-                                            x:Name="EditBySellingPriceRadio"
-                                            Content="Selling Price"
-                                            GroupName="BulkEditMode" />
-                                    </StackPanel>
-                                </StackPanel>
-
-                                <!--  Value Input  -->
-                                <Grid ColumnSpacing="16">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    
-                                    <NumberBox
-                                        x:Name="BulkEditValueBox"
-                                        Grid.Column="0"
-                                        Header="Value"
-                                        Minimum="0"
-                                        PlaceholderText="Enter value..."
-                                        SpinButtonPlacementMode="Compact" />
-                                    
-                                    <Button
-                                        Grid.Column="1"
-                                        VerticalAlignment="Bottom"
-                                        Click="{x:Bind OnApplyBulkPriceEdit}"
-                                        Content="Apply"
-                                        Style="{StaticResource AccentButtonStyle}" />
-                                </Grid>
-
-                                <!--  Info about minimum profit margin  -->
-                                <InfoBar
-                                    IsClosable="False"
-                                    IsOpen="True"
-                                    Message="{x:Bind GetMinProfitMarginInfo(), Mode=OneWay}"
-                                    Severity="Informational" />
-                            </StackPanel>
-                        </Border>
-                    </Expander>
+                        Click="{x:Bind OnOpenBulkPriceEditDialog}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon FontSize="16" Glyph="&#xE8EF;" />
+                            <TextBlock FontWeight="SemiBold" Text="Bulk Price Edit" />
+                        </StackPanel>
+                    </Button>
 
                     <!--  Summary Section  -->
                     <Border
                         Grid.Row="4"
-                        Padding="16"
+                        Padding="10"
                         Background="{ThemeResource LayerFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1"
-                        CornerRadius="8">
-                        <StackPanel Spacing="12">
+                        CornerRadius="6">
+                        <StackPanel Spacing="8">
                             <Grid>
                                 <TextBlock
                                     x:Uid="SubtotalLabel"
@@ -677,7 +577,7 @@
                     </Border>
 
                     <!--  Action Buttons  -->
-                    <StackPanel Grid.Row="5" Spacing="10">
+                    <StackPanel Grid.Row="5" Spacing="6">
                         <Button
                             x:Name="PrintPurchaseOrderButton"
                             x:Uid="BtnPrintPurchaseOrder"
