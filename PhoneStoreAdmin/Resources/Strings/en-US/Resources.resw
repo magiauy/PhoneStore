@@ -3626,4 +3626,95 @@ Total: {1}</value>
   <data name="AddPurchaseOrder_NoFilteredProducts" xml:space="preserve">
     <value>No products to add. Please select a category or brand to filter products first.</value>
   </data>
+  <!-- Dashboard Statistics Section -->
+  <data name="Dashboard_DailyRevenueChart.Text" xml:space="preserve">
+    <value>Daily Revenue Chart</value>
+  </data>
+  <data name="Dashboard_Top10Products.Text" xml:space="preserve">
+    <value>Top 10 Products</value>
+  </data>
+  <data name="Dashboard_Top10Customers.Text" xml:space="preserve">
+    <value>Top 10 Customers</value>
+  </data>
+  <data name="Dashboard_Product.Text" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="Dashboard_Quantity.Text" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+  <data name="Dashboard_Revenue.Text" xml:space="preserve">
+    <value>Revenue</value>
+  </data>
+  <data name="Dashboard_Customer.Text" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="Dashboard_Orders.Text" xml:space="preserve">
+    <value>Orders</value>
+  </data>
+  <data name="Dashboard_Spending.Text" xml:space="preserve">
+    <value>Spending</value>
+  </data>
+  <data name="Dashboard_NoRevenueData.Text" xml:space="preserve">
+    <value>No revenue data for this month</value>
+  </data>
+  <data name="Dashboard_NoSalesData.Text" xml:space="preserve">
+    <value>No sales data for this month</value>
+  </data>
+  <data name="Dashboard_NoCustomerData.Text" xml:space="preserve">
+    <value>No customer data for this month</value>
+  </data>
+  <data name="Dashboard_RefreshButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Dashboard_LoadingData.Text" xml:space="preserve">
+    <value>Loading data...</value>
+  </data>
+  <data name="Dashboard_Total" xml:space="preserve">
+    <value>Total: {0}</value>
+  </data>
+  <data name="Dashboard_TotalRevenue" xml:space="preserve">
+    <value>Total Revenue: {0} | {1} orders</value>
+  </data>
+  <data name="Dashboard_ErrorLoadingData" xml:space="preserve">
+    <value>Error loading data: {0}</value>
+  </data>
+  <data name="Dashboard_ErrorTitle" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Dashboard_Month1.Content" xml:space="preserve">
+    <value>January</value>
+  </data>
+  <data name="Dashboard_Month2.Content" xml:space="preserve">
+    <value>February</value>
+  </data>
+  <data name="Dashboard_Month3.Content" xml:space="preserve">
+    <value>March</value>
+  </data>
+  <data name="Dashboard_Month4.Content" xml:space="preserve">
+    <value>April</value>
+  </data>
+  <data name="Dashboard_Month5.Content" xml:space="preserve">
+    <value>May</value>
+  </data>
+  <data name="Dashboard_Month6.Content" xml:space="preserve">
+    <value>June</value>
+  </data>
+  <data name="Dashboard_Month7.Content" xml:space="preserve">
+    <value>July</value>
+  </data>
+  <data name="Dashboard_Month8.Content" xml:space="preserve">
+    <value>August</value>
+  </data>
+  <data name="Dashboard_Month9.Content" xml:space="preserve">
+    <value>September</value>
+  </data>
+  <data name="Dashboard_Month10.Content" xml:space="preserve">
+    <value>October</value>
+  </data>
+  <data name="Dashboard_Month11.Content" xml:space="preserve">
+    <value>November</value>
+  </data>
+  <data name="Dashboard_Month12.Content" xml:space="preserve">
+    <value>December</value>
+  </data>
 </root>
