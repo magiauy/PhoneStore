@@ -137,6 +137,14 @@ namespace PhoneStore.Services
                 GetService<DataSource>()
             ));
 
+            // Register Dashboard Service
+            RegisterSingleton<IDashboardService>(() => new DashboardService(
+                GetService<IInvoiceRepository>(),
+                GetService<IInvoiceLineRepository>(),
+                GetService<ICustomerRepository>(),
+                GetService<IProductRepository>()
+            ));
+
             RegisterSingleton<ISettingStringService>(() => new SettingStringService(GetService<ISettingStringRepository>()));
 
             // Register UserSession singleton
