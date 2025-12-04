@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace PhoneStoreAdmin.View
 {
@@ -1088,7 +1089,7 @@ namespace PhoneStoreAdmin.View
         /// <summary>
         /// Get distinct categories from products in the purchase order
         /// </summary>
-        public List<string> GetPurchaseOrderCategories()
+        private List<string> GetPurchaseOrderCategories()
         {
             var categories = PurchaseOrderItems
                 .Select(item => 
@@ -1111,7 +1112,7 @@ namespace PhoneStoreAdmin.View
         /// <summary>
         /// Get distinct brands from products in the purchase order
         /// </summary>
-        public List<string> GetPurchaseOrderBrands()
+        private List<string> GetPurchaseOrderBrands()
         {
             var brands = PurchaseOrderItems
                 .Select(item =>
@@ -1132,73 +1133,79 @@ namespace PhoneStoreAdmin.View
         }
 
         /// <summary>
-        /// Get info string about minimum profit margin
+        /// Get product selection items from purchase order
         /// </summary>
-        public string GetMinProfitMarginInfo()
+        private List<ProductSelectionItem> GetProductSelectionItems()
         {
-            return $"Minimum profit margin: {_minimumProfitMargin:P0} (system setting)";
+            return PurchaseOrderItems
+                .Select(item => 
+                {
+                    var product = ProductRepository.GetById(item.ProductId);
+                    var categoryName = "Unknown";
+                    var brandName = "No Brand";
+                    
+                    if (product != null)
+                    {
+                        var category = CategoryRepository.GetById(product.CategoryId);
+                        categoryName = category?.Name ?? "Unknown";
+                        
+                        if (product.BrandId != null)
+                        {
+                            var brand = BrandRepository.GetById(product.BrandId.Value);
+                            brandName = brand?.Name ?? "Unknown";
+                        }
+                    }
+                    
+                    return new ProductSelectionItem
+                    {
+                        ProductId = item.ProductId,
+                        ProductName = item.ProductName,
+                        CategoryName = categoryName,
+                        BrandName = brandName,
+                        UnitCost = item.UnitCost
+                    };
+                })
+                .ToList();
         }
 
         /// <summary>
-        /// Handle scope radio button changes - show/hide category/brand combo boxes
+        /// Open the Bulk Price Edit dialog
         /// </summary>
-        private void OnApplyScopeChanged(object sender, RoutedEventArgs e)
-        {
-            // Check if controls are initialized
-            if (BulkEditCategoryCombo == null || BulkEditBrandCombo == null)
-                return;
-
-            if (ApplyToAllRadio.IsChecked == true)
-            {
-                BulkEditCategoryCombo.Visibility = Visibility.Collapsed;
-                BulkEditBrandCombo.Visibility = Visibility.Collapsed;
-            }
-            else if (ApplyToCategoryRadio.IsChecked == true)
-            {
-                // Load categories from products in purchase order
-                var categories = GetPurchaseOrderCategories();
-                BulkEditCategoryCombo.ItemsSource = categories;
-                BulkEditCategoryCombo.SelectedIndex = categories.Count > 0 ? 0 : -1;
-                
-                BulkEditCategoryCombo.Visibility = Visibility.Visible;
-                BulkEditBrandCombo.Visibility = Visibility.Collapsed;
-            }
-            else if (ApplyToBrandRadio.IsChecked == true)
-            {
-                // Load brands from products in purchase order
-                var brands = GetPurchaseOrderBrands();
-                BulkEditBrandCombo.ItemsSource = brands;
-                BulkEditBrandCombo.SelectedIndex = brands.Count > 0 ? 0 : -1;
-                
-                BulkEditCategoryCombo.Visibility = Visibility.Collapsed;
-                BulkEditBrandCombo.Visibility = Visibility.Visible;
-            }
-        }
-
-        /// <summary>
-        /// Apply bulk price edit to selected products
-        /// </summary>
-        public async void OnApplyBulkPriceEdit(object sender, RoutedEventArgs e)
+        public async void OnOpenBulkPriceEditDialog(object sender, RoutedEventArgs e)
         {
             try
             {
-                // Get the input value
-                if (double.IsNaN(BulkEditValueBox.Value) || BulkEditValueBox.Value < 0)
+                var products = GetProductSelectionItems();
+                var categories = GetPurchaseOrderCategories();
+                var brands = GetPurchaseOrderBrands();
+
+                var dialog = new BulkPriceEditDialog(products, categories, brands, _minimumProfitMargin)
                 {
-                    await ShowMessageDialog("Invalid Value", "Please enter a valid positive number.");
-                    return;
+                    XamlRoot = this.XamlRoot
+                };
+
+                var result = await dialog.ShowAsync();
+
+                if (result == ContentDialogResult.Primary && dialog.Result != null)
+                {
+                    await ApplyBulkPriceEdit(dialog.Result);
                 }
+            }
+            catch (Exception ex)
+            {
+                await ShowMessageDialog("Error", $"Failed to open bulk price edit dialog: {ex.Message}");
+            }
+        }
 
-                var inputValue = BulkEditValueBox.Value;
-
+        /// <summary>
+        /// Apply bulk price edit based on dialog result
+        /// </summary>
+        private async Task ApplyBulkPriceEdit(BulkPriceEditResult editResult)
+        {
+            try
+            {
                 // Determine which products to apply to
-                var targetItems = GetTargetItemsForBulkEdit();
-
-                if (targetItems == null)
-                {
-                    // null means user needs to select category/brand
-                    return;
-                }
+                var targetItems = GetTargetItemsForBulkEdit(editResult);
 
                 if (!targetItems.Any())
                 {
@@ -1206,71 +1213,65 @@ namespace PhoneStoreAdmin.View
                     return;
                 }
 
+                var inputValue = editResult.Value;
+
                 // Determine edit mode and apply changes
-                if (EditByProfitMarginRadio.IsChecked == true)
+                switch (editResult.Mode)
                 {
-                    // Input is profit margin percentage (e.g., 25 for 25%)
-                    var profitMargin = (float)(inputValue / 100.0);
-                    
-                    if (profitMargin < _minimumProfitMargin)
-                    {
-                        await ShowMessageDialog(
-                            "Invalid Profit Margin",
-                            $"Profit margin must be at least {_minimumProfitMargin:P0} (system setting).");
-                        return;
-                    }
+                    case BulkEditMode.ProfitMargin:
+                        // Input is profit margin percentage (e.g., 25 for 25%)
+                        var profitMargin = (float)(inputValue / 100.0);
 
-                    foreach (var item in targetItems)
-                    {
-                        item.ProfitMargin = profitMargin;
-                    }
-                }
-                else if (EditByUnitCostRadio.IsChecked == true)
-                {
-                    // Input is unit cost - need to recalculate profit margin based on current selling price
-                    // Or just set unit cost and keep profit margin
-                    var unitCost = (decimal)inputValue;
-
-                    foreach (var item in targetItems)
-                    {
-                        item.UnitCost = unitCost;
-                        // Profit margin stays the same, selling price will be recalculated
-                    }
-                }
-                else if (EditBySellingPriceRadio.IsChecked == true)
-                {
-                    // Input is selling price - calculate profit margin from unit cost
-                    var sellingPrice = (decimal)inputValue;
-
-                    var invalidItems = new List<string>();
-
-                    foreach (var item in targetItems)
-                    {
-                        if (item.UnitCost <= 0)
+                        foreach (var item in targetItems)
                         {
-                            invalidItems.Add($"{item.ProductName}: Unit cost is 0");
-                            continue;
+                            item.ProfitMargin = profitMargin;
+                        }
+                        break;
+
+                    case BulkEditMode.UnitCost:
+                        // Input is unit cost - set unit cost and keep profit margin
+                        var unitCost = (decimal)inputValue;
+
+                        foreach (var item in targetItems)
+                        {
+                            item.UnitCost = unitCost;
+                            // Profit margin stays the same, selling price will be recalculated
+                        }
+                        break;
+
+                    case BulkEditMode.SellingPrice:
+                        // Input is selling price - calculate profit margin from unit cost
+                        var sellingPrice = (decimal)inputValue;
+                        var invalidItems = new List<string>();
+
+                        foreach (var item in targetItems)
+                        {
+                            if (item.UnitCost <= 0)
+                            {
+                                invalidItems.Add($"{item.ProductName}: Unit cost is 0");
+                                continue;
+                            }
+
+                            // Calculate profit margin: sellingPrice = unitCost * (1 + profitMargin)
+                            // profitMargin = (sellingPrice / unitCost) - 1
+                            var calculatedMargin = (float)((sellingPrice / item.UnitCost) - 1);
+
+                            if (calculatedMargin < _minimumProfitMargin)
+                            {
+                                invalidItems.Add($"{item.ProductName}: Calculated margin {calculatedMargin:P0} < minimum {_minimumProfitMargin:P0}");
+                                continue;
+                            }
+
+                            item.ProfitMargin = calculatedMargin;
                         }
 
-                        // Calculate profit margin: sellingPrice = unitCost * (1 + profitMargin)
-                        // profitMargin = (sellingPrice / unitCost) - 1
-                        var calculatedMargin = (float)((sellingPrice / item.UnitCost) - 1);
-
-                        if (calculatedMargin < _minimumProfitMargin)
+                        if (invalidItems.Any())
                         {
-                            invalidItems.Add($"{item.ProductName}: Calculated margin {calculatedMargin:P0} < minimum {_minimumProfitMargin:P0}");
-                            continue;
+                            await ShowMessageDialog(
+                                "Some Products Skipped",
+                                $"The following products were not updated:\n\n{string.Join("\n", invalidItems)}");
                         }
-
-                        item.ProfitMargin = calculatedMargin;
-                    }
-
-                    if (invalidItems.Any())
-                    {
-                        await ShowMessageDialog(
-                            "Some Products Skipped",
-                            $"The following products were not updated:\n\n{string.Join("\n", invalidItems)}");
-                    }
+                        break;
                 }
 
                 // Recalculate totals
@@ -1287,57 +1288,53 @@ namespace PhoneStoreAdmin.View
         }
 
         /// <summary>
-        /// Get the list of items to apply bulk edit based on selected scope
-        /// Returns null if category/brand needs to be selected
+        /// Get the list of items to apply bulk edit based on result
         /// </summary>
-        private List<PurchaseOrderLineItem>? GetTargetItemsForBulkEdit()
+        private List<PurchaseOrderLineItem> GetTargetItemsForBulkEdit(BulkPriceEditResult editResult)
         {
-            if (ApplyToAllRadio.IsChecked == true)
+            switch (editResult.Scope)
             {
-                return PurchaseOrderItems.ToList();
-            }
-            else if (ApplyToCategoryRadio.IsChecked == true)
-            {
-                var selectedCategory = BulkEditCategoryCombo.SelectedItem as string;
-                if (string.IsNullOrEmpty(selectedCategory))
-                {
-                    _ = ShowMessageDialog("Select Category", "Please select a category to apply the bulk edit.");
-                    return null;
-                }
+                case BulkEditScope.All:
+                    return PurchaseOrderItems.ToList();
 
-                return PurchaseOrderItems.Where(item =>
-                {
-                    var product = ProductRepository.GetById(item.ProductId);
-                    if (product != null)
+                case BulkEditScope.SelectedProducts:
+                    if (editResult.SelectedProductIds == null || !editResult.SelectedProductIds.Any())
+                        return new List<PurchaseOrderLineItem>();
+                    return PurchaseOrderItems
+                        .Where(item => editResult.SelectedProductIds.Contains(item.ProductId))
+                        .ToList();
+
+                case BulkEditScope.Categories:
+                    if (editResult.SelectedCategories == null || !editResult.SelectedCategories.Any())
+                        return new List<PurchaseOrderLineItem>();
+                    return PurchaseOrderItems.Where(item =>
                     {
-                        var category = CategoryRepository.GetById(product.CategoryId);
-                        return category?.Name == selectedCategory;
-                    }
-                    return false;
-                }).ToList();
-            }
-            else if (ApplyToBrandRadio.IsChecked == true)
-            {
-                var selectedBrand = BulkEditBrandCombo.SelectedItem as string;
-                if (string.IsNullOrEmpty(selectedBrand))
-                {
-                    _ = ShowMessageDialog("Select Brand", "Please select a brand to apply the bulk edit.");
-                    return null;
-                }
+                        var product = ProductRepository.GetById(item.ProductId);
+                        if (product != null)
+                        {
+                            var category = CategoryRepository.GetById(product.CategoryId);
+                            return category?.Name != null && editResult.SelectedCategories.Contains(category.Name);
+                        }
+                        return false;
+                    }).ToList();
 
-                return PurchaseOrderItems.Where(item =>
-                {
-                    var product = ProductRepository.GetById(item.ProductId);
-                    if (product?.BrandId != null)
+                case BulkEditScope.Brands:
+                    if (editResult.SelectedBrands == null || !editResult.SelectedBrands.Any())
+                        return new List<PurchaseOrderLineItem>();
+                    return PurchaseOrderItems.Where(item =>
                     {
-                        var brand = BrandRepository.GetById(product.BrandId.Value);
-                        return brand?.Name == selectedBrand;
-                    }
-                    return selectedBrand == "No Brand" && product?.BrandId == null;
-                }).ToList();
-            }
+                        var product = ProductRepository.GetById(item.ProductId);
+                        if (product?.BrandId != null)
+                        {
+                            var brand = BrandRepository.GetById(product.BrandId.Value);
+                            return brand?.Name != null && editResult.SelectedBrands.Contains(brand.Name);
+                        }
+                        return editResult.SelectedBrands.Contains("No Brand") && product?.BrandId == null;
+                    }).ToList();
 
-            return new List<PurchaseOrderLineItem>();
+                default:
+                    return new List<PurchaseOrderLineItem>();
+            }
         }
 
         #endregion
