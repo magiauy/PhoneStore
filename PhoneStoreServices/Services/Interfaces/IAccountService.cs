@@ -97,5 +97,16 @@ namespace PhoneStore.Services.Interfaces
         /// <param name="roleIds">Collection of role IDs to assign</param>
         /// <returns>True if update succeeded, false otherwise</returns>
         Task<bool> UpdateAccountRolesAsync(int accountId, IEnumerable<int> roleIds);
+
+        /// <summary>
+        /// Add account for an existing person (Employee or Customer) and assign roles
+        /// </summary>
+        /// <param name="username">Username for the new account</param>
+        /// <param name="password">Plain text password (will be hashed)</param>
+        /// <param name="personId">ID of existing person</param>
+        /// <param name="roleIds">Collection of role IDs to assign</param>
+        /// <param name="isActive">Whether account should be active</param>
+        /// <returns>ID of created account, or 0 if failed</returns>
+        Task<int> AddAccountForExistingPersonAsync(string username, string password, int personId, IEnumerable<int> roleIds, bool isActive = true);
     }
 }

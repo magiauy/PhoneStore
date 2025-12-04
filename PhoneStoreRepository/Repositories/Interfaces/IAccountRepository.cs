@@ -84,6 +84,16 @@ namespace PhoneStoreRepository.Repositories.Interfaces
         Task DeleteAsync(int id);
 
         /// <summary>
+        /// Add account for an existing person (Employee or Customer)
+        /// </summary>
+        /// <param name="username">Username for the new account</param>
+        /// <param name="password">Plain text password (will be hashed)</param>
+        /// <param name="personId">ID of existing person</param>
+        /// <param name="isActive">Whether account should be active</param>
+        /// <returns>Created account if successful, null otherwise</returns>
+        Task<Account?> AddAccountForExistingPersonAsync(string username, string password, int personId, bool isActive = true);
+
+        /// <summary>
         /// Get all accounts with person information
         /// </summary>
         /// <returns>List of all accounts</returns>

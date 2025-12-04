@@ -101,7 +101,19 @@ namespace PhoneStoreAdmin.View
                 var roles = await _roleService.GetAllRolesAsync();
                 Logger.Info($"Loaded {roles.Count} roles from service");
                 
-                _allRoles = roles.Select(r => new RoleViewModel
+                // Filter roles based on current user's max weight
+                // Only show roles with weight > current user's weight (lower privilege only)
+                var session = UserSession.Instance;
+                var currentUserWeight = session.GetMaxWeight();
+                
+                var filteredRoles = roles;
+                if (currentUserWeight > 0) // Not super admin
+                {
+                    filteredRoles = roles.Where(r => r.Weight > currentUserWeight).ToList();
+                    Logger.Info($"Filtered roles by weight > {currentUserWeight}: {filteredRoles.Count} roles");
+                }
+                
+                _allRoles = filteredRoles.Select(r => new RoleViewModel
                 {
                     Id = r.Id,
                     Name = r.Name,
