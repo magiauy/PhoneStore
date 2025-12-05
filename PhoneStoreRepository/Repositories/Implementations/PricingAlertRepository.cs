@@ -72,10 +72,10 @@ namespace PhoneStoreRepository.Repositories.Implementations
             using var connection = _dataSource.GetConnection();
             using var command = new MySqlCommand(
                 @"INSERT INTO pricing_alert 
-                  (product_id, variance_percent, cost_fifo_snapshot, cost_nifo_snapshot, 
+                  (product_id, alert_type, variance_percent, cost_fifo_snapshot, cost_nifo_snapshot, 
                    current_stock, status, resolved_by, resolved_at, resolved_note, created_at) 
                   VALUES 
-                  (@productId, @variancePercent, @costFifoSnapshot, @costNifoSnapshot, 
+                  (@productId, @alertType, @variancePercent, @costFifoSnapshot, @costNifoSnapshot, 
                    @currentStock, @status, @resolvedBy, @resolvedAt, @resolvedNote, @createdAt)",
                 connection);
             AddParameters(command, alert);
@@ -89,6 +89,7 @@ namespace PhoneStoreRepository.Repositories.Implementations
             using var command = new MySqlCommand(
                 @"UPDATE pricing_alert SET 
                   product_id = @productId, 
+                  alert_type = @alertType,
                   variance_percent = @variancePercent, 
                   cost_fifo_snapshot = @costFifoSnapshot, 
                   cost_nifo_snapshot = @costNifoSnapshot, 
@@ -109,6 +110,7 @@ namespace PhoneStoreRepository.Repositories.Implementations
         private static void AddParameters(MySqlCommand command, PricingAlert alert)
         {
             command.Parameters.AddWithValue("@productId", alert.ProductId);
+            command.Parameters.AddWithValue("@alertType", (int)alert.AlertType);
             command.Parameters.AddWithValue("@variancePercent", alert.VariancePercent);
             command.Parameters.AddWithValue("@costFifoSnapshot", alert.CostFifoSnapshot);
             command.Parameters.AddWithValue("@costNifoSnapshot", alert.CostNifoSnapshot);
@@ -132,6 +134,7 @@ namespace PhoneStoreRepository.Repositories.Implementations
             {
                 Id = reader.GetInt32("id"),
                 ProductId = reader.GetInt32("product_id"),
+                AlertType = (AlertType)reader.GetInt32("alert_type"),
                 VariancePercent = reader.GetDecimal("variance_percent"),
                 CostFifoSnapshot = reader.GetDecimal("cost_fifo_snapshot"),
                 CostNifoSnapshot = reader.GetDecimal("cost_nifo_snapshot"),

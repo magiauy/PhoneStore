@@ -171,7 +171,8 @@
                                      x:Uid="AccountEdit_UsernameTextBox"
                                      Header="Tên đăng nhập"
                                      PlaceholderText="Nhập tên đăng nhập"
-                                     HorizontalAlignment="Stretch"/>
+                                     HorizontalAlignment="Stretch"
+                                     IsEnabled="False"/>
 
                             <TextBox x:Name="FullNameTextBox"
                                      x:Uid="AccountEdit_FullNameTextBox"

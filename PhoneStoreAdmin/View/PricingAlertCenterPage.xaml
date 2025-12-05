@@ -280,19 +280,19 @@
                     <StackPanel Grid.Row="1" Spacing="12" Margin="0,0,0,24">
                         <!-- Variance Card -->
                         <Border Background="{StaticResource BrushError}" 
-                                Opacity="0.1"
+                                Opacity="1"
                                 CornerRadius="8" 
                                 Padding="16">
                             <Grid ColumnDefinitions="*,Auto">
                                 <StackPanel Grid.Column="0" Spacing="4">
                                     <TextBlock Text="Biến động giá" 
                                                FontSize="12" 
-                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                               Foreground="Black"/>
                                     <TextBlock x:Name="DetailVariance" 
                                                Text="-15.5%" 
                                                FontSize="24" 
                                                FontWeight="Bold" 
-                                               Foreground="{StaticResource BrushError}"/>
+                                               Foreground="Black"/>
                                 </StackPanel>
                                 <FontIcon Grid.Column="1" 
                                           Glyph="&#xE74B;" 
@@ -306,34 +306,34 @@
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                             <Border Grid.Column="0" 
                                     Background="{StaticResource BrushPrimary}" 
-                                    Opacity="0.1"
+                                    Opacity="1"
                                     CornerRadius="8" 
                                     Padding="16">
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="FIFO (Giá vốn)" 
                                                FontSize="12" 
-                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                               Foreground="Black"/>
                                     <TextBlock x:Name="DetailFifo" 
                                                Text="0đ" 
                                                FontSize="18" 
                                                FontWeight="SemiBold" 
-                                               Foreground="{StaticResource BrushPrimary}"/>
+                                               Foreground="Black"/>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="1" 
                                     Background="{StaticResource BrushWarning}" 
-                                    Opacity="0.1"
+                                    Opacity="1"
                                     CornerRadius="8" 
                                     Padding="16">
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="NIFO (Giá thay thế)" 
                                                FontSize="12" 
-                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                               Foreground="Black"/>
                                     <TextBlock x:Name="DetailNifo" 
                                                Text="0đ" 
                                                FontSize="18" 
                                                FontWeight="SemiBold" 
-                                               Foreground="{StaticResource BrushWarning}"/>
+                                               Foreground="Black"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -359,18 +359,18 @@
                             </Border>
                             <Border Grid.Column="1" 
                                     Background="{StaticResource BrushError}" 
-                                    Opacity="0.1"
+                                    Opacity="1"
                                     CornerRadius="8" 
                                     Padding="16">
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="Tổn thất tiềm năng" 
                                                FontSize="12" 
-                                               Foreground="{StaticResource BrushTextSecondary}"/>
+                                               Foreground="Black"/>
                                     <TextBlock x:Name="DetailPotentialLoss" 
                                                Text="0đ" 
                                                FontSize="18" 
                                                FontWeight="SemiBold" 
-                                               Foreground="{StaticResource BrushError}"/>
+                                               Foreground="Black"/>
                                 </StackPanel>
                             </Border>
                         </Grid>

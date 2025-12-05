@@ -1,8 +1,8 @@
 using System;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.Windows.ApplicationModel.Resources;
 using PhoneStoreRepository.Models;
 using PhoneStoreRepository.Models.Enums;
 using PhoneStore.Services;
@@ -14,7 +14,6 @@ namespace PhoneStoreAdmin.View.Controls
     public sealed partial class EmployeeDialog : ContentControl
     {
         private readonly IEmployeeService _employeeService;
-        private readonly ResourceLoader _resourceLoader;
 
         private bool _isCodeValid;
         private bool _isNameValid;
@@ -40,13 +39,20 @@ namespace PhoneStoreAdmin.View.Controls
 
             _employeeService = ServiceContainer.GetService<IEmployeeService>()
                 ?? throw new InvalidOperationException("EmployeeService not registered");
-            _resourceLoader = new ResourceLoader();
+        }
+
+        public async Task SetModeAsync(DialogMode mode, EmployeeViewModel? employee = null)
+        {
+            _currentMode = mode;
+            await LoadDataAsync(employee);
+            UpdateUIForMode();
         }
 
         public void SetMode(DialogMode mode, EmployeeViewModel? employee = null)
         {
             _currentMode = mode;
-            LoadData(employee);
+            // For sync usage, load without fetching latest from DB
+            LoadDataSync(employee);
             UpdateUIForMode();
         }
 
@@ -106,19 +112,30 @@ namespace PhoneStoreAdmin.View.Controls
             ErrorInfoBar.IsOpen = false;
         }
 
-        private void LoadData(EmployeeViewModel? employee)
+        private async Task LoadDataAsync(EmployeeViewModel? employee)
         {
             EmployeeViewModel? source = employee;
 
             if (employee != null && _currentMode != DialogMode.Add)
             {
-                var latest = _employeeService.GetEmployeeById(employee.Id);
+                var latest = await _employeeService.GetEmployeeByIdAsync(employee.Id);
                 if (latest != null)
                 {
                     source = new EmployeeViewModel(latest);
                 }
             }
 
+            PopulateFields(source);
+        }
+
+        private void LoadDataSync(EmployeeViewModel? employee)
+        {
+            // Just use the passed employee without fetching from DB
+            PopulateFields(employee);
+        }
+
+        private void PopulateFields(EmployeeViewModel? source)
+        {
             if (source == null)
             {
                 EmployeeIdTextBox.Text = string.Empty;
@@ -154,6 +171,11 @@ namespace PhoneStoreAdmin.View.Controls
         private void UpdateUIForMode()
         {
             var isEditable = _currentMode != DialogMode.View;
+
+            // Hide ID field in Add mode
+            EmployeeIdPanel.Visibility = _currentMode == DialogMode.Add 
+                ? Visibility.Collapsed 
+                : Visibility.Visible;
 
             EmployeeCodeTextBox.IsReadOnly = !isEditable;
             FullNameTextBox.IsReadOnly = !isEditable;
@@ -222,7 +244,7 @@ namespace PhoneStoreAdmin.View.Controls
             }
             else
             {
-                ShowValidationError(EmployeeCodeError, _resourceLoader.GetString("EmployeeCodeRequired") ?? "Mã nhân viên không được để trống");
+                ShowValidationError(EmployeeCodeError, "Employee code is required");
             }
         }
 
@@ -235,7 +257,7 @@ namespace PhoneStoreAdmin.View.Controls
             }
             else
             {
-                ShowValidationError(FullNameError, _resourceLoader.GetString("EmployeeNameRequired") ?? "Họ tên không hợp lệ");
+                ShowValidationError(FullNameError, "Full name must be at least 2 characters");
             }
         }
 
@@ -255,7 +277,7 @@ namespace PhoneStoreAdmin.View.Controls
             }
             else
             {
-                ShowValidationError(EmailError, _resourceLoader.GetString("InvalidEmail/Text") ?? "Email không hợp lệ");
+                ShowValidationError(EmailError, "Invalid email format");
             }
         }
 
@@ -275,7 +297,7 @@ namespace PhoneStoreAdmin.View.Controls
             }
             else
             {
-                ShowValidationError(PhoneError, _resourceLoader.GetString("InvalidPhone/Text") ?? "Số điện thoại không hợp lệ");
+                ShowValidationError(PhoneError, "Invalid phone number format");
             }
         }
 
@@ -284,7 +306,7 @@ namespace PhoneStoreAdmin.View.Controls
             if (!hireDate.HasValue)
             {
                 _isHireDateValid = false;
-                ShowValidationError(HireDateError, "Vui lòng chọn ngày vào làm");
+                ShowValidationError(HireDateError, "Please select a hire date");
                 return;
             }
 
@@ -292,7 +314,7 @@ namespace PhoneStoreAdmin.View.Controls
             if (value > DateTimeOffset.Now.Date)
             {
                 _isHireDateValid = false;
-                ShowValidationError(HireDateError, "Ngày vào làm không hợp lệ");
+                ShowValidationError(HireDateError, "Hire date cannot be in the future");
                 return;
             }
 

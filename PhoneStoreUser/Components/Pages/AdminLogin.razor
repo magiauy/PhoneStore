@@ -146,6 +146,8 @@ else
 
     private bool _showAccessDenied = false;
     private bool _isChecking = true;
+    private bool _shouldRedirect = false;
+    private string _redirectUrl = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -166,8 +168,9 @@ else
         
         if (hasAdminCookie && user.Identity?.IsAuthenticated == true && user.IsInRole("EMPLOYEE"))
         {
-            // Admin đã đăng nhập, chuyển đến dashboard
-            NavigationManager.NavigateTo("/admin/dashboard", forceLoad: true);
+            // Admin đã đăng nhập, đánh dấu để redirect sau khi render
+            _shouldRedirect = true;
+            _redirectUrl = "/admin/dashboard";
             return;
         }
 
@@ -178,5 +181,13 @@ else
         }
 
         _isChecking = false;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && _shouldRedirect && !string.IsNullOrEmpty(_redirectUrl))
+        {
+            NavigationManager.NavigateTo(_redirectUrl, forceLoad: true);
+        }
     }
 }

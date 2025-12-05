@@ -60,19 +60,47 @@ builder.Services.AddAuthentication(options =>
     {
         options.ForwardDefaultSelector = context =>
         {
-            // Check if admin cookie exists - this is more reliable than path-based check
-            // because SignalR connections use /_blazor path, not the actual page path
-            if (context.Request.Cookies.ContainsKey(adminScheme))
-            {
-                return adminScheme;
-            }
-            
-            // Fallback to path-based check for initial requests (before cookie is set)
+            // 1. Path-based check for admin pages (direct page requests)
             if (context.Request.Path.StartsWithSegments("/admin", StringComparison.OrdinalIgnoreCase))
             {
                 return adminScheme;
             }
             
+            // 2. For SignalR/Blazor connections, we need to determine context
+            if (context.Request.Path.StartsWithSegments("/_blazor", StringComparison.OrdinalIgnoreCase))
+            {
+                // Check Referer header first (most reliable for Blazor)
+                var referer = context.Request.Headers.Referer.ToString();
+                if (!string.IsNullOrEmpty(referer))
+                {
+                    // Parse the referer to get the path
+                    if (Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
+                    {
+                        if (refererUri.AbsolutePath.StartsWith("/admin", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return adminScheme;
+                        }
+                        // Referer exists but not admin path - use default scheme
+                        return defaultScheme;
+                    }
+                }
+                
+                // No referer - check cookies as fallback
+                // If ONLY admin cookie exists, use admin scheme
+                var hasAdminCookie = context.Request.Cookies.ContainsKey(adminScheme);
+                var hasUserCookie = context.Request.Cookies.ContainsKey("guzone.auth");
+                
+                if (hasAdminCookie && !hasUserCookie)
+                {
+                    return adminScheme;
+                }
+                
+                // If both cookies exist or only user cookie, default to user scheme
+                // The page context (admin vs user) should be determined by Referer
+                return defaultScheme;
+            }
+            
+            // 3. All other pages (user pages) should use default scheme
             return defaultScheme;
         };
     })
@@ -82,9 +110,11 @@ builder.Services.AddAuthentication(options =>
         options.AccessDeniedPath = "/login";
         options.Cookie.Name = "guzone.auth";
         options.Cookie.HttpOnly = true;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        // Use SameAsRequest for development (HTTP) and production (HTTPS) compatibility
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.SlidingExpiration = true;
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
     })
     .AddCookie(adminScheme, options =>
     {
@@ -92,9 +122,11 @@ builder.Services.AddAuthentication(options =>
         options.AccessDeniedPath = "/admin";
         options.Cookie.Name = adminScheme;
         options.Cookie.HttpOnly = true;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        // Use SameAsRequest for development (HTTP) and production (HTTPS) compatibility
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.SlidingExpiration = true;
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
     });
 builder.Services.AddAuthorization(options =>
 {
@@ -199,15 +231,21 @@ app.MapPost("/login", async (
 
 app.MapPost("/logout", async (HttpContext context) =>
 {
+    // Clear the authentication cookie
     await context.SignOutAsync(defaultScheme);
+    // Also delete the cookie explicitly to ensure it's removed
+    context.Response.Cookies.Delete("guzone.auth");
     return Results.Ok();
-}).RequireAuthorization();
+}).AllowAnonymous();
 
 app.MapGet("/logout", async (HttpContext context) =>
 {
+    // Clear the authentication cookie
     await context.SignOutAsync(defaultScheme);
+    // Also delete the cookie explicitly to ensure it's removed
+    context.Response.Cookies.Delete("guzone.auth");
     return Results.Redirect("/");
-}).RequireAuthorization();
+}).AllowAnonymous();
 
 var adminRoutes = app.MapGroup("/admin");
 adminRoutes.RequireAuthorization("AdminOnly");
@@ -260,15 +298,21 @@ adminRoutes.MapPost("/login", async (
 
 adminRoutes.MapPost("/logout", async (HttpContext context) =>
 {
+    // Clear the admin authentication cookie
     await context.SignOutAsync(adminScheme);
+    // Also delete the cookie explicitly to ensure it's removed
+    context.Response.Cookies.Delete(adminScheme);
     return Results.Ok();
-}).RequireAuthorization("AdminOnly");
+}).AllowAnonymous();
 
 adminRoutes.MapGet("/logout", async (HttpContext context) =>
 {
+    // Clear the admin authentication cookie
     await context.SignOutAsync(adminScheme);
+    // Also delete the cookie explicitly to ensure it's removed
+    context.Response.Cookies.Delete(adminScheme);
     return Results.Redirect("/admin");
-}).RequireAuthorization("AdminOnly");
+}).AllowAnonymous();
 
 // Map controllers for API endpoints (PayOS callback)
 app.MapControllers();

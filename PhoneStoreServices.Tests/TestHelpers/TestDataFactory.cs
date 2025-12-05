@@ -116,7 +116,7 @@ public static class TestDataFactory
         int productId = 1,
         int quantity = 10,
         decimal unitCost = 800m,
-        float profitMargin = 0.1f)
+        decimal profitMargin = 0.1m)
     {
         return new PurchaseOrderLine
         {
@@ -186,7 +186,7 @@ public static class TestDataFactory
         int productId = 1,
         int quantity = 10,
         decimal costPrice = 800m,
-        float profitMargin = 0.1f,
+        decimal profitMargin = 0.1m,
         decimal? sellingPrice = null)
     {
         return new BatchProduct
@@ -197,7 +197,7 @@ public static class TestDataFactory
             Quantity = quantity,
             CostPrice = costPrice,
             ProfitMargin = profitMargin,
-            SellingPrice = sellingPrice ?? costPrice * (1 + (decimal)profitMargin)
+            SellingPrice = sellingPrice ?? costPrice * (1 + profitMargin)
         };
     }
 

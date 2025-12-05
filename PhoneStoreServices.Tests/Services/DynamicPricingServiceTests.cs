@@ -17,6 +17,7 @@ public class DynamicPricingServiceTests
     private readonly Mock<IPricingAlertRepository> _mockPricingAlertRepository;
     private readonly Mock<ISettingStringService> _mockSettingStringService;
     private readonly Mock<IProductSerialRepository> _mockProductSerialRepository;
+    private readonly Mock<IBatchProductRepository> _mockBatchProductRepository;
     private readonly DynamicPricingService _service;
 
     public DynamicPricingServiceTests()
@@ -26,16 +27,22 @@ public class DynamicPricingServiceTests
         _mockPricingAlertRepository = new Mock<IPricingAlertRepository>();
         _mockSettingStringService = new Mock<ISettingStringService>();
         _mockProductSerialRepository = new Mock<IProductSerialRepository>();
+        _mockBatchProductRepository = new Mock<IBatchProductRepository>();
 
         // Setup default pricing configuration
         SetupDefaultPricingConfiguration();
+
+        // Setup default batch product repository - return null (fallback to config)
+        _mockBatchProductRepository.Setup(x => x.GetMaxProfitMarginByProductId(It.IsAny<int>()))
+            .Returns((decimal?)null);
 
         _service = new DynamicPricingService(
             _mockProductRepository.Object,
             _mockPricingHistoryRepository.Object,
             _mockPricingAlertRepository.Object,
             _mockSettingStringService.Object,
-            _mockProductSerialRepository.Object);
+            _mockProductSerialRepository.Object,
+            _mockBatchProductRepository.Object);
     }
 
     private void SetupDefaultPricingConfiguration()
@@ -275,11 +282,11 @@ public class DynamicPricingServiceTests
     [Fact]
     public void CalculateAutoProtectPrice_FifoGreaterThanNifo_UsesFifo()
     {
-        // Arrange - Fifo=1000, Nifo=900
+        // Arrange - Fifo=1000, Nifo=900, no batch so fallback to config margin (0.10)
         // Expected: 1000 × 1.10 = 1100
 
         // Act
-        var result = _service.CalculateAutoProtectPrice(1000m, 900m);
+        var result = _service.CalculateAutoProtectPrice(1, 1000m, 900m);
 
         // Assert
         result.Should().Be(1100m);
@@ -288,11 +295,11 @@ public class DynamicPricingServiceTests
     [Fact]
     public void CalculateAutoProtectPrice_NifoGreaterThanFifo_UsesNifo()
     {
-        // Arrange - Fifo=900, Nifo=1000
+        // Arrange - Fifo=900, Nifo=1000, no batch so fallback to config margin (0.10)
         // Expected: 1000 × 1.10 = 1100
 
         // Act
-        var result = _service.CalculateAutoProtectPrice(900m, 1000m);
+        var result = _service.CalculateAutoProtectPrice(1, 900m, 1000m);
 
         // Assert
         result.Should().Be(1100m);
@@ -301,14 +308,45 @@ public class DynamicPricingServiceTests
     [Fact]
     public void CalculateAutoProtectPrice_RoundsToTwoDecimals()
     {
-        // Arrange - Fifo=999, Nifo=900
+        // Arrange - Fifo=999, Nifo=900, no batch so fallback to config margin (0.10)
         // Expected: 999 × 1.10 = 1098.90
 
         // Act
-        var result = _service.CalculateAutoProtectPrice(999m, 900m);
+        var result = _service.CalculateAutoProtectPrice(1, 999m, 900m);
 
         // Assert
         result.Should().Be(1098.90m);
+    }
+
+    [Fact]
+    public void CalculateAutoProtectPrice_UsesBatchProfitMargin_WhenAvailable()
+    {
+        // Arrange - Fifo=1000, Nifo=900, batch profit margin = 0.20 (20%)
+        // Expected: 1000 × 1.20 = 1200
+        _mockBatchProductRepository.Setup(x => x.GetMaxProfitMarginByProductId(1))
+            .Returns(0.20m);
+
+        // Act
+        var result = _service.CalculateAutoProtectPrice(1, 1000m, 900m);
+
+        // Assert
+        result.Should().Be(1200m);
+    }
+
+    [Fact]
+    public void CalculateAutoProtectPrice_FallbackToConfig_WhenNoBatch()
+    {
+        // Arrange - Fifo=1000, Nifo=900, no batch available (returns null)
+        // Should fallback to PRICING_DESIRED_MARGIN = 0.10
+        // Expected: 1000 × 1.10 = 1100
+        _mockBatchProductRepository.Setup(x => x.GetMaxProfitMarginByProductId(2))
+            .Returns((decimal?)null);
+
+        // Act
+        var result = _service.CalculateAutoProtectPrice(2, 1000m, 900m);
+
+        // Assert
+        result.Should().Be(1100m);
     }
 
     #endregion

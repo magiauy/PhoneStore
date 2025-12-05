@@ -98,7 +98,8 @@ namespace PhoneStore.Services
                 GetService<IPricingHistoryRepository>(),
                 GetService<IPricingAlertRepository>(),
                 GetService<ISettingStringService>(),
-                GetService<IProductSerialRepository>()));
+                GetService<IProductSerialRepository>(),
+                GetService<IBatchProductRepository>()));
             RegisterSingleton<IPricingAlertService>(() => new PricingAlertService(
                 GetService<IPricingAlertRepository>(),
                 GetService<IProductRepository>(),

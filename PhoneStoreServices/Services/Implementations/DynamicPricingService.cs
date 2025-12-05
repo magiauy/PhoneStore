@@ -21,6 +21,7 @@ namespace PhoneStore.Services.Implementations
         private readonly IPricingAlertRepository _pricingAlertRepository;
         private readonly ISettingStringService _settingStringService;
         private readonly IProductSerialRepository _productSerialRepository;
+        private readonly IBatchProductRepository _batchProductRepository;
 
         // Setting codes cho pricing configuration
         private const string SETTING_DESIRED_MARGIN = "PRICING_DESIRED_MARGIN";
@@ -35,13 +36,15 @@ namespace PhoneStore.Services.Implementations
             IPricingHistoryRepository pricingHistoryRepository,
             IPricingAlertRepository pricingAlertRepository,
             ISettingStringService settingStringService,
-            IProductSerialRepository productSerialRepository)
+            IProductSerialRepository productSerialRepository,
+            IBatchProductRepository batchProductRepository)
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
             _pricingHistoryRepository = pricingHistoryRepository ?? throw new ArgumentNullException(nameof(pricingHistoryRepository));
             _pricingAlertRepository = pricingAlertRepository ?? throw new ArgumentNullException(nameof(pricingAlertRepository));
             _settingStringService = settingStringService ?? throw new ArgumentNullException(nameof(settingStringService));
             _productSerialRepository = productSerialRepository ?? throw new ArgumentNullException(nameof(productSerialRepository));
+            _batchProductRepository = batchProductRepository ?? throw new ArgumentNullException(nameof(batchProductRepository));
         }
 
         /// <inheritdoc />
@@ -76,7 +79,7 @@ namespace PhoneStore.Services.Implementations
                 // Handle new product without Price - initialize using AUTO_PROTECT formula (Requirement 5.2, 5.3)
                 if (product.Price <= 0)
                 {
-                    var initialPrice = CalculateAutoProtectPrice(product.CostFifo, newNifoCost);
+                    var initialPrice = CalculateAutoProtectPrice(productId, product.CostFifo, newNifoCost);
                     product.Price = initialPrice;
                     product.PriceUpdatedAt = DateTime.UtcNow;
                     LogPriceHistory(productId, 0, initialPrice, product.CostFifo, newNifoCost, "INITIAL_PRICING", null);
@@ -101,7 +104,7 @@ namespace PhoneStore.Services.Implementations
                     
                     if (product.PricingMode == PricingMode.AUTO_PROTECT)
                     {
-                        newPrice = CalculateAutoProtectPrice(product.CostFifo, newNifoCost);
+                        newPrice = CalculateAutoProtectPrice(productId, product.CostFifo, newNifoCost);
                         product.Price = newPrice.Value;
                         product.PriceUpdatedAt = DateTime.UtcNow;
                         action = "PRICE_INCREASED";
@@ -195,11 +198,20 @@ namespace PhoneStore.Services.Implementations
         }
 
         /// <inheritdoc />
-        public decimal CalculateAutoProtectPrice(decimal costFifo, decimal costNifo)
+        public decimal CalculateAutoProtectPrice(int productId, decimal costFifo, decimal costNifo)
         {
             var config = GetConfiguration();
             var maxCost = Math.Max(costFifo, costNifo);
-            return Math.Round(maxCost * (1 + config.DesiredMargin), 2, MidpointRounding.AwayFromZero);
+            
+            // Lấy profit margin cao nhất từ các batch còn sản phẩm
+            var batchProfitMargin = _batchProductRepository.GetMaxProfitMarginByProductId(productId);
+            
+            // Nếu có batch còn hàng thì dùng profit margin từ batch, nếu không thì fallback về DesiredMargin từ config
+            var profitMargin = batchProfitMargin ?? config.DesiredMargin;
+            
+            Logger.Info($"CalculateAutoProtectPrice for product {productId}: batchProfitMargin={batchProfitMargin}, usedMargin={profitMargin}");
+            
+            return Math.Round(maxCost * (1 + profitMargin), 2, MidpointRounding.AwayFromZero);
         }
 
         /// <inheritdoc />

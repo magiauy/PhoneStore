@@ -41,5 +41,13 @@ namespace PhoneStoreRepository.Repositories.Interfaces
         void DecreaseQuantity(int batchId, int productId, int amount, MySqlConnection connection, MySqlTransaction transaction);
 
         IDictionary<int, int> GetQuantitiesByProductIds(IEnumerable<int> productIds);
+
+        /// <summary>
+        /// Lấy profit margin cao nhất từ các batch còn sản phẩm (quantity > 0) cho một product cụ thể
+        /// Dùng cho AUTO_PROTECT pricing mode
+        /// </summary>
+        /// <param name="productId">ID sản phẩm</param>
+        /// <returns>Max profit margin, hoặc null nếu không có batch nào còn hàng</returns>
+        decimal? GetMaxProfitMarginByProductId(int productId);
     }
 }

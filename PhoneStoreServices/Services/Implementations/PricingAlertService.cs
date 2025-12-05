@@ -235,7 +235,7 @@ namespace PhoneStore.Services.Implementations
                 // Tính giá mới khi reset về AUTO_PROTECT
                 // Sau khi reset: CostFifo = CostNifo (hiện tại)
                 var newCostFifo = product.CostNifo;
-                var newPrice = _dynamicPricingService.CalculateAutoProtectPrice(newCostFifo, product.CostNifo);
+                var newPrice = _dynamicPricingService.CalculateAutoProtectPrice(product.Id, newCostFifo, product.CostNifo);
                 var variance = _dynamicPricingService.CalculateVariance(product.CostFifo, product.CostNifo);
 
                 return new RecoveryPreviewViewModel
@@ -302,7 +302,7 @@ namespace PhoneStore.Services.Implementations
                 product.PricingMode = PricingMode.AUTO_PROTECT;
 
                 // Tính lại giá theo AUTO_PROTECT formula
-                var newPrice = _dynamicPricingService.CalculateAutoProtectPrice(product.CostFifo, product.CostNifo);
+                var newPrice = _dynamicPricingService.CalculateAutoProtectPrice(product.Id, product.CostFifo, product.CostNifo);
                 product.Price = newPrice;
                 product.PriceUpdatedAt = DateTime.UtcNow;
                 product.MarketTrend = MarketTrend.STABLE; // Reset trend

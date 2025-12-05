@@ -155,17 +155,20 @@ public class PayOSCallbackController : ControllerBase
             }
         });
 
-        var redirectUrl = $"/order-success?OrderId={invoiceId}";
-
+        // Use lowercase query params to match Blazor's SupplyParameterFromQuery (case-insensitive by default)
+        var queryParams = new List<string> { $"OrderId={invoiceId}" };
+        
         if (cancel == true)
         {
-            redirectUrl += "&Cancel=true";
+            queryParams.Add("Cancel=true");
         }
 
         if (!string.IsNullOrEmpty(status))
         {
-            redirectUrl += $"&Status={status}";
+            queryParams.Add($"Status={Uri.EscapeDataString(status)}");
         }
+
+        var redirectUrl = "/order-success?" + string.Join("&", queryParams);
 
         return Redirect(redirectUrl);
     }

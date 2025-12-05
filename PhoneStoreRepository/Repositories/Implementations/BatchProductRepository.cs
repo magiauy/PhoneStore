@@ -382,5 +382,25 @@ namespace PhoneStoreRepository.Repositories.Implementations
 
             return counts;
         }
+
+        /// <inheritdoc />
+        public decimal? GetMaxProfitMarginByProductId(int productId)
+        {
+            using var connection = _dataSource.GetConnection();
+            using var command = new MySqlCommand(
+                @"SELECT MAX(profit_margin) as max_margin 
+                  FROM batch_products 
+                  WHERE product_id = @productId AND quantity > 0",
+                connection);
+            command.Parameters.AddWithValue("@productId", productId);
+
+            var result = command.ExecuteScalar();
+            if (result == null || result == DBNull.Value)
+            {
+                return null;
+            }
+
+            return Convert.ToDecimal(result);
+        }
     }
 }

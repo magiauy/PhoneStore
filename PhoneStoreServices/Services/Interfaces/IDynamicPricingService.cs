@@ -20,12 +20,14 @@ namespace PhoneStore.Services.Interfaces
 
         /// <summary>
         /// Tính toán giá bán theo công thức AUTO_PROTECT
-        /// Formula: MAX(FIFO, NIFO) × (1 + DesiredMargin)
+        /// Formula: MAX(FIFO, NIFO) × (1 + MaxBatchProfitMargin)
+        /// Sử dụng profit_margin cao nhất từ các batch còn sản phẩm
         /// </summary>
+        /// <param name="productId">ID sản phẩm để lấy profit margin từ batch</param>
         /// <param name="costFifo">Giá vốn FIFO</param>
         /// <param name="costNifo">Giá thay thế NIFO</param>
         /// <returns>Giá bán được tính toán</returns>
-        decimal CalculateAutoProtectPrice(decimal costFifo, decimal costNifo);
+        decimal CalculateAutoProtectPrice(int productId, decimal costFifo, decimal costNifo);
 
         /// <summary>
         /// Tính toán giá bán theo công thức CLEARANCE

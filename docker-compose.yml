@@ -1,0 +1,48 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: phonestore-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: REMOVED_SECRET
+      MYSQL_DATABASE: bandienthoai
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./PhoneStoreUser/Data/Mysql/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pREMOVED_SECRET"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - phonestore-network
+
+  phonestoreuser:
+    image: magiauy/phonestoreuser:latest
+    container_name: phonestore-user
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Database__Host=mysql
+      - Database__Port=3306
+      - Database__Database=bandienthoai
+      - Database__User=root
+      - Database__Password=REMOVED_SECRET
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - phonestore-network
+
+volumes:
+  mysql_data:
+
+networks:
+  phonestore-network:
+    driver: bridge

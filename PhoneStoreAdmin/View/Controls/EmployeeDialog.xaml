@@ -56,22 +56,24 @@
 
             <StackPanel Spacing="8">
                 <StackPanel Spacing="4">
-                    <TextBlock Text="ID nhân viên" Style="{StaticResource InputLabelStyle}" />
-                    <TextBox x:Name="EmployeeIdTextBox" Style="{StaticResource ReadOnlyFieldStyle}" />
+                    <StackPanel x:Name="EmployeeIdPanel" Spacing="4">
+                        <TextBlock Text="Employee ID" Style="{StaticResource InputLabelStyle}" />
+                        <TextBox x:Name="EmployeeIdTextBox" Style="{StaticResource ReadOnlyFieldStyle}" />
+                    </StackPanel>
 
-                    <TextBlock Text="Mã nhân viên" Style="{StaticResource InputLabelStyle}" />
+                    <TextBlock Text="Employee Code" Style="{StaticResource InputLabelStyle}" />
                     <TextBox x:Name="EmployeeCodeTextBox"
                              Style="{StaticResource InputFieldStyle}"
-                             PlaceholderText="Nhập mã nhân viên"
+                             PlaceholderText="Enter employee code"
                              TextChanged="EmployeeCodeTextBox_TextChanged" />
                     <TextBlock x:Name="EmployeeCodeError"
                                Style="{StaticResource ValidationErrorStyle}"
                                Visibility="Collapsed" />
 
-                    <TextBlock Text="Họ và tên" Style="{StaticResource InputLabelStyle}" />
+                    <TextBlock Text="Full Name" Style="{StaticResource InputLabelStyle}" />
                     <TextBox x:Name="FullNameTextBox"
                              Style="{StaticResource InputFieldStyle}"
-                             PlaceholderText="Nhập họ tên"
+                             PlaceholderText="Enter full name"
                              TextChanged="FullNameTextBox_TextChanged" />
                     <TextBlock x:Name="FullNameError"
                                Style="{StaticResource ValidationErrorStyle}"
@@ -86,7 +88,7 @@
                                Style="{StaticResource ValidationErrorStyle}"
                                Visibility="Collapsed" />
 
-                    <TextBlock Text="Số điện thoại" Style="{StaticResource InputLabelStyle}" />
+                    <TextBlock Text="Phone Number" Style="{StaticResource InputLabelStyle}" />
                     <TextBox x:Name="PhoneTextBox"
                              Style="{StaticResource InputFieldStyle}"
                              PlaceholderText="0xxxxxxxxx"
@@ -95,7 +97,7 @@
                                Style="{StaticResource ValidationErrorStyle}"
                                Visibility="Collapsed" />
 
-                    <TextBlock Text="Ngày vào làm" Style="{StaticResource InputLabelStyle}" />
+                    <TextBlock Text="Hire Date" Style="{StaticResource InputLabelStyle}" />
                     <DatePicker x:Name="HireDatePicker"
                                 CornerRadius="6"
                                 BorderBrush="{StaticResource BrushBorder}"
@@ -106,11 +108,11 @@
                                Visibility="Collapsed" />
 
                     <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                        <TextBlock Text="Trạng thái" Style="{StaticResource InputLabelStyle}" />
+                        <TextBlock Text="Status" Style="{StaticResource InputLabelStyle}" />
                         <ToggleSwitch x:Name="IsActiveToggle"
                                       Style="{StaticResource ToggleSwitchStyle}"
-                                      OffContent="Đã nghỉ"
-                                      OnContent="Đang làm" />
+                                      OffContent="Inactive"
+                                      OnContent="Active" />
                     </StackPanel>
                 </StackPanel>
 
@@ -118,8 +120,8 @@
                     <InfoBar x:Name="ErrorInfoBar"
                              IsOpen="False"
                              Severity="Error"
-                             Title="Có lỗi xảy ra"
-                             Message="Không thể thực hiện thao tác. Vui lòng thử lại." />
+                             Title="Error"
+                             Message="Unable to complete the operation. Please try again." />
                 </StackPanel>
             </StackPanel>
 
@@ -130,7 +132,7 @@
                            VerticalAlignment="Center"
                            Spacing="12">
                     <ProgressRing Width="32" Height="32" IsActive="True" />
-                    <TextBlock Text="Đang xử lý..." Foreground="White" FontSize="14" />
+                    <TextBlock Text="Processing..." Foreground="White" FontSize="14" />
                 </StackPanel>
             </Border>
         </Grid>

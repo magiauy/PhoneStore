@@ -376,7 +376,7 @@ namespace PhoneStoreAdmin.View
         private async Task ShowEmployeeDialogAsync(EmployeeDialog.DialogMode mode, EmployeeViewModel? employee)
         {
             var dialogControl = new EmployeeDialog();
-            dialogControl.SetMode(mode, employee);
+            await dialogControl.SetModeAsync(mode, employee);
 
             var dialog = new ContentDialog
             {
