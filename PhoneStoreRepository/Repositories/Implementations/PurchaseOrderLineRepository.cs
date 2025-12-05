@@ -193,7 +193,7 @@ INNER JOIN purchase_order_lines pol ON ps.purchase_order_line_id = pol.id
                 Quantity = reader.GetInt32("quantity"),
                 UnitCost = reader.GetDecimal("unit_cost"),
                 TotalCost = reader.GetDecimal("total_cost"),
-                ProfitMargin = reader.IsDBNull(reader.GetOrdinal("profit_margin")) ? 0f : reader.GetFloat("profit_margin")
+                ProfitMargin = reader.IsDBNull(reader.GetOrdinal("profit_margin")) ? 0m : (decimal)reader.GetFloat("profit_margin")
             };
         }
     }

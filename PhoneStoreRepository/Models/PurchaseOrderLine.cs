@@ -11,7 +11,7 @@ namespace PhoneStoreRepository.Models
         private int _quantity = 1;
         private decimal _unitCost = 0;
         private decimal _totalCost = 0;
-        private float _profitMargin = 0;
+        private decimal _profitMargin = 0;
 
         // Public properties with backing fields
         public int Id
@@ -62,7 +62,7 @@ namespace PhoneStoreRepository.Models
         /// Biên độ lợi nhuận (percentage, ví dụ: 0.20 = 20%)
         /// </summary>
         [Range(0, 1)]
-        public float ProfitMargin
+        public decimal ProfitMargin
         {
             get => _profitMargin;
             set => _profitMargin = value;
@@ -80,7 +80,7 @@ namespace PhoneStoreRepository.Models
             _profitMargin = 0;
         }
 
-        public PurchaseOrderLine(int purchaseOrderId, int productId, int quantity, decimal unitCost, float profitMargin = 0)
+        public PurchaseOrderLine(int purchaseOrderId, int productId, int quantity, decimal unitCost, decimal profitMargin = 0)
         {
             _id = 0;
             _purchaseOrderId = purchaseOrderId;
