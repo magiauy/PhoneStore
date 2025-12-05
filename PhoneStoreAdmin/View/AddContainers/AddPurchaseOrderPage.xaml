@@ -439,32 +439,27 @@
                                                             Grid.Column="0"
                                                             Header="Giá nhập"
                                                             Minimum="0"
-                                                            SpinButtonPlacementMode="Compact"
+                                                            SpinButtonPlacementMode="Hidden"
                                                             Value="{x:Bind UnitCostDouble, Mode=TwoWay}"
                                                             ValueChanged="{x:Bind OnUnitCostChanged}" />
 
                                                         <!--  Profit Margin  -->
-                                                        <NumberBox
+                                                        <TextBox
                                                             Grid.Row="0"
                                                             Grid.Column="1"
                                                             Header="Lợi nhuận (%)"
-                                                            Maximum="100"
-                                                            Minimum="0"
-                                                            SpinButtonPlacementMode="Compact"
-                                                            Value="{x:Bind ProfitMarginPercent, Mode=TwoWay}" />
+                                                            Text="{x:Bind ProfitMarginPercentText, Mode=TwoWay}"
+                                                            TextChanged="{x:Bind OnProfitMarginTextChanged}" />
 
-                                                        <!--  Calculated Selling Price (Read-only)  -->
-                                                        <StackPanel Grid.Row="0" Grid.Column="2" Spacing="4">
-                                                            <TextBlock
-                                                                FontSize="12"
-                                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                                Text="Giá bán dự kiến" />
-                                                            <TextBlock
-                                                                FontSize="16"
-                                                                FontWeight="SemiBold"
-                                                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                                                Text="{x:Bind FormatPrice(CalculatedSellingPrice), Mode=OneWay}" />
-                                                        </StackPanel>
+                                                        <!--  Selling Price (Editable)  -->
+                                                        <NumberBox
+                                                            Grid.Row="0"
+                                                            Grid.Column="2"
+                                                            Header="Giá bán dự kiến"
+                                                            Minimum="0"
+                                                            SpinButtonPlacementMode="Hidden"
+                                                            Value="{x:Bind SellingPriceDouble, Mode=TwoWay}"
+                                                            ValueChanged="{x:Bind OnSellingPriceChanged}" />
                                                     </Grid>
                                                 </Border>
 

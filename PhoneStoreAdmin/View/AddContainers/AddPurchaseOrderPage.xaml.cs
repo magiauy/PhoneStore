@@ -38,7 +38,7 @@ namespace PhoneStoreAdmin.View
         private string _note = string.Empty;
         private DateTime _orderDate = DateTime.Now;
         private decimal _totalAmount = 0;
-        private float _minimumProfitMargin = 0.2f; // Default 20%
+        private decimal _minimumProfitMargin = 0.20m; // Default 20%
         private readonly ResourceLoader _resourceLoader;
 
         // Collections
@@ -93,7 +93,7 @@ namespace PhoneStoreAdmin.View
         /// <summary>
         /// Minimum profit margin from system settings (percentage, e.g., 0.20 = 20%)
         /// </summary>
-        public float MinimumProfitMargin => _minimumProfitMargin;
+        public decimal MinimumProfitMargin => _minimumProfitMargin;
 
         // Constructor
         public AddPurchaseOrderPage()
@@ -125,7 +125,7 @@ namespace PhoneStoreAdmin.View
             try
             {
                 var profitMarginStr = SettingStringService.GetValue(SystemSettingCode.PROFIT_MARGIN, "0.20");
-                if (float.TryParse(profitMarginStr, System.Globalization.NumberStyles.Float, 
+                if (decimal.TryParse(profitMarginStr, System.Globalization.NumberStyles.Number, 
                     System.Globalization.CultureInfo.InvariantCulture, out var profitMargin))
                 {
                     _minimumProfitMargin = profitMargin;
@@ -135,7 +135,7 @@ namespace PhoneStoreAdmin.View
             catch (Exception ex)
             {
                 Logger.Warning($"Failed to load minimum profit margin from settings, using default 20%: {ex.Message}");
-                _minimumProfitMargin = 0.2f;
+                _minimumProfitMargin = 0.20m;
             }
         }
 
@@ -1220,7 +1220,7 @@ namespace PhoneStoreAdmin.View
                 {
                     case BulkEditMode.ProfitMargin:
                         // Input is profit margin percentage (e.g., 25 for 25%)
-                        var profitMargin = (float)(inputValue / 100.0);
+                        var profitMargin = (decimal)inputValue / 100m;
 
                         foreach (var item in targetItems)
                         {
@@ -1254,7 +1254,7 @@ namespace PhoneStoreAdmin.View
 
                             // Calculate profit margin: sellingPrice = unitCost * (1 + profitMargin)
                             // profitMargin = (sellingPrice / unitCost) - 1
-                            var calculatedMargin = (float)((sellingPrice / item.UnitCost) - 1);
+                            var calculatedMargin = (sellingPrice / item.UnitCost) - 1m;
 
                             if (calculatedMargin < _minimumProfitMargin)
                             {
@@ -1408,7 +1408,7 @@ namespace PhoneStoreAdmin.View
         private int _quantity = 1;
         private decimal _unitCost = 0;
         private bool _isSerialTracked = false;
-        private float _profitMargin = 0.2f; // Default 20%, will be overwritten by page's minimum
+        private decimal _profitMargin = 0.20m; // Default 20%, will be overwritten by page's minimum
 
         public int ProductId { get; set; }
         public string ProductName { get; set; } = string.Empty;
@@ -1442,6 +1442,7 @@ namespace PhoneStoreAdmin.View
                 OnPropertyChanged(nameof(TotalCost));
                 OnPropertyChanged(nameof(UnitCostDouble));
                 OnPropertyChanged(nameof(CalculatedSellingPrice));
+                OnPropertyChanged(nameof(SellingPriceDouble));
                 ParentPage?.CalculatePurchaseOrderTotal();
             }
         }
@@ -1455,14 +1456,16 @@ namespace PhoneStoreAdmin.View
             }
         }
 
-        public float ProfitMargin
+        public decimal ProfitMargin
         {
             get => _profitMargin;
             set
             {
                 SetProperty(ref _profitMargin, value);
                 OnPropertyChanged(nameof(ProfitMarginPercent));
+                OnPropertyChanged(nameof(ProfitMarginPercentText));
                 OnPropertyChanged(nameof(CalculatedSellingPrice));
+                OnPropertyChanged(nameof(SellingPriceDouble));
             }
         }
 
@@ -1471,17 +1474,86 @@ namespace PhoneStoreAdmin.View
         /// </summary>
         public double ProfitMarginPercent
         {
-            get => _profitMargin * 100;
+            get => (double)Math.Round(_profitMargin * 100, 10);
             set
             {
-                ProfitMargin = (float)(value / 100.0);
+                ProfitMargin = Math.Round((decimal)value / 100, 10);
+            }
+        }
+
+        /// <summary>
+        /// Profit margin as percentage text for TextBox binding (shows full precision)
+        /// </summary>
+        public string ProfitMarginPercentText
+        {
+            get => Math.Round(_profitMargin * 100, 10).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            set
+            {
+                if (decimal.TryParse(value, System.Globalization.NumberStyles.Number, 
+                    System.Globalization.CultureInfo.InvariantCulture, out var percent))
+                {
+                    if (percent >= 0)
+                    {
+                        ProfitMargin = Math.Round(percent / 100, 10);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handler khi người dùng thay đổi text của lợi nhuận
+        /// </summary>
+        public void OnProfitMarginTextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (sender is TextBox textBox)
+            {
+                // Parse trực tiếp mà không gọi setter để tránh format lại text
+                if (decimal.TryParse(textBox.Text, System.Globalization.NumberStyles.Number, 
+                    System.Globalization.CultureInfo.InvariantCulture, out var percent))
+                {
+                    if (percent >= 0)
+                    {
+                        ProfitMargin = Math.Round(percent / 100, 10);
+                    }
+                }
             }
         }
 
         /// <summary>
         /// Giá bán tính toán = UnitCost * (1 + ProfitMargin)
         /// </summary>
-        public decimal CalculatedSellingPrice => UnitCost * (1 + (decimal)ProfitMargin);
+        public decimal CalculatedSellingPrice => Math.Round(UnitCost * (1 + ProfitMargin), 0);
+
+        /// <summary>
+        /// Giá bán dự kiến dạng double cho NumberBox binding
+        /// </summary>
+        public double SellingPriceDouble
+        {
+            get => (double)CalculatedSellingPrice;
+            set
+            {
+                // Tính lại ProfitMargin từ giá bán mới sử dụng decimal để tránh floating-point errors
+                if (UnitCost > 0 && (decimal)value >= UnitCost)
+                {
+                    // ProfitMargin = (SellingPrice / UnitCost) - 1
+                    decimal sellingPrice = (decimal)value;
+                    decimal newMargin = (sellingPrice / UnitCost) - 1m;
+                    // Giữ nguyên độ chính xác cao (10 chữ số thập phân)
+                    ProfitMargin = Math.Round(newMargin, 10);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handler khi người dùng thay đổi giá bán
+        /// </summary>
+        public void OnSellingPriceChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+        {
+            if (!double.IsNaN(args.NewValue) && args.NewValue >= 0)
+            {
+                SellingPriceDouble = args.NewValue;
+            }
+        }
 
         public bool IsSerialTracked
         {

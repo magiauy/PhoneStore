@@ -64,8 +64,11 @@ namespace PhoneStore.Services.Implementations
             }
         }
 
-        public async void Insert(Invoice invoice)
-        {          
+        public void Insert(Invoice invoice)
+        {
+            if (invoice == null)
+                throw new ArgumentNullException(nameof(invoice));
+                
             try
             {
                 Logger.Info($"Inserting Invoice for Customer {invoice.CustomerName}");
@@ -75,7 +78,7 @@ namespace PhoneStore.Services.Implementations
             {
                 Logger.Error("Failed to insert Invoice", ex);
                 throw;
-            }          
+            }
         }
 
         public void Update(Invoice invoice)
