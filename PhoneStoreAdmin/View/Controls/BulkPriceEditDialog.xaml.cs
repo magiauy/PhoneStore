@@ -11,7 +11,7 @@ namespace PhoneStoreAdmin.View.Controls
     {
         private readonly List<string> _categories;
         private readonly List<string> _brands;
-        private readonly float _minimumProfitMargin;
+        private readonly decimal _minimumProfitMargin;
         private readonly List<ProductSelectionItem> _allProducts;
         private readonly ObservableCollection<ProductSelectionItem> _filteredProducts;
         private readonly HashSet<int> _selectedProductIds;
@@ -22,7 +22,7 @@ namespace PhoneStoreAdmin.View.Controls
             List<ProductSelectionItem> products,
             List<string> categories,
             List<string> brands,
-            float minimumProfitMargin)
+            decimal minimumProfitMargin)
         {
             _allProducts = products;
             _filteredProducts = new ObservableCollection<ProductSelectionItem>(products);
@@ -281,7 +281,7 @@ namespace PhoneStoreAdmin.View.Controls
             // Validate profit margin if editing by profit margin
             if (EditByProfitMarginRadio.IsChecked == true)
             {
-                var profitMargin = (float)(BulkEditValueBox.Value / 100.0);
+                var profitMargin = (decimal)BulkEditValueBox.Value / 100m;
                 if (profitMargin < _minimumProfitMargin)
                 {
                     ErrorTextBlock.Text = $"Profit margin must be at least {_minimumProfitMargin:P0} (system setting).";

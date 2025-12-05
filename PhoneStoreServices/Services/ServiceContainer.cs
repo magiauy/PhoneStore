@@ -68,7 +68,6 @@ namespace PhoneStore.Services
             RegisterSingleton<IPricingHistoryRepository>(() => new PricingHistoryRepository(GetService<DataSource>()));
 
             // Register services
-            RegisterSingleton<IPromotionCodeService>(() => new PromotionCodeService(GetService<IPromotionCodeRepository>(), GetService<IPromotionRepository>()      ));
             RegisterSingleton<IAuthService>(() => new AuthService(GetService<IAuthRepository>()));
             RegisterSingleton<IAccountService>(() => new AccountService(GetService<IAccountRepository>()));
             RegisterSingleton<IPersonService>(() => new PersonService(GetService<IPersonRepository>()));
@@ -89,6 +88,9 @@ namespace PhoneStore.Services
                 GetService<IProductModelAttributeRepository>(),
                 GetService<IProductAttributeOptionService>()));
             RegisterSingleton<IPromotionService>(() => new PromotionService(GetService<IPromotionRepository>()));
+            // NOTE: SettingStringService must be registered BEFORE DynamicPricingService (dependency)
+            RegisterSingleton<ISettingStringService>(() => new SettingStringService(GetService<ISettingStringRepository>()));
+            
             RegisterSingleton<IPromotionCodeService>(() => new PromotionCodeService(GetService<IPromotionCodeRepository>(), GetService<IPromotionRepository>()));
             // Register pricing services (must be before PurchaseOrderService and BatchesService which depend on IDynamicPricingService)
             RegisterSingleton<IDynamicPricingService>(() => new DynamicPricingService(
@@ -144,8 +146,6 @@ namespace PhoneStore.Services
                 GetService<ICustomerRepository>(),
                 GetService<IProductRepository>()
             ));
-
-            RegisterSingleton<ISettingStringService>(() => new SettingStringService(GetService<ISettingStringRepository>()));
 
             // Register UserSession singleton
             RegisterSingleton<UserSession>(UserSession.Instance);

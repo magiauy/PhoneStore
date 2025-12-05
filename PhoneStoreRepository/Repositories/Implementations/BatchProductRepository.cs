@@ -339,7 +339,7 @@ namespace PhoneStoreRepository.Repositories.Implementations
                 Quantity = reader.GetInt32("quantity"),
                 CostPrice = reader.GetDecimal("cost_price"),
                 SellingPrice = reader.GetDecimal("selling_price"),
-                ProfitMargin = reader.IsDBNull(reader.GetOrdinal("profit_margin")) ? 0f : reader.GetFloat("profit_margin")
+                ProfitMargin = reader.IsDBNull(reader.GetOrdinal("profit_margin")) ? 0m : (decimal)reader.GetFloat("profit_margin")
             };
         }
 
