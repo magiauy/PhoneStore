@@ -729,7 +729,6 @@
   <data name="Invoice_NotFound" xml:space="preserve">
     <value>Không tìm thấy hóa đơn</value>
   </data>
-  <!-- Invoice Detail Dialog -->
   <data name="Invoice_DetailTitle" xml:space="preserve">
     <value>Chi tiết hóa đơn</value>
   </data>
@@ -2297,7 +2296,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="Reports_ChartTooltip_Orders" xml:space="preserve">
     <value>đơn hàng</value>
   </data>
-  <!-- Sales Statistics -->
   <data name="Reports_TotalInvoicesLabel.Text" xml:space="preserve">
     <value>Tổng hóa đơn</value>
   </data>
@@ -3036,25 +3034,16 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="ColStatusInvoice.Text" xml:space="preserve">
     <value>Trạng thái</value>
   </data>
-  <data name="InvoiceStatus_UNPAID" xml:space="preserve">
-    <value>Chưa thanh toán</value>
-  </data>
-  <data name="InvoiceStatus_PAID" xml:space="preserve">
-    <value>Đã thanh toán</value>
-  </data>
   <data name="InvoiceStatus_REFUNDED" xml:space="preserve">
     <value>Đã hoàn tiền</value>
   </data>
-  <data name="InvoiceStatus_CANCELLED" xml:space="preserve">
-    <value>Đã hủy</value>
-  </data>
-    <data name="InvoiceStatus_COMPLETED" xml:space="preserve">
+  <data name="InvoiceStatus_COMPLETED" xml:space="preserve">
     <value>Đã hoàn thành</value>
   </data>
   <data name="InvoiceStatus_DELIVERING" xml:space="preserve">
     <value>Đang giao hàng</value>
   </data>
-    <data name="InvoiceStatus_PENDING" xml:space="preserve">
+  <data name="InvoiceStatus_PENDING" xml:space="preserve">
     <value>Đang chờ xử lý</value>
   </data>
   <data name="BtnFilterInvoice.Text" xml:space="preserve">
@@ -3261,7 +3250,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="ProductManagement_SelectVariantMessage.Text" xml:space="preserve">
     <value>Chọn một biến thể để xem chi tiết</value>
   </data>
-  <!-- SalesPage Localization -->
   <data name="Sales_SearchLabel.Text" xml:space="preserve">
     <value>Tìm kiếm</value>
   </data>
@@ -3328,7 +3316,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="Sales_TotalLabel.Text" xml:space="preserve">
     <value>TỔNG CỘNG</value>
   </data>
-  <!-- Code-behind labels -->
   <data name="Sales_Subtotal" xml:space="preserve">
     <value>Tạm tính</value>
   </data>
@@ -3341,7 +3328,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="Sales_PayNowButtonText.Text" xml:space="preserve">
     <value>THANH TOÁN NGAY</value>
   </data>
-  <!-- Sales Proforma Invoice -->
   <data name="Sales_PrintProformaButtonText.Text" xml:space="preserve">
     <value>IN HÓA ĐƠN TẠM TÍNH</value>
   </data>
@@ -3375,7 +3361,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="Sales_PriceHeader" xml:space="preserve">
     <value>Thành tiền</value>
   </data>
-  <!-- Sales Order Confirmation -->
   <data name="Sales_ConfirmOrderTitle" xml:space="preserve">
     <value>Xác nhận đơn hàng</value>
   </data>
@@ -3394,7 +3379,6 @@ Bạn muốn thêm bao nhiêu máy?</value>
   <data name="Sales_CancelButton" xml:space="preserve">
     <value>Hủy</value>
   </data>
-  <!-- SalesPage Code-behind messages -->
   <data name="Sales_OutOfStockError" xml:space="preserve">
     <value>Sản phẩm đã hết hàng trong kho.</value>
   </data>
@@ -3451,7 +3435,6 @@ Tổng tiền: {1}</value>
   <data name="Sales_StockFormat" xml:space="preserve">
     <value>Kho: {0}</value>
   </data>
-  <!-- MainWindow Menu Items -->
   <data name="MenuItemDashboard.Content" xml:space="preserve">
     <value>Trang chủ</value>
   </data>
@@ -3470,7 +3453,6 @@ Tổng tiền: {1}</value>
   <data name="DialogClose" xml:space="preserve">
     <value>Đóng</value>
   </data>
-  <!-- Print Invoice -->
   <data name="Sales_PrintSuccess" xml:space="preserve">
     <value>Đã tạo hóa đơn PDF thành công</value>
   </data>
@@ -3480,7 +3462,6 @@ Tổng tiền: {1}</value>
   <data name="Sales_ErrorTitle" xml:space="preserve">
     <value>Lỗi</value>
   </data>
-  <!-- AccessDenied Page -->
   <data name="AccessDenied_Title.Text" xml:space="preserve">
     <value>Truy cập bị từ chối</value>
   </data>
@@ -3493,11 +3474,9 @@ Tổng tiền: {1}</value>
   <data name="AccessDenied_BackToDashboard.Content" xml:space="preserve">
     <value>Quay về Trang chủ</value>
   </data>
-  <!-- Settings Page -->
   <data name="MenuSettings.Content" xml:space="preserve">
     <value>Cài đặt</value>
   </data>
-  <!-- System Settings Page -->
   <data name="MenuSystemSettings.Content" xml:space="preserve">
     <value>Cấu hình hệ thống</value>
   </data>
@@ -3594,7 +3573,6 @@ Tổng tiền: {1}</value>
   <data name="SystemSettings_Error_InitializeFailed" xml:space="preserve">
     <value>Không thể khởi tạo các cấu hình mặc định</value>
   </data>
-  <!-- Dynamic Pricing Menu Items -->
   <data name="MenuItemPricing.Content" xml:space="preserve">
     <value>Định giá động</value>
   </data>
@@ -3607,7 +3585,6 @@ Tổng tiền: {1}</value>
   <data name="MenuItemPricingSettings.Content" xml:space="preserve">
     <value>Cài đặt</value>
   </data>
-  <!-- AddPurchaseOrder Page Localization -->
   <data name="AddPurchaseOrder_UnitCostHeader" xml:space="preserve">
     <value>Giá nhập</value>
   </data>
@@ -3626,7 +3603,6 @@ Tổng tiền: {1}</value>
   <data name="AddPurchaseOrder_NoFilteredProducts" xml:space="preserve">
     <value>Không có sản phẩm nào để thêm. Vui lòng chọn danh mục hoặc thương hiệu để lọc sản phẩm trước.</value>
   </data>
-  <!-- Dashboard Statistics Section -->
   <data name="Dashboard_DailyRevenueChart.Text" xml:space="preserve">
     <value>Biểu Đồ Doanh Thu Theo Ngày</value>
   </data>
@@ -3716,5 +3692,8 @@ Tổng tiền: {1}</value>
   </data>
   <data name="Dashboard_Month12.Content" xml:space="preserve">
     <value>Tháng 12</value>
+  </data>
+  <data name="EmployeeCodeRequired" xml:space="preserve">
+    <value>Mã nhân viên là bắt buộc</value>
   </data>
 </root>
