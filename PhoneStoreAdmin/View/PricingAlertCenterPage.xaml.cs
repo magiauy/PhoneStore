@@ -123,6 +123,48 @@ namespace PhoneStoreAdmin.View
             DetailStock.Text = alert.CurrentStock.ToString("N0");
             DetailPotentialLoss.Text = alert.PotentialLossDisplay;
             DetailCreatedAt.Text = alert.CreatedAt.ToString("dd/MM/yyyy HH:mm");
+            
+            // Toggle action panels based on alert type
+            if (alert.IsRecoveryAlert)
+            {
+                PriceDropActions.Visibility = Visibility.Collapsed;
+                RecoveryActions.Visibility = Visibility.Visible;
+                
+                // Load preview data
+                LoadRecoveryPreview(alert.AlertId);
+            }
+            else
+            {
+                PriceDropActions.Visibility = Visibility.Visible;
+                RecoveryActions.Visibility = Visibility.Collapsed;
+            }
+        }
+        
+        /// <summary>
+        /// Load recovery preview data for display
+        /// </summary>
+        private async void LoadRecoveryPreview(int alertId)
+        {
+            try
+            {
+                var preview = await Task.Run(() => _alertService.GetRecoveryPreview(alertId));
+                
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (preview != null)
+                    {
+                        PreviewCurrentPrice.Text = preview.CurrentPriceDisplay;
+                        PreviewNewPrice.Text = preview.NewPriceDisplay;
+                        PreviewPriceChange.Text = $"{preview.PriceChangeDisplay} ({preview.PriceChangePercentDisplay})";
+                        PreviewNewFifo.Text = $"{preview.NewCostFifo:N0}đ (reset từ {preview.CurrentCostFifo:N0}đ)";
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't show to user - preview is optional
+                System.Diagnostics.Debug.WriteLine($"Failed to load recovery preview: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -250,6 +292,81 @@ namespace PhoneStoreAdmin.View
                     else
                     {
                         await ShowErrorDialogAsync("Không thể kích hoạt xả hàng. Vui lòng thử lại.");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                DispatcherQueue.TryEnqueue(async () =>
+                {
+                    LoadingOverlay.Visibility = Visibility.Collapsed;
+                    await ShowErrorDialogAsync($"Lỗi: {ex.Message}");
+                });
+            }
+        }
+
+        /// <summary>
+        /// Handle "Reset về Auto" button click with confirmation dialog
+        /// Reset từ CLEARANCE về AUTO_PROTECT khi market hồi phục
+        /// </summary>
+        private async void ResetAutoButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedAlert == null) return;
+
+            // Lấy preview để hiển thị trong confirmation
+            var preview = await Task.Run(() => _alertService.GetRecoveryPreview(_selectedAlert.AlertId));
+            
+            string previewText = preview != null 
+                ? $"\n\nGiá sẽ thay đổi:\n• Giá hiện tại: {preview.CurrentPriceDisplay}\n• Giá mới: {preview.NewPriceDisplay} ({preview.PriceChangePercentDisplay})\n• FIFO mới: {preview.NewCostFifo:N0}đ"
+                : "";
+
+            var dialog = new ContentDialog
+            {
+                Title = "Xác nhận Reset về Auto",
+                Content = $"Bạn có chắc chắn muốn thoát chế độ xả hàng cho sản phẩm \"{_selectedAlert.ProductName}\"?\n\n• Chế độ định giá sẽ chuyển về AUTO_PROTECT\n• CostFifo sẽ được reset = CostNifo (cost basis mới)\n• Giá bán sẽ được tính lại theo công thức AUTO_PROTECT{previewText}",
+                PrimaryButtonText = "Reset về Auto",
+                CloseButtonText = "Hủy",
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = this.XamlRoot
+            };
+
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                await ResolveAlertAsResetAutoAsync(_selectedAlert.AlertId);
+            }
+        }
+
+        /// <summary>
+        /// Resolve alert as Reset Auto - exit clearance mode and reset to AUTO_PROTECT
+        /// </summary>
+        private async Task ResolveAlertAsResetAutoAsync(int alertId)
+        {
+            try
+            {
+                LoadingOverlay.Visibility = Visibility.Visible;
+                LoadingText.Text = "Đang reset về chế độ tự động...";
+
+                var adminId = UserSession.Instance.Account?.Id ?? 0;
+                bool success = false;
+
+                await Task.Run(() =>
+                {
+                    success = _alertService.ResolveAsResetAuto(alertId, adminId, "Reset về AUTO_PROTECT theo quyết định Admin");
+                });
+
+                DispatcherQueue.TryEnqueue(async () =>
+                {
+                    LoadingOverlay.Visibility = Visibility.Collapsed;
+                    
+                    if (success)
+                    {
+                        await ShowSuccessDialogAsync("Đã reset về Auto", "Sản phẩm đã thoát chế độ CLEARANCE, FIFO đã được reset và giá bán đã được tính lại theo AUTO_PROTECT.");
+                        await LoadAlertsAsync(); // Refresh list
+                    }
+                    else
+                    {
+                        await ShowErrorDialogAsync("Không thể reset về Auto. Vui lòng thử lại.");
                     }
                 });
             }

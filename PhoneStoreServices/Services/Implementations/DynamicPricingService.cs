@@ -28,6 +28,7 @@ namespace PhoneStore.Services.Implementations
         private const string SETTING_VARIANCE_THRESHOLD = "PRICING_VARIANCE_THRESHOLD";
         private const string SETTING_STABLE_RANGE_MAX = "PRICING_STABLE_RANGE_MAX";
         private const string SETTING_STABLE_RANGE_MIN = "PRICING_STABLE_RANGE_MIN";
+        private const string SETTING_RECOVERY_THRESHOLD = "PRICING_RECOVERY_THRESHOLD";
 
         public DynamicPricingService(
             IProductRepository productRepository,
@@ -110,8 +111,34 @@ namespace PhoneStore.Services.Implementations
                         
                         Logger.Info($"Auto increased price for product {productId}: {oldPrice} -> {newPrice} (variance: {variance:P2})");
                     }
+                    else if (product.PricingMode == PricingMode.CLEARANCE && variance >= config.RecoveryThreshold)
+                    {
+                        // CLEARANCE mode with recovery threshold reached - Create recovery alert
+                        action = "RECOVERY_ALERT_CREATED";
+                        
+                        // Get current stock
+                        var stockCounts = _productSerialRepository.GetInStockCountsByProductIds(new[] { productId });
+                        var currentStock = stockCounts.TryGetValue(productId, out var count) ? count : 0;
+                        
+                        // Dismiss any existing pending alerts for this product before creating new one
+                        DismissPendingAlertsForProduct(productId);
+                        
+                        // Create recovery alert with AlertType.CLEARANCE_RECOVERY
+                        var alert = new PricingAlert(productId, AlertType.CLEARANCE_RECOVERY, variance * 100, product.CostFifo, newNifoCost, currentStock);
+                        _pricingAlertRepository.Insert(alert);
+                        
+                        Logger.Info($"Created CLEARANCE_RECOVERY alert for product {productId}: variance {variance:P2}, stock: {currentStock}");
+                        
+                        // Update product and return alert result
+                        product.MarketTrend = newTrend;
+                        _productRepository.Update(product);
+                        
+                        return PricingUpdateResult.CreateAlertCreated(alert.Id, variance * 100,
+                            $"Thị trường hồi phục +{variance:P2}. Có thể reset về chế độ tự động.");
+                    }
                     else
                     {
+                        // CLEARANCE mode but below recovery threshold
                         action = "PRICE_HELD";
                     }
                 }
@@ -203,7 +230,8 @@ namespace PhoneStore.Services.Implementations
                     MinimumMargin = ParseDecimalSetting(SETTING_MINIMUM_MARGIN, 0.05m),
                     VarianceThreshold = ParseDecimalSetting(SETTING_VARIANCE_THRESHOLD, -0.10m),
                     StableRangeMax = ParseDecimalSetting(SETTING_STABLE_RANGE_MAX, 0m),
-                    StableRangeMin = ParseDecimalSetting(SETTING_STABLE_RANGE_MIN, -0.05m)
+                    StableRangeMin = ParseDecimalSetting(SETTING_STABLE_RANGE_MIN, -0.05m),
+                    RecoveryThreshold = ParseDecimalSetting(SETTING_RECOVERY_THRESHOLD, 0.10m)
                 };
             }
             catch (Exception ex)
@@ -358,6 +386,15 @@ namespace PhoneStore.Services.Implementations
                     return false;
                 }
 
+                // Skip FIFO update when in CLEARANCE mode
+                // Giữ nguyên CostFifo cũ để khi reset về AUTO_PROTECT sẽ reset CostFifo = CostNifo mới
+                // Tránh weighted average bị ảnh hưởng bởi giá nhập thời kỳ clearance
+                if (product.PricingMode == PricingMode.CLEARANCE)
+                {
+                    Logger.Info($"Skipping FIFO update for product {productId}: currently in CLEARANCE mode. FIFO will be reset when exiting clearance.");
+                    return true;
+                }
+
                 var oldFifo = product.CostFifo;
 
                 // Get current stock from ProductSerialRepository
@@ -426,6 +463,34 @@ namespace PhoneStore.Services.Implementations
                 Logger.Error($"Failed to log price history for product {productId}", ex);
             }
         }
+        
+        /// <summary>
+        /// Dismiss (auto-resolve) any pending alerts for a product before creating a new one
+        /// Tránh tạo nhiều alert trùng lặp cho cùng một sản phẩm
+        /// </summary>
+        private void DismissPendingAlertsForProduct(int productId)
+        {
+            try
+            {
+                var pendingAlerts = _pricingAlertRepository.GetPendingAlerts()
+                    .Where(a => a.ProductId == productId)
+                    .ToList();
+                    
+                foreach (var alert in pendingAlerts)
+                {
+                    alert.Status = AlertStatus.RESOLVED_HOLD;
+                    alert.ResolvedAt = DateTime.UtcNow;
+                    alert.ResolvedNote = "Auto-dismissed: New alert created";
+                    _pricingAlertRepository.Update(alert);
+                    
+                    Logger.Info($"Auto-dismissed pending alert {alert.Id} for product {productId}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to dismiss pending alerts for product {productId}", ex);
+            }
+        }
 
         private PricingAlertViewModel MapAlertToViewModel(PricingAlert alert)
         {
@@ -438,11 +503,13 @@ namespace PhoneStore.Services.Implementations
                 ProductId = alert.ProductId,
                 ProductName = product?.Name ?? string.Empty,
                 ProductSku = product?.Sku ?? string.Empty,
+                AlertType = alert.AlertType,
                 VariancePercent = alert.VariancePercent,
                 CostFifo = alert.CostFifoSnapshot,
                 CostNifo = alert.CostNifoSnapshot,
                 CurrentStock = alert.CurrentStock,
                 PotentialLoss = potentialLoss,
+                CurrentPrice = product?.Price ?? 0,
                 Status = alert.Status,
                 CreatedAt = alert.CreatedAt,
                 ResolvedBy = alert.ResolvedBy,

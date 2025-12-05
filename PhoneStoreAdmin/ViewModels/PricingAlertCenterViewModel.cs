@@ -98,19 +98,40 @@ namespace PhoneStoreAdmin.ViewModels
         public int ProductId { get; set; }
         public string ProductName { get; set; } = string.Empty;
         public string ProductSku { get; set; } = string.Empty;
+        public AlertType AlertType { get; set; } = AlertType.PRICE_DROP;
         public decimal VariancePercent { get; set; }
         public decimal CostFifo { get; set; }
         public decimal CostNifo { get; set; }
         public int CurrentStock { get; set; }
         public decimal PotentialLoss { get; set; }
+        public decimal CurrentPrice { get; set; }
         public AlertStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
+
+        // Alert type helpers
+        public bool IsRecoveryAlert => AlertType == AlertType.CLEARANCE_RECOVERY;
+        
+        public string AlertTypeDisplay => AlertType switch
+        {
+            AlertType.PRICE_DROP => "Giá giảm",
+            AlertType.CLEARANCE_RECOVERY => "Hồi phục thị trường",
+            _ => "Không xác định"
+        };
+        
+        public string AlertTypeGlyph => AlertType switch
+        {
+            AlertType.PRICE_DROP => "\uE74B",  // Down arrow
+            AlertType.CLEARANCE_RECOVERY => "\uE74A",  // Up arrow
+            _ => "\uE783"  // Warning
+        };
 
         // Display properties for DataGrid binding
         public string VarianceDisplay => $"{VariancePercent:F2}%";
         public string CostFifoDisplay => $"{CostFifo:N0}đ";
         public string CostNifoDisplay => $"{CostNifo:N0}đ";
-        public string PotentialLossDisplay => $"-{PotentialLoss:N0}đ";
+        public string PotentialLossDisplay => IsRecoveryAlert 
+            ? $"+{Math.Abs(PotentialLoss):N0}đ" 
+            : $"-{Math.Abs(PotentialLoss):N0}đ";
         public string CreatedAtDisplay => CreatedAt.ToString("dd/MM/yyyy");
 
         public string StatusDisplay => Status switch
@@ -118,6 +139,7 @@ namespace PhoneStoreAdmin.ViewModels
             AlertStatus.PENDING => "Chờ xử lý",
             AlertStatus.RESOLVED_HOLD => "Đã giữ giá",
             AlertStatus.RESOLVED_CLEARANCE => "Đã xả hàng",
+            AlertStatus.RESOLVED_RESET_AUTO => "Đã reset về Auto",
             _ => "Không xác định"
         };
 
@@ -129,11 +151,13 @@ namespace PhoneStoreAdmin.ViewModels
             ProductId = alert.ProductId;
             ProductName = alert.ProductName;
             ProductSku = alert.ProductSku;
+            AlertType = alert.AlertType;
             VariancePercent = alert.VariancePercent;
             CostFifo = alert.CostFifo;
             CostNifo = alert.CostNifo;
             CurrentStock = alert.CurrentStock;
             PotentialLoss = alert.PotentialLoss;
+            CurrentPrice = alert.CurrentPrice;
             Status = alert.Status;
             CreatedAt = alert.CreatedAt;
         }

@@ -58,5 +58,23 @@ namespace PhoneStore.Services.Interfaces
         /// <param name="productId">ID sản phẩm</param>
         /// <returns>Danh sách cảnh báo của sản phẩm</returns>
         IReadOnlyList<PricingAlertViewModel> GetAlertsByProduct(int productId);
+
+        /// <summary>
+        /// Lấy preview giá mới khi reset từ CLEARANCE về AUTO_PROTECT
+        /// Cho phép admin xem trước giá mới trước khi quyết định
+        /// </summary>
+        /// <param name="alertId">ID cảnh báo (phải là loại CLEARANCE_RECOVERY)</param>
+        /// <returns>Preview với giá hiện tại và giá mới, hoặc null nếu không hợp lệ</returns>
+        RecoveryPreviewViewModel? GetRecoveryPreview(int alertId);
+
+        /// <summary>
+        /// Xử lý quyết định "Reset về Auto" - Admin chọn thoát chế độ CLEARANCE
+        /// Reset CostFifo = CostNifo, chuyển PricingMode về AUTO_PROTECT và tính lại giá
+        /// </summary>
+        /// <param name="alertId">ID cảnh báo (phải là loại CLEARANCE_RECOVERY)</param>
+        /// <param name="adminId">ID Admin xử lý</param>
+        /// <param name="note">Ghi chú (tùy chọn)</param>
+        /// <returns>True nếu xử lý thành công</returns>
+        bool ResolveAsResetAuto(int alertId, int adminId, string? note);
     }
 }

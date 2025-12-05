@@ -18,6 +18,12 @@ namespace PhoneStoreRepository.Models.Enums
         /// <summary>
         /// Đã xử lý - Admin kích hoạt chế độ xả hàng
         /// </summary>
-        RESOLVED_CLEARANCE = 2
+        RESOLVED_CLEARANCE = 2,
+
+        /// <summary>
+        /// Đã xử lý - Admin reset từ CLEARANCE về AUTO_PROTECT
+        /// Khi market hồi phục và admin quyết định thoát chế độ xả hàng
+        /// </summary>
+        RESOLVED_RESET_AUTO = 3
     }
 }
