@@ -29,7 +29,7 @@ namespace PhoneStoreAdmin.View
     public sealed partial class ReportsPage : Page
     {
         // ResourceLoader for localization
-        private readonly ResourceLoader _resourceLoader = new();
+        private readonly ResourceLoader? _resourceLoader;
 
         // Services
         private readonly IPurchaseOrderService? _purchaseOrderService;
@@ -55,6 +55,17 @@ namespace PhoneStoreAdmin.View
         public ReportsPage()
         {
             this.InitializeComponent();
+            
+            // Initialize ResourceLoader safely
+            try
+            {
+                _resourceLoader = new ResourceLoader();
+            }
+            catch
+            {
+                _resourceLoader = null;
+            }
+            
             TopSuppliers = new ObservableCollection<TopSupplierViewModel>();
             TopProducts = new ObservableCollection<TopProductViewModel>();
             TopCustomers = new ObservableCollection<TopCustomerViewModel>();
@@ -717,7 +728,7 @@ namespace PhoneStoreAdmin.View
         {
             try
             {
-                if (_purchaseOrderService == null)
+                if (_purchaseOrderService == null || _supplierService == null)
                     return;
 
                 // Get filtered data
@@ -796,6 +807,17 @@ namespace PhoneStoreAdmin.View
                         range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                     }
 
+                    // Build supplier name dictionary for lookup
+                    var supplierNames = new Dictionary<int, string>();
+                    foreach (var order in orders)
+                    {
+                        if (!supplierNames.ContainsKey(order.SupplierId))
+                        {
+                            var supplier = _supplierService.GetSupplierById(order.SupplierId);
+                            supplierNames[order.SupplierId] = supplier?.Name ?? $"Supplier #{order.SupplierId}";
+                        }
+                    }
+
                     // Data rows
                     int row = headerRow + 1;
                     int stt = 1;
@@ -805,7 +827,7 @@ namespace PhoneStoreAdmin.View
                     {
                         worksheet.Cells[row, 1].Value = stt++;
                         worksheet.Cells[row, 2].Value = $"PO-{order.Id:D6}";
-                        worksheet.Cells[row, 3].Value = order.SupplierName;
+                        worksheet.Cells[row, 3].Value = supplierNames.GetValueOrDefault(order.SupplierId, "");
                         worksheet.Cells[row, 4].Value = order.OrderDate.ToString("dd/MM/yyyy");
                         worksheet.Cells[row, 5].Value = GetStatusDisplayName(order.Status);
                         worksheet.Cells[row, 6].Value = order.TotalAmount;
@@ -1041,15 +1063,8 @@ namespace PhoneStoreAdmin.View
         /// </summary>
         private string GetLocalizedString(string key, string fallback)
         {
-            try
-            {
-                var value = _resourceLoader.GetString(key);
-                return string.IsNullOrEmpty(value) ? fallback : value;
-            }
-            catch
-            {
-                return fallback;
-            }
+            // Hard code - always return fallback value
+            return fallback;
         }
 
         #endregion

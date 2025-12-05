@@ -729,7 +729,6 @@
   <data name="Invoice_NotFound" xml:space="preserve">
     <value>Invoice not found</value>
   </data>
-  <!-- Invoice Detail Dialog -->
   <data name="Invoice_DetailTitle" xml:space="preserve">
     <value>Invoice Details</value>
   </data>
@@ -2297,7 +2296,6 @@ How many devices do you want to add?</value>
   <data name="Reports_ChartTooltip_Orders" xml:space="preserve">
     <value>orders</value>
   </data>
-  <!-- Sales Statistics -->
   <data name="Reports_TotalInvoicesLabel.Text" xml:space="preserve">
     <value>Total Invoices</value>
   </data>
@@ -3036,25 +3034,16 @@ How many devices do you want to add?</value>
   <data name="ColStatusInvoice.Text" xml:space="preserve">
     <value>Status</value>
   </data>
-  <data name="InvoiceStatus_UNPAID" xml:space="preserve">
-    <value>Unpaid</value>
-  </data>
-  <data name="InvoiceStatus_PAID" xml:space="preserve">
-    <value>Paid</value>
-  </data>
   <data name="InvoiceStatus_REFUNDED" xml:space="preserve">
     <value>Refunded</value>
   </data>
-  <data name="InvoiceStatus_CANCELLED" xml:space="preserve">
-    <value>Cancelled</value>
-  </data>
-      <data name="InvoiceStatus_COMPLETED" xml:space="preserve">
+  <data name="InvoiceStatus_COMPLETED" xml:space="preserve">
     <value>Completed</value>
   </data>
   <data name="InvoiceStatus_DELIVERING" xml:space="preserve">
     <value>Delivering</value>
   </data>
-    <data name="InvoiceStatus_PENDING" xml:space="preserve">
+  <data name="InvoiceStatus_PENDING" xml:space="preserve">
     <value>Pending</value>
   </data>
   <data name="BtnFilterInvoice.Text" xml:space="preserve">
@@ -3261,7 +3250,6 @@ How many devices do you want to add?</value>
   <data name="ProductManagement_SelectVariantMessage.Text" xml:space="preserve">
     <value>Select a variant to view details</value>
   </data>
-  <!-- SalesPage Localization -->
   <data name="Sales_SearchLabel.Text" xml:space="preserve">
     <value>Search</value>
   </data>
@@ -3328,7 +3316,6 @@ How many devices do you want to add?</value>
   <data name="Sales_TotalLabel.Text" xml:space="preserve">
     <value>TOTAL</value>
   </data>
-  <!-- Code-behind labels -->
   <data name="Sales_Subtotal" xml:space="preserve">
     <value>Subtotal</value>
   </data>
@@ -3341,7 +3328,6 @@ How many devices do you want to add?</value>
   <data name="Sales_PayNowButtonText.Text" xml:space="preserve">
     <value>PAY NOW</value>
   </data>
-  <!-- Sales Proforma Invoice -->
   <data name="Sales_PrintProformaButtonText.Text" xml:space="preserve">
     <value>PRINT PROFORMA</value>
   </data>
@@ -3375,7 +3361,6 @@ How many devices do you want to add?</value>
   <data name="Sales_PriceHeader" xml:space="preserve">
     <value>Amount</value>
   </data>
-  <!-- Sales Order Confirmation -->
   <data name="Sales_ConfirmOrderTitle" xml:space="preserve">
     <value>Confirm Order</value>
   </data>
@@ -3394,7 +3379,6 @@ How many devices do you want to add?</value>
   <data name="Sales_CancelButton" xml:space="preserve">
     <value>Cancel</value>
   </data>
-  <!-- SalesPage Code-behind messages -->
   <data name="Sales_OutOfStockError" xml:space="preserve">
     <value>Product is out of stock.</value>
   </data>
@@ -3451,7 +3435,6 @@ Total: {1}</value>
   <data name="Sales_StockFormat" xml:space="preserve">
     <value>Stock: {0}</value>
   </data>
-  <!-- MainWindow Menu Items -->
   <data name="MenuItemDashboard.Content" xml:space="preserve">
     <value>Dashboard</value>
   </data>
@@ -3470,7 +3453,6 @@ Total: {1}</value>
   <data name="DialogClose" xml:space="preserve">
     <value>Close</value>
   </data>
-  <!-- Print Invoice -->
   <data name="Sales_PrintSuccess" xml:space="preserve">
     <value>PDF invoice created successfully</value>
   </data>
@@ -3480,7 +3462,6 @@ Total: {1}</value>
   <data name="Sales_ErrorTitle" xml:space="preserve">
     <value>Error</value>
   </data>
-  <!-- AccessDenied Page -->
   <data name="AccessDenied_Title.Text" xml:space="preserve">
     <value>Access Denied</value>
   </data>
@@ -3493,11 +3474,9 @@ Total: {1}</value>
   <data name="AccessDenied_BackToDashboard.Content" xml:space="preserve">
     <value>Back to Dashboard</value>
   </data>
-  <!-- Settings Page -->
   <data name="MenuSettings.Content" xml:space="preserve">
     <value>Settings</value>
   </data>
-  <!-- System Settings Page -->
   <data name="MenuSystemSettings.Content" xml:space="preserve">
     <value>System Config</value>
   </data>
@@ -3594,7 +3573,6 @@ Total: {1}</value>
   <data name="SystemSettings_Error_InitializeFailed" xml:space="preserve">
     <value>Failed to initialize default settings</value>
   </data>
-  <!-- Dynamic Pricing Menu Items -->
   <data name="MenuItemPricing.Content" xml:space="preserve">
     <value>Dynamic Pricing</value>
   </data>
@@ -3607,7 +3585,6 @@ Total: {1}</value>
   <data name="MenuItemPricingSettings.Content" xml:space="preserve">
     <value>Settings</value>
   </data>
-  <!-- AddPurchaseOrder Page Localization -->
   <data name="AddPurchaseOrder_UnitCostHeader" xml:space="preserve">
     <value>Unit Cost</value>
   </data>
@@ -3626,7 +3603,6 @@ Total: {1}</value>
   <data name="AddPurchaseOrder_NoFilteredProducts" xml:space="preserve">
     <value>No products to add. Please select a category or brand to filter products first.</value>
   </data>
-  <!-- Dashboard Statistics Section -->
   <data name="Dashboard_DailyRevenueChart.Text" xml:space="preserve">
     <value>Daily Revenue Chart</value>
   </data>
@@ -3716,5 +3692,8 @@ Total: {1}</value>
   </data>
   <data name="Dashboard_Month12.Content" xml:space="preserve">
     <value>December</value>
+  </data>
+  <data name="EmployeeCodeRequired" xml:space="preserve">
+    <value>Code employee required</value>
   </data>
 </root>
