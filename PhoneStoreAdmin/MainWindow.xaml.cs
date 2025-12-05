@@ -116,7 +116,6 @@ namespace PhoneStoreAdmin
                 { "Accounts", AccountsNavItem },
                 { "Roles", RolesNavItem },
                 { "Reports", ReportNavItem },
-                { "Settings", SettingsNavItem },
                 { "SystemSettings", SystemSettingsNavItem },
                 { "PricingDashboard", PricingNavItem }
             };

@@ -554,14 +554,26 @@ namespace PhoneStoreRepository.Repositories.Implementations
                             parameters["@lastLoginTo"] = filterCriteria.LastLoginTo.Value.Date;
                         }
                     }
+
+                    // MaxRoleWeight filter - only show accounts where the minimum role weight > current user's weight
+                    // This prevents users from seeing/managing accounts with same or higher privileges
+                    if (filterCriteria.MaxRoleWeight.HasValue)
+                    {
+                        // Subquery: Get minimum weight of all roles for each account
+                        // Only show accounts where their highest privilege role is lower than current user
+                        whereClauses.Add(@"
+                            (SELECT COALESCE(MIN(r.weight), 999999) 
+                             FROM Account_Roles ar 
+                             INNER JOIN Roles r ON ar.role_id = r.id 
+                             WHERE ar.account_id = a.id) > @maxRoleWeight");
+                        parameters["@maxRoleWeight"] = filterCriteria.MaxRoleWeight.Value;
+                    }
                 }
 
-                // MaxRoleWeight filter - only show accounts where the minimum role weight > current user's weight
-                // This prevents users from seeing/managing accounts with same or higher privileges
-                if (filterCriteria.MaxRoleWeight.HasValue)
+                // MaxRoleWeight - Security filter (apply even without other filters)
+                // This is separated because it's a security constraint, not a user filter
+                if (filterCriteria?.MaxRoleWeight.HasValue == true && !parameters.ContainsKey("@maxRoleWeight"))
                 {
-                    // Subquery: Get minimum weight of all roles for each account
-                    // Only show accounts where their highest privilege role is lower than current user
                     whereClauses.Add(@"
                         (SELECT COALESCE(MIN(r.weight), 999999) 
                          FROM Account_Roles ar 

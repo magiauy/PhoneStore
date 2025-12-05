@@ -12,6 +12,7 @@ namespace PhoneStoreRepository.Models
         // Private backing fields
         private int _id;
         private int _productId;
+        private AlertType _alertType = AlertType.PRICE_DROP;
         private decimal _variancePercent;
         private decimal _costFifoSnapshot;
         private decimal _costNifoSnapshot;
@@ -38,6 +39,16 @@ namespace PhoneStoreRepository.Models
         {
             get => _productId;
             set => _productId = value;
+        }
+
+        /// <summary>
+        /// Loại cảnh báo: PRICE_DROP (giá giảm) hoặc CLEARANCE_RECOVERY (có thể thoát xả hàng)
+        /// </summary>
+        [Required]
+        public AlertType AlertType
+        {
+            get => _alertType;
+            set => _alertType = value;
         }
 
         /// <summary>
@@ -140,6 +151,7 @@ namespace PhoneStoreRepository.Models
         {
             _id = 0;
             _productId = 0;
+            _alertType = AlertType.PRICE_DROP;
             _variancePercent = 0;
             _costFifoSnapshot = 0;
             _costNifoSnapshot = 0;
@@ -153,9 +165,15 @@ namespace PhoneStoreRepository.Models
         }
 
         public PricingAlert(int productId, decimal variancePercent, decimal costFifo, decimal costNifo, int stock)
+            : this(productId, AlertType.PRICE_DROP, variancePercent, costFifo, costNifo, stock)
+        {
+        }
+
+        public PricingAlert(int productId, AlertType alertType, decimal variancePercent, decimal costFifo, decimal costNifo, int stock)
         {
             _id = 0;
             _productId = productId;
+            _alertType = alertType;
             _variancePercent = variancePercent;
             _costFifoSnapshot = costFifo;
             _costNifoSnapshot = costNifo;

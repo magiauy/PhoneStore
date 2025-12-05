@@ -1,5 +1,5 @@
 -- --------------------------------------------------------
--- Host:                         localhost
+-- Host:                         127.0.0.1
 -- Server version:               10.4.32-MariaDB - mariadb.org binary distribution
 -- Server OS:                    Win64
 -- HeidiSQL Version:             12.6.0.6765
@@ -30,9 +30,9 @@ CREATE TABLE IF NOT EXISTS `accounts` (
   `last_login` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
-  KEY `person_id` (`person_id`),
-  CONSTRAINT `accounts_ibfk_1` FOREIGN KEY (`person_id`) REFERENCES `persons` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=500054 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  KEY `accounts_ibfk_1` (`person_id`),
+  CONSTRAINT `accounts_ibfk_1` FOREIGN KEY (`person_id`) REFERENCES `persons` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=500056 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `batches` (
   UNIQUE KEY `batch_code` (`batch_code`),
   KEY `purchase_order_id` (`purchase_order_id`),
   CONSTRAINT `batches_ibfk_1` FOREIGN KEY (`purchase_order_id`) REFERENCES `purchase_orders` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=726 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -71,12 +71,13 @@ CREATE TABLE IF NOT EXISTS `batch_products` (
   `quantity` int(11) NOT NULL DEFAULT 0,
   `cost_price` decimal(12,2) NOT NULL DEFAULT 0.00,
   `selling_price` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `profit_margin` decimal(13,10) NOT NULL DEFAULT 0.0000000000,
   PRIMARY KEY (`id`),
   KEY `batch_id` (`batch_id`),
   KEY `product_id` (`product_id`),
   CONSTRAINT `batch_products_ibfk_1` FOREIGN KEY (`batch_id`) REFERENCES `batches` (`id`),
   CONSTRAINT `batch_products_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3612 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -86,7 +87,7 @@ CREATE TABLE IF NOT EXISTS `brands` (
   `name` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -94,9 +95,12 @@ CREATE TABLE IF NOT EXISTS `brands` (
 CREATE TABLE IF NOT EXISTS `customers` (
   `person_id` int(11) NOT NULL,
   `address` varchar(255) DEFAULT NULL,
+  `LastOrderDate` datetime DEFAULT NULL,
+  `TotalSpend` decimal(18,2) DEFAULT 0.00,
   PRIMARY KEY (`person_id`),
   KEY `idx_customers_person_id` (`person_id`),
   KEY `idx_customers_address` (`address`(100)),
+  KEY `IX_Customers_LastOrderDate` (`LastOrderDate`),
   FULLTEXT KEY `ft_address` (`address`),
   CONSTRAINT `customers_ibfk_1` FOREIGN KEY (`person_id`) REFERENCES `persons` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -120,20 +124,20 @@ CREATE TABLE IF NOT EXISTS `invoices` (
   `promotion_code_id` int(11) DEFAULT NULL,
   `created_by` int(11) NOT NULL COMMENT 'nhân viên lập hóa đơn',
   `invoice_date` datetime NOT NULL,
-  `status` enum('unpaid','paid','refunded','cancelled','completed','pending','dividing') NOT NULL DEFAULT 'unpaid',
+  `status` enum('unpaid','paid','refunded','cancelled','pending','completed','delivering') NOT NULL DEFAULT 'unpaid',
   `total_amount` decimal(14,2) NOT NULL DEFAULT 0.00,
   `discount_amount` decimal(14,2) NOT NULL DEFAULT 0.00,
   `final_amount` decimal(14,2) NOT NULL DEFAULT 0.00,
-  `payment_method` enum('cash','bank') NOT NULL DEFAULT 'cash',
+  `payment_method` enum('cod','bank','cash') NOT NULL DEFAULT 'cod',
   `note` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `person_id` (`person_id`),
   KEY `promotion_code_id` (`promotion_code_id`),
   KEY `created_by` (`created_by`),
+  KEY `IX_Invoices_Person_Status_Covering` (`person_id`,`status`,`final_amount`,`invoice_date`),
   CONSTRAINT `invoices_ibfk_1` FOREIGN KEY (`person_id`) REFERENCES `persons` (`id`),
   CONSTRAINT `invoices_ibfk_2` FOREIGN KEY (`promotion_code_id`) REFERENCES `promotion_codes` (`id`),
   CONSTRAINT `invoices_ibfk_3` FOREIGN KEY (`created_by`) REFERENCES `persons` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6163 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -151,7 +155,7 @@ CREATE TABLE IF NOT EXISTS `invoice_lines` (
   KEY `product_id` (`product_id`),
   CONSTRAINT `invoice_lines_ibfk_1` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`),
   CONSTRAINT `invoice_lines_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12037 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -190,7 +194,7 @@ CREATE TABLE IF NOT EXISTS `permissions` (
   `description` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -207,16 +211,63 @@ CREATE TABLE IF NOT EXISTS `persons` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`),
   KEY `idx_persons_customer_active` (`person_type`,`is_active`,`id`) USING BTREE,
+  KEY `IX_Persons_Type_Active` (`person_type`,`is_active`),
   FULLTEXT KEY `ft_search` (`full_name`,`email`,`phone`,`code`),
   FULLTEXT KEY `ft_full_name` (`full_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1000054 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1000095 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table bandienthoai.pricing_alert
+CREATE TABLE IF NOT EXISTS `pricing_alert` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `variance_percent` decimal(5,2) NOT NULL COMMENT 'Tỷ lệ chênh lệch giữa NIFO và FIFO (%)',
+  `cost_fifo_snapshot` decimal(12,2) NOT NULL COMMENT 'FIFO cost tại thời điểm tạo alert',
+  `cost_nifo_snapshot` decimal(12,2) NOT NULL COMMENT 'NIFO cost tại thời điểm tạo alert',
+  `current_stock` int(11) NOT NULL COMMENT 'Số lượng tồn kho tại thời điểm tạo alert',
+  `status` tinyint(4) NOT NULL DEFAULT 0 COMMENT 'Trạng thái: 0=PENDING, 1=RESOLVED_HOLD, 2=RESOLVED_CLEARANCE',
+  `resolved_by` int(11) DEFAULT NULL COMMENT 'ID của Admin đã xử lý cảnh báo',
+  `resolved_at` datetime DEFAULT NULL COMMENT 'Thời điểm xử lý cảnh báo',
+  `resolved_note` varchar(500) DEFAULT NULL COMMENT 'Ghi chú khi xử lý cảnh báo',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_pricing_alert_product` (`product_id`),
+  KEY `idx_pricing_alert_status` (`status`),
+  KEY `idx_pricing_alert_created` (`created_at`),
+  KEY `fk_pricing_alert_resolved_by` (`resolved_by`),
+  CONSTRAINT `fk_pricing_alert_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_pricing_alert_resolved_by` FOREIGN KEY (`resolved_by`) REFERENCES `accounts` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Cảnh báo rủi ro tồn kho khi thị trường giảm giá';
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table bandienthoai.pricing_history
+CREATE TABLE IF NOT EXISTS `pricing_history` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `old_price` decimal(12,2) NOT NULL COMMENT 'Giá cũ trước khi thay đổi',
+  `new_price` decimal(12,2) NOT NULL COMMENT 'Giá mới sau khi thay đổi',
+  `cost_fifo` decimal(12,2) NOT NULL COMMENT 'FIFO cost tại thời điểm thay đổi giá',
+  `cost_nifo` decimal(12,2) NOT NULL COMMENT 'NIFO cost tại thời điểm thay đổi giá',
+  `change_reason` varchar(50) NOT NULL COMMENT 'Lý do thay đổi: AUTO_INCREASE, CLEARANCE, MANUAL',
+  `changed_by` int(11) DEFAULT NULL COMMENT 'ID của người thay đổi (null = hệ thống tự động)',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_pricing_history_product` (`product_id`),
+  KEY `idx_pricing_history_created` (`created_at`),
+  KEY `idx_pricing_history_reason` (`change_reason`),
+  KEY `fk_pricing_history_changed_by` (`changed_by`),
+  CONSTRAINT `fk_pricing_history_changed_by` FOREIGN KEY (`changed_by`) REFERENCES `accounts` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_pricing_history_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Lịch sử biến động giá sản phẩm';
 
 -- Data exporting was unselected.
 
 -- Dumping structure for table bandienthoai.products
 CREATE TABLE IF NOT EXISTS `products` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `sku` varchar(50) NOT NULL,
+  `sku` varchar(255) NOT NULL,
   `name` varchar(200) NOT NULL,
   `category_id` int(11) NOT NULL,
   `brand_id` int(11) DEFAULT NULL,
@@ -226,16 +277,22 @@ CREATE TABLE IF NOT EXISTS `products` (
   `warranty_months` int(11) NOT NULL DEFAULT 12,
   `status` enum('active','inactive','discontinued') NOT NULL DEFAULT 'active',
   `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
   `model_id` int(11) DEFAULT NULL,
+  `cost_fifo` decimal(12,2) NOT NULL DEFAULT 0.00 COMMENT 'Giá vốn FIFO - bình quân của lô hàng cũ nhất đang tồn kho',
+  `cost_nifo` decimal(12,2) NOT NULL DEFAULT 0.00 COMMENT 'Giá thay thế NIFO - giá nhập dự kiến của lô hàng mới nhất',
+  `market_trend` tinyint(4) NOT NULL DEFAULT 0 COMMENT 'Xu hướng thị trường: 0=STABLE, 1=UP, 2=DOWN',
+  `pricing_mode` tinyint(4) NOT NULL DEFAULT 0 COMMENT 'Chế độ định giá: 0=AUTO_PROTECT, 1=CLEARANCE',
+  `price_updated_at` datetime DEFAULT NULL COMMENT 'Thời điểm cập nhật giá gần nhất',
   PRIMARY KEY (`id`),
   UNIQUE KEY `sku` (`sku`),
   KEY `category_id` (`category_id`),
   KEY `brand_id` (`brand_id`),
   KEY `idx_products_model` (`model_id`),
-  CONSTRAINT `FK_products_model` FOREIGN KEY (`model_id`) REFERENCES `product_models` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `FK_products_model` FOREIGN KEY (`model_id`) REFERENCES `product_models` (`id`),
   CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `product_categories` (`id`),
   CONSTRAINT `products_ibfk_2` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=303 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -258,11 +315,13 @@ CREATE TABLE IF NOT EXISTS `product_attribute_options` (
   `display_value` varchar(50) DEFAULT NULL,
   `normalized_value` int(11) DEFAULT NULL,
   `sort_order` int(11) NOT NULL DEFAULT 0,
-  `is_active` int(11) DEFAULT NULL,
+  `is_active` int(11) DEFAULT 1,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FK__product_attributes` (`attribute_id`),
-  CONSTRAINT `FK__product_attributes` FOREIGN KEY (`attribute_id`) REFERENCES `product_attributes` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  CONSTRAINT `FK__product_attributes` FOREIGN KEY (`attribute_id`) REFERENCES `product_attributes` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -279,11 +338,11 @@ CREATE TABLE IF NOT EXISTS `product_attribute_values` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `product_attribute_values_index_0` (`product_id`,`attribute_id`),
   KEY `attribute_id` (`attribute_id`),
-  KEY `option_id` (`option_id`),
+  KEY `idx_product_attribute_value_option` (`option_id`),
   CONSTRAINT `product_attribute_values_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
   CONSTRAINT `product_attribute_values_ibfk_2` FOREIGN KEY (`attribute_id`) REFERENCES `product_attributes` (`id`),
   CONSTRAINT `product_attribute_values_ibfk_3` FOREIGN KEY (`option_id`) REFERENCES `product_attribute_options` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1273 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -297,7 +356,7 @@ CREATE TABLE IF NOT EXISTS `product_categories` (
   UNIQUE KEY `name` (`name`),
   KEY `parent_id` (`parent_id`),
   CONSTRAINT `product_categories_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `product_categories` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -311,7 +370,7 @@ CREATE TABLE IF NOT EXISTS `product_models` (
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=110 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -324,6 +383,23 @@ CREATE TABLE IF NOT EXISTS `product_model_attributes` (
   CONSTRAINT `product_model_attributes_ibfk_1` FOREIGN KEY (`model_id`) REFERENCES `product_models` (`id`) ON DELETE CASCADE,
   CONSTRAINT `product_model_attributes_ibfk_2` FOREIGN KEY (`attribute_id`) REFERENCES `product_attributes` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table bandienthoai.product_reviews
+CREATE TABLE IF NOT EXISTS `product_reviews` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `person_id` int(11) NOT NULL,
+  `rating` int(11) NOT NULL,
+  `comment` varchar(1000) DEFAULT NULL,
+  `created_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_reviews_product` (`product_id`),
+  KEY `fk_reviews_person` (`person_id`),
+  CONSTRAINT `fk_reviews_person` FOREIGN KEY (`person_id`) REFERENCES `persons` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_reviews_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -348,7 +424,7 @@ CREATE TABLE IF NOT EXISTS `product_serials` (
   CONSTRAINT `product_serials_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
   CONSTRAINT `product_serials_ibfk_2` FOREIGN KEY (`batch_id`) REFERENCES `batches` (`id`),
   CONSTRAINT `product_serials_ibfk_3` FOREIGN KEY (`purchase_order_line_id`) REFERENCES `purchase_order_lines` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=45178 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -361,7 +437,7 @@ CREATE TABLE IF NOT EXISTS `promotions` (
   `end_date` datetime NOT NULL,
   `is_active` tinyint(1) DEFAULT 1,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -379,7 +455,7 @@ CREATE TABLE IF NOT EXISTS `promotion_codes` (
   UNIQUE KEY `code` (`code`),
   KEY `promotion_id` (`promotion_id`),
   CONSTRAINT `promotion_codes_ibfk_1` FOREIGN KEY (`promotion_id`) REFERENCES `promotions` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -397,7 +473,7 @@ CREATE TABLE IF NOT EXISTS `purchase_orders` (
   KEY `created_by` (`created_by`),
   CONSTRAINT `purchase_orders_ibfk_1` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`),
   CONSTRAINT `purchase_orders_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `persons` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=730 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -409,12 +485,13 @@ CREATE TABLE IF NOT EXISTS `purchase_order_lines` (
   `quantity` int(11) NOT NULL DEFAULT 1,
   `unit_cost` decimal(12,2) NOT NULL DEFAULT 0.00,
   `total_cost` decimal(14,2) NOT NULL DEFAULT 0.00,
+  `profit_margin` decimal(13,10) NOT NULL DEFAULT 0.0000000000,
   PRIMARY KEY (`id`),
   KEY `purchase_order_lines_index_2` (`purchase_order_id`),
   KEY `product_id` (`product_id`),
   CONSTRAINT `purchase_order_lines_ibfk_1` FOREIGN KEY (`purchase_order_id`) REFERENCES `purchase_orders` (`id`),
   CONSTRAINT `purchase_order_lines_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3610 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -439,6 +516,17 @@ CREATE TABLE IF NOT EXISTS `role_permissions` (
   CONSTRAINT `role_permissions_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE,
   CONSTRAINT `role_permissions_ibfk_2` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table bandienthoai.setting_string
+CREATE TABLE IF NOT EXISTS `setting_string` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(255) NOT NULL,
+  `value` varchar(255) DEFAULT NULL,
+  `type` varchar(45) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
