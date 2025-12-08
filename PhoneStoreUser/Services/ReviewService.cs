@@ -3,10 +3,11 @@ using PhoneStoreUser.Data;
 
 namespace PhoneStoreUser.Services;
 
-public class ReviewService(AppDbContext context) : IReviewService
+public class ReviewService(IDbContextFactory<AppDbContext> dbContextFactory) : IReviewService
 {
     public async Task<List<ReviewEntity>> GetReviewsByProductIdAsync(int productId)
     {
+        using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Reviews
             .Include(r => r.Person)
             .Where(r => r.ProductId == productId)
@@ -16,6 +17,8 @@ public class ReviewService(AppDbContext context) : IReviewService
 
     public async Task AddReviewAsync(ReviewEntity review)
     {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        
         // 1. Check if user is authenticated (PersonId > 0)
         if (review.PersonId <= 0)
         {
@@ -51,6 +54,7 @@ public class ReviewService(AppDbContext context) : IReviewService
 
     public async Task<double> GetAverageRatingAsync(int productId)
     {
+        using var context = await dbContextFactory.CreateDbContextAsync();
         var ratings = await context.Reviews
             .Where(r => r.ProductId == productId)
             .Select(r => r.Rating)
@@ -63,6 +67,7 @@ public class ReviewService(AppDbContext context) : IReviewService
 
     public async Task<(double AverageRating, int TotalReviews)> GetReviewSummaryAsync(int productModelId)
     {
+        using var context = await dbContextFactory.CreateDbContextAsync();
         var ratings = await context.Reviews
             .Include(r => r.Product)
             .Where(r => r.Product.ModelId == productModelId)
@@ -76,6 +81,7 @@ public class ReviewService(AppDbContext context) : IReviewService
 
     public async Task<List<ReviewEntity>> GetReviewsByProductModelIdAsync(int productModelId)
     {
+        using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Reviews
             .Include(r => r.Person)
             .Include(r => r.Product)

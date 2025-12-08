@@ -1,49 +1,100 @@
 @using System
 @using PhoneStoreUser.Components.Models
 @using PhoneStoreUser.Services
-@using System.Globalization 
+@using System.Globalization
 
 @inject IProductCatalogService ProductCatalogService
 @inject ICloudinaryService CloudinaryService
+@inject IReviewService ReviewService
 
-<a href="/product/@ProductModel?.Slug" class="group rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm transition hover:-translate-y-1 hover:shadow-lg block">
-    <div class="relative overflow-hidden bg-gray-50 aspect-square">
+<a href="/product/@ProductModel?.Slug" 
+   class="group relative flex h-full flex-col overflow-hidden rounded-xl bg-white border border-gray-100 transition-all duration-300 hover:border-blue-500 hover:shadow-xl hover:-translate-y-1 hover:z-10">
+    <!-- Image Container -->
+    <div class="relative aspect-square overflow-hidden bg-white p-6">
         <img src="@ImageUrl" 
              alt="@ProductModel?.Name" 
-             class="w-full h-full object-cover transition duration-200 group-hover:scale-105" 
+             class="h-full w-full object-cover object-center transition duration-500 group-hover:scale-110" 
              loading="lazy"
              @onerror="HandleImageError" />
+        
+        <!-- Badges -->
+        <div class="absolute left-3 top-3 flex flex-col gap-2">
+            @if (IsNew)
+            {
+                <span class="inline-flex items-center rounded-lg bg-blue-600 px-2.5 py-1 text-xs font-bold text-white shadow-md backdrop-blur-sm">
+                    Mới
+                </span>
+            }
+            @if (SelectedProduct?.PricingMode == PricingMode.CLEARANCE)
+            {
+                <span class="inline-flex items-center rounded-lg bg-red-600 px-2.5 py-1 text-xs font-bold text-white shadow-md backdrop-blur-sm">
+                    Xả kho
+                </span>
+            }
+            else if (SelectedProduct?.PricingMode == PricingMode.AUTO_PROTECT && IsPriceRecentlyUpdated(SelectedProduct.PriceUpdatedAt))
+            {
+                 <span class="inline-flex items-center rounded-lg bg-green-600 px-2.5 py-1 text-xs font-bold text-white shadow-md backdrop-blur-sm">
+                    Giá tốt
+                </span>
+            }
+        </div>
     </div>
-    <div class="p-4 space-y-2">
-        <h3 class="text-sm font-semibold text-gray-900 line-clamp-2">@ProductModel?.Name</h3>
-        <p class="text-xs text-gray-500 line-clamp-2">@ProductModel?.Description</p>
-        
-        @if (SelectedProduct != null)
+
+    <!-- Content -->
+    <div class="flex flex-col p-4">
+        <!-- Brand -->
+        @if (!string.IsNullOrEmpty(SelectedProduct?.BrandName))
         {
-            <p class="text-lg font-bold text-[#2563EB]">
-                @(SelectedProduct.Price > 0 
-                    ? $"{SelectedProduct.Price.ToString("N0", new CultureInfo("vi-VN"))} ₫" 
-                    : "Liên hệ")
+            <p class="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+                @SelectedProduct.BrandName
             </p>
-            
-            @* Pricing Labels based on PricingMode *@
-            @if (SelectedProduct.PricingMode == PricingMode.CLEARANCE)
-            {
-                <span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium text-orange-700 bg-orange-100 rounded-full">
-                    Giá ưu đãi xả kho (Số lượng có hạn)
-                </span>
-            }
-            else if (SelectedProduct.PricingMode == PricingMode.AUTO_PROTECT && IsPriceRecentlyUpdated(SelectedProduct.PriceUpdatedAt))
-            {
-                <span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-full">
-                    Giá thị trường (Cập nhật 24h)
-                </span>
-            }
         }
+
+        <!-- Title -->
+        <h3 class="mb-2 line-clamp-2 min-h-[2.5rem] text-sm font-bold text-gray-900 transition-colors group-hover:text-blue-600">
+            @ProductModel?.Name
+        </h3>
+
+        <!-- Reviews -->
+        <div class="mb-3 flex items-center gap-1.5">
+            <div class="flex text-yellow-400 text-xs">
+                 @for (int i = 1; i <= 5; i++)
+                 {
+                     if (i <= Math.Round(AverageRating))
+                     {
+                         <i class="fa-solid fa-star"></i>
+                     }
+                     else
+                     {
+                         <i class="fa-regular fa-star text-gray-300"></i>
+                     }
+                 }
+            </div>
+            <span class="text-xs text-gray-500">(@TotalReviews)</span>
+        </div>
+
+        <!-- Price -->
+        <div class="mt-auto">
+            @if (SelectedProduct != null)
+            {
+                <div class="flex flex-wrap items-baseline gap-2">
+                    <p class="text-lg font-bold text-[#2563EB]">
+                        @(SelectedProduct.Price > 0
+                            ? $"{SelectedProduct.Price.ToString("N0", new CultureInfo("vi-VN"))} ₫"
+                            : "Liên hệ")
+                    </p>
+                </div>
+            }
+            else
+            {
+                <p class="text-lg font-bold text-gray-400">Đang cập nhật</p>
+            }
+        </div>
         
-        <button type="button" class="mt-3 w-full rounded-xl bg-[#2563EB] py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
+        <!-- Action Button -->
+        <div class="mt-4 rounded-xl bg-gray-50 py-2.5 text-center text-sm font-semibold text-gray-900 transition-all duration-300 group-hover:bg-[#2563EB] group-hover:text-white group-hover:shadow-md">
             Xem chi tiết
-        </button>
+        </div>
     </div>
 </a>
 
@@ -54,10 +105,10 @@
     private const string DefaultFallbackImageUrl = "/images/hero/iphone-17-pm-2.png";
     private Product? SelectedProduct { get; set; }
     private string ImageUrl { get; set; } = DefaultFallbackImageUrl;
+    private double AverageRating { get; set; }
+    private int TotalReviews { get; set; }
+    private bool IsNew { get; set; }
 
-    /// <summary>
-    /// Check if price was updated within the last 24 hours
-    /// </summary>
     private static bool IsPriceRecentlyUpdated(DateTime? priceUpdatedAt)
     {
         if (priceUpdatedAt == null) return false;
@@ -74,8 +125,20 @@
             return;
         }
 
-        var products = await ProductCatalogService.GetProductsByModelAsync(ProductModel.Id);
+        var productsTask = ProductCatalogService.GetProductsByModelAsync(ProductModel.Id);
+        var reviewsTask = ReviewService.GetReviewSummaryAsync(ProductModel.Id);
+
+        await Task.WhenAll(productsTask, reviewsTask);
+
+        var products = await productsTask;
+        var reviewSummary = await reviewsTask;
+
         SelectedProduct = products.FirstOrDefault();
+        AverageRating = reviewSummary.AverageRating;
+        TotalReviews = reviewSummary.TotalReviews;
+        
+        // Define "New" as created within the last 14 days
+        IsNew = ProductModel.CreatedAt.HasValue && (DateTime.UtcNow - ProductModel.CreatedAt.Value).TotalDays <= 14;
 
         var variantImageUrl = await BuildVariantImageUrlAsync(SelectedProduct, ProductModel);
         if (!string.IsNullOrEmpty(variantImageUrl))
