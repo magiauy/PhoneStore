@@ -19,8 +19,52 @@
     <CascadingAuthenticationState>
         <Routes @rendermode="InteractiveServer" />
     </CascadingAuthenticationState>
-    <script src="_framework/blazor.web.js"></script>
+    <script src="lib/chartjs/chart.umd.min.js" onerror="this.onerror=null; console.warn('Chart.js local failed, loading CDN'); this.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';"></script>
+    <script>
+        // Early stubs so Blazor can call even before site.js finishes loading
+        window.ensureChartReady = window.ensureChartReady || function () {
+            return typeof Chart !== 'undefined'
+                && typeof window.createBarChart === 'function'
+                && typeof window.createLineChart === 'function';
+        };
+
+        window.loadChartJs = window.loadChartJs || (function () {
+            let loadingPromise = null;
+
+            function injectScript(src) {
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.async = true;
+                    script.onload = () => resolve(true);
+                    script.onerror = () => reject(new Error('Failed to load ' + src));
+                    document.head.appendChild(script);
+                });
+            }
+
+            return function () {
+                if (typeof Chart !== 'undefined') {
+                    return Promise.resolve(true);
+                }
+
+                if (loadingPromise) {
+                    return loadingPromise;
+                }
+
+                const localSrc = '/lib/chartjs/chart.umd.min.js';
+                const cdnSrc = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+
+                loadingPromise = injectScript(localSrc)
+                    .catch(() => injectScript(cdnSrc))
+                    .catch(() => false)
+                    .finally(() => { loadingPromise = null; });
+
+                return loadingPromise;
+            };
+        })();
+    </script>
     <script src="js/site.js"></script>
+    <script src="_framework/blazor.web.js"></script>
 </body>
 
 </html>

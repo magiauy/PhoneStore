@@ -1,13 +1,32 @@
 @page "/admin/dashboard"
 @layout AdminLayout
+@using PhoneStoreUser.Services
+@using PhoneStoreUser.Components.ViewModels
+@inject IDashboardService DashboardService
 
 <div class="space-y-6 bg-gray-50/50 p-6 min-h-screen font-sans">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold tracking-tight text-slate-900">Dashboard</h1>
-            <p class="text-slate-500 text-sm">Tổng quan hiệu suất kinh doanh hôm nay.</p>
+            <p class="text-slate-500 text-sm">Tổng quan hiệu suất kinh doanh.</p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 items-center">
+            <!-- Month Picker -->
+            <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 shadow-sm">
+                <i class="fa-solid fa-calendar text-slate-400"></i>
+                <select @bind="SelectedMonth" @bind:after="OnMonthChanged" class="bg-transparent text-sm font-medium text-slate-700 focus:outline-none cursor-pointer">
+                    @for (int m = 1; m <= 12; m++)
+                    {
+                        <option value="@m">Tháng @m</option>
+                    }
+                </select>
+                <select @bind="SelectedYear" @bind:after="OnMonthChanged" class="bg-transparent text-sm font-medium text-slate-700 focus:outline-none cursor-pointer">
+                    @for (int y = DateTime.Now.Year; y >= DateTime.Now.Year - 5; y--)
+                    {
+                        <option value="@y">@y</option>
+                    }
+                </select>
+            </div>
             <button class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition">
                 <i class="fa-solid fa-download mr-2"></i>Xuất báo cáo
             </button>
@@ -17,158 +36,322 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        @foreach (var stat in Stats)
-        {
+    @if (IsLoading)
+    {
+        <div class="flex items-center justify-center py-12">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span class="ml-3 text-slate-500">Đang tải dữ liệu...</span>
+        </div>
+    }
+    else
+    {
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div class="relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm border border-slate-100 group hover:shadow-md transition-all duration-300">
                 <div class="flex items-start justify-between">
                     <div>
-                        <p class="text-sm font-medium text-slate-500">@stat.Label</p>
-                        <h3 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 tabular-nums">@stat.Value</h3>
+                        <p class="text-sm font-medium text-slate-500">Doanh thu tháng</p>
+                        <h3 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 tabular-nums">@FormatCurrency(MonthlyStats?.TotalRevenue ?? 0)</h3>
                     </div>
-                    <div class="@stat.ColorClass flex h-10 w-10 items-center justify-center rounded-xl bg-opacity-10 text-opacity-100 transition-transform group-hover:scale-110">
-                        <i class="@stat.Icon text-lg"></i>
+                    <div class="bg-emerald-100 text-emerald-600 flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110">
+                        <i class="fa-solid fa-chart-line text-lg"></i>
                     </div>
                 </div>
                 <div class="mt-4 flex items-center text-xs">
-                    <span class="@(stat.IsPositive ? "text-emerald-600 bg-emerald-50" : "text-rose-600 bg-rose-50") inline-flex items-center rounded-md px-2 py-1 font-medium ring-1 ring-inset ring-opacity-20">
-                        @if(stat.IsPositive) { <i class="fa-solid fa-arrow-up mr-1 text-[10px]"></i> } 
-                        else { <i class="fa-solid fa-arrow-down mr-1 text-[10px]"></i> }
-                        @stat.Trend
+                    @{
+                        var revenueGrowth = MonthlyStats?.RevenueGrowthPercent ?? 0;
+                        var revenuePositive = revenueGrowth >= 0;
+                    }
+                    <span class="@(revenuePositive ? "text-emerald-600 bg-emerald-50" : "text-rose-600 bg-rose-50") inline-flex items-center rounded-md px-2 py-1 font-medium ring-1 ring-inset ring-opacity-20">
+                        @if (revenuePositive)
+                        {
+                            <i class="fa-solid fa-arrow-up mr-1 text-[10px]"></i>
+                        }
+                        else
+                        {
+                            <i class="fa-solid fa-arrow-down mr-1 text-[10px]"></i>
+                        }
+                        @Math.Abs(revenueGrowth).ToString("F1")%
                     </span>
+                    <span class="ml-2 text-slate-400">so với tháng trước</span>
                 </div>
             </div>
-        }
-    </div>
 
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        
-        <div class="lg:col-span-2 flex flex-col gap-4">
+            <div class="relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm border border-slate-100 group hover:shadow-md transition-all duration-300">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-500">Tổng đơn hàng</p>
+                        <h3 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 tabular-nums">@(MonthlyStats?.TotalOrders ?? 0)</h3>
+                    </div>
+                    <div class="bg-blue-100 text-blue-600 flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110">
+                        <i class="fa-solid fa-bag-shopping text-lg"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-xs">
+                    @{
+                        var orderGrowth = MonthlyStats?.OrderGrowthPercent ?? 0;
+                        var orderPositive = orderGrowth >= 0;
+                    }
+                    <span class="@(orderPositive ? "text-emerald-600 bg-emerald-50" : "text-rose-600 bg-rose-50") inline-flex items-center rounded-md px-2 py-1 font-medium ring-1 ring-inset ring-opacity-20">
+                        @if (orderPositive)
+                        {
+                            <i class="fa-solid fa-arrow-up mr-1 text-[10px]"></i>
+                        }
+                        else
+                        {
+                            <i class="fa-solid fa-arrow-down mr-1 text-[10px]"></i>
+                        }
+                        @Math.Abs(orderGrowth)%
+                    </span>
+                    <span class="ml-2 text-slate-400">so với tháng trước</span>
+                </div>
+            </div>
+
+            <div class="relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm border border-slate-100 group hover:shadow-md transition-all duration-300">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-500">Khách hàng mới</p>
+                        <h3 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 tabular-nums">@(MonthlyStats?.NewCustomers ?? 0)</h3>
+                    </div>
+                    <div class="bg-violet-100 text-violet-600 flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110">
+                        <i class="fa-solid fa-users text-lg"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-xs">
+                    <span class="text-slate-400">Trong tháng @SelectedMonth/@SelectedYear</span>
+                </div>
+            </div>
+
+            <div class="relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm border border-slate-100 group hover:shadow-md transition-all duration-300">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-500">Giá trị TB/đơn</p>
+                        <h3 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 tabular-nums">@FormatCurrency(AverageOrderValue)</h3>
+                    </div>
+                    <div class="bg-amber-100 text-amber-600 flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110">
+                        <i class="fa-solid fa-calculator text-lg"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-xs">
+                    <span class="text-slate-400">Trung bình mỗi đơn hàng</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Products and Top Customers -->
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <!-- Top 10 Products -->
             <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                 <div class="flex items-center justify-between p-5 border-b border-slate-100">
                     <div class="flex gap-2 items-center">
-                         <div class="h-8 w-1 bg-blue-600 rounded-full"></div>
+                        <div class="h-8 w-1 bg-emerald-600 rounded-full"></div>
                         <div>
-                            <h2 class="text-base font-semibold text-slate-900">Đơn hàng mới nhất</h2>
+                            <h2 class="text-base font-semibold text-slate-900">Top 10 Sản phẩm bán chạy</h2>
+                            <p class="text-xs text-slate-500">Tháng @SelectedMonth/@SelectedYear</p>
                         </div>
                     </div>
-                    <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline">Xem tất cả</a>
                 </div>
-                
+
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-600">
-                        <thead class="bg-slate-50/50 text-xs uppercase font-semibold text-slate-500">
-                            <tr>
-                                <th class="px-5 py-4">Mã đơn</th>
-                                <th class="px-5 py-4">Khách hàng</th>
-                                <th class="px-5 py-4 text-right">Giá trị</th>
-                                <th class="px-5 py-4 text-center">Trạng thái</th>
-                                <th class="px-5 py-4 text-right">Ngày</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            @foreach (var order in LatestOrders)
-                            {
-                                <tr class="hover:bg-slate-50/80 transition-colors cursor-pointer group">
-                                    <td class="px-5 py-4 font-medium text-slate-900 group-hover:text-blue-600 transition">
-                                        #@order.Code
-                                    </td>
-                                    <td class="px-5 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 ring-2 ring-white">
-                                                @order.Customer.Substring(0, 1)
-                                            </div>
-                                            <span class="font-medium text-slate-700">@order.Customer</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-5 py-4 text-right font-semibold text-slate-900 tabular-nums">
-                                        @order.Total
-                                    </td>
-                                    <td class="px-5 py-4 text-center">
-                                        @{
-                                            var statusColor = order.Status == "Xác nhận" 
-                                                ? "bg-emerald-50 text-emerald-700 ring-emerald-600/20" 
-                                                : "bg-amber-50 text-amber-700 ring-amber-600/20";
-                                        }
-                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset @statusColor">
-                                            @order.Status
-                                        </span>
-                                    </td>
-                                    <td class="px-5 py-4 text-right text-slate-400 text-xs">@order.Date</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="flex flex-col gap-4">
-            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 h-full">
-                <div class="mb-5">
-                    <h2 class="text-base font-semibold text-slate-900">Nhiệm vụ nhanh</h2>
-                    <p class="text-xs text-slate-500 mt-1">Các tác vụ cần xử lý trong phiên làm việc.</p>
-                </div>
-
-                <div class="space-y-3">
-                    @foreach (var task in QuickActions)
+                    @if (TopProducts.Count == 0)
                     {
-                        var priorityColor = task.Priority switch {
-                            "Cao" => "bg-rose-500",
-                            "Trung bình" => "bg-amber-500",
-                            _ => "bg-emerald-500"
-                        };
-
-                        <div class="group relative flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3 hover:bg-white hover:border-blue-200 hover:shadow-sm transition-all duration-200 cursor-pointer">
-                            <div class="mt-1.5 h-2 w-2 rounded-full @priorityColor shadow-sm ring-2 ring-white"></div>
-                            <div class="flex-1">
-                                <h4 class="text-sm font-semibold text-slate-800 group-hover:text-blue-600 transition-colors">@task.Title</h4>
-                                <p class="text-xs text-slate-500 mt-0.5 line-clamp-1">@task.Note</p>
-                            </div>
-                            <button class="text-slate-300 hover:text-blue-600 transition">
-                                <i class="fa-solid fa-chevron-right text-xs"></i>
-                            </button>
+                        <div class="p-8 text-center text-slate-500">
+                            <i class="fa-solid fa-box-open text-3xl mb-2"></i>
+                            <p>Không có dữ liệu sản phẩm</p>
                         </div>
                     }
+                    else
+                    {
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50/50 text-xs uppercase font-semibold text-slate-500">
+                                <tr>
+                                    <th class="px-5 py-3">#</th>
+                                    <th class="px-5 py-3">Sản phẩm</th>
+                                    <th class="px-5 py-3 text-right">SL bán</th>
+                                    <th class="px-5 py-3 text-right">Doanh thu</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @{ var productIndex = 0; }
+                                @foreach (var product in TopProducts)
+                                {
+                                    productIndex++;
+                                    <tr class="hover:bg-slate-50/80 transition-colors">
+                                        <td class="px-5 py-3">
+                                            @if (productIndex <= 3)
+                                            {
+                                                <span class="@GetRankBadgeClass(productIndex) inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold">
+                                                    @productIndex
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-slate-400">@productIndex</span>
+                                            }
+                                        </td>
+                                        <td class="px-5 py-3 font-medium text-slate-800 max-w-[200px] truncate" title="@product.ProductName">
+                                            @product.ProductName
+                                        </td>
+                                        <td class="px-5 py-3 text-right font-semibold text-slate-700 tabular-nums">
+                                            @product.QuantitySold
+                                        </td>
+                                        <td class="px-5 py-3 text-right font-semibold text-emerald-600 tabular-nums">
+                                            @FormatCurrency(product.TotalRevenue)
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+
+            <!-- Top 10 Customers -->
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                    <div class="flex gap-2 items-center">
+                        <div class="h-8 w-1 bg-blue-600 rounded-full"></div>
+                        <div>
+                            <h2 class="text-base font-semibold text-slate-900">Top 10 Khách hàng</h2>
+                            <p class="text-xs text-slate-500">Tháng @SelectedMonth/@SelectedYear</p>
+                        </div>
+                    </div>
                 </div>
 
-                <button class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 py-3 text-sm font-medium text-slate-500 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 transition">
-                    <i class="fa-solid fa-plus"></i> Thêm nhiệm vụ mới
-                </button>
+                <div class="overflow-x-auto">
+                    @if (TopCustomers.Count == 0)
+                    {
+                        <div class="p-8 text-center text-slate-500">
+                            <i class="fa-solid fa-users text-3xl mb-2"></i>
+                            <p>Không có dữ liệu khách hàng</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50/50 text-xs uppercase font-semibold text-slate-500">
+                                <tr>
+                                    <th class="px-5 py-3">#</th>
+                                    <th class="px-5 py-3">Khách hàng</th>
+                                    <th class="px-5 py-3 text-right">Số đơn</th>
+                                    <th class="px-5 py-3 text-right">Tổng mua</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @{ var customerIndex = 0; }
+                                @foreach (var customer in TopCustomers)
+                                {
+                                    customerIndex++;
+                                    <tr class="hover:bg-slate-50/80 transition-colors">
+                                        <td class="px-5 py-3">
+                                            @if (customerIndex <= 3)
+                                            {
+                                                <span class="@GetRankBadgeClass(customerIndex) inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold">
+                                                    @customerIndex
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-slate-400">@customerIndex</span>
+                                            }
+                                        </td>
+                                        <td class="px-5 py-3">
+                                            <div class="flex items-center gap-3">
+                                                <div class="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 ring-2 ring-white">
+                                                    @(string.IsNullOrEmpty(customer.CustomerName) ? "?" : customer.CustomerName.Substring(0, 1).ToUpper())
+                                                </div>
+                                                <span class="font-medium text-slate-700 max-w-[150px] truncate" title="@customer.CustomerName">
+                                                    @customer.CustomerName
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="px-5 py-3 text-right font-semibold text-slate-700 tabular-nums">
+                                            @customer.OrderCount
+                                        </td>
+                                        <td class="px-5 py-3 text-right font-semibold text-blue-600 tabular-nums">
+                                            @FormatCurrency(customer.TotalPurchaseValue)
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
             </div>
         </div>
-    </div>
+    }
 </div>
 
 @code {
-    private List<StatItem> Stats = new()
-    {
-        // Thêm ColorClass để style icon background
-        new("Doanh thu hôm nay", "₫125.5M", "fa-solid fa-chart-line", "bg-emerald-100 text-emerald-600", "18%", true),
-        new("Đơn hàng", "76", "fa-solid fa-bag-shopping", "bg-blue-100 text-blue-600", "12 chờ", true),
-        new("Hủy trả", "3", "fa-solid fa-arrow-rotate-left", "bg-rose-100 text-rose-600", "Cao", false),
-        new("Khách mới", "22", "fa-solid fa-users", "bg-violet-100 text-violet-600", "+5", true),
-    };
+    private int SelectedMonth { get; set; } = DateTime.Now.Month;
+    private int SelectedYear { get; set; } = DateTime.Now.Year;
+    private bool IsLoading { get; set; } = true;
 
-    private List<LatestOrder> LatestOrders = new()
-    {
-        new("A1201", "Trương Minh Khải", "18.990.000", "Chờ duyệt", "12/03"),
-        new("A1202", "Nguyễn Hà Vy", "24.500.000", "Chờ duyệt", "12/03"),
-        new("A1203", "Lê Quốc Dũng", "32.990.000", "Xác nhận", "12/03"),
-        new("A1204", "Phạm Anh Khoa", "9.200.000", "Chờ duyệt", "11/03"),
-        new("A1205", "Trần Thị Bích", "5.150.000", "Xác nhận", "11/03"),
-    };
+    private MonthlyStatistics? MonthlyStats { get; set; }
+    private List<TopProductDto> TopProducts { get; set; } = new();
+    private List<TopCustomerDto> TopCustomers { get; set; } = new();
 
-    private List<QuickAction> QuickActions = new()
-    {
-        new("Gửi email ưu đãi 3.3", "Danh sách khách VIP", "Cao"),
-        new("Kiểm tra tồn kho iPhone 15", "Kho chi nhánh Q1", "Trung bình"),
-        new("Cập nhật banner trang chủ", "Ra mắt Galaxy mới", "Cao"),
-        new("Rà soát đơn COD", "Xác nhận khu vực", "Thấp"),
-    };
+    private decimal AverageOrderValue => MonthlyStats?.TotalOrders > 0
+        ? MonthlyStats.TotalRevenue / MonthlyStats.TotalOrders
+        : 0;
 
-    // Cập nhật record để hỗ trợ UI tốt hơn
-    private record StatItem(string Label, string Value, string Icon, string ColorClass, string Trend, bool IsPositive);
-    private record LatestOrder(string Code, string Customer, string Total, string Status, string Date);
-    private record QuickAction(string Title, string Note, string Priority);
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardDataAsync();
+    }
+
+    private async Task OnMonthChanged()
+    {
+        await LoadDashboardDataAsync();
+    }
+
+    private async Task LoadDashboardDataAsync()
+    {
+        IsLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var statsTask = DashboardService.GetMonthlyStatisticsAsync(SelectedYear, SelectedMonth);
+            var productsTask = DashboardService.GetTopSellingProductsAsync(SelectedYear, SelectedMonth, 10);
+            var customersTask = DashboardService.GetTopCustomersAsync(SelectedYear, SelectedMonth, 10);
+
+            await Task.WhenAll(statsTask, productsTask, customersTask);
+
+            MonthlyStats = await statsTask;
+            TopProducts = await productsTask;
+            TopCustomers = await customersTask;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading dashboard data: {ex.Message}");
+            MonthlyStats = new MonthlyStatistics(0, 0, 0, 0, 0);
+            TopProducts = new();
+            TopCustomers = new();
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private string FormatCurrency(decimal amount)
+    {
+        if (amount >= 1_000_000_000)
+            return $"₫{amount / 1_000_000_000:F1}B";
+        if (amount >= 1_000_000)
+            return $"₫{amount / 1_000_000:F1}M";
+        if (amount >= 1_000)
+            return $"₫{amount / 1_000:F0}K";
+        return $"₫{amount:N0}";
+    }
+
+    private string GetRankBadgeClass(int rank) => rank switch
+    {
+        1 => "bg-amber-400 text-white",
+        2 => "bg-slate-400 text-white",
+        3 => "bg-amber-600 text-white",
+        _ => "bg-slate-100 text-slate-600"
+    };
 }
