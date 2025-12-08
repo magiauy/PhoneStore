@@ -15,11 +15,10 @@
         <div class="flex items-center gap-3">
             <div class="relative flex-1 sm:flex-none">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                <input class="w-full sm:w-72 rounded-xl border border-slate-200 py-2.5 pl-9 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm" placeholder="Tìm tên, SĐT, email..." />
+                <input @bind="SearchTerm" @bind:event="oninput" @onkeyup="OnSearchInputChanged" 
+                       class="w-full sm:w-72 rounded-xl border border-slate-200 py-2.5 pl-9 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm" 
+                       placeholder="Tìm tên, SĐT, email..." />
             </div>
-            <button class="hidden sm:inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition">
-                <i class="fa-solid fa-filter"></i> Bộ lọc
-            </button>
         </div>
     </div>
 
@@ -27,10 +26,6 @@
         <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm flex items-center gap-3">
             <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600"><i class="fa-solid fa-users"></i></div>
             <div><p class="text-xs text-slate-500">Tổng khách hàng</p><p class="text-lg font-bold text-slate-900">@TotalCustomers</p></div>
-        </div>
-        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-amber-600"><i class="fa-solid fa-crown"></i></div>
-            <div><p class="text-xs text-slate-500">Khách VIP</p><p class="text-lg font-bold text-slate-900">--</p></div>
         </div>
     </div>
 
@@ -136,8 +131,7 @@
                     @OrderUIHelper.FormatCurrency(customer.TotalSpend)
                 </td>
                 <td class="px-5 py-4 text-right">
-                    <button class="text-slate-400 hover:text-blue-600 transition p-2"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button class="text-slate-400 hover:text-blue-600 transition p-2"><i class="fa-solid fa-envelope"></i></button>
+                    <button @onclick="() => OpenEditModal(customer.Id)" class="text-slate-400 hover:text-blue-600 transition p-2" title="Sửa thông tin"><i class="fa-solid fa-pen-to-square"></i></button>
                 </td>
             </tr>
         }
@@ -263,16 +257,6 @@
                         <InputTextArea @bind-Value="NewCustomer.Address" rows="3" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none" placeholder="Địa chỉ giao hàng..."></InputTextArea>
                     </div>
 
-                    <div class="rounded-lg bg-blue-50 p-3 border border-blue-100">
-                        <div class="flex items-start gap-3">
-                            <InputCheckbox @bind-Value="NewCustomer.SendWelcomeEmail" id="welcome" class="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
-                            <div>
-                                <label for="welcome" class="text-sm font-semibold text-blue-900 block">Gửi Email chào mừng</label>
-                                <p class="text-xs text-blue-600/80">Kèm mã giảm giá 10% cho đơn đầu tiên.</p>
-                            </div>
-                        </div>
-                    </div>
-
                     <button type="submit" disabled="@IsSaving" class="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white shadow-sm hover:bg-slate-800 transition flex items-center justify-center gap-2 disabled:opacity-50">
                         @if (IsSaving)
                         {
@@ -289,6 +273,88 @@
     </div>
 </div>
 
+@* Edit Customer Modal *@
+@if (IsEditModalOpen)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @onclick="CloseEditModal">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4" @onclick:stopPropagation="true">
+            <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Sửa thông tin khách hàng</h2>
+                    <p class="text-xs text-slate-500">Cập nhật hồ sơ khách hàng</p>
+                </div>
+                <button @onclick="CloseEditModal" class="text-slate-400 hover:text-slate-600 transition p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5">
+                @if (IsLoadingEditCustomer)
+                {
+                    <div class="flex items-center justify-center py-8">
+                        <i class="fa-solid fa-spinner fa-spin text-2xl text-slate-400"></i>
+                    </div>
+                }
+                else
+                {
+                    <EditForm Model="@EditCustomer" OnValidSubmit="HandleUpdateCustomer" class="space-y-4">
+                        <DataAnnotationsValidator />
+                        
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Tên đầy đủ</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                <InputText @bind-Value="EditCustomer.FullName" class="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition" placeholder="Ví dụ: Nguyễn Văn A" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Số điện thoại</label>
+                            <InputText @bind-Value="EditCustomer.Phone" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="09xx..." />
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Email</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                <InputText @bind-Value="EditCustomer.Email" class="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="customer@email.com" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Địa chỉ</label>
+                            <InputTextArea @bind-Value="EditCustomer.Address" rows="3" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none" placeholder="Địa chỉ giao hàng..."></InputTextArea>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(EditErrorMessage))
+                        {
+                            <div class="rounded-lg bg-red-50 p-3 border border-red-100">
+                                <p class="text-sm text-red-600">@EditErrorMessage</p>
+                            </div>
+                        }
+
+                        <div class="flex gap-3 pt-2">
+                            <button type="button" @onclick="CloseEditModal" class="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+                                Hủy
+                            </button>
+                            <button type="submit" disabled="@IsUpdating" class="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-700 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                                @if (IsUpdating)
+                                {
+                                    <i class="fa-solid fa-spinner fa-spin"></i> <span>Đang lưu...</span>
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-check"></i> <span>Cập nhật</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                }
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<AdminCustomerDto> CustomersData = new();
     private CreateCustomerDto NewCustomer = new();
@@ -302,6 +368,18 @@
     private int DisplayTo => TotalCustomers == 0 ? 0 : Math.Min(TotalCustomers, ((CurrentPage - 1) * PageSize) + CustomersData.Count);
     private bool CanGoPrevious => CurrentPage > 1;
     private bool CanGoNext => TotalCustomers > 0 && CurrentPage < TotalPages;
+    
+    // Search functionality
+    private string SearchTerm = string.Empty;
+    private System.Timers.Timer? _searchDebounceTimer;
+    
+    // Edit modal state
+    private bool IsEditModalOpen = false;
+    private bool IsLoadingEditCustomer = false;
+    private bool IsUpdating = false;
+    private int EditingCustomerId = 0;
+    private UpdateCustomerDto EditCustomer = new();
+    private string? EditErrorMessage = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -313,17 +391,17 @@
         IsLoading = true;
         try
         {
-            var result = await CustomerService.GetCustomersAsync(CurrentPage, PageSize);
+            var result = await CustomerService.GetCustomersAsync(CurrentPage, PageSize, SearchTerm);
 
             if (result.TotalPages > 0 && CurrentPage > result.TotalPages)
             {
                 CurrentPage = result.TotalPages;
-                result = await CustomerService.GetCustomersAsync(CurrentPage, PageSize);
+                result = await CustomerService.GetCustomersAsync(CurrentPage, PageSize, SearchTerm);
             }
             else if (result.TotalPages == 0 && CurrentPage != 1)
             {
                 CurrentPage = 1;
-                result = await CustomerService.GetCustomersAsync(CurrentPage, PageSize);
+                result = await CustomerService.GetCustomersAsync(CurrentPage, PageSize, SearchTerm);
             }
 
             CustomersData = new List<AdminCustomerDto>(result.Items);
@@ -336,6 +414,93 @@
         finally
         {
             IsLoading = false;
+        }
+    }
+    
+    private void OnSearchInputChanged()
+    {
+        // Debounce search to avoid too many requests
+        _searchDebounceTimer?.Stop();
+        _searchDebounceTimer?.Dispose();
+        
+        _searchDebounceTimer = new System.Timers.Timer(300);
+        _searchDebounceTimer.Elapsed += async (sender, e) =>
+        {
+            _searchDebounceTimer?.Stop();
+            await InvokeAsync(async () =>
+            {
+                CurrentPage = 1; // Reset to first page when searching
+                await LoadCustomers();
+                StateHasChanged();
+            });
+        };
+        _searchDebounceTimer.AutoReset = false;
+        _searchDebounceTimer.Start();
+    }
+    
+    private async Task OpenEditModal(int customerId)
+    {
+        EditingCustomerId = customerId;
+        IsEditModalOpen = true;
+        IsLoadingEditCustomer = true;
+        EditErrorMessage = null;
+        
+        try
+        {
+            var customer = await CustomerService.GetCustomerByIdAsync(customerId);
+            if (customer != null)
+            {
+                EditCustomer = new UpdateCustomerDto
+                {
+                    FullName = customer.Name,
+                    Phone = customer.Phone,
+                    Email = customer.Email,
+                    Address = customer.Address
+                };
+            }
+            else
+            {
+                EditErrorMessage = "Không tìm thấy khách hàng.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading customer: {ex.Message}");
+            EditErrorMessage = "Lỗi khi tải thông tin khách hàng.";
+        }
+        finally
+        {
+            IsLoadingEditCustomer = false;
+        }
+    }
+    
+    private void CloseEditModal()
+    {
+        IsEditModalOpen = false;
+        EditingCustomerId = 0;
+        EditCustomer = new();
+        EditErrorMessage = null;
+    }
+    
+    private async Task HandleUpdateCustomer()
+    {
+        IsUpdating = true;
+        EditErrorMessage = null;
+        
+        try
+        {
+            await CustomerService.UpdateCustomerAsync(EditingCustomerId, EditCustomer);
+            CloseEditModal();
+            await LoadCustomers(); // Reload list to show updated data
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating customer: {ex.Message}");
+            EditErrorMessage = "Lỗi khi cập nhật thông tin khách hàng.";
+        }
+        finally
+        {
+            IsUpdating = false;
         }
     }
 

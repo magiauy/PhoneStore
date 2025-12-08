@@ -8,6 +8,7 @@ public class CartService : ICartService
 {
     private List<CartItem> _cart = new();
     private readonly IJSRuntime _jsRuntime;
+    private readonly IInventoryService _inventoryService;
     private bool _isInitialized = false;
     public bool IsInitialized => _isInitialized;
 
@@ -22,9 +23,10 @@ public class CartService : ICartService
     private void Log(string message) { }
 #endif
 
-    public CartService(IJSRuntime jsRuntime)
+    public CartService(IJSRuntime jsRuntime, IInventoryService inventoryService)
     {
         _jsRuntime = jsRuntime;
+        _inventoryService = inventoryService;
     }
 
     public async Task EnsureInitialized()
@@ -141,5 +143,161 @@ public class CartService : ICartService
     {
         await EnsureInitialized();
         return _cart.Sum(i => i.TotalPrice);
+    }
+
+    public async Task<(bool success, string? message)> AddToCartWithInventoryCheck(Product product, int quantity, string? imageUrl = null)
+    {
+        await EnsureInitialized();
+        
+        if (quantity <= 0)
+        {
+            return (false, "Số lượng phải lớn hơn 0");
+        }
+
+        // Get current availability for this product
+        var availability = await _inventoryService.GetAvailabilityForProductsAsync(new[] { product.Id });
+        var availableQuantity = availability.TryGetValue(product.Id, out var snapshot) 
+            ? snapshot.AvailableQuantity 
+            : 0;
+
+        if (availableQuantity <= 0)
+        {
+            return (false, "Sản phẩm đã hết hàng");
+        }
+
+        // Check current cart quantity for this product
+        var existingItem = _cart.FirstOrDefault(i => i.Product.Id == product.Id);
+        var currentCartQuantity = existingItem?.Quantity ?? 0;
+        var totalRequestedQuantity = currentCartQuantity + quantity;
+
+        string? warningMessage = null;
+        var actualQuantityToAdd = quantity;
+
+        if (totalRequestedQuantity > availableQuantity)
+        {
+            // Limit to available stock
+            actualQuantityToAdd = Math.Max(0, availableQuantity - currentCartQuantity);
+            
+            if (actualQuantityToAdd <= 0)
+            {
+                return (false, $"Bạn đã có {currentCartQuantity} sản phẩm trong giỏ hàng. Chỉ còn {availableQuantity} sản phẩm trong kho.");
+            }
+            
+            warningMessage = $"Chỉ còn {availableQuantity} sản phẩm trong kho. Đã thêm {actualQuantityToAdd} sản phẩm vào giỏ hàng.";
+        }
+
+        // Add to cart
+        if (existingItem == null)
+        {
+            _cart.Add(new CartItem(product, actualQuantityToAdd, imageUrl));
+        }
+        else
+        {
+            existingItem.Quantity += actualQuantityToAdd;
+            if (!string.IsNullOrEmpty(imageUrl))
+            {
+                existingItem.ImageUrl = imageUrl;
+            }
+        }
+        
+        await SaveCart();
+        return (true, warningMessage);
+    }
+
+    public async Task<(bool success, string? message)> UpdateQuantityWithInventoryCheck(Product product, int quantity)
+    {
+        await EnsureInitialized();
+        
+        var cartItem = _cart.FirstOrDefault(i => i.Product.Id == product.Id);
+        if (cartItem == null)
+        {
+            return (false, "Sản phẩm không có trong giỏ hàng");
+        }
+
+        if (quantity <= 0)
+        {
+            // Remove item from cart
+            _cart.Remove(cartItem);
+            await SaveCart();
+            return (true, null);
+        }
+
+        // Get current availability for this product
+        var availability = await _inventoryService.GetAvailabilityForProductsAsync(new[] { product.Id });
+        var availableQuantity = availability.TryGetValue(product.Id, out var snapshot) 
+            ? snapshot.AvailableQuantity 
+            : 0;
+
+        string? warningMessage = null;
+        var actualQuantity = quantity;
+
+        if (quantity > availableQuantity)
+        {
+            if (availableQuantity <= 0)
+            {
+                // Product is out of stock, remove from cart
+                _cart.Remove(cartItem);
+                await SaveCart();
+                return (false, "Sản phẩm đã hết hàng và đã được xóa khỏi giỏ hàng");
+            }
+            
+            // Limit to available stock
+            actualQuantity = availableQuantity;
+            warningMessage = $"Chỉ còn {availableQuantity} sản phẩm trong kho";
+        }
+
+        cartItem.Quantity = actualQuantity;
+        await SaveCart();
+        return (true, warningMessage);
+    }
+
+    public async Task<List<CartValidationResult>> ValidateCartAtCheckout()
+    {
+        await EnsureInitialized();
+        
+        var results = new List<CartValidationResult>();
+        
+        if (_cart.Count == 0)
+        {
+            return results;
+        }
+
+        // Get availability for all products in cart
+        var productIds = _cart.Select(i => i.Product.Id).ToList();
+        var availability = await _inventoryService.GetAvailabilityForProductsAsync(productIds);
+
+        foreach (var item in _cart)
+        {
+            var availableQuantity = availability.TryGetValue(item.Product.Id, out var snapshot) 
+                ? snapshot.AvailableQuantity 
+                : 0;
+
+            var result = new CartValidationResult
+            {
+                ProductId = item.Product.Id,
+                ProductName = item.Product.Name,
+                RequestedQuantity = item.Quantity,
+                AvailableQuantity = availableQuantity
+            };
+
+            if (availableQuantity <= 0)
+            {
+                result.IsValid = false;
+                result.Message = "Sản phẩm đã hết hàng";
+            }
+            else if (item.Quantity > availableQuantity)
+            {
+                result.IsValid = false;
+                result.Message = $"Chỉ còn {availableQuantity} sản phẩm trong kho";
+            }
+            else
+            {
+                result.IsValid = true;
+            }
+
+            results.Add(result);
+        }
+
+        return results;
     }
 }

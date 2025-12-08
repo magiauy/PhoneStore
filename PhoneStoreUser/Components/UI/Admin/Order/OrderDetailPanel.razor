@@ -159,6 +159,14 @@
 
             @* Phần Action Buttons *@
             <div class="p-4 bg-slate-50">
+                 @if (!string.IsNullOrEmpty(GlobalErrorMessage))
+                 {
+                     <div class="mb-3 flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 text-rose-700">
+                         <i class="fa-solid fa-circle-exclamation"></i>
+                         <span class="text-sm font-medium">@GlobalErrorMessage</span>
+                     </div>
+                 }
+                 
                  <div class="flex items-center justify-between">
                      <div class="flex flex-col">
                          <span class="text-xs text-slate-500">Trạng thái hiện tại</span>
@@ -172,8 +180,19 @@
                      <div class="flex gap-3">
                          @if (Detail.Status == "pending" || Detail.Status == "paid")
                          {
-                             <button @onclick="HandleConfirmDelivery" class="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 transition">
-                                 <i class="fa-solid fa-truck-fast"></i> Xác nhận & Giao hàng
+                             <button @onclick="HandleConfirmDelivery" 
+                                     disabled="@IsValidating"
+                                     class="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                 @if (IsValidating)
+                                 {
+                                     <i class="fa-solid fa-circle-notch fa-spin mr-1"></i>
+                                     <span>Đang kiểm tra...</span>
+                                 }
+                                 else
+                                 {
+                                     <i class="fa-solid fa-truck-fast"></i>
+                                     <span> Xác nhận & Giao hàng</span>
+                                 }
                              </button>
                          }
                          else if (Detail.Status == "delivering")
@@ -209,12 +228,15 @@
     private Dictionary<string, string> SerialInputs = new();
     private Dictionary<string, string> SerialErrors = new();
     private HashSet<string> ValidSerials = new();
+    private string? GlobalErrorMessage { get; set; }
+    private bool IsValidating { get; set; }
 
     protected override void OnParametersSet()
     {
         SerialInputs.Clear();
         if (SerialErrors != null) SerialErrors.Clear();
         ValidSerials.Clear();
+        GlobalErrorMessage = null;
     }
 
     private static string FormatFullTimestamp(DateTime? date) => date?.ToString("dd/MM/yyyy HH:mm") ?? "-";
@@ -231,12 +253,14 @@
         SerialInputs[key] = value;
         if (SerialErrors.ContainsKey(key)) SerialErrors.Remove(key);
         if (ValidSerials.Contains(key)) ValidSerials.Remove(key);
+        GlobalErrorMessage = null;
     }
 
     private async Task HandleSerialBlur(string key, string currentValue, int productId)
     {
         SerialErrors.Remove(key);
         ValidSerials.Remove(key);
+        GlobalErrorMessage = null;
         
         if (string.IsNullOrWhiteSpace(currentValue)) return;
 
@@ -248,7 +272,7 @@
             return;
         }
 
-        // 2. Server-side validation
+        // 2. Server-side validation: Check serial exists, belongs to correct product, and is in_stock
         var result = await AdminOrderService.ValidateSerialAsync(currentValue, productId);
         if (!result.IsValid)
         {
@@ -259,6 +283,97 @@
             ValidSerials.Add(key);
         }
         StateHasChanged();
+    }
+
+    /// <summary>
+    /// Validates a single serial number against the database.
+    /// Checks: 1) Serial exists, 2) Belongs to correct product, 3) Status is 'in_stock'
+    /// </summary>
+    private async Task<(bool IsValid, string? ErrorMessage)> ValidateSerial(string serial, int productId)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return (false, "Serial không được để trống");
+        }
+
+        // Check for duplicates in current UI inputs
+        var duplicateCount = 0;
+        if (Detail != null)
+        {
+            foreach (var line in Detail.Lines.Where(l => l.HasSerial))
+            {
+                for (int i = 0; i < line.Quantity; i++)
+                {
+                    string key = $"{line.LineId}_{i}";
+                    string existingSerial = line.Serials.Count > i ? line.Serials[i] : "";
+                    string inputValue = GetSerialInput(key, existingSerial);
+                    
+                    if (string.Equals(inputValue, serial, StringComparison.OrdinalIgnoreCase))
+                    {
+                        duplicateCount++;
+                    }
+                }
+            }
+        }
+
+        if (duplicateCount > 1)
+        {
+            return (false, "Serial này đã được nhập ở ô khác");
+        }
+
+        // Server-side validation
+        var result = await AdminOrderService.ValidateSerialAsync(serial, productId);
+        return (result.IsValid, result.IsValid ? null : result.Message);
+    }
+
+    /// <summary>
+    /// Validates all serials for all order lines before confirming delivery.
+    /// Returns true if all validations pass, false otherwise.
+    /// </summary>
+    private async Task<bool> ValidateAllSerialsAsync()
+    {
+        if (Detail == null) return false;
+
+        SerialErrors.Clear();
+        ValidSerials.Clear();
+        GlobalErrorMessage = null;
+        var hasErrors = false;
+
+        foreach (var line in Detail.Lines.Where(l => l.HasSerial))
+        {
+            for (int i = 0; i < line.Quantity; i++)
+            {
+                string key = $"{line.LineId}_{i}";
+                string existingSerial = line.Serials.Count > i ? line.Serials[i] : "";
+                string serialValue = GetSerialInput(key, existingSerial);
+
+                if (string.IsNullOrWhiteSpace(serialValue))
+                {
+                    SerialErrors[key] = "Vui lòng nhập Serial cho sản phẩm này";
+                    hasErrors = true;
+                    continue;
+                }
+
+                var (isValid, errorMessage) = await ValidateSerial(serialValue, line.ProductId);
+                if (!isValid)
+                {
+                    SerialErrors[key] = errorMessage ?? "Serial không hợp lệ";
+                    hasErrors = true;
+                }
+                else
+                {
+                    ValidSerials.Add(key);
+                }
+            }
+        }
+
+        if (hasErrors)
+        {
+            GlobalErrorMessage = "Vui lòng kiểm tra và sửa các lỗi Serial trước khi xác nhận giao hàng";
+        }
+
+        StateHasChanged();
+        return !hasErrors;
     }
 
     private bool IsDuplicateSerial(string currentKey, string currentValue)
@@ -289,15 +404,34 @@
     private async Task HandleConfirmDelivery()
     {
         if (Detail == null) return;
+        
+        IsValidating = true;
+        GlobalErrorMessage = null;
+        StateHasChanged();
+
         try
         {
+            // Validate all serials before proceeding
+            var allSerialsValid = await ValidateAllSerialsAsync();
+            if (!allSerialsValid)
+            {
+                IsValidating = false;
+                return;
+            }
+
             await SavePendingSerials();
             await AdminOrderService.UpdateOrderStatusAsync(Detail.InvoiceId, "delivering");
             await OnDataChange.InvokeAsync();
         }
         catch (Exception ex)
         {
+            GlobalErrorMessage = $"Lỗi: {ex.Message}";
             Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            IsValidating = false;
+            StateHasChanged();
         }
     }
 

@@ -27,6 +27,25 @@
     <EditForm Model="@Product" OnValidSubmit="HandleSave">
         <DataAnnotationsValidator />
         
+        @if (ValidationErrors.Any() || !string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <p class="text-sm font-semibold text-red-700 mb-2">@ErrorMessage</p>
+                }
+                @if (ValidationErrors.Any())
+                {
+                    <ul class="list-disc list-inside text-sm text-red-600 space-y-1">
+                        @foreach (var error in ValidationErrors)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                }
+            </div>
+        }
+        
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div class="lg:col-span-2 space-y-6">
                 <!-- General Info -->
@@ -64,6 +83,14 @@
                                 <option value="inactive">Ngừng bán</option>
                                 <option value="discontinued">Ngừng kinh doanh</option>
                             </InputSelect>
+                        </div>
+
+                        <div class="flex items-center gap-3 pt-2">
+                            <InputCheckbox @bind-Value="Product.IsSerialTracked" id="isSerialTracked" class="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                            <label for="isSerialTracked" class="text-sm text-slate-700">
+                                <span class="font-semibold">Sản phẩm có Serial</span>
+                                <span class="block text-xs text-slate-500">Bật nếu sản phẩm cần theo dõi theo số serial riêng biệt</span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -235,6 +262,8 @@
     private bool IsSaving = false;
     private bool ImageLoadFailed = false;
     private string? UploadedPublicId;
+    private string? ErrorMessage;
+    private List<string> ValidationErrors = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -476,35 +505,111 @@
         return str;
     }
 
+    private async Task<bool> ValidateProductAsync()
+    {
+        ValidationErrors.Clear();
+        ErrorMessage = null;
+
+        // Validate required fields
+        if (string.IsNullOrWhiteSpace(Product.Name))
+        {
+            ValidationErrors.Add("Tên sản phẩm không được để trống");
+        }
+
+        if (string.IsNullOrWhiteSpace(Product.Sku))
+        {
+            ValidationErrors.Add("SKU không được để trống");
+        }
+        else
+        {
+            // Normalize SKU to uppercase
+            Product.Sku = Product.Sku.Trim().ToUpperInvariant();
+            
+            // Validate SKU format: only uppercase letters, numbers, and hyphens
+            var skuRegex = new System.Text.RegularExpressions.Regex(@"^[A-Z0-9\-]+$");
+            if (!skuRegex.IsMatch(Product.Sku))
+            {
+                ValidationErrors.Add("SKU chỉ được chứa chữ cái in hoa (A-Z), số (0-9) và dấu gạch ngang (-)");
+            }
+
+            // Check for duplicate SKU (only for new products or if SKU changed)
+            if (Id == 0 || (Id != 0 && await IsSkuChangedAsync()))
+            {
+                if (await IsSkuExistsAsync(Product.Sku))
+                {
+                    ValidationErrors.Add($"SKU '{Product.Sku}' đã tồn tại. Vui lòng chọn SKU khác");
+                }
+            }
+        }
+
+        if (Product.CategoryId == 0)
+        {
+            ValidationErrors.Add("Vui lòng chọn danh mục");
+        }
+
+        if (Product.BrandId == null || Product.BrandId == 0)
+        {
+            ValidationErrors.Add("Vui lòng chọn thương hiệu");
+        }
+
+        if (Product.ModelId == 0)
+        {
+            ValidationErrors.Add("Vui lòng chọn model");
+        }
+
+        if (Product.Price <= 0)
+        {
+            ValidationErrors.Add("Giá bán phải lớn hơn 0");
+        }
+
+        return !ValidationErrors.Any();
+    }
+
+    private async Task<bool> IsSkuExistsAsync(string sku)
+    {
+        using var context = await DbContextFactory.CreateDbContextAsync();
+        return await context.Products.AnyAsync(p => p.Sku == sku && p.Id != Id);
+    }
+
+    private async Task<bool> IsSkuChangedAsync()
+    {
+        if (Id == 0) return true;
+        using var context = await DbContextFactory.CreateDbContextAsync();
+        var existingProduct = await context.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == Id);
+        return existingProduct?.Sku != Product.Sku;
+    }
+
     private async Task HandleSave()
     {
         IsSaving = true;
+        ErrorMessage = null;
+        ValidationErrors.Clear();
+        
         try
         {
+            // Validate before saving
+            if (!await ValidateProductAsync())
+            {
+                ErrorMessage = "Vui lòng kiểm tra lại thông tin sản phẩm";
+                return;
+            }
+
             bool success;
             if (Id == 0)
             {
-                success = await ProductService.CreateProductAsync(Product);
-                // We need the ID to save attributes. 
-                // But CreateProductAsync returns bool. 
-                // We might need to refactor CreateProductAsync to return the ID or the created entity.
-                // Or we can fetch the product by SKU after creation.
-                if (success)
+                // CreateProductAsync now returns the new product ID (or 0 on failure)
+                var newProductId = await ProductService.CreateProductAsync(Product);
+                success = newProductId > 0;
+                if (success && AttributeValues.Any())
                 {
-                    // Fetch the newly created product to get its ID
-                    // Assuming SKU is unique
-                    var products = await ProductService.GetProductsAsync(Product.Sku, 1, 1);
-                    var createdProduct = products.Items.FirstOrDefault();
-                    if (createdProduct != null)
-                    {
-                        await ProductService.SaveProductAttributeValuesAsync(createdProduct.Id, AttributeValues);
-                    }
+                    // Save attribute values with the correct product ID
+                    await ProductService.SaveProductAttributeValuesAsync(newProductId, AttributeValues);
                 }
             }
             else
             {
                 success = await ProductService.UpdateProductAsync(Product);
-                if (success)
+                if (success && AttributeValues.Any())
                 {
                     await ProductService.SaveProductAttributeValuesAsync(Product.Id, AttributeValues);
                 }
@@ -516,12 +621,20 @@
             }
             else
             {
-                // Show error
+                ErrorMessage = "Không thể lưu sản phẩm. Vui lòng thử lại.";
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error saving product: {ex.Message}");
+            if (ex.InnerException?.Message.Contains("Duplicate entry") == true)
+            {
+                ErrorMessage = "SKU đã tồn tại. Vui lòng chọn SKU khác.";
+            }
+            else
+            {
+                ErrorMessage = "Đã xảy ra lỗi khi lưu sản phẩm. Vui lòng thử lại.";
+            }
         }
         finally
         {

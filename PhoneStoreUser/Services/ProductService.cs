@@ -48,16 +48,20 @@ public class ProductService : IProductService
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
-    public async Task<bool> CreateProductAsync(ProductEntity product)
+    public async Task<int> CreateProductAsync(ProductEntity product)
     {
         using var context = await _dbContextFactory.CreateDbContextAsync();
-        product.CreatedAt = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
+        product.CreatedAt = now;
+        product.UpdatedAt = now;
         if (product.Model != null)
         {
-            product.Model.CreatedAt = DateTime.UtcNow;
+            product.Model.CreatedAt = now;
+            product.Model.UpdatedAt = now;
         }
         context.Products.Add(product);
-        return await context.SaveChangesAsync() > 0;
+        var result = await context.SaveChangesAsync();
+        return result > 0 ? product.Id : 0;
     }
 
     public async Task<bool> UpdateProductAsync(ProductEntity product)

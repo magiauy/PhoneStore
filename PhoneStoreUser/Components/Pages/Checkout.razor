@@ -258,7 +258,30 @@
                     @if (!string.IsNullOrEmpty(errorMessage))
                     {
                         <div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-                            @errorMessage
+                            @if (hasInventoryErrors)
+                            {
+                                <div class="font-semibold mb-2">
+                                    <i class="fa-solid fa-exclamation-triangle mr-1"></i>
+                                    Không thể đặt hàng do một số sản phẩm không còn đủ số lượng trong kho:
+                                </div>
+                                <ul class="list-disc list-inside space-y-1">
+                                    @foreach (var item in inventoryValidationResults.Where(r => !r.IsValid))
+                                    {
+                                        <li>
+                                            <span class="font-medium">@item.ProductName:</span> @item.Message
+                                            @if (item.AvailableQuantity > 0)
+                                            {
+                                                <span class="text-gray-500">(Yêu cầu: @item.RequestedQuantity, Còn lại: @item.AvailableQuantity)</span>
+                                            }
+                                        </li>
+                                    }
+                                </ul>
+                                <p class="mt-2 text-gray-600">Vui lòng quay lại giỏ hàng để điều chỉnh số lượng.</p>
+                            }
+                            else
+                            {
+                                @errorMessage
+                            }
                         </div>
                     }
 
@@ -331,6 +354,10 @@
     private bool isCouponValid = false;
     private decimal discountAmount = 0;
     private int? appliedPromotionCodeId;
+
+    // Inventory validation fields
+    private List<CartValidationResult> inventoryValidationResults = new();
+    private bool hasInventoryErrors = false;
 
     private decimal Total => cartItems.Sum(i => i.Product.Price * i.Quantity);
     private decimal FinalTotal => Math.Max(0, Total - discountAmount);
@@ -425,9 +452,24 @@
 
         isProcessing = true;
         errorMessage = null;
+        inventoryValidationResults.Clear();
+        hasInventoryErrors = false;
 
         try
         {
+            // Validate inventory before processing
+            inventoryValidationResults = await CartService.ValidateCartAtCheckout();
+            var invalidItems = inventoryValidationResults.Where(r => !r.IsValid).ToList();
+            
+            if (invalidItems.Any())
+            {
+                hasInventoryErrors = true;
+                var errorMessages = invalidItems.Select(i => $"{i.ProductName}: {i.Message}");
+                errorMessage = "Không thể đặt hàng do một số sản phẩm không còn đủ số lượng trong kho:\n" + string.Join("\n", errorMessages);
+                isProcessing = false;
+                return;
+            }
+
             if (paymentMethod == PaymentMethodBank)
             {
                 // Create order and get PayOS payment link
