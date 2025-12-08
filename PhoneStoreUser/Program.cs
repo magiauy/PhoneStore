@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -14,8 +15,8 @@ using PhoneStoreUser.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-const string defaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-const string adminScheme = "guzone.admin";
+// Single cookie scheme for both user and admin authentication
+const string authScheme = "guzone.auth";
 const string adminRoleName = nameof(PersonType.EMPLOYEE);
 
 // Configure PayOS
@@ -50,90 +51,46 @@ builder.Services.AddHttpClient();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<CookieAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CookieAuthStateProvider>());
+// Single cookie authentication scheme for both user and admin
 builder.Services.AddAuthentication(options =>
     {
-        options.DefaultScheme = "guzone.policy";
-        options.DefaultAuthenticateScheme = "guzone.policy";
-        options.DefaultChallengeScheme = "guzone.policy";
+        options.DefaultScheme = authScheme;
+        options.DefaultAuthenticateScheme = authScheme;
+        options.DefaultChallengeScheme = authScheme;
+        options.DefaultSignInScheme = authScheme;
+        options.DefaultSignOutScheme = authScheme;
     })
-    .AddPolicyScheme("guzone.policy", "GuZone policy", options =>
-    {
-        options.ForwardDefaultSelector = context =>
-        {
-            // 1. Path-based check for admin pages (direct page requests)
-            if (context.Request.Path.StartsWithSegments("/admin", StringComparison.OrdinalIgnoreCase))
-            {
-                return adminScheme;
-            }
-            
-            // 2. For SignalR/Blazor connections, we need to determine context
-            if (context.Request.Path.StartsWithSegments("/_blazor", StringComparison.OrdinalIgnoreCase))
-            {
-                // Check Referer header first (most reliable for Blazor)
-                var referer = context.Request.Headers.Referer.ToString();
-                if (!string.IsNullOrEmpty(referer))
-                {
-                    // Parse the referer to get the path
-                    if (Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
-                    {
-                        if (refererUri.AbsolutePath.StartsWith("/admin", StringComparison.OrdinalIgnoreCase))
-                        {
-                            return adminScheme;
-                        }
-                        // Referer exists but not admin path - use default scheme
-                        return defaultScheme;
-                    }
-                }
-                
-                // No referer - check cookies as fallback
-                // If ONLY admin cookie exists, use admin scheme
-                var hasAdminCookie = context.Request.Cookies.ContainsKey(adminScheme);
-                var hasUserCookie = context.Request.Cookies.ContainsKey("guzone.auth");
-                
-                if (hasAdminCookie && !hasUserCookie)
-                {
-                    return adminScheme;
-                }
-                
-                // If both cookies exist or only user cookie, default to user scheme
-                // The page context (admin vs user) should be determined by Referer
-                return defaultScheme;
-            }
-            
-            // 3. All other pages (user pages) should use default scheme
-            return defaultScheme;
-        };
-    })
-    .AddCookie(defaultScheme, options =>
+    .AddCookie(authScheme, options =>
     {
         options.LoginPath = "/login";
         options.AccessDeniedPath = "/login";
-        options.Cookie.Name = "guzone.auth";
+        options.Cookie.Name = authScheme;
         options.Cookie.HttpOnly = true;
         // Use SameAsRequest for development (HTTP) and production (HTTPS) compatibility
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.SlidingExpiration = true;
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
-    })
-    .AddCookie(adminScheme, options =>
-    {
-        options.LoginPath = "/admin";
-        options.AccessDeniedPath = "/admin";
-        options.Cookie.Name = adminScheme;
-        options.Cookie.HttpOnly = true;
-        // Use SameAsRequest for development (HTTP) and production (HTTPS) compatibility
-        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        options.Cookie.SameSite = SameSiteMode.Lax;
-        options.SlidingExpiration = true;
-        options.ExpireTimeSpan = TimeSpan.FromDays(7);
+        // Custom event to handle admin login path redirect
+        options.Events = new CookieAuthenticationEvents
+        {
+            OnRedirectToLogin = context =>
+            {
+                // If accessing admin pages, redirect to admin login
+                if (context.Request.Path.StartsWithSegments("/admin", StringComparison.OrdinalIgnoreCase))
+                {
+                    context.RedirectUri = "/admin";
+                }
+                context.Response.Redirect(context.RedirectUri);
+                return Task.CompletedTask;
+            }
+        };
     });
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy =>
     {
         policy.RequireAuthenticatedUser();
-        policy.AddAuthenticationSchemes(adminScheme);
         policy.RequireRole(adminRoleName);
     });
 });
@@ -209,7 +166,9 @@ app.MapPost("/login", async (
     }
 
     var person = await dbContext.Persons.FindAsync(account.PersonId);
-    var principal = CreatePrincipal(account, person, defaultScheme);
+    
+    // Create principal with single cookie scheme including all claims
+    var principal = CreatePrincipal(account, person, authScheme, isAdmin: false);
     
     // Get ReturnUrl from query string or use default
     var finalReturnUrl = context.Request.Query["ReturnUrl"].ToString();
@@ -224,26 +183,26 @@ app.MapPost("/login", async (
         RedirectUri = finalReturnUrl
     };
 
-    await context.SignInAsync(defaultScheme, principal, authProperties);
+    await context.SignInAsync(authScheme, principal, authProperties);
 
     return Results.Redirect(finalReturnUrl);
 }).AllowAnonymous().DisableAntiforgery();
 
 app.MapPost("/logout", async (HttpContext context) =>
 {
-    // Clear the authentication cookie
-    await context.SignOutAsync(defaultScheme);
+    // Clear the single authentication cookie
+    await context.SignOutAsync(authScheme);
     // Also delete the cookie explicitly to ensure it's removed
-    context.Response.Cookies.Delete("guzone.auth");
+    context.Response.Cookies.Delete(authScheme);
     return Results.Ok();
 }).AllowAnonymous();
 
 app.MapGet("/logout", async (HttpContext context) =>
 {
-    // Clear the authentication cookie
-    await context.SignOutAsync(defaultScheme);
+    // Clear the single authentication cookie
+    await context.SignOutAsync(authScheme);
     // Also delete the cookie explicitly to ensure it's removed
-    context.Response.Cookies.Delete("guzone.auth");
+    context.Response.Cookies.Delete(authScheme);
     return Results.Redirect("/");
 }).AllowAnonymous();
 
@@ -270,47 +229,48 @@ adminRoutes.MapPost("/login", async (
     {
         return Results.Redirect("/admin?error=invalid_credentials");
     }
-    Console.WriteLine(account?.Username);
+
     // Verify password
     if (!PhoneStoreUser.Utils.PasswordHasher.VerifyPassword(model.Password, account.Password))
     {
         return Results.Redirect("/admin?error=invalid_credentials");
     }
-    Console.WriteLine(account?.PersonId);
+
     var person = await dbContext.Persons.FindAsync(account.PersonId);
-    Console.WriteLine(person?.PersonType);
+    
     if (!string.Equals(person?.PersonType, "EMPLOYEE", StringComparison.OrdinalIgnoreCase))
     {
         return Results.Redirect("/admin?error=unauthorized");
     }
 
-    var principal = CreatePrincipal(account, person, adminScheme);
+    // Create principal with single cookie scheme including admin role and permissions
+    var principal = CreatePrincipal(account, person, authScheme, isAdmin: true);
     var authProperties = new AuthenticationProperties
     {
         IsPersistent = model.RememberMe,
         RedirectUri = "/admin/dashboard"
     };
 
-    await context.SignInAsync(adminScheme, principal, authProperties);
+    await context.SignInAsync(authScheme, principal, authProperties);
 
     return Results.Redirect("/admin/dashboard");
 }).AllowAnonymous().DisableAntiforgery();
 
 adminRoutes.MapPost("/logout", async (HttpContext context) =>
 {
-    // Clear the admin authentication cookie
-    await context.SignOutAsync(adminScheme);
+    // Clear the single authentication cookie
+    await context.SignOutAsync(authScheme);
     // Also delete the cookie explicitly to ensure it's removed
-    context.Response.Cookies.Delete(adminScheme);
+    context.Response.Cookies.Delete(authScheme);
     return Results.Ok();
 }).AllowAnonymous();
 
 adminRoutes.MapGet("/logout", async (HttpContext context) =>
 {
-    // Clear the admin authentication cookie
-    await context.SignOutAsync(adminScheme);
+    // Clear the single authentication cookie
+    await context.SignOutAsync(authScheme);
     // Also delete the cookie explicitly to ensure it's removed
-    context.Response.Cookies.Delete(adminScheme);
+    context.Response.Cookies.Delete(authScheme);
     return Results.Redirect("/admin");
 }).AllowAnonymous();
 
@@ -323,7 +283,7 @@ app.MapRazorComponents<App>()
 
 app.Run();
 
-ClaimsPrincipal CreatePrincipal(AccountEntity account, PersonEntity? person, string authenticationScheme)
+ClaimsPrincipal CreatePrincipal(AccountEntity account, PersonEntity? person, string authenticationScheme, bool isAdmin = false)
 {
     var claims = new List<Claim>
     {
@@ -337,11 +297,23 @@ ClaimsPrincipal CreatePrincipal(AccountEntity account, PersonEntity? person, str
         claims.Add(new Claim(ClaimTypes.Email, person.Email));
     }
 
+    // Determine role based on person type
     var roleName = string.Equals(person?.PersonType, "EMPLOYEE", StringComparison.OrdinalIgnoreCase)
         ? adminRoleName
         : person?.PersonType ?? "Customer";
 
     claims.Add(new Claim(ClaimTypes.Role, roleName));
+    
+    // Add is_admin claim to indicate admin context login
+    claims.Add(new Claim("is_admin", isAdmin.ToString().ToLower()));
+    
+    // Add permissions claim (serialized as JSON)
+    // For admin users, include admin permissions; for regular users, include basic permissions
+    var permissions = isAdmin && string.Equals(person?.PersonType, "EMPLOYEE", StringComparison.OrdinalIgnoreCase)
+        ? new List<string> { "admin.access", "admin.dashboard", "admin.orders", "admin.customers", "admin.products", "admin.reports" }
+        : new List<string> { "user.profile", "user.orders", "user.cart" };
+    
+    claims.Add(new Claim("permissions", JsonSerializer.Serialize(permissions)));
 
     var identity = new ClaimsIdentity(claims, authenticationScheme);
     return new ClaimsPrincipal(identity);

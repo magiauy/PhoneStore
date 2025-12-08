@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -7,8 +7,8 @@ using Microsoft.AspNetCore.Http;
 namespace PhoneStoreUser.Services;
 
 /// <summary>
-/// Context-aware authentication state provider that selects the correct user
-/// based on the current page URL (admin vs user pages).
+/// Single cookie authentication state provider that works with one cookie scheme.
+/// Determines admin context from claims (role and is_admin) instead of cookie scheme.
 /// </summary>
 public class CookieAuthStateProvider : AuthenticationStateProvider
 {
@@ -16,8 +16,8 @@ public class CookieAuthStateProvider : AuthenticationStateProvider
     private readonly NavigationManager? _navigationManager;
     private ClaimsPrincipal _cachedUser;
     
-    private const string UserScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    private const string AdminScheme = "guzone.admin";
+    private const string AuthScheme = "guzone.auth";
+    private const string AdminRoleName = "EMPLOYEE";
 
     public CookieAuthStateProvider(
         IHttpContextAccessor httpContextAccessor,
@@ -36,15 +36,23 @@ public class CookieAuthStateProvider : AuthenticationStateProvider
             return Task.FromResult(new AuthenticationState(_cachedUser));
         }
 
-        // Determine if we're in admin context
-        var isAdminContext = IsAdminContext(httpContext);
-        
-        // Get the appropriate user based on context
-        var user = GetUserForContext(httpContext, isAdminContext);
+        // Get the user from the single cookie
+        var user = GetAuthenticatedUser(httpContext);
         
         if (user is not null && user.Identity?.IsAuthenticated == true)
         {
-            _cachedUser = user;
+            // Determine if we're in admin context based on URL
+            var isAdminContext = IsAdminContext(httpContext);
+            
+            // For admin context, verify user has admin role
+            if (isAdminContext && !IsAdminUser(user))
+            {
+                _cachedUser = new ClaimsPrincipal(new ClaimsIdentity());
+            }
+            else
+            {
+                _cachedUser = user;
+            }
         }
         else
         {
@@ -55,13 +63,13 @@ public class CookieAuthStateProvider : AuthenticationStateProvider
     }
 
     /// <summary>
-    /// Determines if the current request is in admin context
-    /// Uses NavigationManager for accurate URL in Blazor Server
+    /// Determines if the current request is in admin context based on URL path.
     /// </summary>
-    private bool IsAdminContext(HttpContext httpContext)
+    public bool IsAdminContext(HttpContext? httpContext = null)
     {
+        httpContext ??= _httpContextAccessor.HttpContext;
+        
         // 1. First priority: Use NavigationManager to get the actual page URL
-        //    This works correctly even during SignalR connections
         if (_navigationManager is not null)
         {
             try
@@ -71,13 +79,17 @@ public class CookieAuthStateProvider : AuthenticationStateProvider
                 {
                     return true;
                 }
-                // NavigationManager has a valid non-admin URL
                 return false;
             }
             catch
             {
                 // NavigationManager might not be initialized yet, fall through
             }
+        }
+        
+        if (httpContext is null)
+        {
+            return false;
         }
         
         // 2. Fallback: Check the request path directly
@@ -101,9 +113,75 @@ public class CookieAuthStateProvider : AuthenticationStateProvider
     }
 
     /// <summary>
-    /// Gets the appropriate ClaimsPrincipal based on context.
+    /// Checks if the user has admin role from claims.
     /// </summary>
-    private ClaimsPrincipal? GetUserForContext(HttpContext httpContext, bool isAdminContext)
+    public bool IsAdminUser(ClaimsPrincipal? user = null)
+    {
+        user ??= _cachedUser;
+        
+        if (user?.Identity?.IsAuthenticated != true)
+        {
+            return false;
+        }
+        
+        // Check role claim for admin role
+        var roleClaim = user.FindFirst(ClaimTypes.Role);
+        if (roleClaim is not null && string.Equals(roleClaim.Value, AdminRoleName, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        
+        // Also check is_admin claim
+        var isAdminClaim = user.FindFirst("is_admin");
+        if (isAdminClaim is not null && string.Equals(isAdminClaim.Value, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        
+        return false;
+    }
+
+    /// <summary>
+    /// Gets the user's permissions from claims.
+    /// </summary>
+    public List<string> GetUserPermissions(ClaimsPrincipal? user = null)
+    {
+        user ??= _cachedUser;
+        
+        if (user?.Identity?.IsAuthenticated != true)
+        {
+            return new List<string>();
+        }
+        
+        var permissionsClaim = user.FindFirst("permissions");
+        if (permissionsClaim is null || string.IsNullOrEmpty(permissionsClaim.Value))
+        {
+            return new List<string>();
+        }
+        
+        try
+        {
+            return JsonSerializer.Deserialize<List<string>>(permissionsClaim.Value) ?? new List<string>();
+        }
+        catch
+        {
+            return new List<string>();
+        }
+    }
+
+    /// <summary>
+    /// Checks if the user has a specific permission.
+    /// </summary>
+    public bool HasPermission(string permission, ClaimsPrincipal? user = null)
+    {
+        var permissions = GetUserPermissions(user);
+        return permissions.Contains(permission, StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Gets the authenticated user from the single cookie.
+    /// </summary>
+    private ClaimsPrincipal? GetAuthenticatedUser(HttpContext httpContext)
     {
         var httpUser = httpContext.User;
         
@@ -112,27 +190,15 @@ public class CookieAuthStateProvider : AuthenticationStateProvider
             return null;
         }
         
+        // Accept users authenticated with our single cookie scheme
         var authenticationType = httpUser.Identity.AuthenticationType;
+        if (string.Equals(authenticationType, AuthScheme, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(authenticationType, "Cookies", StringComparison.OrdinalIgnoreCase))
+        {
+            return httpUser;
+        }
         
-        if (isAdminContext)
-        {
-            // For admin context, only accept admin-authenticated users
-            if (string.Equals(authenticationType, AdminScheme, StringComparison.OrdinalIgnoreCase))
-            {
-                return httpUser;
-            }
-            return null;
-        }
-        else
-        {
-            // For user context, only accept user-authenticated users
-            if (string.Equals(authenticationType, UserScheme, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(authenticationType, "Cookies", StringComparison.OrdinalIgnoreCase))
-            {
-                return httpUser;
-            }
-            return null;
-        }
+        return null;
     }
 
     public void NotifyUserLogout()
@@ -146,8 +212,7 @@ public class CookieAuthStateProvider : AuthenticationStateProvider
         var httpContext = _httpContextAccessor.HttpContext;
         if (httpContext is not null)
         {
-            var isAdminContext = IsAdminContext(httpContext);
-            var user = GetUserForContext(httpContext, isAdminContext);
+            var user = GetAuthenticatedUser(httpContext);
             _cachedUser = user ?? new ClaimsPrincipal(new ClaimsIdentity());
         }
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(_cachedUser)));
@@ -158,8 +223,7 @@ public class CookieAuthStateProvider : AuthenticationStateProvider
         var httpContext = _httpContextAccessor.HttpContext;
         if (httpContext is not null)
         {
-            var isAdminContext = IsAdminContext(httpContext);
-            var user = GetUserForContext(httpContext, isAdminContext);
+            var user = GetAuthenticatedUser(httpContext);
             _cachedUser = user ?? new ClaimsPrincipal(new ClaimsIdentity());
         }
         else
