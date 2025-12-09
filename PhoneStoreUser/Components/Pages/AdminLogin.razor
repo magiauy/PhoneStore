@@ -149,36 +149,26 @@ else
     private bool _shouldRedirect = false;
     private string _redirectUrl = string.Empty;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        var httpContext = HttpContextAccessor.HttpContext;
-        if (httpContext == null)
-        {
-            _isChecking = false;
-            return;
-        }
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
-        // Kiểm tra xem có admin cookie không
-        var hasAdminCookie = httpContext.Request.Cookies.ContainsKey("guzone.admin");
-        var hasUserCookie = httpContext.Request.Cookies.ContainsKey("guzone.auth");
-
-        // Nếu có admin cookie, HttpContext.User sẽ được xác thực với admin scheme
-        // vì policy scheme forward /admin/* đến adminScheme
-        var user = httpContext.User;
-        
-        if (hasAdminCookie && user.Identity?.IsAuthenticated == true && user.IsInRole("EMPLOYEE"))
+        if (user.Identity?.IsAuthenticated == true)
         {
-            // Admin đã đăng nhập, đánh dấu để redirect sau khi render
-            _shouldRedirect = true;
-            _redirectUrl = "/admin/dashboard";
-            return;
+            if (user.IsInRole("EMPLOYEE"))
+            {
+                // Authenticated as Admin -> Redirect to Dashboard
+                _shouldRedirect = true;
+                _redirectUrl = "/admin/dashboard";
+            }
+            else
+            {
+                // Authenticated but not Admin -> Access Denied
+                _showAccessDenied = true;
+            }
         }
-
-        // Nếu chỉ có user cookie (không có admin cookie), hiển thị access denied
-        if (hasUserCookie && !hasAdminCookie)
-        {
-            _showAccessDenied = true;
-        }
+        // Else: Not authenticated -> Show Login Form (default state)
 
         _isChecking = false;
     }

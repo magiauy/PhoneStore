@@ -12,5 +12,7 @@ namespace PhoneStoreUser.Services
         Task UpdatePurchaseOrderAsync(PurchaseOrderDTO dto);
         Task CompletePurchaseOrderAsync(int id);
         Task CancelPurchaseOrderAsync(int id);
+        Task<bool> IsImeiExistsAsync(string imei);
+        Task<bool> IsSerialNumberExistsAsync(string serialNumber);
     }
 }

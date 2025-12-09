@@ -1,6 +1,7 @@
 @page "/admin/purchase-orders"
 @using PhoneStoreUser.Models
 @using PhoneStoreUser.Services
+@inject ILogger<PurchaseOrderList> Logger
 @inject IPurchaseOrderService PurchaseOrderService
 @inject NavigationManager Navigation
 @layout Layout.AdminLayout
@@ -96,12 +97,31 @@
 
     protected override async Task OnInitializedAsync()
     {
-        purchaseOrders = await PurchaseOrderService.GetPurchaseOrdersAsync();
+        try
+        {
+            purchaseOrders = await PurchaseOrderService.GetPurchaseOrdersAsync();
+            if (purchaseOrders != null)
+            {
+                Logger.LogInformation($"[PurchaseOrderList] Loaded {purchaseOrders.Count} orders.");
+                foreach (var po in purchaseOrders)
+                {
+                    Logger.LogInformation($"[PurchaseOrderList] PO #{po.Id} | Status: {po.Status} | Supplier: {po.SupplierName}");
+                }
+            }
+            else
+            {
+                Logger.LogWarning("[PurchaseOrderList] purchaseOrders is null");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "[PurchaseOrderList] Error loading purchase orders");
+        }
     }
 
     private string GetStatusClass(string status)
     {
-        return status switch
+        return status?.ToUpper() switch
         {
             "DRAFT" => "text-yellow-900 bg-yellow-200",
             "RECEIVED" => "text-green-900 bg-green-200",

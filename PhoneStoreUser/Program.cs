@@ -137,8 +137,9 @@ app.MapPost("/login", async (
     if (string.IsNullOrWhiteSpace(model.EmailOrUsername) || string.IsNullOrWhiteSpace(model.Password))
     {
         var returnUrl = context.Request.Query["ReturnUrl"].ToString();
-        var redirectUrl = string.IsNullOrEmpty(returnUrl) 
-            ? "/login?error=missing_credentials" 
+        var redirectUrl = string.IsNullOrEmpty(returnUrl)
+            ? "/login?error=missing_credentials"
+
             : $"/login?error=missing_credentials&ReturnUrl={Uri.EscapeDataString(returnUrl)}";
         return Results.Redirect(redirectUrl);
     }
@@ -152,8 +153,9 @@ app.MapPost("/login", async (
     if (account is null)
     {
         var returnUrl = context.Request.Query["ReturnUrl"].ToString();
-        var redirectUrl = string.IsNullOrEmpty(returnUrl) 
-            ? "/login?error=invalid_credentials" 
+        var redirectUrl = string.IsNullOrEmpty(returnUrl)
+            ? "/login?error=invalid_credentials"
+
             : $"/login?error=invalid_credentials&ReturnUrl={Uri.EscapeDataString(returnUrl)}";
         return Results.Redirect(redirectUrl);
     }
@@ -162,24 +164,28 @@ app.MapPost("/login", async (
     if (!PhoneStoreUser.Utils.PasswordHasher.VerifyPassword(model.Password, account.Password))
     {
         var returnUrl = context.Request.Query["ReturnUrl"].ToString();
-        var redirectUrl = string.IsNullOrEmpty(returnUrl) 
-            ? "/login?error=invalid_credentials" 
+        var redirectUrl = string.IsNullOrEmpty(returnUrl)
+            ? "/login?error=invalid_credentials"
+
             : $"/login?error=invalid_credentials&ReturnUrl={Uri.EscapeDataString(returnUrl)}";
         return Results.Redirect(redirectUrl);
     }
 
     var person = await dbContext.Persons.FindAsync(account.PersonId);
-    
+
     // Create principal with single cookie scheme including all claims
+
     var principal = CreatePrincipal(account, person, authScheme, isAdmin: false);
-    
+
     // Get ReturnUrl from query string or use default
+
     var finalReturnUrl = context.Request.Query["ReturnUrl"].ToString();
     if (string.IsNullOrEmpty(finalReturnUrl) || !finalReturnUrl.StartsWith("/"))
     {
         finalReturnUrl = "/";
     }
-    
+
+
     var authProperties = new AuthenticationProperties
     {
         IsPersistent = model.RememberMe,
@@ -240,7 +246,9 @@ adminRoutes.MapPost("/login", async (
     }
 
     var person = await dbContext.Persons.FindAsync(account.PersonId);
-    
+
+
+
     if (!string.Equals(person?.PersonType, "EMPLOYEE", StringComparison.OrdinalIgnoreCase))
     {
         return Results.Redirect("/admin?error=unauthorized");
@@ -306,16 +314,19 @@ ClaimsPrincipal CreatePrincipal(AccountEntity account, PersonEntity? person, str
         : person?.PersonType ?? "Customer";
 
     claims.Add(new Claim(ClaimTypes.Role, roleName));
-    
+
     // Add is_admin claim to indicate admin context login
+
     claims.Add(new Claim("is_admin", isAdmin.ToString().ToLower()));
-    
+
     // Add permissions claim (serialized as JSON)
     // For admin users, include admin permissions; for regular users, include basic permissions
+
     var permissions = isAdmin && string.Equals(person?.PersonType, "EMPLOYEE", StringComparison.OrdinalIgnoreCase)
         ? new List<string> { "admin.access", "admin.dashboard", "admin.orders", "admin.customers", "admin.products", "admin.reports" }
         : new List<string> { "user.profile", "user.orders", "user.cart" };
-    
+
+
     claims.Add(new Claim("permissions", JsonSerializer.Serialize(permissions)));
 
     var identity = new ClaimsIdentity(claims, authenticationScheme);

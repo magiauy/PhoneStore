@@ -143,9 +143,9 @@ namespace PhoneStoreUser.Services
                         {
                             ProductId = lineDto.ProductId,
                             SerialNumber = serialDto.SerialNumber,
-                            Imei1 = serialDto.Imei1,
-                            Imei2 = serialDto.Imei2,
-                            Status = "rma", // Draft status
+                            Imei1 = string.IsNullOrWhiteSpace(serialDto.Imei1) ? null : serialDto.Imei1,
+                            Imei2 = string.IsNullOrWhiteSpace(serialDto.Imei2) ? null : serialDto.Imei2,
+                            Status = "RESERVED", // Draft status
                             PurchaseOrderLineId = line.Id,
                             Note = serialDto.Note
                         };
@@ -165,7 +165,11 @@ namespace PhoneStoreUser.Services
                 .FirstOrDefaultAsync(p => p.Id == dto.Id);
 
             if (po == null) throw new Exception("Purchase Order not found");
-            if (po.Status == "RECEIVED" || po.Status == "CANCELLED") throw new Exception("Cannot edit finalized order");
+            if (string.Equals(po.Status, "RECEIVED", StringComparison.OrdinalIgnoreCase) ||
+
+                string.Equals(po.Status, "CANCELLED", StringComparison.OrdinalIgnoreCase))
+
+                throw new Exception("Cannot edit finalized order");
 
             // Update Header
             po.SupplierId = dto.SupplierId;
@@ -238,8 +242,8 @@ namespace PhoneStoreUser.Services
                             if (serial != null)
                             {
                                 serial.SerialNumber = serialDto.SerialNumber;
-                                serial.Imei1 = serialDto.Imei1;
-                                serial.Imei2 = serialDto.Imei2;
+                                serial.Imei1 = string.IsNullOrWhiteSpace(serialDto.Imei1) ? null : serialDto.Imei1;
+                                serial.Imei2 = string.IsNullOrWhiteSpace(serialDto.Imei2) ? null : serialDto.Imei2;
                                 serial.Note = serialDto.Note;
                             }
                         }
@@ -249,9 +253,9 @@ namespace PhoneStoreUser.Services
                             {
                                 ProductId = lineDto.ProductId,
                                 SerialNumber = serialDto.SerialNumber,
-                                Imei1 = serialDto.Imei1,
-                                Imei2 = serialDto.Imei2,
-                                Status = "rma",
+                                Imei1 = string.IsNullOrWhiteSpace(serialDto.Imei1) ? null : serialDto.Imei1,
+                                Imei2 = string.IsNullOrWhiteSpace(serialDto.Imei2) ? null : serialDto.Imei2,
+                                Status = "RESERVED",
                                 PurchaseOrderLineId = lineEntity.Id,
                                 Note = serialDto.Note
                             };
@@ -271,7 +275,7 @@ namespace PhoneStoreUser.Services
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (po == null) throw new Exception("Purchase Order not found");
-            if (po.Status != "DRAFT") throw new Exception("Only draft orders can be completed");
+            if (!string.Equals(po.Status, "DRAFT", StringComparison.OrdinalIgnoreCase)) throw new Exception("Only draft orders can be completed");
 
             // 1. Create Batch
             var batch = new BatchEntity
@@ -336,6 +340,18 @@ namespace PhoneStoreUser.Services
 
             po.Status = "CANCELLED";
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> IsImeiExistsAsync(string imei)
+        {
+            if (string.IsNullOrWhiteSpace(imei)) return false;
+            return await _context.ProductSerials.AnyAsync(s => s.Imei1 == imei || s.Imei2 == imei);
+        }
+
+        public async Task<bool> IsSerialNumberExistsAsync(string serialNumber)
+        {
+            if (string.IsNullOrWhiteSpace(serialNumber)) return false;
+            return await _context.ProductSerials.AnyAsync(s => s.SerialNumber == serialNumber);
         }
     }
 }
