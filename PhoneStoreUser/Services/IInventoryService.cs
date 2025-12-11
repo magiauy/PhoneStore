@@ -8,6 +8,7 @@ public interface IInventoryService
     Task<InventoryPageResult> GetInventorySummaryAsync(int page, int pageSize, string? searchTerm = null);
     Task<List<BatchDetailDto>> GetProductBatchDetailsAsync(int productId);
     Task<Dictionary<int, ProductAvailabilitySnapshot>> GetAvailabilityForProductsAsync(IEnumerable<int> productIds);
+    Task<List<string>> GetSuitableSerialsAsync(int productId, int count);
 }
 
 public class InventoryPageResult

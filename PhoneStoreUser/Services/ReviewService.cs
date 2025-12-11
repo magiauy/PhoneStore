@@ -18,8 +18,9 @@ public class ReviewService(IDbContextFactory<AppDbContext> dbContextFactory) : I
     public async Task AddReviewAsync(ReviewEntity review)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
-        
+
         // 1. Check if user is authenticated (PersonId > 0)
+
         if (review.PersonId <= 0)
         {
             throw new InvalidOperationException("Bạn cần đăng nhập để đánh giá sản phẩm.");
@@ -28,7 +29,8 @@ public class ReviewService(IDbContextFactory<AppDbContext> dbContextFactory) : I
         // 2. Count valid invoices containing the product
         // Status: "paid", "completed", "delivering"
         var validInvoiceCount = await context.Invoices
-            .Where(i => i.PersonId == review.PersonId && 
+            .Where(i => i.PersonId == review.PersonId &&
+
                         (i.Status == "paid" || i.Status == "completed" || i.Status == "delivering") &&
                         i.Lines.Any(l => l.ProductId == review.ProductId))
             .CountAsync();
@@ -68,15 +70,24 @@ public class ReviewService(IDbContextFactory<AppDbContext> dbContextFactory) : I
     public async Task<(double AverageRating, int TotalReviews)> GetReviewSummaryAsync(int productModelId)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
-        var ratings = await context.Reviews
-            .Include(r => r.Product)
+
+
+        var stats = await context.Reviews
             .Where(r => r.Product.ModelId == productModelId)
-            .Select(r => r.Rating)
-            .ToListAsync();
+            .GroupBy(x => 1)
+            .Select(g => new
+            {
 
-        if (ratings.Count == 0) return (0, 0);
+                AverageRating = g.Average(r => r.Rating),
 
-        return (ratings.Average(), ratings.Count);
+                TotalReviews = g.Count()
+
+            })
+            .FirstOrDefaultAsync();
+
+        if (stats == null) return (0, 0);
+
+        return (stats.AverageRating, stats.TotalReviews);
     }
 
     public async Task<List<ReviewEntity>> GetReviewsByProductModelIdAsync(int productModelId)

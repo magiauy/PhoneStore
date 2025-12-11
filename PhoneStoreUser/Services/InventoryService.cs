@@ -329,4 +329,33 @@ public class InventoryService : IInventoryService
 
         return snapshots;
     }
+
+    public async Task<List<string>> GetSuitableSerialsAsync(int productId, int count)
+    {
+        if (count <= 0) return new List<string>();
+
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        // 1. Get all In_Stock serials for the product
+        // 2. Join with Batch to get CreatedAt
+        // 3. Order by Batch.CreatedAt ASC, then Serial.Id
+        // 4. Take count
+
+        // Note: Some serials might not have a batch (e.g. manually added without batch, though rare in this flow). 
+        // We treat null batch as "very old" or "very new"? 
+        // Let's treat null batch as "Unknown date", maybe put them at the end or beginning. 
+        // Requirement says "from oldest batch".
+
+
+        var query = from s in dbContext.ProductSerials
+                    join b in dbContext.Batches on s.BatchId equals b.Id into bj
+                    from batch in bj.DefaultIfEmpty()
+
+                    where s.ProductId == productId && s.Status == "in_stock"
+                    orderby batch.CreatedAt ascending, s.Id ascending
+                    select s.SerialNumber;
+
+        var result = await query.Take(count).ToListAsync();
+        return result;
+    }
 }

@@ -183,9 +183,16 @@
                                                 <i class="fa-solid fa-barcode"></i>
                                                 Nhập Serial / IMEI
                                             </label>
-                                            <span class="text-[10px] font-medium px-2 py-0.5 bg-white rounded-full border border-blue-200 text-blue-600">
-                                                @line.SerialNumbers.Count / @line.Quantity
-                                            </span>
+                                            <div class="flex items-center gap-2">
+                                                <button type="button" @onclick="() => AutoFillSerials(line)" 
+                                                        class="text-[10px] font-medium px-2 py-0.5 bg-blue-100 rounded hover:bg-blue-200 text-blue-700 transition-colors"
+                                                        title="Tự động điền serial cũ nhất">
+                                                    <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Tự động
+                                                </button>
+                                                <span class="text-[10px] font-medium px-2 py-0.5 bg-white rounded-full border border-blue-200 text-blue-600">
+                                                    @line.SerialNumbers.Count / @line.Quantity
+                                                </span>
+                                            </div>
                                         </div>
                                         
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -521,6 +528,48 @@
         }
         
         line.SerialNumbers[index] = value?.Trim() ?? "";
+    }
+
+    private async Task AutoFillSerials(CreateOrderLineDto line)
+    {
+        if (!line.IsSerialTracked || line.Quantity <= 0) return;
+
+        try 
+        {
+            // Fetch suitable serials from backend
+            var suitableSerials = await InventoryService.GetSuitableSerialsAsync(line.ProductId, line.Quantity);
+            
+            if (!suitableSerials.Any())
+            {
+                // Optional: Show toast notification that no serials available
+                return;
+            }
+
+            // Fill empty slots or overwrite? 
+            // Requirement implies "auto fill", so we should act effectively.
+            // Let's replace the current list or fill it up.
+            // Simplest expected behavior: Fill correctly up to Quantity.
+            
+            // Clear current inputs if user desires full auto, but maybe safer to just overwrite from top
+            line.SerialNumbers.Clear();
+            line.SerialNumbers.AddRange(suitableSerials);
+            
+            // If backend returned fewer than needed, pad with empty strings
+            while (line.SerialNumbers.Count < line.Quantity)
+            {
+                line.SerialNumbers.Add("");
+            }
+            
+            // Verify if we got enough
+            if (suitableSerials.Count < line.Quantity)
+            {
+                 // Could show a small warning or just let the UI show empty boxes (which it will)
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Auto fill error: {ex.Message}");
+        }
     }
 
     private async Task CheckCustomerPhoneAsync()

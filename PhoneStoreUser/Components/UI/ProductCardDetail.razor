@@ -119,12 +119,15 @@
         }
 
         // Parallel fetching
-        var attributesTask = FetchAttributesAsync();
+        // Optimization: Skip fetching attributes for card view to save DB connections (3 calls per card).
+        // The attributes were only used for URL generation which is not critical for card listing.
+        // var attributesTask = FetchAttributesAsync(); 
         var reviewsTask = ReviewService.GetReviewSummaryAsync(Product.ModelId);
         
-        await Task.WhenAll(attributesTask, reviewsTask);
-        
+        // await Task.WhenAll(attributesTask, reviewsTask);
         var reviewSummary = await reviewsTask;
+        
+        // var reviewSummary = await reviewsTask; // Already awaited
         AverageRating = reviewSummary.AverageRating;
         TotalReviews = reviewSummary.TotalReviews;
         

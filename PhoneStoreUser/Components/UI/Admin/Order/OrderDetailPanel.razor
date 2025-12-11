@@ -2,6 +2,7 @@
 @using PhoneStoreUser.Services
 @using PhoneStoreUser.Helper
 @inject IAdminOrderService AdminOrderService
+@inject IInventoryService InventoryService
 
 <div class="flex flex-1 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden h-full">
     @if (IsLoading)
@@ -80,6 +81,14 @@
                                             <label class="text-[10px] font-bold text-amber-700 uppercase flex items-center gap-1">
                                                 <i class="fa-solid fa-barcode"></i> Serial / IMEI
                                             </label>
+                                            @if (!isReadOnly && line.Quantity > 0)
+                                            {
+                                                 <button type="button" @onclick="() => AutoFillSerials(line)" 
+                                                         class="text-[10px] font-medium px-2 py-0.5 bg-amber-100 rounded hover:bg-amber-200 text-amber-700 transition-colors ml-2"
+                                                         title="Tự động điền serial cũ nhất">
+                                                     <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Tự động
+                                                 </button>
+                                            }
                                             @if(isReadOnly) {
                                                 <span class="text-[10px] text-amber-600 font-medium"><i class="fa-solid fa-lock"></i> Đã khóa</span>
                                             }
@@ -462,6 +471,60 @@
                     try { await AdminOrderService.AddSerialToOrderLineAsync(line.LineId, serial, null, null); } catch {}
                 }
             }
+        }
+    }
+
+    private async Task AutoFillSerials(OrderLineDto line)
+    {
+        if (line.Quantity <= 0 || Detail?.Status == "completed" || Detail?.Status == "cancelled") return;
+
+        try 
+        {
+            // Only fetch for empty slots or just fetch `count` suitable ones
+            // Logic: Get 'count' suitable serials.
+            // Then fill them into the dictionary keys: $"{line.LineId}_{i}"
+            
+            var suitableSerials = await InventoryService.GetSuitableSerialsAsync(line.ProductId, line.Quantity);
+            
+            if (!suitableSerials.Any()) return;
+
+            // Fill logic:
+            // Iterate from 0 to Quantity-1
+            // If we have a suitable serial for that index, use it.
+            // Update SerialInputs dictionary.
+            
+            for (int i = 0; i < line.Quantity; i++)
+            {
+                if (i >= suitableSerials.Count) break;
+
+                string key = $"{line.LineId}_{i}";
+                string newVal = suitableSerials[i];
+                
+                // Only overwrite if currently empty? Or always overwrite?
+                // "Auto fill" usually implies filling what's needed. 
+                // Let's overwrite to guarantee the "oldest batch" logic is applied if user requested it.
+                // But maybe check if it's already filled to avoid annoyance? 
+                // The task says "Auto fill serial proper".
+                // I will overwrite because the user action "Click Auto" implies "Do it".
+                
+                HandleSerialInput(key, newVal);
+                
+                // Trigger validation for this new value?
+                // HandleSerialBlur does validation. We might want to trigger it or just set it valid mostly.
+                // Let's assume HandleConfirmDelivery will re-validate eventually.
+                // But for UI feedback (green check), we might want to validate.
+                // We can't easily call HandleSerialBlur here because it's async and we are in a loop.
+                // But we can manually add to ValidSerials if we trust the backend method returned valid ones.
+                // However, `GetSuitableSerialsAsync` returns `in_stock`. 
+                // `ValidateSerialAsync` logic checks `in_stock` too. So it should be valid.
+                // Updating ValidSerials directly might be risky if there are other rules.
+                // Let's just set the input. The user can see the value.
+            }
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Auto fill error: {ex.Message}");
         }
     }
 }
