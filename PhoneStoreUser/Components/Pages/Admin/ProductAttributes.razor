@@ -1,0 +1,780 @@
+@page "/admin/product-attributes"
+@layout AdminLayout
+@using PhoneStoreUser.Data
+@using PhoneStoreUser.Services
+@inject IAdminProductAttributeService AttributeService
+
+<div class="flex flex-col bg-gray-50/50 p-6 font-sans gap-6" style="height: 85vh;">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Thuộc tính sản phẩm</h1>
+            <p class="text-sm text-slate-500">Quản lý các thuộc tính và tùy chọn của sản phẩm.</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 overflow-hidden">
+        <!-- Left Panel: Attributes List -->
+        <section class="flex flex-col gap-4 flex-1 overflow-hidden">
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col h-full">
+                <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                    <h2 class="text-base font-bold text-slate-900">Danh sách thuộc tính</h2>
+                    <button @onclick="OpenAddAttributeModal" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 transition">
+                        <i class="fa-solid fa-plus"></i> Thêm
+                    </button>
+                </div>
+
+                <!-- Search & Filter -->
+                <div class="p-4 border-b border-slate-100 space-y-3">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input @bind="SearchTerm" @bind:event="oninput" @onkeyup="HandleSearch"
+                               class="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm"
+                               placeholder="Tìm thuộc tính..." />
+                    </div>
+                    <div class="flex gap-2">
+                        <select @bind="SelectedDataType" @bind:after="HandleFilterChange" class="flex-1 rounded-xl border border-slate-200 py-2 px-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <option value="">Tất cả loại</option>
+                            <option value="TEXT">Văn bản</option>
+                            <option value="NUMBER">Số</option>
+                            <option value="DATE">Ngày</option>
+                            <option value="BOOLEAN">Boolean</option>
+                        </select>
+                        @if (!string.IsNullOrEmpty(SearchTerm) || !string.IsNullOrEmpty(SelectedDataType))
+                        {
+                            <button @onclick="ClearFilters" class="px-3 py-2 text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition">
+                                <i class="fa-solid fa-xmark"></i> Xóa lọc
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Attributes Table -->
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50/50 text-xs uppercase font-semibold text-slate-500">
+                            <tr>
+                                <th class="px-5 py-3">Tên thuộc tính</th>
+                                <th class="px-5 py-3">Loại dữ liệu</th>
+                                <th class="px-5 py-3 text-right">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            @if (IsLoading)
+                            {
+                                @for (int i = 0; i < 5; i++)
+                                {
+                                    <tr class="animate-pulse">
+                                        <td class="px-5 py-4"><div class="h-4 w-32 rounded bg-slate-200"></div></td>
+                                        <td class="px-5 py-4"><div class="h-4 w-20 rounded bg-slate-200"></div></td>
+                                        <td class="px-5 py-4"><div class="h-4 w-16 rounded bg-slate-200 ml-auto"></div></td>
+                                    </tr>
+                                }
+                            }
+                            else if (!Attributes.Any())
+                            {
+                                <tr>
+                                    <td colspan="3" class="px-5 py-12 text-center">
+                                        <div class="flex flex-col items-center justify-center gap-2 text-slate-500">
+                                            <i class="fa-solid fa-tags text-3xl text-slate-300"></i>
+                                            <p>Không tìm thấy thuộc tính nào.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var attr in Attributes)
+                                {
+                                    <tr class="@(SelectedAttribute?.Id == attr.Id ? "bg-blue-50" : "hover:bg-slate-50/80") transition-colors cursor-pointer"
+                                        @onclick="() => SelectAttribute(attr)">
+                                        <td class="px-5 py-4">
+                                            <div>
+                                                <p class="font-semibold text-slate-900">@attr.Name</p>
+                                                @if (!string.IsNullOrEmpty(attr.Note))
+                                                {
+                                                    <p class="text-xs text-slate-500 truncate max-w-[200px]">@attr.Note</p>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td class="px-5 py-4">
+                                            <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium @GetDataTypeBadgeClass(attr.DataType)">
+                                                @GetDataTypeLabel(attr.DataType)
+                                            </span>
+                                        </td>
+                                        <td class="px-5 py-4 text-right">
+                                            <button @onclick="() => OpenEditAttributeModal(attr)" @onclick:stopPropagation="true"
+                                                    class="text-slate-400 hover:text-blue-600 transition p-2" title="Sửa">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </button>
+                                            <button @onclick="() => DeleteAttribute(attr)" @onclick:stopPropagation="true"
+                                                    class="text-slate-400 hover:text-red-600 transition p-2" title="Xóa">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="border-t border-slate-100 px-5 py-4 text-sm text-slate-600 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="text-sm font-medium text-slate-700">
+                        @DisplayFrom-@DisplayTo of @TotalRecords
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 transition text-slate-600"
+                                @onclick="GoToFirstPage" disabled="@(CurrentPage == 1 || IsLoading)" title="Trang đầu">
+                            <i class="fa-solid fa-angles-left"></i>
+                        </button>
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 transition text-slate-600"
+                                @onclick="GoToPreviousPage" disabled="@(!CanGoPrevious || IsLoading)" title="Trang trước">
+                            <i class="fa-solid fa-angle-left"></i>
+                        </button>
+                        <span class="px-3 py-1 text-sm">@CurrentPage / @TotalPages</span>
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 transition text-slate-600"
+                                @onclick="GoToNextPage" disabled="@(!CanGoNext || IsLoading)" title="Trang sau">
+                            <i class="fa-solid fa-angle-right"></i>
+                        </button>
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 transition text-slate-600"
+                                @onclick="GoToLastPage" disabled="@(CurrentPage == TotalPages || IsLoading)" title="Trang cuối">
+                            <i class="fa-solid fa-angles-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Panel: Attribute Options -->
+        <section class="flex flex-col gap-4 flex-1 overflow-hidden">
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col h-full">
+                <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                    <h2 class="text-base font-bold text-slate-900">
+                        @if (SelectedAttribute != null)
+                        {
+                            <span>Tùy chọn: @SelectedAttribute.Name</span>
+                        }
+                        else
+                        {
+                            <span>Tùy chọn thuộc tính</span>
+                        }
+                    </h2>
+                    @if (SelectedAttribute != null)
+                    {
+                        <button @onclick="OpenAddOptionModal" class="inline-flex items-center gap-2 rounded-xl bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 transition">
+                            <i class="fa-solid fa-plus"></i> Thêm
+                        </button>
+                    }
+                </div>
+
+                <div class="overflow-x-auto flex-1">
+                    @if (SelectedAttribute == null)
+                    {
+                        <div class="flex flex-col items-center justify-center h-64 text-slate-500">
+                            <i class="fa-solid fa-hand-pointer text-4xl text-slate-300 mb-3"></i>
+                            <p>Chọn một thuộc tính để xem các tùy chọn</p>
+                        </div>
+                    }
+                    else if (IsLoadingOptions)
+                    {
+                        <div class="p-5 space-y-3">
+                            @for (int i = 0; i < 4; i++)
+                            {
+                                <div class="animate-pulse flex items-center gap-4 p-3 bg-slate-50 rounded-lg">
+                                    <div class="h-4 w-32 rounded bg-slate-200"></div>
+                                    <div class="h-4 w-20 rounded bg-slate-200"></div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else if (!Options.Any())
+                    {
+                        <div class="flex flex-col items-center justify-center h-64 text-slate-500">
+                            <i class="fa-solid fa-list text-4xl text-slate-300 mb-3"></i>
+                            <p>Chưa có tùy chọn nào</p>
+                            <button @onclick="OpenAddOptionModal" class="mt-3 text-blue-600 hover:text-blue-700 text-sm font-medium">
+                                + Thêm tùy chọn đầu tiên
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50/50 text-xs uppercase font-semibold text-slate-500">
+                                <tr>
+                                    <th class="px-5 py-3">Giá trị hiển thị</th>
+                                    <th class="px-5 py-3">Giá trị chuẩn hóa</th>
+                                    <th class="px-5 py-3">Thứ tự</th>
+                                    <th class="px-5 py-3">Trạng thái</th>
+                                    <th class="px-5 py-3 text-right">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 bg-white">
+                                @foreach (var option in Options)
+                                {
+                                    <tr class="hover:bg-slate-50/80 transition-colors">
+                                        <td class="px-5 py-4 font-medium text-slate-900">@option.DisplayValue</td>
+                                        <td class="px-5 py-4 text-slate-500">@(option.NormalizedValue?.ToString() ?? "-")</td>
+                                        <td class="px-5 py-4 text-slate-500">@option.SortOrder</td>
+                                        <td class="px-5 py-4">
+                                            @if (option.IsActive == 1)
+                                            {
+                                                <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Hoạt động</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">Tắt</span>
+                                            }
+                                        </td>
+                                        <td class="px-5 py-4 text-right">
+                                            <button @onclick="() => OpenEditOptionModal(option)" class="text-slate-400 hover:text-blue-600 transition p-2" title="Sửa">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </button>
+                                            <button @onclick="() => DeleteOption(option)" class="text-slate-400 hover:text-red-600 transition p-2" title="Xóa">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+
+                @if (SelectedAttribute != null && Options.Any())
+                {
+                    <div class="border-t border-slate-100 px-5 py-3 text-sm text-slate-500">
+                        Tổng: @Options.Count tùy chọn
+                    </div>
+                }
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- Attribute Modal -->
+@if (ShowAttributeModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @onclick="CloseAttributeModal">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4" @onclick:stopPropagation="true">
+            <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                <h3 class="text-lg font-bold text-slate-900">@(IsEditingAttribute ? "Sửa thuộc tính" : "Thêm thuộc tính mới")</h3>
+                <button @onclick="CloseAttributeModal" class="text-slate-400 hover:text-slate-600 transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Tên thuộc tính *</label>
+                    <input @bind="EditingAttribute.Name" class="w-full rounded-xl border border-slate-200 py-2.5 px-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="VD: Màu sắc, Dung lượng..." />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Loại dữ liệu *</label>
+                    <select @bind="EditingAttribute.DataType" class="w-full rounded-xl border border-slate-200 py-2.5 px-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="TEXT">Văn bản</option>
+                        <option value="NUMBER">Số</option>
+                        <option value="DATE">Ngày</option>
+                        <option value="BOOLEAN">Boolean</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Ghi chú</label>
+                    <textarea @bind="EditingAttribute.Note" rows="3" class="w-full rounded-xl border border-slate-200 py-2.5 px-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Mô tả thêm về thuộc tính..."></textarea>
+                </div>
+                @if (!string.IsNullOrEmpty(AttributeModalError))
+                {
+                    <div class="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+                        <i class="fa-solid fa-circle-exclamation mr-1"></i> @AttributeModalError
+                    </div>
+                }
+            </div>
+            <div class="flex justify-end gap-3 p-5 border-t border-slate-100">
+                <button @onclick="CloseAttributeModal" class="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-xl transition">Hủy</button>
+                <button @onclick="SaveAttribute" disabled="@IsSaving" class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition disabled:opacity-50">
+                    @if (IsSaving)
+                    {
+                        <i class="fa-solid fa-spinner fa-spin mr-1"></i>
+                    }
+                    @(IsEditingAttribute ? "Cập nhật" : "Thêm mới")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Option Modal -->
+@if (ShowOptionModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @onclick="CloseOptionModal">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4" @onclick:stopPropagation="true">
+            <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                <h3 class="text-lg font-bold text-slate-900">@(IsEditingOption ? "Sửa tùy chọn" : "Thêm tùy chọn mới")</h3>
+                <button @onclick="CloseOptionModal" class="text-slate-400 hover:text-slate-600 transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Giá trị hiển thị *</label>
+                    <input @bind="EditingOption.DisplayValue" class="w-full rounded-xl border border-slate-200 py-2.5 px-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="VD: Đỏ, 128GB..." />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Giá trị chuẩn hóa</label>
+                    <input @bind="EditingOption.NormalizedValue" type="number" class="w-full rounded-xl border border-slate-200 py-2.5 px-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Giá trị số để sắp xếp/so sánh" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Thứ tự sắp xếp</label>
+                    <input @bind="EditingOption.SortOrder" type="number" class="w-full rounded-xl border border-slate-200 py-2.5 px-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                </div>
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" id="optionActive" @bind="IsOptionActive" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                    <label for="optionActive" class="text-sm font-medium text-slate-700">Đang hoạt động</label>
+                </div>
+                @if (!string.IsNullOrEmpty(OptionModalError))
+                {
+                    <div class="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+                        <i class="fa-solid fa-circle-exclamation mr-1"></i> @OptionModalError
+                    </div>
+                }
+            </div>
+            <div class="flex justify-end gap-3 p-5 border-t border-slate-100">
+                <button @onclick="CloseOptionModal" class="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-xl transition">Hủy</button>
+                <button @onclick="SaveOption" disabled="@IsSaving" class="px-4 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-500 rounded-xl transition disabled:opacity-50">
+                    @if (IsSaving)
+                    {
+                        <i class="fa-solid fa-spinner fa-spin mr-1"></i>
+                    }
+                    @(IsEditingOption ? "Cập nhật" : "Thêm mới")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Delete Confirmation Modal -->
+@if (ShowDeleteConfirm)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4">
+            <div class="p-5 text-center">
+                <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4">
+                    <i class="fa-solid fa-triangle-exclamation text-red-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-2">Xác nhận xóa</h3>
+                <p class="text-sm text-slate-500">@DeleteConfirmMessage</p>
+            </div>
+            <div class="flex gap-3 p-5 border-t border-slate-100">
+                <button @onclick="CancelDelete" class="flex-1 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition">Hủy</button>
+                <button @onclick="ConfirmDelete" disabled="@IsSaving" class="flex-1 px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-500 rounded-xl transition disabled:opacity-50">
+                    @if (IsSaving)
+                    {
+                        <i class="fa-solid fa-spinner fa-spin mr-1"></i>
+                    }
+                    Xóa
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    // Attributes
+    private List<ProductAttributeEntity> Attributes = new();
+    private ProductAttributeEntity? SelectedAttribute;
+    private bool IsLoading = true;
+
+    // Options
+    private List<ProductAttributeOptionEntity> Options = new();
+    private bool IsLoadingOptions = false;
+
+    // Pagination & Filter
+    private int CurrentPage = 1;
+    private int PageSize = 10;
+    private int TotalRecords;
+    private int TotalPages;
+    private string SearchTerm = "";
+    private string SelectedDataType = "";
+
+    private int DisplayFrom => TotalRecords == 0 ? 0 : ((CurrentPage - 1) * PageSize) + 1;
+    private int DisplayTo => TotalRecords == 0 ? 0 : Math.Min(TotalRecords, ((CurrentPage - 1) * PageSize) + Attributes.Count);
+    private bool CanGoPrevious => CurrentPage > 1;
+    private bool CanGoNext => TotalPages > 0 && CurrentPage < TotalPages;
+
+    // Attribute Modal
+    private bool ShowAttributeModal = false;
+    private bool IsEditingAttribute = false;
+    private ProductAttributeEntity EditingAttribute = new();
+    private string AttributeModalError = "";
+
+    // Option Modal
+    private bool ShowOptionModal = false;
+    private bool IsEditingOption = false;
+    private ProductAttributeOptionEntity EditingOption = new();
+    private string OptionModalError = "";
+    private bool IsOptionActive = true;
+
+    // Delete Confirmation
+    private bool ShowDeleteConfirm = false;
+    private string DeleteConfirmMessage = "";
+    private Func<Task>? DeleteAction;
+
+    // Saving state
+    private bool IsSaving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAttributes();
+    }
+
+    private async Task LoadAttributes()
+    {
+        IsLoading = true;
+        try
+        {
+            var result = await AttributeService.GetAttributesAsync(SearchTerm, SelectedDataType, CurrentPage, PageSize);
+            Attributes = result.Items;
+            TotalRecords = result.TotalCount;
+            TotalPages = result.TotalPages;
+
+            // Auto-select first if none selected
+            if (SelectedAttribute == null && Attributes.Any())
+            {
+                await SelectAttribute(Attributes.First());
+            }
+            else if (SelectedAttribute != null)
+            {
+                // Refresh selected attribute if still exists
+                var stillExists = Attributes.FirstOrDefault(a => a.Id == SelectedAttribute.Id);
+                if (stillExists != null)
+                {
+                    await SelectAttribute(stillExists);
+                }
+                else
+                {
+                    SelectedAttribute = null;
+                    Options.Clear();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading attributes: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task SelectAttribute(ProductAttributeEntity attr)
+    {
+        SelectedAttribute = attr;
+        await LoadOptions();
+    }
+
+    private async Task LoadOptions()
+    {
+        if (SelectedAttribute == null) return;
+
+        IsLoadingOptions = true;
+        try
+        {
+            Options = await AttributeService.GetOptionsByAttributeIdAsync(SelectedAttribute.Id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading options: {ex.Message}");
+        }
+        finally
+        {
+            IsLoadingOptions = false;
+        }
+    }
+
+    // Search & Filter
+    private async Task HandleSearch()
+    {
+        CurrentPage = 1;
+        await LoadAttributes();
+    }
+
+    private async Task HandleFilterChange()
+    {
+        CurrentPage = 1;
+        await LoadAttributes();
+    }
+
+    private async Task ClearFilters()
+    {
+        SearchTerm = "";
+        SelectedDataType = "";
+        CurrentPage = 1;
+        await LoadAttributes();
+    }
+
+    // Pagination
+    private async Task GoToFirstPage() { CurrentPage = 1; await LoadAttributes(); }
+    private async Task GoToPreviousPage() { if (CanGoPrevious) { CurrentPage--; await LoadAttributes(); } }
+    private async Task GoToNextPage() { if (CanGoNext) { CurrentPage++; await LoadAttributes(); } }
+    private async Task GoToLastPage() { CurrentPage = TotalPages; await LoadAttributes(); }
+
+    // Attribute CRUD
+    private void OpenAddAttributeModal()
+    {
+        IsEditingAttribute = false;
+        EditingAttribute = new ProductAttributeEntity { DataType = "TEXT" };
+        AttributeModalError = "";
+        ShowAttributeModal = true;
+    }
+
+    private void OpenEditAttributeModal(ProductAttributeEntity attr)
+    {
+        IsEditingAttribute = true;
+        EditingAttribute = new ProductAttributeEntity
+        {
+            Id = attr.Id,
+            Name = attr.Name,
+            DataType = attr.DataType,
+            Note = attr.Note
+        };
+        AttributeModalError = "";
+        ShowAttributeModal = true;
+    }
+
+    private void CloseAttributeModal()
+    {
+        ShowAttributeModal = false;
+        AttributeModalError = "";
+    }
+
+    private async Task SaveAttribute()
+    {
+        AttributeModalError = "";
+
+        if (string.IsNullOrWhiteSpace(EditingAttribute.Name))
+        {
+            AttributeModalError = "Vui lòng nhập tên thuộc tính.";
+            return;
+        }
+
+        // Check duplicate name
+        var isDuplicate = await AttributeService.IsAttributeNameExistsAsync(
+            EditingAttribute.Name.Trim(),
+            IsEditingAttribute ? EditingAttribute.Id : null
+        );
+
+        if (isDuplicate)
+        {
+            AttributeModalError = "Tên thuộc tính đã tồn tại.";
+            return;
+        }
+
+        IsSaving = true;
+        try
+        {
+            EditingAttribute.Name = EditingAttribute.Name.Trim();
+            EditingAttribute.Note = EditingAttribute.Note?.Trim();
+
+            bool success;
+            if (IsEditingAttribute)
+            {
+                success = await AttributeService.UpdateAttributeAsync(EditingAttribute);
+            }
+            else
+            {
+                success = await AttributeService.CreateAttributeAsync(EditingAttribute);
+            }
+
+            if (success)
+            {
+                CloseAttributeModal();
+                await LoadAttributes();
+            }
+            else
+            {
+                AttributeModalError = "Không thể lưu thuộc tính. Vui lòng thử lại.";
+            }
+        }
+        catch (Exception ex)
+        {
+            AttributeModalError = $"Lỗi: {ex.Message}";
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+
+    private void DeleteAttribute(ProductAttributeEntity attr)
+    {
+        DeleteConfirmMessage = $"Bạn có chắc muốn xóa thuộc tính \"{attr.Name}\"? Hành động này không thể hoàn tác.";
+        DeleteAction = async () =>
+        {
+            var success = await AttributeService.DeleteAttributeAsync(attr.Id);
+            if (success)
+            {
+                if (SelectedAttribute?.Id == attr.Id)
+                {
+                    SelectedAttribute = null;
+                    Options.Clear();
+                }
+                await LoadAttributes();
+            }
+            else
+            {
+                // Show error - attribute has options or values
+                AttributeModalError = "Không thể xóa thuộc tính đang có tùy chọn hoặc giá trị liên kết.";
+                ShowAttributeModal = true;
+            }
+        };
+        ShowDeleteConfirm = true;
+    }
+
+    // Option CRUD
+    private void OpenAddOptionModal()
+    {
+        if (SelectedAttribute == null) return;
+
+        IsEditingOption = false;
+        EditingOption = new ProductAttributeOptionEntity
+        {
+            AttributeId = SelectedAttribute.Id,
+            SortOrder = Options.Count
+        };
+        IsOptionActive = true;
+        OptionModalError = "";
+        ShowOptionModal = true;
+    }
+
+    private void OpenEditOptionModal(ProductAttributeOptionEntity option)
+    {
+        IsEditingOption = true;
+        EditingOption = new ProductAttributeOptionEntity
+        {
+            Id = option.Id,
+            AttributeId = option.AttributeId,
+            DisplayValue = option.DisplayValue,
+            NormalizedValue = option.NormalizedValue,
+            SortOrder = option.SortOrder,
+            IsActive = option.IsActive
+        };
+        IsOptionActive = option.IsActive == 1;
+        OptionModalError = "";
+        ShowOptionModal = true;
+    }
+
+    private void CloseOptionModal()
+    {
+        ShowOptionModal = false;
+        OptionModalError = "";
+    }
+
+    private async Task SaveOption()
+    {
+        OptionModalError = "";
+
+        if (string.IsNullOrWhiteSpace(EditingOption.DisplayValue))
+        {
+            OptionModalError = "Vui lòng nhập giá trị hiển thị.";
+            return;
+        }
+
+        IsSaving = true;
+        try
+        {
+            EditingOption.DisplayValue = EditingOption.DisplayValue.Trim();
+            EditingOption.IsActive = IsOptionActive ? 1 : 0;
+
+            bool success;
+            if (IsEditingOption)
+            {
+                success = await AttributeService.UpdateOptionAsync(EditingOption);
+            }
+            else
+            {
+                success = await AttributeService.CreateOptionAsync(EditingOption);
+            }
+
+            if (success)
+            {
+                CloseOptionModal();
+                await LoadOptions();
+            }
+            else
+            {
+                OptionModalError = "Không thể lưu tùy chọn. Vui lòng thử lại.";
+            }
+        }
+        catch (Exception ex)
+        {
+            OptionModalError = $"Lỗi: {ex.Message}";
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+
+    private void DeleteOption(ProductAttributeOptionEntity option)
+    {
+        DeleteConfirmMessage = $"Bạn có chắc muốn xóa tùy chọn \"{option.DisplayValue}\"?";
+        DeleteAction = async () =>
+        {
+            var success = await AttributeService.DeleteOptionAsync(option.Id);
+            if (success)
+            {
+                await LoadOptions();
+            }
+            else
+            {
+                OptionModalError = "Không thể xóa tùy chọn đang được sử dụng.";
+                ShowOptionModal = true;
+            }
+        };
+        ShowDeleteConfirm = true;
+    }
+
+    // Delete Confirmation
+    private void CancelDelete()
+    {
+        ShowDeleteConfirm = false;
+        DeleteAction = null;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (DeleteAction == null) return;
+
+        IsSaving = true;
+        try
+        {
+            await DeleteAction();
+        }
+        finally
+        {
+            IsSaving = false;
+            ShowDeleteConfirm = false;
+            DeleteAction = null;
+        }
+    }
+
+    // Helpers
+    private string GetDataTypeLabel(string dataType) => dataType switch
+    {
+        "TEXT" => "Văn bản",
+        "NUMBER" => "Số",
+        "DATE" => "Ngày",
+        "BOOLEAN" => "Boolean",
+        _ => dataType
+    };
+
+    private string GetDataTypeBadgeClass(string dataType) => dataType switch
+    {
+        "TEXT" => "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20",
+        "NUMBER" => "bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-600/20",
+        "DATE" => "bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-600/20",
+        "BOOLEAN" => "bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20",
+        _ => "bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-600/20"
+    };
+}

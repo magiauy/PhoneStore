@@ -4,5 +4,12 @@
     "./**/*.html",
     "./**/*.cshtml",
     "./**/*.cs"
-  ]
+  ],
+  "theme": {
+    "extend": {
+      "height": {
+        "screen-75": "75vh"
+      }
+    }
+  }
 }
