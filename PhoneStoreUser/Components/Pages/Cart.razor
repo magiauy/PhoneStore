@@ -97,6 +97,7 @@
     private bool _isLoading = true;
     private string? warningMessage;
     private bool showWarning = false;
+    private bool _disposed;
 
     protected override void OnInitialized()
     {
@@ -116,8 +117,21 @@
 
     private async void HandleCartChanged()
     {
-        await LoadData();
-        StateHasChanged();
+        if (_disposed) return;
+
+        try
+        {
+            await InvokeAsync(async () =>
+            {
+                if (_disposed) return;
+                await LoadData();
+                StateHasChanged();
+            });
+        }
+        catch (ObjectDisposedException)
+        {
+            // Component was disposed, ignore
+        }
     }
 
     private async Task LoadData()
@@ -163,6 +177,7 @@
 
     public void Dispose()
     {
+        _disposed = true;
         CartService.OnChange -= HandleCartChanged;
     }
 }

@@ -273,6 +273,7 @@
     private bool IsSavingPassword = false;
     private bool IsChangePasswordSuccess = false;
     private string SearchValue { get; set; } = string.Empty;
+    private bool _disposed;
 
     private List<NavigationItem> TopCategories = new();
 
@@ -344,13 +345,29 @@
 
     private void HandleCartChanged()
     {
-        _ = UpdateCartCount();
+        if (_disposed) return;
+
+        _ = InvokeAsync(async () =>
+        {
+            if (_disposed) return;
+            await UpdateCartCount();
+        });
     }
     // Rename to match expected delegate signature: void (Task<AuthenticationState>)
     private async void HandleAuthenticationChangedAsync(Task<AuthenticationState> task)
     {
-        var state = await task;
-        await UpdateSessionAsync(state.User);
+        if (_disposed) return;
+
+        try
+        {
+            var state = await task;
+            if (_disposed) return;
+            await UpdateSessionAsync(state.User);
+        }
+        catch (ObjectDisposedException)
+        {
+            // Component was disposed, ignore
+        }
     }
 
     private async Task LoadActiveUserAsync()
@@ -399,6 +416,7 @@
 
     public void Dispose()
     {
+        _disposed = true;
         CartService.OnChange -= HandleCartChanged;
         if (AuthStateProvider is not null)
         {

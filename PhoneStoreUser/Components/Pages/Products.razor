@@ -92,6 +92,9 @@
     private HashSet<int> SelectedCategoryIds { get; set; } = new();
     private bool IsLoading { get; set; } = true;
     private string SearchTerm { get; set; } = string.Empty;
+    private CancellationTokenSource? _loadCts;
+    private bool _isFirstLoad = true;
+    private bool _disposed;
 
     protected override async Task OnInitializedAsync()
     {
@@ -104,19 +107,41 @@
 
     protected override async Task OnParametersSetAsync()
     {
+        if (_isFirstLoad)
+        {
+            _isFirstLoad = false;
+            return;
+        }
         ParseQueryParameters();
         await LoadProducts();
     }
 
     private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        ParseQueryParameters();
-        await LoadProducts();
+        if (_disposed) return;
+
+        await InvokeAsync(async () =>
+        {
+            if (_disposed) return;
+            ParseQueryParameters();
+            await LoadProducts();
+        });
     }
 
     public void Dispose()
     {
+        _disposed = true;
         NavigationManager.LocationChanged -= OnLocationChanged;
+        try
+        {
+            _loadCts?.Cancel();
+            _loadCts?.Dispose();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Already disposed, ignore
+        }
+        _loadCts = null;
     }
 
     private async Task LoadBrandsAndCategories()
@@ -127,16 +152,40 @@
 
     private async Task LoadProducts()
     {
+        if (_disposed) return;
+
+        try
+        {
+            _loadCts?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Already disposed, ignore
+        }
+
+        _loadCts = new CancellationTokenSource();
+        var token = _loadCts.Token;
+
         IsLoading = true;
         StateHasChanged();
 
-        var brandIds = SelectedBrandIds.Any() ? SelectedBrandIds : null;
-        var categoryIds = SelectedCategoryIds.Any() ? SelectedCategoryIds : null;
+        try
+        {
+            var brandIds = SelectedBrandIds.Any() ? SelectedBrandIds : null;
+            var categoryIds = SelectedCategoryIds.Any() ? SelectedCategoryIds : null;
 
-        ProductList = await ProductCatalogService.GetFilteredProductsAsync(SearchTerm, brandIds, categoryIds);
+            var result = await ProductCatalogService.GetFilteredProductsAsync(SearchTerm, brandIds, categoryIds);
 
-        IsLoading = false;
-        StateHasChanged();
+            if (token.IsCancellationRequested || _disposed) return;
+
+            ProductList = result;
+            IsLoading = false;
+            StateHasChanged();
+        }
+        catch (OperationCanceledException)
+        {
+            // Request was cancelled, ignore
+        }
     }
 
     private async Task OnSelectedBrandsChanged(HashSet<int> value)
