@@ -1,6 +1,7 @@
 @using PhoneStoreUser.Services
 @using PhoneStoreUser.Components.Models
 @inject IProductCatalogService ProductCatalogService
+@inject IDisplaySettingsService DisplaySettingsService
 @inject NavigationManager NavigationManager
 
 @if (Brands?.Any() == true)
@@ -38,8 +39,6 @@
 @code {
     private List<BrandBadgeModel> Brands { get; set; } = new();
 
-    private readonly string[] PriorityBrandNames = { "Apple", "Samsung", "Xiaomi", "Oppo", "Tecno", "Sony" };
-
     // Metadata mapping for UI presentation
     private readonly Dictionary<string, (string Tagline, string Initial, string? LogoUrl)> BrandMetadata = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -61,31 +60,28 @@
     {
         try
         {
-            var allBrands = await ProductCatalogService.GetBrandsAsync();
-            
-            // Prioritize brands
-            var prioritizedBrands = new List<Brand>();
-            var remainingBrands = allBrands.ToList();
+            // Lấy brands từ DisplaySettingsService
+            var homeBrands = await DisplaySettingsService.GetHomeBrandsAsync();
 
-            foreach (var name in PriorityBrandNames)
+            if (homeBrands.Any())
             {
-                var brand = remainingBrands.FirstOrDefault(b => b.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-                if (brand != null)
+                // Map to ViewModel với metadata
+                Brands = homeBrands.Select(b =>
                 {
-                    prioritizedBrands.Add(brand);
-                    remainingBrands.Remove(brand);
-                }
+                    var meta = BrandMetadata.TryGetValue(b.Name, out var m) ? m : ("Chính hãng", b.Name.Length > 0 ? b.Name[0].ToString().ToUpper() : "?", null);
+                    return new BrandBadgeModel(b.Id, b.Name, meta.Tagline, meta.Initial, meta.LogoUrl);
+                }).ToList();
             }
-
-            // Fill up to 6 items
-            prioritizedBrands.AddRange(remainingBrands.Take(6 - prioritizedBrands.Count));
-
-            // Map to ViewModel
-            Brands = prioritizedBrands.Select(b => 
+            else
             {
-                var meta = BrandMetadata.TryGetValue(b.Name, out var m) ? m : ("Chính hãng", b.Name[0].ToString().ToUpper(), null);
-                return new BrandBadgeModel(b.Id, b.Name, meta.Tagline, meta.Initial, meta.LogoUrl);
-            }).ToList();
+                // Fallback: lấy tất cả brands nếu chưa có cài đặt
+                var allBrands = await ProductCatalogService.GetBrandsAsync();
+                Brands = allBrands.Take(6).Select(b =>
+                {
+                    var meta = BrandMetadata.TryGetValue(b.Name, out var m) ? m : ("Chính hãng", b.Name.Length > 0 ? b.Name[0].ToString().ToUpper() : "?", null);
+                    return new BrandBadgeModel(b.Id, b.Name, meta.Tagline, meta.Initial, meta.LogoUrl);
+                }).ToList();
+            }
         }
         catch (Exception ex)
         {

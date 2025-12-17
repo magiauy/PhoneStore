@@ -1,0 +1,354 @@
+@page "/admin/display-settings"
+@layout AdminLayout
+@using PhoneStoreUser.Services
+@inject IDisplaySettingsService DisplaySettingsService
+
+<div class="space-y-6 bg-gray-50/50 p-6 min-h-screen font-sans">
+
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Cài đặt hiển thị</h1>
+            <p class="text-sm text-slate-500">Quản lý hiển thị danh mục/thương hiệu trên navbar và trang chủ.</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+        @* Navbar Items Section (Categories + Brands) *@
+        <section class="flex flex-col gap-4">
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <div class="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+                            <i class="fa-solid fa-bars text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-900">Navbar - Menu điều hướng</h2>
+                            <p class="text-xs text-slate-500">Chọn danh mục hoặc thương hiệu hiển thị trên navbar</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-5 space-y-4">
+                    @if (IsLoadingNavbarItems)
+                    {
+                        <div class="flex items-center justify-center py-8">
+                            <i class="fa-solid fa-spinner fa-spin text-2xl text-slate-300"></i>
+                        </div>
+                    }
+                    else
+                    {
+                        @* Tab để chọn loại *@
+                        <div class="flex gap-2 mb-4">
+                            <button @onclick="() => NavbarTab = 0"
+                                    class="px-4 py-2 text-sm font-medium rounded-lg transition @(NavbarTab == 0 ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")">
+                                <i class="fa-solid fa-folder-tree mr-1"></i> Danh mục
+                            </button>
+                            <button @onclick="() => NavbarTab = 1"
+                                    class="px-4 py-2 text-sm font-medium rounded-lg transition @(NavbarTab == 1 ? "bg-purple-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")">
+                                <i class="fa-solid fa-building mr-1"></i> Thương hiệu
+                            </button>
+                        </div>
+
+                        @* Danh sách đã chọn *@
+                        @if (SelectedNavbarItems.Any())
+                        {
+                            <div class="mb-4">
+                                <p class="text-xs font-medium text-slate-500 mb-2">Đã chọn (@SelectedNavbarItems.Count):</p>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach (var item in SelectedNavbarItems)
+                                    {
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium @(item.ItemType == NavbarItemType.Category ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700")">
+                                            <span class="text-xs">@(SelectedNavbarItems.IndexOf(item) + 1).</span>
+                                            @item.Name
+                                            <button @onclick="() => RemoveNavbarItem(item)" class="ml-1 hover:text-red-600 transition">
+                                                <i class="fa-solid fa-times text-xs"></i>
+                                            </button>
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        @* Danh sách categories hoặc brands theo tab *@
+                        <div class="space-y-2 max-h-[350px] overflow-y-auto">
+                            @{
+                                var itemsToShow = NavbarTab == 0
+                                    ? AllNavbarItems.Where(x => x.ItemType == NavbarItemType.Category).ToList()
+                                    : AllNavbarItems.Where(x => x.ItemType == NavbarItemType.Brand).ToList();
+                            }
+
+                            @foreach (var item in itemsToShow)
+                            {
+                                var isSelected = SelectedNavbarItems.Any(x => x.Id == item.Id && x.ItemType == item.ItemType);
+                                var colorClass = item.ItemType == NavbarItemType.Category ? "blue" : "purple";
+
+                                <div class="flex items-center gap-3 p-3 rounded-xl border @(isSelected ? $"border-{colorClass}-200 bg-{colorClass}-50/50" : "border-slate-100 bg-slate-50/50") hover:border-@colorClass-300 transition cursor-pointer"
+                                     @onclick="() => ToggleNavbarItem(item)">
+                                    <div class="flex items-center justify-center h-5 w-5">
+                                        @if (isSelected)
+                                        {
+                                            <i class="fa-solid fa-square-check text-@colorClass-600 text-lg"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-regular fa-square text-slate-400 text-lg"></i>
+                                        }
+                                    </div>
+                                    <span class="flex-1 text-sm font-medium @(isSelected ? "text-slate-900" : "text-slate-600")">
+                                        @item.Name
+                                    </span>
+                                    <span class="text-xs px-2 py-0.5 rounded @(item.ItemType == NavbarItemType.Category ? "bg-blue-100 text-blue-600" : "bg-purple-100 text-purple-600")">
+                                        @(item.ItemType == NavbarItemType.Category ? "Danh mục" : "Thương hiệu")
+                                    </span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-100">
+                            <button @onclick="SaveNavbarSettings" disabled="@IsSavingNavbar"
+                                    class="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white shadow-sm hover:bg-slate-800 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                                @if (IsSavingNavbar)
+                                {
+                                    <i class="fa-solid fa-spinner fa-spin"></i>
+                                    <span>Đang lưu...</span>
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-check"></i>
+                                    <span>Lưu cài đặt navbar</span>
+                                }
+                            </button>
+                            @if (NavbarSaveSuccess)
+                            {
+                                <p class="mt-2 text-center text-sm text-green-600">
+                                    <i class="fa-solid fa-check-circle"></i> Đã lưu thành công!
+                                </p>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+
+        @* Home Brands Section *@
+        <section class="flex flex-col gap-4">
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <div class="h-10 w-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
+                            <i class="fa-solid fa-building text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-900">Trang chủ - Thương hiệu tin chọn</h2>
+                            <p class="text-xs text-slate-500">Chọn thương hiệu hiển thị trên trang chủ</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-5 space-y-4">
+                    @if (IsLoadingBrands)
+                    {
+                        <div class="flex items-center justify-center py-8">
+                            <i class="fa-solid fa-spinner fa-spin text-2xl text-slate-300"></i>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="space-y-2 max-h-[400px] overflow-y-auto">
+                            @foreach (var brand in AllBrands)
+                            {
+                                <div class="flex items-center gap-3 p-3 rounded-xl border @(brand.IsSelected ? "border-purple-200 bg-purple-50/50" : "border-slate-100 bg-slate-50/50") hover:border-purple-300 transition cursor-pointer"
+                                     @onclick="() => ToggleBrand(brand)">
+                                    <div class="flex items-center justify-center h-5 w-5">
+                                        @if (brand.IsSelected)
+                                        {
+                                            <i class="fa-solid fa-square-check text-purple-600 text-lg"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-regular fa-square text-slate-400 text-lg"></i>
+                                        }
+                                    </div>
+                                    <span class="flex-1 text-sm font-medium @(brand.IsSelected ? "text-slate-900" : "text-slate-600")">
+                                        @brand.Name
+                                    </span>
+                                    @if (brand.IsSelected)
+                                    {
+                                        <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-purple-600 text-white text-xs font-bold">
+                                            @(SelectedBrands.IndexOf(brand.Id) + 1)
+                                        </span>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-100">
+                            <button @onclick="SaveBrandSettings" disabled="@IsSavingBrands"
+                                    class="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white shadow-sm hover:bg-slate-800 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                                @if (IsSavingBrands)
+                                {
+                                    <i class="fa-solid fa-spinner fa-spin"></i>
+                                    <span>Đang lưu...</span>
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-check"></i>
+                                    <span>Lưu cài đặt thương hiệu</span>
+                                }
+                            </button>
+                            @if (BrandSaveSuccess)
+                            {
+                                <p class="mt-2 text-center text-sm text-green-600">
+                                    <i class="fa-solid fa-check-circle"></i> Đã lưu thành công!
+                                </p>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+@code {
+    // Navbar Items
+    private List<NavbarItemDto> AllNavbarItems = new();
+    private List<NavbarItemDto> SelectedNavbarItems = new();
+    private int NavbarTab = 0; // 0 = Categories, 1 = Brands
+
+    // Home Brands
+    private List<BrandDisplayDto> AllBrands = new();
+    private List<int> SelectedBrands = new();
+
+    // Loading states
+    private bool IsLoadingNavbarItems = true;
+    private bool IsLoadingBrands = true;
+    private bool IsSavingNavbar = false;
+    private bool IsSavingBrands = false;
+    private bool NavbarSaveSuccess = false;
+    private bool BrandSaveSuccess = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.WhenAll(LoadNavbarItems(), LoadBrands());
+    }
+
+    private async Task LoadNavbarItems()
+    {
+        IsLoadingNavbarItems = true;
+        try
+        {
+            AllNavbarItems = await DisplaySettingsService.GetAllItemsForNavbarSettingsAsync();
+            SelectedNavbarItems = AllNavbarItems.Where(x => x.IsSelected).OrderBy(x => x.SortOrder).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading navbar items: {ex.Message}");
+        }
+        finally
+        {
+            IsLoadingNavbarItems = false;
+        }
+    }
+
+    private async Task LoadBrands()
+    {
+        IsLoadingBrands = true;
+        try
+        {
+            AllBrands = await DisplaySettingsService.GetAllBrandsForSettingsAsync();
+            SelectedBrands = AllBrands.Where(b => b.IsSelected).OrderBy(b => b.SortOrder).Select(b => b.Id).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading brands: {ex.Message}");
+        }
+        finally
+        {
+            IsLoadingBrands = false;
+        }
+    }
+
+    private void ToggleNavbarItem(NavbarItemDto item)
+    {
+        var existing = SelectedNavbarItems.FirstOrDefault(x => x.Id == item.Id && x.ItemType == item.ItemType);
+        if (existing != null)
+        {
+            SelectedNavbarItems.Remove(existing);
+        }
+        else
+        {
+            SelectedNavbarItems.Add(item);
+        }
+    }
+
+    private void RemoveNavbarItem(NavbarItemDto item)
+    {
+        SelectedNavbarItems.Remove(item);
+    }
+
+    private void ToggleBrand(BrandDisplayDto brand)
+    {
+        if (brand.IsSelected)
+        {
+            brand.IsSelected = false;
+            SelectedBrands.Remove(brand.Id);
+        }
+        else
+        {
+            brand.IsSelected = true;
+            SelectedBrands.Add(brand.Id);
+        }
+    }
+
+    private async Task SaveNavbarSettings()
+    {
+        IsSavingNavbar = true;
+        NavbarSaveSuccess = false;
+        try
+        {
+            var items = SelectedNavbarItems.Select((item, index) => new NavbarItemSaveDto
+            {
+                Id = item.Id,
+                ItemType = item.ItemType,
+                SortOrder = index
+            }).ToList();
+
+            await DisplaySettingsService.SaveNavbarItemsAsync(items);
+            NavbarSaveSuccess = true;
+            await Task.Delay(2000);
+            NavbarSaveSuccess = false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving navbar settings: {ex.Message}");
+        }
+        finally
+        {
+            IsSavingNavbar = false;
+        }
+    }
+
+    private async Task SaveBrandSettings()
+    {
+        IsSavingBrands = true;
+        BrandSaveSuccess = false;
+        try
+        {
+            await DisplaySettingsService.SaveHomeBrandsAsync(SelectedBrands);
+            BrandSaveSuccess = true;
+            await Task.Delay(2000);
+            BrandSaveSuccess = false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving brand settings: {ex.Message}");
+        }
+        finally
+        {
+            IsSavingBrands = false;
+        }
+    }
+}

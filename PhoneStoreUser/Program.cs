@@ -51,6 +51,7 @@ builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
+builder.Services.AddScoped<IDisplaySettingsService, DisplaySettingsService>();
 builder.Services.AddSingleton<ICloudinaryService, CloudinaryService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();

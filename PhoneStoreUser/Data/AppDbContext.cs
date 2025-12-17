@@ -32,6 +32,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<PromotionCodeEntity> PromotionCodes => Set<PromotionCodeEntity>();
     public DbSet<PricingAlertEntity> PricingAlerts => Set<PricingAlertEntity>();
     public DbSet<PricingHistoryEntity> PricingHistories => Set<PricingHistoryEntity>();
+    public DbSet<DisplaySettingEntity> DisplaySettings => Set<DisplaySettingEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -391,6 +392,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId);
             entity.HasOne(e => e.ChangedByAccount).WithMany().HasForeignKey(e => e.ChangedBy);
         });
+
+        modelBuilder.Entity<DisplaySettingEntity>(entity =>
+        {
+            entity.ToTable("display_settings");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.SettingKey).HasColumnName("setting_key").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.EntityId).HasColumnName("entity_id");
+            entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+            entity.Property(e => e.SettingValue).HasColumnName("setting_value").HasMaxLength(255);
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+
+            entity.HasIndex(e => e.SettingKey).HasDatabaseName("idx_setting_key");
+        });
     }
 }
 
@@ -712,4 +729,19 @@ public class PricingHistoryEntity
 
     public ProductEntity? Product { get; set; }
     public AccountEntity? ChangedByAccount { get; set; }
+}
+
+/// <summary>
+/// Entity cho cài đặt hiển thị (navbar categories, home brands)
+/// </summary>
+public class DisplaySettingEntity
+{
+    public int Id { get; set; }
+    public string SettingKey { get; set; } = string.Empty; // "navbar_category", "home_brand", "max_navbar_categories"
+    public int? EntityId { get; set; } // ID của Category hoặc Brand
+    public int SortOrder { get; set; } = 0;
+    public string? SettingValue { get; set; } // Giá trị cài đặt (cho các setting như max count)
+    public bool IsActive { get; set; } = true;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
 }
