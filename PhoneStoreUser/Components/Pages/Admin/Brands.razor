@@ -1,0 +1,466 @@
+@page "/admin/brands"
+@layout AdminLayout
+@using PhoneStoreUser.Services
+@inject IAdminBrandService BrandService
+
+<div class="space-y-6 bg-gray-50/50 p-6 min-h-screen font-sans">
+
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Thương hiệu</h1>
+            <p class="text-sm text-slate-500">Quản lý các thương hiệu sản phẩm.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="relative flex-1 sm:flex-none">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input @bind="SearchTerm" @bind:event="oninput" @onkeyup="OnSearchInputChanged"
+                       class="w-full sm:w-72 rounded-xl border border-slate-200 py-2.5 pl-9 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm"
+                       placeholder="Tìm thương hiệu..." />
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+        <section class="lg:col-span-2 flex flex-col gap-4">
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col h-full">
+                <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                    <h2 class="text-base font-bold text-slate-900">Danh sách thương hiệu</h2>
+                    <span class="text-sm text-slate-500">@TotalBrands thương hiệu</span>
+                </div>
+
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50/50 text-xs uppercase font-semibold text-slate-500">
+                            <tr>
+                                <th class="px-5 py-4">ID</th>
+                                <th class="px-5 py-4">Tên thương hiệu</th>
+                                <th class="px-5 py-4 text-center">Số sản phẩm</th>
+                                <th class="px-5 py-4 text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            @if (IsLoading)
+                            {
+                                @for (int i = 0; i < PageSize; i++)
+                                {
+                                    <tr class="animate-pulse">
+                                        <td class="px-5 py-4"><div class="h-4 w-12 rounded bg-slate-200"></div></td>
+                                        <td class="px-5 py-4"><div class="h-4 w-32 rounded bg-slate-200"></div></td>
+                                        <td class="px-5 py-4 text-center"><div class="h-4 w-8 mx-auto rounded bg-slate-200"></div></td>
+                                        <td class="px-5 py-4 text-right"><div class="h-4 w-16 ml-auto rounded bg-slate-200"></div></td>
+                                    </tr>
+                                }
+                            }
+                            else if (!BrandsData.Any())
+                            {
+                                <tr>
+                                    <td colspan="4" class="px-5 py-12 text-center">
+                                        <div class="flex flex-col items-center justify-center gap-2 text-slate-500">
+                                            <i class="fa-solid fa-building text-3xl text-slate-300"></i>
+                                            <p>Chưa có thương hiệu nào.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var brand in BrandsData)
+                                {
+                                    <tr class="hover:bg-slate-50/80 transition-colors group">
+                                        <td class="px-5 py-4 font-medium text-slate-900">@brand.Id</td>
+                                        <td class="px-5 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="h-8 w-8 shrink-0 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
+                                                    @brand.Name.Substring(0, Math.Min(2, brand.Name.Length)).ToUpper()
+                                                </div>
+                                                <span class="font-semibold text-slate-900">@brand.Name</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-5 py-4 text-center">
+                                            <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                                                @brand.ProductCount sản phẩm
+                                            </span>
+                                        </td>
+                                        <td class="px-5 py-4 text-right">
+                                            <div class="flex justify-end gap-1">
+                                                <button @onclick="() => OpenEditModal(brand)" class="text-slate-400 hover:text-blue-600 transition p-2" title="Sửa">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
+                                                <button @onclick="() => ConfirmDelete(brand)" class="text-slate-400 hover:text-red-600 transition p-2" title="Xóa" disabled="@(brand.ProductCount > 0)">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @* Pagination *@
+                <div class="border-t border-slate-100 px-5 py-4 text-sm text-slate-600 flex items-center justify-between">
+                    <span>Trang @CurrentPage / @TotalPages</span>
+                    <div class="flex items-center gap-1">
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 transition"
+                                @onclick="GoToPreviousPage" disabled="@(!CanGoPrevious || IsLoading)">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </button>
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 transition"
+                                @onclick="GoToNextPage" disabled="@(!CanGoNext || IsLoading)">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="flex flex-col gap-4">
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sticky top-6">
+                <div class="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Thêm thương hiệu</h2>
+                        <p class="text-xs text-slate-500">Tạo thương hiệu mới</p>
+                    </div>
+                    <div class="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                        <i class="fa-solid fa-plus text-sm"></i>
+                    </div>
+                </div>
+
+                <EditForm Model="@NewBrand" OnValidSubmit="HandleCreateBrand" class="space-y-4">
+                    <DataAnnotationsValidator />
+
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Tên thương hiệu</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-building absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <InputText @bind-Value="NewBrand.Name" class="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition" placeholder="Ví dụ: Apple, Samsung..." />
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(CreateErrorMessage))
+                    {
+                        <div class="rounded-lg bg-red-50 p-3 border border-red-100">
+                            <p class="text-sm text-red-600">@CreateErrorMessage</p>
+                        </div>
+                    }
+
+                    <button type="submit" disabled="@IsSaving" class="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white shadow-sm hover:bg-slate-800 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                        @if (IsSaving)
+                        {
+                            <i class="fa-solid fa-spinner fa-spin"></i> <span>Đang lưu...</span>
+                        }
+                        else
+                        {
+                            <i class="fa-solid fa-check"></i> <span>Thêm thương hiệu</span>
+                        }
+                    </button>
+                </EditForm>
+            </div>
+        </section>
+    </div>
+</div>
+
+@* Edit Brand Modal *@
+@if (IsEditModalOpen)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @onclick="CloseEditModal">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4" @onclick:stopPropagation="true">
+            <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Sửa thương hiệu</h2>
+                    <p class="text-xs text-slate-500">Cập nhật thông tin thương hiệu</p>
+                </div>
+                <button @onclick="CloseEditModal" class="text-slate-400 hover:text-slate-600 transition p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5">
+                <EditForm Model="@EditBrand" OnValidSubmit="HandleUpdateBrand" class="space-y-4">
+                    <DataAnnotationsValidator />
+
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Tên thương hiệu</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-building absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <InputText @bind-Value="EditBrand.Name" class="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition" placeholder="Tên thương hiệu" />
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(EditErrorMessage))
+                    {
+                        <div class="rounded-lg bg-red-50 p-3 border border-red-100">
+                            <p class="text-sm text-red-600">@EditErrorMessage</p>
+                        </div>
+                    }
+
+                    <div class="flex gap-3 pt-2">
+                        <button type="button" @onclick="CloseEditModal" class="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+                            Hủy
+                        </button>
+                        <button type="submit" disabled="@IsUpdating" class="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-700 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                            @if (IsUpdating)
+                            {
+                                <i class="fa-solid fa-spinner fa-spin"></i> <span>Đang lưu...</span>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-check"></i> <span>Cập nhật</span>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@* Delete Confirm Modal *@
+@if (IsDeleteModalOpen)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @onclick="CloseDeleteModal">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4" @onclick:stopPropagation="true">
+            <div class="p-5 text-center">
+                <div class="mx-auto mb-4 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+                    <i class="fa-solid fa-trash text-red-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-2">Xóa thương hiệu</h3>
+                <p class="text-sm text-slate-500 mb-5">Bạn có chắc chắn muốn xóa thương hiệu <strong>@DeletingBrand?.Name</strong>?</p>
+
+                <div class="flex gap-3">
+                    <button @onclick="CloseDeleteModal" class="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+                        Hủy
+                    </button>
+                    <button @onclick="HandleDeleteBrand" disabled="@IsDeleting" class="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-red-700 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                        @if (IsDeleting)
+                        {
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                        }
+                        else
+                        {
+                            <i class="fa-solid fa-trash"></i> <span>Xóa</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<AdminBrandDto> BrandsData = new();
+    private CreateBrandDto NewBrand = new();
+    private bool IsLoading = true;
+    private bool IsSaving = false;
+    private int CurrentPage = 1;
+    private int PageSize = 10;
+    private int TotalBrands;
+    private int TotalPages => TotalBrands == 0 ? 1 : (int)Math.Ceiling(TotalBrands / (double)PageSize);
+    private bool CanGoPrevious => CurrentPage > 1;
+    private bool CanGoNext => TotalBrands > 0 && CurrentPage < TotalPages;
+
+    // Search
+    private string SearchTerm = string.Empty;
+    private System.Timers.Timer? _searchDebounceTimer;
+    private string? CreateErrorMessage = null;
+
+    // Edit modal
+    private bool IsEditModalOpen = false;
+    private bool IsUpdating = false;
+    private int EditingBrandId = 0;
+    private UpdateBrandDto EditBrand = new();
+    private string? EditErrorMessage = null;
+
+    // Delete modal
+    private bool IsDeleteModalOpen = false;
+    private bool IsDeleting = false;
+    private AdminBrandDto? DeletingBrand = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBrands();
+    }
+
+    private async Task LoadBrands()
+    {
+        IsLoading = true;
+        try
+        {
+            var result = await BrandService.GetBrandsAsync(CurrentPage, PageSize, SearchTerm);
+            BrandsData = new List<AdminBrandDto>(result.Items);
+            TotalBrands = result.TotalCount;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading brands: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void OnSearchInputChanged()
+    {
+        _searchDebounceTimer?.Stop();
+        _searchDebounceTimer?.Dispose();
+
+        _searchDebounceTimer = new System.Timers.Timer(300);
+        _searchDebounceTimer.Elapsed += async (sender, e) =>
+        {
+            _searchDebounceTimer?.Stop();
+            await InvokeAsync(async () =>
+            {
+                CurrentPage = 1;
+                await LoadBrands();
+                StateHasChanged();
+            });
+        };
+        _searchDebounceTimer.AutoReset = false;
+        _searchDebounceTimer.Start();
+    }
+
+    private async Task HandleCreateBrand()
+    {
+        if (string.IsNullOrWhiteSpace(NewBrand.Name))
+        {
+            CreateErrorMessage = "Vui lòng nhập tên thương hiệu.";
+            return;
+        }
+
+        IsSaving = true;
+        CreateErrorMessage = null;
+
+        try
+        {
+            var success = await BrandService.CreateBrandAsync(NewBrand);
+            if (success)
+            {
+                NewBrand = new();
+                CurrentPage = 1;
+                await LoadBrands();
+            }
+            else
+            {
+                CreateErrorMessage = "Thương hiệu này đã tồn tại.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating brand: {ex.Message}");
+            CreateErrorMessage = "Lỗi khi tạo thương hiệu.";
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+
+    private void OpenEditModal(AdminBrandDto brand)
+    {
+        EditingBrandId = brand.Id;
+        EditBrand = new UpdateBrandDto { Name = brand.Name };
+        EditErrorMessage = null;
+        IsEditModalOpen = true;
+    }
+
+    private void CloseEditModal()
+    {
+        IsEditModalOpen = false;
+        EditingBrandId = 0;
+        EditBrand = new();
+        EditErrorMessage = null;
+    }
+
+    private async Task HandleUpdateBrand()
+    {
+        if (string.IsNullOrWhiteSpace(EditBrand.Name))
+        {
+            EditErrorMessage = "Vui lòng nhập tên thương hiệu.";
+            return;
+        }
+
+        IsUpdating = true;
+        EditErrorMessage = null;
+
+        try
+        {
+            var success = await BrandService.UpdateBrandAsync(EditingBrandId, EditBrand);
+            if (success)
+            {
+                CloseEditModal();
+                await LoadBrands();
+            }
+            else
+            {
+                EditErrorMessage = "Thương hiệu này đã tồn tại.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating brand: {ex.Message}");
+            EditErrorMessage = "Lỗi khi cập nhật thương hiệu.";
+        }
+        finally
+        {
+            IsUpdating = false;
+        }
+    }
+
+    private void ConfirmDelete(AdminBrandDto brand)
+    {
+        if (brand.ProductCount > 0)
+            return;
+
+        DeletingBrand = brand;
+        IsDeleteModalOpen = true;
+    }
+
+    private void CloseDeleteModal()
+    {
+        IsDeleteModalOpen = false;
+        DeletingBrand = null;
+    }
+
+    private async Task HandleDeleteBrand()
+    {
+        if (DeletingBrand == null)
+            return;
+
+        IsDeleting = true;
+
+        try
+        {
+            var success = await BrandService.DeleteBrandAsync(DeletingBrand.Id);
+            if (success)
+            {
+                CloseDeleteModal();
+                await LoadBrands();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting brand: {ex.Message}");
+        }
+        finally
+        {
+            IsDeleting = false;
+        }
+    }
+
+    private async Task GoToPreviousPage()
+    {
+        if (!CanGoPrevious || IsLoading) return;
+        CurrentPage--;
+        await LoadBrands();
+    }
+
+    private async Task GoToNextPage()
+    {
+        if (!CanGoNext || IsLoading) return;
+        CurrentPage++;
+        await LoadBrands();
+    }
+}

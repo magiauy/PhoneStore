@@ -326,6 +326,116 @@
                             <InputTextArea @bind-Value="EditCustomer.Address" rows="3" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none" placeholder="Địa chỉ giao hàng..."></InputTextArea>
                         </div>
 
+                        @* Account Info Section *@
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                            <div class="flex items-center gap-2 mb-3">
+                                <i class="fa-solid fa-user-shield text-slate-500"></i>
+                                <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Thông tin tài khoản</span>
+                            </div>
+                            @if (CustomerAccountInfo == null)
+                            {
+                                <div class="flex items-center justify-center py-2">
+                                    <i class="fa-solid fa-spinner fa-spin text-slate-400"></i>
+                                </div>
+                            }
+                            else if (CustomerAccountInfo.HasAccount)
+                            {
+                                <div class="space-y-3 text-sm">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-slate-500">Tên đăng nhập:</span>
+                                        <span class="font-medium text-slate-900">@CustomerAccountInfo.Username</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-slate-500">Trạng thái:</span>
+                                        <div class="flex items-center gap-2">
+                                            @if (CustomerAccountInfo.IsActive)
+                                            {
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                                                    <i class="fa-solid fa-circle text-[6px]"></i> Đang hoạt động
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                                                    <i class="fa-solid fa-circle text-[6px]"></i> Đã khóa
+                                                </span>
+                                            }
+                                            <button type="button" @onclick="HandleToggleAccountStatus" disabled="@IsTogglingStatus"
+                                                    class="text-xs px-2 py-1 rounded-lg border transition @(CustomerAccountInfo.IsActive ? "border-red-200 text-red-600 hover:bg-red-50" : "border-green-200 text-green-600 hover:bg-green-50") disabled:opacity-50">
+                                                @if (IsTogglingStatus)
+                                                {
+                                                    <i class="fa-solid fa-spinner fa-spin"></i>
+                                                }
+                                                else if (CustomerAccountInfo.IsActive)
+                                                {
+                                                    <i class="fa-solid fa-lock"></i> <span>Khóa</span>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fa-solid fa-unlock"></i> <span>Mở khóa</span>
+                                                }
+                                            </button>
+                                        </div>
+                                    </div>
+                                    @if (CustomerAccountInfo.LastLogin.HasValue)
+                                    {
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-slate-500">Đăng nhập lần cuối:</span>
+                                            <span class="font-medium text-slate-700">@CustomerAccountInfo.LastLogin.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                        </div>
+                                    }
+
+                                    @* Change Password Section *@
+                                    <div class="pt-3 border-t border-slate-200">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="text-slate-500">Đổi mật khẩu:</span>
+                                            @if (!ShowPasswordChange)
+                                            {
+                                                <button type="button" @onclick="() => ShowPasswordChange = true" class="text-xs px-2 py-1 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition">
+                                                    <i class="fa-solid fa-key"></i> Đổi mật khẩu
+                                                </button>
+                                            }
+                                        </div>
+                                        @if (ShowPasswordChange)
+                                        {
+                                            <div class="space-y-2">
+                                                <div class="relative">
+                                                    <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                                    <input type="password" @bind="NewPassword" class="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Mật khẩu mới (tối thiểu 6 ký tự)" />
+                                                </div>
+                                                @if (!string.IsNullOrEmpty(PasswordChangeMessage))
+                                                {
+                                                    <p class="text-xs @(PasswordChangeSuccess ? "text-green-600" : "text-red-600")">@PasswordChangeMessage</p>
+                                                }
+                                                <div class="flex gap-2">
+                                                    <button type="button" @onclick="() => { ShowPasswordChange = false; NewPassword = string.Empty; PasswordChangeMessage = null; }" class="flex-1 text-xs py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition">
+                                                        Hủy
+                                                    </button>
+                                                    <button type="button" @onclick="HandleChangePassword" disabled="@IsChangingPassword" class="flex-1 text-xs py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center gap-1">
+                                                        @if (IsChangingPassword)
+                                                        {
+                                                            <i class="fa-solid fa-spinner fa-spin"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="fa-solid fa-save"></i> <span>Lưu</span>
+                                                        }
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="flex items-center gap-2 text-sm text-slate-500">
+                                    <i class="fa-solid fa-circle-info text-amber-500"></i>
+                                    <span>Khách hàng này chưa có tài khoản đăng nhập</span>
+                                </div>
+                            }
+                        </div>
+
                         @if (!string.IsNullOrEmpty(EditErrorMessage))
                         {
                             <div class="rounded-lg bg-red-50 p-3 border border-red-100">
@@ -380,6 +490,15 @@
     private int EditingCustomerId = 0;
     private UpdateCustomerDto EditCustomer = new();
     private string? EditErrorMessage = null;
+    private CustomerAccountInfoDto? CustomerAccountInfo = null;
+
+    // Account management state
+    private bool ShowPasswordChange = false;
+    private string NewPassword = string.Empty;
+    private bool IsChangingPassword = false;
+    private string? PasswordChangeMessage = null;
+    private bool PasswordChangeSuccess = false;
+    private bool IsTogglingStatus = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -444,7 +563,8 @@
         IsEditModalOpen = true;
         IsLoadingEditCustomer = true;
         EditErrorMessage = null;
-        
+        CustomerAccountInfo = null;
+
         try
         {
             var customer = await CustomerService.GetCustomerByIdAsync(customerId);
@@ -457,6 +577,9 @@
                     Email = customer.Email,
                     Address = customer.Address
                 };
+
+                // Load account info
+                CustomerAccountInfo = await CustomerService.GetCustomerAccountAsync(customerId);
             }
             else
             {
@@ -473,13 +596,19 @@
             IsLoadingEditCustomer = false;
         }
     }
-    
+
     private void CloseEditModal()
     {
         IsEditModalOpen = false;
         EditingCustomerId = 0;
         EditCustomer = new();
         EditErrorMessage = null;
+        CustomerAccountInfo = null;
+        // Reset account management state
+        ShowPasswordChange = false;
+        NewPassword = string.Empty;
+        PasswordChangeMessage = null;
+        PasswordChangeSuccess = false;
     }
     
     private async Task HandleUpdateCustomer()
@@ -615,6 +744,88 @@ private async Task OnPageInputChanged(ChangeEventArgs e)
             PageSize = newPageSize;
             CurrentPage = 1; // Reset về trang 1 khi đổi số lượng dòng
             await LoadCustomers();
+        }
+    }
+
+    private async Task HandleChangePassword()
+    {
+        if (string.IsNullOrWhiteSpace(NewPassword))
+        {
+            PasswordChangeMessage = "Vui lòng nhập mật khẩu mới.";
+            PasswordChangeSuccess = false;
+            return;
+        }
+
+        if (NewPassword.Length < 6)
+        {
+            PasswordChangeMessage = "Mật khẩu phải có ít nhất 6 ký tự.";
+            PasswordChangeSuccess = false;
+            return;
+        }
+
+        IsChangingPassword = true;
+        PasswordChangeMessage = null;
+
+        try
+        {
+            var success = await CustomerService.UpdateAccountPasswordAsync(EditingCustomerId, NewPassword);
+            if (success)
+            {
+                PasswordChangeMessage = "Đổi mật khẩu thành công!";
+                PasswordChangeSuccess = true;
+                NewPassword = string.Empty;
+                // Auto hide after 2 seconds
+                _ = Task.Delay(2000).ContinueWith(_ =>
+                {
+                    InvokeAsync(() =>
+                    {
+                        ShowPasswordChange = false;
+                        PasswordChangeMessage = null;
+                        StateHasChanged();
+                    });
+                });
+            }
+            else
+            {
+                PasswordChangeMessage = "Không thể đổi mật khẩu. Vui lòng thử lại.";
+                PasswordChangeSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error changing password: {ex.Message}");
+            PasswordChangeMessage = "Lỗi khi đổi mật khẩu.";
+            PasswordChangeSuccess = false;
+        }
+        finally
+        {
+            IsChangingPassword = false;
+        }
+    }
+
+    private async Task HandleToggleAccountStatus()
+    {
+        if (CustomerAccountInfo == null || !CustomerAccountInfo.HasAccount)
+            return;
+
+        IsTogglingStatus = true;
+
+        try
+        {
+            var success = await CustomerService.ToggleAccountStatusAsync(EditingCustomerId);
+            if (success)
+            {
+                // Reload account info to reflect the change
+                CustomerAccountInfo = await CustomerService.GetCustomerAccountAsync(EditingCustomerId);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error toggling account status: {ex.Message}");
+        }
+        finally
+        {
+            IsTogglingStatus = false;
         }
     }
 

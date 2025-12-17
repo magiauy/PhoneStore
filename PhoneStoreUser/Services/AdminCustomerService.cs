@@ -247,11 +247,11 @@ public async Task<PagedResult<AdminCustomerDto>> GetCustomersAsync(int page, int
     private async Task<string> GenerateCustomerCode(AppDbContext context)
     {
         // Simple generation: KH + timestamp or increment
-        // For better approach, we could check max code. 
-        // Here using a simple random/time based for uniqueness or just KH{Id} after save? 
+        // For better approach, we could check max code.
+        // Here using a simple random/time based for uniqueness or just KH{Id} after save?
         // But we need code before save if it's required unique.
         // Let's try KH + Random for now or check latest.
-        
+
         var lastPerson = await context.Persons
             .Where(p => p.PersonType == "CUSTOMER" && p.Code != null && p.Code.StartsWith("KH"))
             .OrderByDescending(p => p.Id)
@@ -267,5 +267,70 @@ public async Task<PagedResult<AdminCustomerDto>> GetCustomersAsync(int page, int
         }
 
         return $"KH{nextNum:D6}";
+    }
+
+    public async Task<CustomerAccountInfoDto?> GetCustomerAccountAsync(int personId)
+    {
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+
+        var account = await context.Accounts
+            .AsNoTracking()
+            .Where(a => a.PersonId == personId)
+            .Select(a => new CustomerAccountInfoDto
+            {
+                HasAccount = true,
+                Username = a.Username,
+                LastLogin = a.LastLogin,
+                IsActive = a.IsActive
+            })
+            .FirstOrDefaultAsync();
+
+        if (account == null)
+        {
+            return new CustomerAccountInfoDto
+            {
+                HasAccount = false,
+                Username = null,
+                LastLogin = null,
+                IsActive = false
+            };
+        }
+
+        return account;
+    }
+
+    public async Task<bool> UpdateAccountPasswordAsync(int personId, string newPassword)
+    {
+        if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
+            return false;
+
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+
+        var account = await context.Accounts
+            .FirstOrDefaultAsync(a => a.PersonId == personId);
+
+        if (account == null)
+            return false;
+
+        account.Password = Utils.PasswordHasher.HashPassword(newPassword);
+        await context.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<bool> ToggleAccountStatusAsync(int personId)
+    {
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+
+        var account = await context.Accounts
+            .FirstOrDefaultAsync(a => a.PersonId == personId);
+
+        if (account == null)
+            return false;
+
+        account.IsActive = !account.IsActive;
+        await context.SaveChangesAsync();
+
+        return true;
     }
 }

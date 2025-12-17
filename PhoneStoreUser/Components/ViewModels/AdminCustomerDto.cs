@@ -28,3 +28,12 @@ public class UpdateCustomerDto
     public string Email { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
 }
+
+public class CustomerAccountInfoDto
+{
+    public bool HasAccount { get; set; }
+    public string? Username { get; set; }
+    public DateTime? LastLogin { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public bool IsActive { get; set; }
+}

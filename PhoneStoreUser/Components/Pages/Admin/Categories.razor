@@ -1,0 +1,541 @@
+@page "/admin/categories"
+@layout AdminLayout
+@using PhoneStoreUser.Services
+@inject IAdminCategoryService CategoryService
+
+<div class="space-y-6 bg-gray-50/50 p-6 min-h-screen font-sans">
+
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Danh mục sản phẩm</h1>
+            <p class="text-sm text-slate-500">Quản lý các danh mục và phân loại sản phẩm.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="relative flex-1 sm:flex-none">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input @bind="SearchTerm" @bind:event="oninput" @onkeyup="OnSearchInputChanged"
+                       class="w-full sm:w-72 rounded-xl border border-slate-200 py-2.5 pl-9 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm"
+                       placeholder="Tìm danh mục..." />
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+        <section class="lg:col-span-2 flex flex-col gap-4">
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col h-full">
+                <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                    <h2 class="text-base font-bold text-slate-900">Danh sách danh mục</h2>
+                    <span class="text-sm text-slate-500">@TotalCategories danh mục</span>
+                </div>
+
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50/50 text-xs uppercase font-semibold text-slate-500">
+                            <tr>
+                                <th class="px-5 py-4">ID</th>
+                                <th class="px-5 py-4">Tên danh mục</th>
+                                <th class="px-5 py-4">Danh mục cha</th>
+                                <th class="px-5 py-4 text-center">Số sản phẩm</th>
+                                <th class="px-5 py-4 text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            @if (IsLoading)
+                            {
+                                @for (int i = 0; i < PageSize; i++)
+                                {
+                                    <tr class="animate-pulse">
+                                        <td class="px-5 py-4"><div class="h-4 w-12 rounded bg-slate-200"></div></td>
+                                        <td class="px-5 py-4"><div class="h-4 w-32 rounded bg-slate-200"></div></td>
+                                        <td class="px-5 py-4"><div class="h-4 w-24 rounded bg-slate-200"></div></td>
+                                        <td class="px-5 py-4 text-center"><div class="h-4 w-8 mx-auto rounded bg-slate-200"></div></td>
+                                        <td class="px-5 py-4 text-right"><div class="h-4 w-16 ml-auto rounded bg-slate-200"></div></td>
+                                    </tr>
+                                }
+                            }
+                            else if (!CategoriesData.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="px-5 py-12 text-center">
+                                        <div class="flex flex-col items-center justify-center gap-2 text-slate-500">
+                                            <i class="fa-solid fa-folder-tree text-3xl text-slate-300"></i>
+                                            <p>Chưa có danh mục nào.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var category in CategoriesData)
+                                {
+                                    <tr class="hover:bg-slate-50/80 transition-colors group">
+                                        <td class="px-5 py-4 font-medium text-slate-900">@category.Id</td>
+                                        <td class="px-5 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="h-8 w-8 shrink-0 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+                                                    <i class="fa-solid fa-folder text-sm"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="font-semibold text-slate-900">@category.Name</span>
+                                                    @if (!string.IsNullOrEmpty(category.Note))
+                                                    {
+                                                        <p class="text-xs text-slate-400 truncate max-w-[200px]">@category.Note</p>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-5 py-4">
+                                            @if (!string.IsNullOrEmpty(category.ParentName))
+                                            {
+                                                <span class="inline-flex items-center gap-1 text-slate-600">
+                                                    <i class="fa-solid fa-folder-open text-xs text-slate-400"></i>
+                                                    @category.ParentName
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-slate-400">-</span>
+                                            }
+                                        </td>
+                                        <td class="px-5 py-4 text-center">
+                                            <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                                                @category.ProductCount
+                                            </span>
+                                        </td>
+                                        <td class="px-5 py-4 text-right">
+                                            <div class="flex justify-end gap-1">
+                                                <button @onclick="() => OpenEditModal(category)" class="text-slate-400 hover:text-blue-600 transition p-2" title="Sửa">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
+                                                <button @onclick="() => ConfirmDelete(category)" class="text-slate-400 hover:text-red-600 transition p-2" title="Xóa" disabled="@(category.ProductCount > 0)">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @* Pagination *@
+                <div class="border-t border-slate-100 px-5 py-4 text-sm text-slate-600 flex items-center justify-between">
+                    <span>Trang @CurrentPage / @TotalPages</span>
+                    <div class="flex items-center gap-1">
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 transition"
+                                @onclick="GoToPreviousPage" disabled="@(!CanGoPrevious || IsLoading)">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </button>
+                        <button class="flex h-8 w-8 items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 transition"
+                                @onclick="GoToNextPage" disabled="@(!CanGoNext || IsLoading)">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="flex flex-col gap-4">
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sticky top-6">
+                <div class="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Thêm danh mục</h2>
+                        <p class="text-xs text-slate-500">Tạo danh mục mới</p>
+                    </div>
+                    <div class="h-8 w-8 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
+                        <i class="fa-solid fa-plus text-sm"></i>
+                    </div>
+                </div>
+
+                <EditForm Model="@NewCategory" OnValidSubmit="HandleCreateCategory" class="space-y-4">
+                    <DataAnnotationsValidator />
+
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Tên danh mục</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-folder absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <InputText @bind-Value="NewCategory.Name" class="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition" placeholder="Ví dụ: Điện thoại, Phụ kiện..." />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Danh mục cha (tùy chọn)</label>
+                        <select @bind="NewCategory.ParentId" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <option value="">-- Không có --</option>
+                            @foreach (var cat in AllCategories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Ghi chú</label>
+                        <InputTextArea @bind-Value="NewCategory.Note" rows="2" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none" placeholder="Mô tả danh mục..."></InputTextArea>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(CreateErrorMessage))
+                    {
+                        <div class="rounded-lg bg-red-50 p-3 border border-red-100">
+                            <p class="text-sm text-red-600">@CreateErrorMessage</p>
+                        </div>
+                    }
+
+                    <button type="submit" disabled="@IsSaving" class="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white shadow-sm hover:bg-slate-800 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                        @if (IsSaving)
+                        {
+                            <i class="fa-solid fa-spinner fa-spin"></i> <span>Đang lưu...</span>
+                        }
+                        else
+                        {
+                            <i class="fa-solid fa-check"></i> <span>Thêm danh mục</span>
+                        }
+                    </button>
+                </EditForm>
+            </div>
+        </section>
+    </div>
+</div>
+
+@* Edit Category Modal *@
+@if (IsEditModalOpen)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @onclick="CloseEditModal">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4" @onclick:stopPropagation="true">
+            <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Sửa danh mục</h2>
+                    <p class="text-xs text-slate-500">Cập nhật thông tin danh mục</p>
+                </div>
+                <button @onclick="CloseEditModal" class="text-slate-400 hover:text-slate-600 transition p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5">
+                <EditForm Model="@EditCategory" OnValidSubmit="HandleUpdateCategory" class="space-y-4">
+                    <DataAnnotationsValidator />
+
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Tên danh mục</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-folder absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <InputText @bind-Value="EditCategory.Name" class="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition" placeholder="Tên danh mục" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Danh mục cha</label>
+                        <select @bind="EditCategory.ParentId" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <option value="">-- Không có --</option>
+                            @foreach (var cat in AllCategories.Where(c => c.Id != EditingCategoryId))
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700 uppercase tracking-wide">Ghi chú</label>
+                        <InputTextArea @bind-Value="EditCategory.Note" rows="2" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none" placeholder="Mô tả..."></InputTextArea>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(EditErrorMessage))
+                    {
+                        <div class="rounded-lg bg-red-50 p-3 border border-red-100">
+                            <p class="text-sm text-red-600">@EditErrorMessage</p>
+                        </div>
+                    }
+
+                    <div class="flex gap-3 pt-2">
+                        <button type="button" @onclick="CloseEditModal" class="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+                            Hủy
+                        </button>
+                        <button type="submit" disabled="@IsUpdating" class="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-700 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                            @if (IsUpdating)
+                            {
+                                <i class="fa-solid fa-spinner fa-spin"></i> <span>Đang lưu...</span>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-check"></i> <span>Cập nhật</span>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@* Delete Confirm Modal *@
+@if (IsDeleteModalOpen)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @onclick="CloseDeleteModal">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4" @onclick:stopPropagation="true">
+            <div class="p-5 text-center">
+                <div class="mx-auto mb-4 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+                    <i class="fa-solid fa-trash text-red-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-2">Xóa danh mục</h3>
+                <p class="text-sm text-slate-500 mb-5">Bạn có chắc chắn muốn xóa danh mục <strong>@DeletingCategory?.Name</strong>?</p>
+
+                <div class="flex gap-3">
+                    <button @onclick="CloseDeleteModal" class="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+                        Hủy
+                    </button>
+                    <button @onclick="HandleDeleteCategory" disabled="@IsDeleting" class="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-red-700 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                        @if (IsDeleting)
+                        {
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                        }
+                        else
+                        {
+                            <i class="fa-solid fa-trash"></i> <span>Xóa</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<AdminCategoryDto> CategoriesData = new();
+    private List<AdminCategoryDto> AllCategories = new();
+    private CreateCategoryDto NewCategory = new();
+    private bool IsLoading = true;
+    private bool IsSaving = false;
+    private int CurrentPage = 1;
+    private int PageSize = 10;
+    private int TotalCategories;
+    private int TotalPages => TotalCategories == 0 ? 1 : (int)Math.Ceiling(TotalCategories / (double)PageSize);
+    private bool CanGoPrevious => CurrentPage > 1;
+    private bool CanGoNext => TotalCategories > 0 && CurrentPage < TotalPages;
+
+    // Search
+    private string SearchTerm = string.Empty;
+    private System.Timers.Timer? _searchDebounceTimer;
+    private string? CreateErrorMessage = null;
+
+    // Edit modal
+    private bool IsEditModalOpen = false;
+    private bool IsUpdating = false;
+    private int EditingCategoryId = 0;
+    private UpdateCategoryDto EditCategory = new();
+    private string? EditErrorMessage = null;
+
+    // Delete modal
+    private bool IsDeleteModalOpen = false;
+    private bool IsDeleting = false;
+    private AdminCategoryDto? DeletingCategory = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAllCategories();
+        await LoadCategories();
+    }
+
+    private async Task LoadAllCategories()
+    {
+        try
+        {
+            AllCategories = await CategoryService.GetAllCategoriesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading all categories: {ex.Message}");
+        }
+    }
+
+    private async Task LoadCategories()
+    {
+        IsLoading = true;
+        try
+        {
+            var result = await CategoryService.GetCategoriesAsync(CurrentPage, PageSize, SearchTerm);
+            CategoriesData = new List<AdminCategoryDto>(result.Items);
+            TotalCategories = result.TotalCount;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading categories: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void OnSearchInputChanged()
+    {
+        _searchDebounceTimer?.Stop();
+        _searchDebounceTimer?.Dispose();
+
+        _searchDebounceTimer = new System.Timers.Timer(300);
+        _searchDebounceTimer.Elapsed += async (sender, e) =>
+        {
+            _searchDebounceTimer?.Stop();
+            await InvokeAsync(async () =>
+            {
+                CurrentPage = 1;
+                await LoadCategories();
+                StateHasChanged();
+            });
+        };
+        _searchDebounceTimer.AutoReset = false;
+        _searchDebounceTimer.Start();
+    }
+
+    private async Task HandleCreateCategory()
+    {
+        if (string.IsNullOrWhiteSpace(NewCategory.Name))
+        {
+            CreateErrorMessage = "Vui lòng nhập tên danh mục.";
+            return;
+        }
+
+        IsSaving = true;
+        CreateErrorMessage = null;
+
+        try
+        {
+            var success = await CategoryService.CreateCategoryAsync(NewCategory);
+            if (success)
+            {
+                NewCategory = new();
+                CurrentPage = 1;
+                await LoadAllCategories();
+                await LoadCategories();
+            }
+            else
+            {
+                CreateErrorMessage = "Danh mục này đã tồn tại.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating category: {ex.Message}");
+            CreateErrorMessage = "Lỗi khi tạo danh mục.";
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+
+    private void OpenEditModal(AdminCategoryDto category)
+    {
+        EditingCategoryId = category.Id;
+        EditCategory = new UpdateCategoryDto
+        {
+            Name = category.Name,
+            ParentId = category.ParentId,
+            Note = category.Note
+        };
+        EditErrorMessage = null;
+        IsEditModalOpen = true;
+    }
+
+    private void CloseEditModal()
+    {
+        IsEditModalOpen = false;
+        EditingCategoryId = 0;
+        EditCategory = new();
+        EditErrorMessage = null;
+    }
+
+    private async Task HandleUpdateCategory()
+    {
+        if (string.IsNullOrWhiteSpace(EditCategory.Name))
+        {
+            EditErrorMessage = "Vui lòng nhập tên danh mục.";
+            return;
+        }
+
+        IsUpdating = true;
+        EditErrorMessage = null;
+
+        try
+        {
+            var success = await CategoryService.UpdateCategoryAsync(EditingCategoryId, EditCategory);
+            if (success)
+            {
+                CloseEditModal();
+                await LoadAllCategories();
+                await LoadCategories();
+            }
+            else
+            {
+                EditErrorMessage = "Danh mục này đã tồn tại hoặc không thể cập nhật.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating category: {ex.Message}");
+            EditErrorMessage = "Lỗi khi cập nhật danh mục.";
+        }
+        finally
+        {
+            IsUpdating = false;
+        }
+    }
+
+    private void ConfirmDelete(AdminCategoryDto category)
+    {
+        if (category.ProductCount > 0)
+            return;
+
+        DeletingCategory = category;
+        IsDeleteModalOpen = true;
+    }
+
+    private void CloseDeleteModal()
+    {
+        IsDeleteModalOpen = false;
+        DeletingCategory = null;
+    }
+
+    private async Task HandleDeleteCategory()
+    {
+        if (DeletingCategory == null)
+            return;
+
+        IsDeleting = true;
+
+        try
+        {
+            var success = await CategoryService.DeleteCategoryAsync(DeletingCategory.Id);
+            if (success)
+            {
+                CloseDeleteModal();
+                await LoadAllCategories();
+                await LoadCategories();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting category: {ex.Message}");
+        }
+        finally
+        {
+            IsDeleting = false;
+        }
+    }
+
+    private async Task GoToPreviousPage()
+    {
+        if (!CanGoPrevious || IsLoading) return;
+        CurrentPage--;
+        await LoadCategories();
+    }
+
+    private async Task GoToNextPage()
+    {
+        if (!CanGoNext || IsLoading) return;
+        CurrentPage++;
+        await LoadCategories();
+    }
+}
