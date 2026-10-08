@@ -18,7 +18,6 @@ namespace PhoneStoreRepository.Data
             var password = dbConfig["Password"];
 
             _connectionString = $"Server={host};Port={port};Database={database};User ID={user};Password={password};SslMode=Preferred;ConvertZeroDateTime=True;";
-            Console.WriteLine(_connectionString);
         }
 
         public MySqlConnection GetConnection()

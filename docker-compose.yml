@@ -4,15 +4,15 @@ services:
     container_name: phonestore-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: REMOVED_SECRET
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
       MYSQL_DATABASE: bandienthoai
     ports:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./PhoneStoreUser/Data/Mysql/init:/docker-entrypoint-initdb.d
+      - ./PhoneStoreUser/Data/Mysql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pREMOVED_SECRET"]
+      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_ROOT_PASSWORD" mysqladmin ping -h localhost -u root']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -21,6 +21,9 @@ services:
       - phonestore-network
 
   phonestoreuser:
+    build:
+      context: .
+      dockerfile: PhoneStoreUser/Dockerfile
     image: magiauy/phonestoreuser:latest
     container_name: phonestore-user
     restart: unless-stopped
@@ -29,11 +32,19 @@ services:
       - "8081:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - Cloudinary__CloudName=${Cloudinary__CloudName:-}
+      - Cloudinary__ApiKey=${Cloudinary__ApiKey:-}
+      - Cloudinary__ApiSecret=${Cloudinary__ApiSecret:-}
+      - PayOS__ClientId=${PayOS__ClientId:-}
+      - PayOS__ApiKey=${PayOS__ApiKey:-}
+      - PayOS__ChecksumKey=${PayOS__ChecksumKey:-}
+      - PayOS__ReturnUrl=${PayOS__ReturnUrl:-https://localhost:5002/api/payos/return}
+      - PayOS__CallbackUrl=${PayOS__CallbackUrl:-https://localhost:5002/api/payos/callback}
       - Database__Host=mysql
       - Database__Port=3306
       - Database__Database=bandienthoai
       - Database__User=root
-      - Database__Password=REMOVED_SECRET
+      - Database__Password=${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
     depends_on:
       mysql:
         condition: service_healthy

@@ -35,3 +35,20 @@ publish/
 appsettings.*.json
 appsettings.json
 !appsettings.example.json
+
+# Private local configuration and security tooling
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+*.pem
+*.pubxml.user
+.security-private/
+user.txt
+data-miniSize.sql
+PhoneStoreUser/Data/Mysql/init/db.sql
+PhoneStoreAdmin/Database/scheme.sql
+PhoneStoreAdmin/Database/product.sql
+PhoneStoreUser/appsetting.example.json
