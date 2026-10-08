@@ -36,14 +36,13 @@ Tài liệu này liệt kê toàn bộ các URL trang web và API endpoints củ
 | 2 | `/products` | Products.razor | Danh sách sản phẩm |
 | 3 | `/product/{slug}/{sku?}` | ProductDetail.razor | Chi tiết sản phẩm (với slug và SKU tùy chọn) |
 | 4 | `/login` | Login.razor | Đăng nhập người dùng |
-| 5 | `/register` | Register.razor | Đăng ký tài khoản |
-| 6 | `/cart` | Cart.razor | Giỏ hàng |
-| 7 | `/order-success` | OrderSuccess.razor | Thông báo đặt hàng thành công |
-| 8 | `/order-error` | OrderError.razor | Thông báo lỗi đặt hàng |
-| 9 | `/order-cancel` | OrderCancel.razor | Thông báo hủy đơn hàng |
-| 10 | `/Error` | Error.razor | Trang lỗi hệ thống |
-| 11 | `/counter` | Counter.razor | Demo counter (development) |
-| 12 | `/weather` | Weather.razor | Demo weather (development) |
+| 5 | `/cart` | Cart.razor | Giỏ hàng |
+| 6 | `/order-success` | OrderSuccess.razor | Thông báo đặt hàng thành công |
+| 7 | `/order-error` | OrderError.razor | Thông báo lỗi đặt hàng |
+| 8 | `/order-cancel` | OrderCancel.razor | Thông báo hủy đơn hàng |
+| 9 | `/Error` | Error.razor | Trang lỗi hệ thống |
+| 10 | `/counter` | Counter.razor | Demo counter (development) |
+| 11 | `/weather` | Weather.razor | Demo weather (development) |
 | 13 | `/tailwind-test` | TailwindTest.razor | Test Tailwind CSS (development) |
 
 ---
@@ -364,7 +363,6 @@ Cấu hình trong `appsettings.json`:
 ├── /order-error                     ← Kết quả đặt hàng lỗi
 ├── /order-cancel                    ← Kết quả hủy đơn hàng
 ├── /login                           ← Đăng nhập
-├── /register                        ← Đăng ký
 ├── /Error                           ← Trang lỗi
 │
 ├── /api/payos/                      ← PayOS API

@@ -1,0 +1,10 @@
+services:
+  phonestoreuser:
+    build:
+      context: .
+      dockerfile: PhoneStoreUser/Dockerfile
+    ports: !override
+      - "8090:8080"
+  mysql:
+    ports: !override
+      - "3310:3306"
